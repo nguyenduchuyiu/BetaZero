@@ -18,7 +18,7 @@ from typing import List, Dict, Any, Tuple
 
 from prover.lean.verifier import verify_lean4_file, Lean4ServerScheduler
 from utils.syntax_repair import SyntaxCorrector
-from utils.auto_sorrifier import AutoSorrifier, PersistentASTDaemon, REPL_DIR
+from utils.auto_sorrifier import AutoSorrifier, REPL_DIR
 from utils.proof_state_extractor import extract_queries
 
 
@@ -152,7 +152,7 @@ class ScoredProof:
 # 3. PIPELINE STAGES
 # ===========================================================================
 
-def _sorrify_one(idx: int, code: str, verifier: Lean4ServerScheduler, ast_server: PersistentASTDaemon) -> ScoredProof:
+def _sorrify_one(idx: int, code: str, verifier: Lean4ServerScheduler) -> ScoredProof:
     """Sorrify one candidate (no prior verify), dùng chung verifier + AST daemon."""
     sp = ScoredProof(
         idx=idx,
@@ -176,7 +176,7 @@ def _sorrify_one(idx: int, code: str, verifier: Lean4ServerScheduler, ast_server
             return sp
     try:
         code_corrected = SyntaxCorrector(code).correct_text()
-        checker = AutoSorrifier(code_corrected, ast_server, verifier, max_cycles=50)
+        checker = AutoSorrifier(code_corrected, verifier, max_cycles=50)
         sorrified = checker.fix_code()
         sp.sorrified_code = sorrified
         lines = [l.strip() for l in sorrified.splitlines() if l.strip()]
@@ -222,7 +222,6 @@ def select_and_extract(
     verify_timeout: int = 300,
     max_workers: int = 2,
     verifier: "Lean4ServerScheduler | None" = None,
-    ast_server: "PersistentASTDaemon | None" = None,
 ) -> Dict:
     """Orchestrates pipeline: Sorrify all -> Verify -> Extract from passing."""
     
@@ -233,13 +232,10 @@ def select_and_extract(
         break
     
     _own_verifier = verifier is None
-    _own_ast = ast_server is None
 
     if _own_verifier:
-        print(f"\nInitializing Verifier Pool (max_workers={max_workers}) and AST Daemon...")
+        print(f"\nInitializing Verifier Pool (max_workers={max_workers})...")
         verifier = Lean4ServerScheduler(max_concurrent_requests=max_workers, timeout=verify_timeout, memory_limit=-1, name="proof_selector")
-    if _own_ast:
-        ast_server = PersistentASTDaemon(REPL_DIR)
 
     try:
         # --- Stage 1: Sorrify all (no prior verify) ---
@@ -248,7 +244,7 @@ def select_and_extract(
 
         # Sử dụng ThreadPool; việc nặng đã nằm trong các process con của Lean
         with ThreadPoolExecutor(max_workers=max_workers) as pool:
-            futures = {pool.submit(_sorrify_one, idx, code, verifier, ast_server): idx for idx, code in enumerate(codes)}
+            futures = {pool.submit(_sorrify_one, idx, code, verifier): idx for idx, code in enumerate(codes)}
             for fut in as_completed(futures):
                 idx = futures[fut]
                 try:
@@ -337,8 +333,6 @@ def select_and_extract(
     finally:
         if _own_verifier:
             verifier.close()
-        if _own_ast:
-            ast_server.close()
 
 
 # ===========================================================================

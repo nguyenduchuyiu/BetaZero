@@ -1,18 +1,53 @@
-from prover.lean.verifier import verify_lean4_file, Lean4ServerScheduler
-from utils.auto_sorrifier import AutoSorrifier, PersistentASTDaemon, REPL_DIR
+from prover.lean.verifier import Lean4ServerScheduler
+from utils.auto_sorrifier import AutoSorrifier, AST_DAEMON, REPL_DIR
 from utils.syntax_repair import SyntaxCorrector
 import os
 import tempfile
 from datetime import datetime
 
 code = '''
-theorem chain_example (a : Nat) : a = a := by
-  have h1 : a = a := rfl
-  have h2 : a = a := h1
-  have h3 : a = a := sorry        -- unused
-  have h4 : a = a := h2
-  have h5 : a = a := h4
-  exact h5
+import Mathlib
+set_option maxHeartbeats 0
+open BigOperators Real Nat Topology Rat
+
+theorem log_b_clean (a b : ℝ) 
+  (h₀ : Real.logb 8 a + Real.logb 4 (b ^ 2) = 5)
+  (h₁ : Real.logb 8 b + Real.logb 4 (a ^ 2) = 7)
+  : a * b = 512 := by
+  -- Step 1: Convert Logarithms to Base 2
+  -- Step 2: Simplify the Equations
+  -- Step 3: Introduce Variables for Simplification
+  -- Step 4: Solve the System of Equations
+  -- Step 5: Exponentiate to Find a and b
+  -- Step 6: Calculate the Product a * b
+  have h1 : (1/3 : ℝ) * Real.logb 2 a + Real.logb 2 b = 5 := by
+    -- Step 1 and 2: Convert and simplify the logarithmic expressions
+    field_simp [Real.logb, log_mul, mul_add, mul_comm, mul_left_comm] at h1 ⊢
+    -- Step 3: Introduce variables for simplification
+    ring_nf at h1 ⊢
+    -- Step 4: Solve the system of equations using linarith
+    linarith
+  have h2 : (1/3 : ℝ) * Real.logb 2 b + Real.logb 2 a = 7 := by
+    -- Step 1 and 2: Convert and simplify the logarithmic expressions
+    field_simp [Real.logb, log_mul, mul_add, mul_comm, mul_left_comm] at h2 ⊢
+    -- Step 3: Introduce variables for simplification
+    ring_nf at h2 ⊢
+    -- Step 4: Solve the system of equations using linarith
+    linarith
+  -- Step 5 and 6: Calculate the product a * b and verify it equals 512
+  have h3 : a * b = 512 := by
+    -- Use the properties of logarithms and arithmetic to solve for a and b
+    have h4 : a = 64 := by
+      -- Solve for a using the simplified equations
+      nlinarith
+    have h5 : b = 8 := by
+      -- Solve for b using the simplified equations
+      nlinarith
+    -- Calculate the product a * b
+    rw [h4, h5]
+    norm_num
+  -- Final verification that a * b = 512
+  exact h3
 
 '''
 
@@ -54,8 +89,7 @@ def find_unused_haves(ast, code):
 os.makedirs("output", exist_ok=True)
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 output_file = f"output/subgoalex.md"
-ast_server = PersistentASTDaemon(REPL_DIR)
-verifier = Lean4ServerScheduler(max_concurrent_requests=1, name='auto_sorrifier')
+verifier = Lean4ServerScheduler(max_concurrent_requests=16, name='auto_sorrifier')
 with open(output_file, "w", encoding="utf-8") as f:
     f.write(f"# Proof Analysis Report\n\n")
     f.write(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
@@ -75,7 +109,8 @@ with open(output_file, "w", encoding="utf-8") as f:
     # code_corrected = code
     
     f.write("## Initial Verification\n\n")
-    r = verify_lean4_file(code_corrected, timeout=120)
+    r = verifier.submit_all_request([dict(code=code_corrected, timeout=120)])
+    r = verifier.get_all_request_outputs(r)[0]
     f.write(f"**Status:** {'✅ PASS' if r['pass'] else '❌ FAIL'}\n\n")
     
     if not r['pass'] and r.get('errors'):
@@ -85,7 +120,7 @@ with open(output_file, "w", encoding="utf-8") as f:
         f.write("\n```\n\n")
 
     f.write("## Sorrification Process\n\n")
-    checker = AutoSorrifier(code_corrected, ast_server, verifier, max_cycles=50)
+    checker = AutoSorrifier(code_corrected, verifier, max_cycles=50)
     result = checker.fix_code()
 
     f.write("### Sorrified Result\n\n")
@@ -105,7 +140,8 @@ with open(output_file, "w", encoding="utf-8") as f:
     # f.write("\n```\n\n")
 
     # Verify final result
-    final_check = verify_lean4_file(final_code, timeout=120)
+    final_check = verifier.submit_all_request([dict(code=final_code, timeout=120)])
+    final_check = verifier.get_all_request_outputs(final_check)[0]
     f.write("## Final Verification\n\n")
     f.write(f"- **Pass:** {'Yes' if final_check['pass'] else 'No'}\n")
     f.write(f"- **Complete:** {'Yes' if final_check.get('complete', False) else 'No'}\n")
@@ -124,7 +160,7 @@ with open(output_file, "w", encoding="utf-8") as f:
             ) as tf:
                 tf.write(final_code)
                 tmp_path = tf.name
-            blocks = ast_server.get_ast(tmp_path)
+            blocks = AST_DAEMON.get_ast(tmp_path)
             unused = find_unused_haves(blocks, final_code)
             if unused:
                 msg = f"WARNING: unused have(s): {sorted(unused)}"
@@ -167,7 +203,6 @@ with open(output_file, "w", encoding="utf-8") as f:
         # f.write("\n```\n\n")
 
     verifier.close()
-    ast_server.close()
 
 print(f"Analysis complete! Report saved to: {output_file}")
 print(f"Open the file to view the formatted results.")

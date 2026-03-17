@@ -17,13 +17,13 @@ import threading
 import sys
 import os
 import tempfile
+import atexit
 from typing import Tuple, List, Dict, Optional
 from tqdm import tqdm
-from prover.lean.verifier import verify_lean4_file, Lean4ServerScheduler
-import time
+from prover.lean.verifier import Lean4ServerScheduler
 
 # Constants
-REPL_DIR = os.path.join(os.getcwd(), "repl/")
+REPL_DIR = os.environ.get("LEAN_WORKSPACE", os.path.join(os.getcwd(), "repl/"))
 BLOCK_STARTERS = (
     "have", "·", ".", "cases ", "cases' ", "induction ", 
     "induction' ", "rintro ", "intro ", "calc", "match", 
@@ -86,15 +86,45 @@ class PersistentASTDaemon:
                     
         return blocks
 
+    def warmup(self):
+        """Gửi file Lean tối thiểu để preload Mathlib vào AST server ngay khi khởi động"""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".lean", dir=self.repl_dir, delete=False, encoding="utf-8") as tf:
+            tf.write("import Mathlib")
+            tmp = tf.name
+        try:
+            print(f"Warming up AST server...")
+            self.get_ast(tmp)
+            print(f"AST server warmed up.")
+        finally:
+            os.remove(tmp)
+
     def close(self):
         """Giết server khi toàn bộ chương trình kết thúc"""
         if self.proc.poll() is None:
             self.proc.terminate()
             self.proc.wait()
 
+# ── Module-level singleton ──────────────────────────────────────────────────
+AST_DAEMON = PersistentASTDaemon(REPL_DIR)
+_warmup_done = threading.Event()
+
+def _do_warmup():
+    AST_DAEMON.warmup()
+    _warmup_done.set()
+
+threading.Thread(target=_do_warmup, daemon=True).start()
+atexit.register(AST_DAEMON.close)
+
+def wait_warmup():
+    """Block until AST daemon has finished preloading Mathlib."""
+    _warmup_done.wait()
+# ────────────────────────────────────────────────────────────────────────────
+
+
 class AutoSorrifier:
-    def __init__(self, code: str, ast_daemon: PersistentASTDaemon, 
-                 repl_verifier: Lean4ServerScheduler, 
+    def __init__(self, code: str,
+                 repl_verifier: Lean4ServerScheduler,
+                 ast_daemon: Optional[PersistentASTDaemon] = None,
                  max_cycles: int = 50, 
                  log_path: Optional[str] = None):
         self.current_content = code
@@ -102,7 +132,7 @@ class AutoSorrifier:
         self.log_path = log_path
         self.temp_file_path = ""
         self._last_action_msg = ""
-        self.ast_daemon = ast_daemon
+        self.ast_daemon = ast_daemon if ast_daemon is not None else AST_DAEMON
         self.repl_verifier = repl_verifier
 
     def fix_code(self) -> str:
@@ -421,11 +451,10 @@ if __name__ == "__main__":
     with open(target_path, "r", encoding="utf-8") as f:
         source_code = f.read()
 
-    # CLI mode: khởi tạo AST daemon + verifier dùng riêng cho file này
-    ast_server = PersistentASTDaemon(REPL_DIR)
     verifier = Lean4ServerScheduler(max_concurrent_requests=1, timeout=300, memory_limit=-1, name="auto_sorrifier_cli")
     try:
-        patcher = AutoSorrifier(source_code, ast_server, verifier)
+        wait_warmup()
+        patcher = AutoSorrifier(source_code, verifier)
         fixed_code = patcher.fix_code()
         if fixed_code:
             with open(target_path, "w", encoding="utf-8") as f:
@@ -433,4 +462,3 @@ if __name__ == "__main__":
             print("Done.")
     finally:
         verifier.close()
-        ast_server.close()

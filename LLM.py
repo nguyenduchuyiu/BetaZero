@@ -9,7 +9,8 @@ from transformers import TextIteratorStreamer
 
 
 # MODEL_ID = "AI-MO/Kimina-Prover-Preview-Distill-7B"
-MODEL_ID = "Goedel-LM/Goedel-Prover-V2-8B"
+# MODEL_ID = "Goedel-LM/Goedel-Prover-V2-8B"
+MODEL_ID = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
 
 
 def load_model(model_id: str = MODEL_ID):
@@ -23,7 +24,7 @@ def load_model(model_id: str = MODEL_ID):
     model = AutoModelForCausalLM.from_pretrained(
         model_id,
         dtype=dtype,
-        device_map="cuda",
+        device_map="cpu",
     )
 
     return tokenizer, model
@@ -63,83 +64,120 @@ def generate_reply(prompt: str, max_new_tokens: int, temperature: float, top_p: 
     return "".join(output_chunks)
 
 
+with open("nl_h2_output.txt", "r") as f:
+    PLANNER_OUTPUT = f.read()
+
+PLANNER_OUTPUT = PLANNER_OUTPUT.replace("<think>", "").replace("</think>", "")
+
+FL_PROMPT = f"""
+<|im_start|>system
+You are a Lean 4 Skeleton Generator. Your ONLY task is to output 'have' statements.
+**STRICT RULES:**
+1. NO PROSE. NO EXPLANATIONS. NO CALCULATIONS.
+2. Every line must follow the format: `have hX : type := by sorry`
+3. If you output anything other than Lean code, you fail.
+<|im_end|>
+<|im_start|>user
+Decompose the following theorem into a set of necessary intermediate lemmas/subgoals:
+Hypotheses:
+    a b : ℝ
+    h₀ : Real.logb 8 a + Real.logb 4 (b ^ 2) = 5
+    h₁ : Real.logb 8 b + Real.logb 4 (a ^ 2) = 7
+Main Goal:
+    Real.logb 2 a = 6
+<|im_end|>
+<|im_start|>assistant
+<think>
+{PLANNER_OUTPUT}
+I need to formalize this in Lean 4 to the `have` statements with `sorry` like the following format:
+```lean4
+have h1 : type := by sorry
+have h2 : type := by sorry
+...
+have hn : type := by sorry
+```
+</think>
+```lean4
+theorem 
+"""
+
+ATOMIC_PROMPT = """
+<|im_start|>system
+You are a Tactical Logic Decomposer. 
+Your task is to take a SPECIFIC complex subgoal and break it down into smaller, atomic verifiable steps.
+
+**INSTRUCTION:**
+1. Decompose ONLY this specific goal.
+2. Provide a sequence of `have` statements that bridge the current state to this subgoal.
+3. Each step should be "atomic" enough for a basic tactic to handle.
+4. Use a nested structure:
+   `have parent_goal : type := by`
+   `  have sub_step1 : type := by sorry`
+   ...
+<|im_end|>
+
+<|im_start|>user
+
+The parent goal is: #TODO: add parent goal
+The current solver (linarith/aesop) cannot close this goal in one step.
+<|im_end|>
+
+<|im_start|>assistant
+<think>
+"""
+
+NL_PROMPT = """
+<|im_start|>system
+You are a Formal Logic Architect for Lean 4. Your task is to decompose a theorem into a minimal sequence of high-level verifiable milestones (sub-lemmas).
+
+**ARCHITECTURAL STRATEGY:**
+1. **Master Strategist Abstraction:** Do not document calculations. Document "States of Truth". 
+2. **The "Tactic-Power" Assumption:** Assume `linarith`, `aesop`, `polyrith`, and `norm_num` are available. If a transition can be solved by these tactics in one go, DO NOT create a subgoal for it.
+3. **Domain Bottlenecks:** Create subgoals only when shifting mathematical domains (e.g., Logarithmic Constraints -> Linear System -> Numerical Solution).
+4. **Milestone Limit:** Aim for 3-6 `have` statements. Quality over quantity.
+
+**EXAMPLE:**
+- BAD (Atomic): 
+  `have h1 : Real.logb 8 a = Real.log a / Real.log 8 := by sorry`
+- GOOD (Milestone): 
+  `have h_linear : (1/3 : ℝ) * Real.logb 2 a + Real.logb 2 b = 5 := by sorry`
+
+**OUTPUT FORMAT:**
+- Output ONLY the Lean 4 code block.
+- Start directly with the `theorem` statement or the sequence of `have` statements.
+- Every subgoal MUST end with `:= by sorry`.
+Example:
+```lean4
+theorem log_b (a b : ℝ) 
+  (h₀ : Real.logb 8 a + Real.logb 4 (b ^ 2) = 5)
+  (h₁ : Real.logb 8 b + Real.logb 4 (a ^ 2) = 7)
+  : a * b = 512 := by
+  have h2 : Real.logb 2 a = 6 := by sorry
+  have h3 : Real.logb 2 b = 3 := by sorry
+  have h4 : a = 64 := by sorry
+  have h5 : b = 8 := by sorry
+<|im_end|>
+
+<|im_start|>user
+Decompose the following theorem into a set of necessary intermediate lemmas/subgoals:
+Hypotheses:
+    a b : ℝ
+    h₀ : Real.logb 8 a + Real.logb 4 (b ^ 2) = 5
+    h₁ : Real.logb 8 b + Real.logb 4 (a ^ 2) = 7
+Main Goal:
+    a * b = 512
+<|im_end|>
+
+<|im_start|>assistant
+<think>
+"""
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--prompt",
         type=str, 
-        default=textwrap.dedent(
-            """
-            <|im_start|>system
-            You are an expert in mathematics and Lean 4.
-            Given a Lean proof state, only produce Lean 4 Proof with `have` Statements,
-            sketch a skeleton of solution in Lean 4 
-            (ONLY SKELETON with sorry placeholders), which are hypothesis, 
-            subgoals that needed to prove the main statement, not detail tatics.
-            Dont output Complete Lean 4 Proof.
-            Example output:
-            ```lean4
-            theorem example := by
-                have h1:= by sorry
-                have h2:= by sorry
-                have h3:= by sorry
-                exact h3
-            ```
-            <|im_end|>
-
-            <|im_start|>user
-            ```lean4
-            import Mathlib
-            open BigOperators Real Nat Topology Rat
-
-            theorem aime_1983_p1 (x y z w : ℕ) (ht : 1 < x ∧ 1 < y ∧ 1 < z) (hw : 0 ≤ w)
-                (h0 : Real.log w / Real.log x = 24) (h1 : Real.log w / Real.log y = 40)
-                (h2 : Real.log w / Real.log (x * y * z) = 12) : Real.log w / Real.log z = 60 := by
-                    sorry
-            ```
-            <|im_end|>
-
-            <|im_start|>assistant
-            ### Informal Statement
-
-            Let $x, y, z$, and $w$ be natural numbers such that $x > 1$, $y > 1$, $z > 1$, and $w \ge 0$. Given the following logarithmic equations:
-
-            * $\frac{\ln w}{\ln x} = 24$
-            * $\frac{\ln w}{\ln y} = 40$
-            * $\frac{\ln w}{\ln(xyz)} = 12$
-
-            Prove that $\frac{\ln w}{\ln z} = 60$.
-
-            *(Note: This is equivalent to saying if $\log_x w = 24$, $\log_y w = 40$, and $\log_{xyz} w = 12$, prove that $\log_z w = 60$.)*
-
-            ---
-
-            ### Solution Skeleton
-
-            **Hypotheses**
-
-            * **Domain:** $x, y, z, w \in \mathbb{N}$
-            * **Base Constraints:** $x > 1$, $y > 1$, $z > 1$ (This ensures $\ln x > 0$, $\ln y > 0$, $\ln z > 0$)
-            * **Argument Constraint:** $w \ge 0$
-            * **$H_1$:** $\frac{\ln w}{\ln x} = 24$ (which rewrites to $\ln x = \frac{\ln w}{24}$)
-            * **$H_2$:** $\frac{\ln w}{\ln y} = 40$ (which rewrites to $\ln y = \frac{\ln w}{40}$)
-            * **$H_3$:** $\frac{\ln w}{\ln(xyz)} = 12$ (which rewrites to $\ln(xyz) = \frac{\ln w}{12}$)
-
-            **Subgoals / Logical Steps**
-
-            1. **Expand the Product Logarithm:** Use logarithmic properties to break down the denominator of the third hypothesis: prove that $\ln(xyz) = \ln x + \ln y + \ln z$.
-            2. **Algebraic Substitution:** Substitute the re-written forms of $H_1$, $H_2$, and the expanded product from Step 1 into $H_3$ to form an equation linking $\ln z$ directly to $\ln w$.
-            > **Target Equation:** $\frac{\ln w}{12} = \frac{\ln w}{24} + \frac{\ln w}{40} + \ln z$
-
-
-            3. **Isolate $\ln z$:** Rearrange the substituted equation to solve for $\ln z$ in terms of $\ln w$.
-            > **Target Equation:** $\ln z = \ln w \cdot \left(\frac{1}{12} - \frac{1}{24} - \frac{1}{40}\right)$
-
-
-            4. **Arithmetic Simplification:** Prove the arithmetic reduction of the fractions: $\frac{1}{12} - \frac{1}{24} - \frac{1}{40} = \frac{1}{60}$.
-            5. **Final Rearrangement:** Apply the result from Step 4 to show $\ln z = \frac{\ln w}{60}$, and algebraically manipulate this to reach the final goal: $\frac{\ln w}{\ln z} = 60$.
-        """
-        ).strip(),
+        default=NL_PROMPT,
         help="Text prompt to send to the model.",
     )
     parser.add_argument("--max-new-tokens", type=int, default=16384)
@@ -147,7 +185,6 @@ def main():
     parser.add_argument("--top-p", type=float, default=0.95)
     args = parser.parse_args()
 
-    print("\n=== Model reply (streaming) ===\n")
     generate_reply(
         args.prompt,
         max_new_tokens=args.max_new_tokens,
