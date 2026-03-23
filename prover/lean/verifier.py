@@ -6,6 +6,7 @@ import tempfile
 import shutil
 import uuid
 from concurrent.futures import ProcessPoolExecutor
+import signal
 
 DEFAULT_LAKE_PATH = shutil.which("lake") or "lake"
 DEFAULT_LEAN_WORKSPACE = os.path.join(os.getcwd(), "repl/")
@@ -21,16 +22,24 @@ def verify_lean4_file(code, timeout=300, **kwargs):
             temp_file.write(message_str + "\r\n\r\n")
             temp_file.seek(0)
             
-            outputs = subprocess.run(
-                [DEFAULT_LAKE_PATH, "exe", 'repl'], 
-                stdin=temp_file, 
-                capture_output=True, 
-                text=True, 
-                cwd=DEFAULT_LEAN_WORKSPACE, 
-                timeout=timeout
+            proc = subprocess.Popen(
+                [DEFAULT_LAKE_PATH, "exe", 'repl'],
+                stdin=temp_file,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                cwd=DEFAULT_LEAN_WORKSPACE,
+                start_new_session=True,
             )
-            
-        result_json = json.loads(outputs.stdout)
+            try:
+                stdout, stderr = proc.communicate(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                # Kill the whole process group so spawned `repl` is terminated too.
+                os.killpg(proc.pid, signal.SIGKILL)
+                proc.communicate()
+                raise
+        system_messages = stderr or ''
+        result_json = json.loads(stdout)
         messages = result_json.get('messages', [])
         
         errors = [m for m in messages if m.get('severity') == 'error']
@@ -52,14 +61,14 @@ def verify_lean4_file(code, timeout=300, **kwargs):
             "warnings": warnings,
             "infos": infos,
             "sorries": sorries,
-            "system_errors": outputs.stderr,
+            "system_errors": system_messages,
             "verified_code": code
         }
 
     except subprocess.TimeoutExpired:
         result = {"pass": False, "complete": False, "system_errors": "Timeout", "errors": []}
     except json.JSONDecodeError:
-        result = {"pass": False, "complete": False, "system_errors": f"JSON Error. Stdout: {outputs.stdout}", "errors": []}
+        result = {"pass": False, "complete": False, "system_errors": f"JSON Error. Stdout: {stdout}", "errors": []}
     except Exception as e:
         result = {"pass": False, "complete": False, "system_errors": str(e), "errors": []}
         

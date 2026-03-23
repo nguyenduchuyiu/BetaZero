@@ -15,3 +15,8 @@ lake exe cache get
 # if above command fails, build directly
 lake build
 ```
+3. Run Auto Sorrifier
+First time running can be extremely slow due to building Matlib from cache.
+```bash
+python sorrifier_usage_example.py
+```

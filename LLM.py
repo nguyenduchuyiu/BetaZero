@@ -24,7 +24,7 @@ def load_model(model_id: str = MODEL_ID):
     model = AutoModelForCausalLM.from_pretrained(
         model_id,
         dtype=dtype,
-        device_map="cpu",
+        device_map="cuda",
     )
 
     return tokenizer, model
@@ -64,42 +64,6 @@ def generate_reply(prompt: str, max_new_tokens: int, temperature: float, top_p: 
     return "".join(output_chunks)
 
 
-with open("nl_h2_output.txt", "r") as f:
-    PLANNER_OUTPUT = f.read()
-
-PLANNER_OUTPUT = PLANNER_OUTPUT.replace("<think>", "").replace("</think>", "")
-
-FL_PROMPT = f"""
-<|im_start|>system
-You are a Lean 4 Skeleton Generator. Your ONLY task is to output 'have' statements.
-**STRICT RULES:**
-1. NO PROSE. NO EXPLANATIONS. NO CALCULATIONS.
-2. Every line must follow the format: `have hX : type := by sorry`
-3. If you output anything other than Lean code, you fail.
-<|im_end|>
-<|im_start|>user
-Decompose the following theorem into a set of necessary intermediate lemmas/subgoals:
-Hypotheses:
-    a b : ℝ
-    h₀ : Real.logb 8 a + Real.logb 4 (b ^ 2) = 5
-    h₁ : Real.logb 8 b + Real.logb 4 (a ^ 2) = 7
-Main Goal:
-    Real.logb 2 a = 6
-<|im_end|>
-<|im_start|>assistant
-<think>
-{PLANNER_OUTPUT}
-I need to formalize this in Lean 4 to the `have` statements with `sorry` like the following format:
-```lean4
-have h1 : type := by sorry
-have h2 : type := by sorry
-...
-have hn : type := by sorry
-```
-</think>
-```lean4
-theorem 
-"""
 
 ATOMIC_PROMPT = """
 <|im_start|>system
@@ -149,13 +113,14 @@ You are a Formal Logic Architect for Lean 4. Your task is to decompose a theorem
 Example:
 ```lean4
 theorem log_b (a b : ℝ) 
-  (h₀ : Real.logb 8 a + Real.logb 4 (b ^ 2) = 5)
-  (h₁ : Real.logb 8 b + Real.logb 4 (a ^ 2) = 7)
-  : a * b = 512 := by
-  have h2 : Real.logb 2 a = 6 := by sorry
-  have h3 : Real.logb 2 b = 3 := by sorry
-  have h4 : a = 64 := by sorry
-  have h5 : b = 8 := by sorry
+  (h₀ : type 0)
+  (h₁ : type 1)
+  : main_goal := by
+  have h2 : type 2 := by sorry
+  have h3 : type 3 := by sorry
+  have h4 : type 4 := by sorry
+  have h5 : main_goal := by sorry
+  exact h5
 <|im_end|>
 
 <|im_start|>user

@@ -11,12 +11,11 @@ import os
 import re
 import json
 import argparse
-import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Tuple
 
-from prover.lean.verifier import verify_lean4_file, Lean4ServerScheduler
+from prover.lean.verifier import Lean4ServerScheduler
 from utils.syntax_repair import SyntaxCorrector
 from utils.auto_sorrifier import AutoSorrifier, REPL_DIR
 from utils.proof_state_extractor import extract_queries

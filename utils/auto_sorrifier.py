@@ -126,7 +126,8 @@ class AutoSorrifier:
                  repl_verifier: Lean4ServerScheduler,
                  ast_daemon: Optional[PersistentASTDaemon] = None,
                  max_cycles: int = 50, 
-                 log_path: Optional[str] = None):
+                 log_path: Optional[str] = None,
+                 verify_timeout: int = 60):
         self.current_content = code
         self.max_cycles = max_cycles
         self.log_path = log_path
@@ -134,6 +135,7 @@ class AutoSorrifier:
         self._last_action_msg = ""
         self.ast_daemon = ast_daemon if ast_daemon is not None else AST_DAEMON
         self.repl_verifier = repl_verifier
+        self.verify_timeout = verify_timeout
 
     def fix_code(self) -> str:
         """
@@ -141,7 +143,7 @@ class AutoSorrifier:
         Tracks previous program states to prevent oscillation, manages
         temp file resources, and coordinates progressive code repair.
         """
-        tqdm.write("Starting Automated Proof Patcher (In-Memory I/O)")
+        tqdm.write("Starting Auto Sorrifier")
         
         # Track previous file states to detect infinite loops (oscillation)
         seen_states = set()
@@ -161,7 +163,9 @@ class AutoSorrifier:
                         fatal_errors, unsolved_goals = self._get_lean_errors()
                     except RuntimeError as e:
                         tqdm.write(f"\nHALTED: {e}")
-                        break
+                        self.current_content = self._force_full_sorrify()
+                        tqdm.write("Timeout/crash fallback: force full sorrify.")
+                        return self.current_content
                     
                     # Exit condition: Compilation is fully successful
                     if not fatal_errors and not unsolved_goals:
@@ -171,11 +175,25 @@ class AutoSorrifier:
                     # Prioritize fatal syntax/type errors over unsolved goals
                     is_fatal = bool(fatal_errors)
                     err_line, err_msg = fatal_errors[0] if is_fatal else unsolved_goals[0]
+                    if not self._is_valid_line_number(err_line):
+                        # Error position can be stale after previous mutations; re-fetch once.
+                        try:
+                            fatal_errors, unsolved_goals = self._get_lean_errors()
+                            is_fatal = bool(fatal_errors)
+                            err_line, err_msg = fatal_errors[0] if is_fatal else unsolved_goals[0]
+                        except RuntimeError:
+                            pass
+                    err_line = self._normalize_line_number(err_line)
 
                     # Infinite loop detection fallback (oscillation resolution)
                     if self.current_content in seen_states:
                         tqdm.write(f"\nOscillation detected at line {err_line}. Triggering Parent Block Reset...")
-                        self._resolve_infinite_loop(err_line)
+                        try:
+                            self._resolve_infinite_loop(err_line)
+                        except IndexError as e:
+                            tqdm.write(f"Index error during oscillation fallback: {e}. Force full sorrify.")
+                            self.current_content = self._force_full_sorrify()
+                            return self.current_content
                         self._log_state("Fallback: Oscillation Resolution")
                         pbar.update(1)
                         continue 
@@ -184,7 +202,12 @@ class AutoSorrifier:
                     pbar.set_postfix_str(f"{'Fatal' if is_fatal else 'Unsolved'} @ L{err_line}")
                         
                     # Apply standard AST-based fix
-                    success = self._apply_normal_fix(err_line, is_fatal, err_msg)
+                    try:
+                        success = self._apply_normal_fix(err_line, is_fatal, err_msg)
+                    except IndexError as e:
+                        tqdm.write(f"Index error during normal fix: {e}. Force full sorrify.")
+                        self.current_content = self._force_full_sorrify()
+                        return self.current_content
                     if not success:
                         tqdm.write(f"\nHALTED: Unrecoverable error at line {err_line}.")
                         break
@@ -208,6 +231,7 @@ class AutoSorrifier:
         Fallback resolution for correction oscillations.
         """
         lines = self.current_content.splitlines()
+        err_line = self._normalize_line_number(err_line, total_lines=len(lines))
         original_content = self.current_content # Lưu lại trạng thái cũ để so sánh
         
         # 1. Search backward for nearest parent block by string match
@@ -270,6 +294,7 @@ class AutoSorrifier:
         blocks = self._get_ast_lines()
         enclosing = [b for b in blocks if b["start_line"] <= error_line <= b["end_line"]]
         lines = self.current_content.splitlines()
+        error_line = self._normalize_line_number(error_line, total_lines=len(lines))
 
         def emergency_fallback():
             """
@@ -291,7 +316,7 @@ class AutoSorrifier:
             
             # Identify the narrowest scope (leaf node) to preserve surrounding logic
             target = min(valid_nodes, key=lambda x: x["end_line"] - x["start_line"])
-            L_start, L_end = target["start_line"], target["end_line"]
+            L_start, L_end = self._normalize_line_range(target["start_line"], target["end_line"], len(lines))
             start_line_str = lines[L_start - 1]
             new_lines = lines[:L_start - 1]
             
@@ -329,11 +354,11 @@ class AutoSorrifier:
             else:
                 target = min(valid_nodes, key=lambda x: x["end_line"] - x["start_line"])
 
-            L_start, L_end = target["start_line"], target["end_line"]
+            L_start, L_end = self._normalize_line_range(target["start_line"], target["end_line"], len(lines))
             
             # Find the indentation of the first executable child tactic within the block
             indent = 0
-            for i in range(L_start, L_end):
+            for i in range(L_start - 1, L_end):
                 line = lines[i]
                 if line.strip() and not line.strip().startswith("--"):
                     indent = len(line) - len(line.lstrip())
@@ -355,7 +380,7 @@ class AutoSorrifier:
         trong background process, sau đó phân loại lỗi.
         """
         req_ids = self.repl_verifier.submit_all_request(
-            [dict(code=self.current_content)]
+            [dict(code=self.current_content, timeout=self.verify_timeout)]
         )
         result = self.repl_verifier.get_all_request_outputs(req_ids)[0]
         print(f"[REPL] verify_lean4_file executed in {result.get('verify_time', 0):.4f} seconds")
@@ -403,6 +428,37 @@ class AutoSorrifier:
                 continue
             cleaned.append(line)
         return "\n".join(cleaned) + "\n"
+
+    def _force_full_sorrify(self) -> str:
+        """
+        On verifier timeout/crash, collapse the proof body to a single `sorry`.
+        """
+        marker = ":= by"
+        idx = self.current_content.find(marker)
+        if idx != -1:
+            prefix = self.current_content[: idx + len(marker)]
+            return prefix + "\n  sorry\n"
+        return self.current_content
+
+    def _is_valid_line_number(self, line_no: int) -> bool:
+        total = len(self.current_content.splitlines())
+        return total > 0 and 1 <= line_no <= total
+
+    def _normalize_line_number(self, line_no: int, total_lines: Optional[int] = None) -> int:
+        if total_lines is None:
+            total_lines = len(self.current_content.splitlines())
+        if total_lines <= 0:
+            return 1
+        return max(1, min(line_no, total_lines))
+
+    def _normalize_line_range(self, start_line: int, end_line: int, total_lines: int) -> Tuple[int, int]:
+        if total_lines <= 0:
+            return 1, 1
+        start = self._normalize_line_number(start_line, total_lines)
+        end = self._normalize_line_number(end_line, total_lines)
+        if end < start:
+            end = start
+        return start, end
 
     def _write_to_temp_file(self):
         """
