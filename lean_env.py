@@ -17,18 +17,15 @@ class LeanEnv:
     def __init__(self, timeout: int = 300):
         self.timeout = timeout
 
-    def execute(self, state: ProofState, code: str) -> List[ProofState]:
+    def execute(self, state: ProofState, code: str) -> tuple[str, dict, list[ProofState]]:
         """
-        Executes tactic code on a given proof state.
-        Returns a list of resulting subgoals (ProofStates) from 'sorry' placeholders.
-        Returns an empty list if the code fails with hard errors and no sorries.
+        Đóng gói tactic code, chạy Lean và trả về bộ 3 quyền lực:
+        (full_cmd_đã_build, verify_result_gốc, danh_sách_subgoals_nếu_có)
         """
-        result = verify_lean_code(self._build_cmd(state, code), timeout=self.timeout)
-        
-        if result.get("errors") and not result.get("sorries"):
-            return []
-            
-        return [self._parse_proof_state(s.get("goal", "")) for s in result.get("sorries", [])]
+        candidate_code = self._build_cmd(state, code)
+        vr = verify_lean_code(candidate_code, timeout=self.timeout)
+        subgoals = [self._parse_proof_state(s.get("goal", "")) for s in vr.get("sorries", [])]
+        return candidate_code, vr, subgoals
 
     def get_ast(self, code: str) -> list:
         """Parses the Lean code string into an Abstract Syntax Tree (AST)."""

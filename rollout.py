@@ -1,141 +1,139 @@
-"""
-LevelwiseRollout — BFS-level AND/OR proof search orchestrator.
-
-Budget split per node: 80% tactic / 20% skeleton (hardcoded).
-"""
 from __future__ import annotations
-
-from abc import ABC, abstractmethod
+from typing import Protocol
 
 from nodes import ProofState, Action
-from and_or_graph import ANDORGraph
 from lean_env import LeanEnv
-from lean_verifier import verify_lean_code, Lean4ServerScheduler
-from reward import RewardCalculator
+from lean_verifier import verify_lean_code
 from sorrifier import Sorrifier
+from and_or_graph import ANDORGraph
+from reward import RewardCalculator
 
 TACTIC_RATIO = 0.8
 
-
-class PolicyModel(ABC):
-    """Abstract policy: maps prompts → generated code strings."""
-
-    @abstractmethod
-    def generate_batch(self, prompts: list[str]) -> list[str]:
-        """Return one completion per prompt (same length as input)."""
+class PolicyModel(Protocol):
+    def sample(self, states: list[ProofState], action_type: str, n: int) -> list[list[str]]:
         ...
 
-
 class LevelwiseRollout:
-    """
-    For each depth level d:
-      1. Collect all unsolved OR-nodes at depth d.
-      2. Batch-generate tactic/skeleton candidates via PolicyModel.
-      3. Execute via LeanEnv._build_cmd + verify_lean_code.
-      4. If errors → Sorrifier.fix_code() → re-verify.
-      5. ANDORGraph.expand() with r_env / r_dep / closed.
-    After max_depth, backup Q-values and return (state, action, Q) triples.
-    """
-
-    def __init__(
-        self,
-        root: ProofState,
-        policy: PolicyModel,
-        lean_env: LeanEnv,
-        sorrifier_verifier: Lean4ServerScheduler,
-        reward_calc: RewardCalculator,
-        total_budget: int = 10,
-        max_depth: int = 5,
-        sorrifier_cycles: int = 30,
-        sorrifier_timeout: int = 60,
-    ):
-        self.graph = ANDORGraph(root)
+    def __init__(self, policy: PolicyModel, lean: LeanEnv,
+                 sorrifier: Sorrifier, reward: RewardCalculator,
+                 K: int = 32, max_depth: int = 5, max_nodes: int = 128,
+                 verify_timeout: int = 60):
         self.policy = policy
-        self.lean_env = lean_env
-        self.sorrifier_verifier = sorrifier_verifier
-        self.reward_calc = reward_calc
+        self.lean = lean
+        self.sorrifier = sorrifier
+        self.reward = reward
+        self.K = K
         self.max_depth = max_depth
-        self.sorrifier_cycles = sorrifier_cycles
-        self.sorrifier_timeout = sorrifier_timeout
-        # 80 / 20 hardcoded
-        self.n_tactic = round(total_budget * TACTIC_RATIO)
-        self.n_skeleton = total_budget - self.n_tactic
+        self.max_nodes = max_nodes
+        self.verify_timeout = verify_timeout
 
-    def run(self) -> list[tuple[ProofState, Action, float]]:
-        """Execute BFS rollout; return (state, action, Q) for training."""
+    def rollout(self, theorem: ProofState) -> list[tuple[ProofState, Action, float]]:
+        graph = ANDORGraph(theorem)
+        total_expanded = 0
+        K_tac = max(1, int(self.K * TACTIC_RATIO))
+        K_skel = self.K - K_tac
+
         for depth in range(self.max_depth):
-            pending = [
-                s for s in self.graph.unsolved_states()
-                if self.graph.get_depth(s) == depth
-            ]
-            if not pending:
+            frontier = [s for s in graph.unsolved_states() if graph.get_depth(s) == depth]
+            if not frontier or total_expanded >= self.max_nodes:
                 break
-            self._process_depth(pending)
 
-        q_vals = self.reward_calc.compute_returns(self.graph)
-        return [(self.graph._parent[a], a, q) for a, q in q_vals.items()]
+            tac_batches = self.policy.sample(frontier, "tactic", K_tac)
+            skel_batches = self.policy.sample(frontier, "skeleton", K_skel)
+
+            for i, state in enumerate(frontier):
+                if total_expanded >= self.max_nodes:
+                    break
+
+                candidates = [("tactic", c) for c in tac_batches[i]] + \
+                             [("skeleton", c) for c in skel_batches[i]]
+
+                for action_type, action_code in candidates:
+                    if total_expanded >= self.max_nodes:
+                        break
+                    total_expanded += 1
+
+                    # 1. Bọc khung lấy state_code và chạy thử
+                    state_code, state_vr, subgoals = self.lean.execute(state, action_code)
+
+                    # 2. Phân luồng
+                    if action_type == "tactic":
+                        self._process_tactic(graph, state, action_code, state_code, state_vr)
+                    else:
+                        self._process_skeleton(graph, state, action_code, state_code, state_vr, subgoals)
+                            
+        self._assign_dep_rewards(graph)
+        q_values = self.reward.compute_returns(graph)
+
+        return [
+            (graph._parent.get(a, theorem), a, q)
+            for a, q in q_values.items()
+        ]
 
     # ------------------------------------------------------------------
+    # Node Processing Helpers
+    # ------------------------------------------------------------------
 
-    def _process_depth(self, states: list[ProofState]):
-        """Single batch call to policy covering all states at this depth."""
-        tactic_prompts = [
-            self._make_prompt(s, "tactic")
-            for s in states
-            for _ in range(self.n_tactic)
-        ]
-        skeleton_prompts = [
-            self._make_prompt(s, "skeleton")
-            for s in states
-            for _ in range(self.n_skeleton)
-        ]
+    def _extract_action_code(self, state_code: str) -> str:
+        """Bóc phần ruột action ra khỏi lớp vỏ state_code (example...:= by)"""
+        if ":= by\n" in state_code:
+            body = state_code.split(":= by\n", 1)[1]
+            return "\n".join(line[2:] if line.startswith("  ") else line for line in body.splitlines())
+        return state_code
 
-        codes = self.policy.generate_batch(tactic_prompts + skeleton_prompts)
-        t_codes = codes[:len(tactic_prompts)]
-        s_codes = codes[len(tactic_prompts):]
+    def _process_tactic(self, graph: ANDORGraph, state: ProofState, action_code: str, 
+                        state_code: str, state_vr: dict):
+        if state_vr.get("complete"):  
+            r_env = self.reward.r_env(state_code, state_code, state_vr)
+            action = Action("tactic", action_code, ())
+            graph.expand(state, action, r_env=r_env, closed=True)
+        else:
+            self._process_failed_tactic(graph, state, action_code, state_code)
 
-        for i, state in enumerate(states):
-            for code in t_codes[i * self.n_tactic:(i + 1) * self.n_tactic]:
-                self._try_expand(state, code, "tactic")
-            for code in s_codes[i * self.n_skeleton:(i + 1) * self.n_skeleton]:
-                self._try_expand(state, code, "skeleton")
+    def _process_failed_tactic(self, graph: ANDORGraph, state: ProofState, 
+                               action_code: str, state_code: str) -> None:
+        patched_state_code = self.sorrifier.fix_code(state_code)
+        patched_vr = verify_lean_code(patched_state_code, timeout=self.verify_timeout)
+        r_fail = self.reward.r_env(state_code, patched_state_code, patched_vr)
+        
+        # Tactic xịt: Lưu action_code gốc để phạt điểm, không cho đi tiếp
+        action_fail = Action("tactic", action_code, ())
+        graph.expand(state, action_fail, r_env=r_fail, closed=False)
 
-    def _try_expand(self, state: ProofState, code: str, action_type: str):
-        """Execute code on state, patch if broken, then expand the graph."""
-        full_cmd = LeanEnv._build_cmd(state, code)
-        result = verify_lean_code(full_cmd, timeout=self.lean_env.timeout)
+    def _process_skeleton(self, graph: ANDORGraph, state: ProofState, action_code: str, 
+                          state_code: str, state_vr: dict, subgoals: list[ProofState]):
+        if state_vr.get("complete"): 
+            r_env = self.reward.r_env(state_code, state_code, state_vr)
+            action = Action("skeleton", action_code, tuple(subgoals))
+            graph.expand(state, action, r_env=r_env, closed=False)
+        else:
+            self._process_failed_skeleton(graph, state, action_code, state_code)
 
-        original_cmd = full_cmd
-        patched_cmd = full_cmd
+    def _process_failed_skeleton(self, graph: ANDORGraph, state: ProofState, 
+                                 action_code: str, state_code: str) -> None:
+        patched_state_code = self.sorrifier.fix_code(state_code)
+        patched_vr = verify_lean_code(patched_state_code, timeout=self.verify_timeout)
+        
+        # BÓC TÁCH: Lấy ruột để nhét vào node vá
+        patched_action_code = self._extract_action_code(patched_state_code)
+        
+        # Node 1: Thằng con hư (Lưu action_code gốc, Phạt)
+        r_fail = self.reward.r_env(state_code, patched_state_code, patched_vr)
+        action_fail = Action("skeleton", action_code, ())
+        graph.expand(state, action_fail, r_env=r_fail, closed=False)
 
-        if result.get("errors"):
-            sorrifier = Sorrifier(
-                full_cmd, self.sorrifier_verifier,
-                max_cycles=self.sorrifier_cycles,
-                verify_timeout=self.sorrifier_timeout,
-            )
-            patched_cmd = sorrifier.fix_code()
-            result = verify_lean_code(patched_cmd, timeout=self.lean_env.timeout)
-
-        closed = result.get("complete", False)
-
-        # Tactic = leaf (children are ignored in is_solved); skeleton = decomposition
-        children: tuple[ProofState, ...] = ()
-        if action_type == "skeleton":
-            children = tuple(
-                LeanEnv._parse_proof_state(s.get("goal", ""))
-                for s in result.get("sorries", [])
-            )
-
-        r_env = self.reward_calc.r_env(original_cmd, patched_cmd, result)
-        r_dep = 0.0
-        if action_type == "skeleton":
-            dep = self.lean_env.dep_graph(patched_cmd)
-            r_dep = self.reward_calc.r_dep(dep)
-
-        action = Action(action_type, patched_cmd, children)
-        self.graph.expand(state, action, r_env=r_env, r_dep=r_dep, closed=closed)
-
-    @staticmethod
-    def _make_prompt(state: ProofState, mode: str) -> str:
-        return f"[{mode.upper()}]\n{state}"
+        # Node 2: Đứa con nuôi (Lưu patched_action_code, Cho đi tiếp)
+        r_patch = self.reward.r_env(patched_state_code, patched_state_code, patched_vr)
+        new_subgoals = [self.lean._parse_proof_state(s.get("goal", "")) 
+                        for s in patched_vr.get("sorries", [])]
+        action_patch = Action("skeleton", patched_action_code, tuple(new_subgoals))
+        graph.expand(state, action_patch, r_env=r_patch, closed=False)
+        
+    def _assign_dep_rewards(self, graph: ANDORGraph):
+        for action, parent_state in graph._parent.items():
+            if action.action_type != "skeleton":
+                continue
+            state_code = self.lean._build_cmd(parent_state, action.content)
+            dep = self.lean.dep_graph(state_code)
+            graph.set_r_dep(action, self.reward.r_dep(dep))

@@ -11,8 +11,9 @@ Architecture:
    intolerance and resets the parent block to prevent halting.
 """
 
+from __future__ import annotations
 import sys
-from typing import Tuple, List, Dict, Optional
+from typing import Tuple, List, Dict
 from tqdm import tqdm
 from lean_verifier import Lean4ServerScheduler
 from ast_parser import get_lean_ast
@@ -27,23 +28,17 @@ TRIVIAL_TACTICS = frozenset({"skip", "done", "trivial", "decide", "rfl"})
 
 
 class Sorrifier:
-    def __init__(self, code: str,
-                 repl_verifier: Lean4ServerScheduler,
-                 max_cycles: int = 50, 
-                 log_path: Optional[str] = None,
-                 verify_timeout: int = 60):
-        self.current_content = self._strip_noop_tactics(code)
-        self.max_cycles = max_cycles
-        self.log_path = log_path
-        self._last_action_msg = ""
+    def __init__(self, repl_verifier: Lean4ServerScheduler, max_cycles: int = 50):
         self.repl_verifier = repl_verifier
-        self.verify_timeout = verify_timeout
+        self.max_cycles = max_cycles
+        self.current_content = ""
+        self._last_action_msg = ""
 
-    def fix_code(self) -> str:
+    def fix_code(self, code: str) -> str:
         """Iteratively patch Lean 4 errors until the code compiles or max_cycles is reached."""
-        tqdm.write("Starting Auto Sorrifier")
+        self.current_content = self._strip_noop_tactics(code)
+        self._last_action_msg = ""
         seen_states = set()
-        self._log_state("Initial State")
 
         with tqdm(total=self.max_cycles, desc="Processing", unit="cycle") as pbar:
             for _ in range(self.max_cycles):
@@ -51,12 +46,9 @@ class Sorrifier:
                     fatal_errors, unsolved_goals = self._get_lean_errors()
                 except RuntimeError as e:
                     tqdm.write(f"\nHALTED: {e}")
-                    self.current_content = self._force_full_sorrify()
-                    tqdm.write("Timeout/crash fallback: force full sorrify.")
-                    return self.current_content
+                    return self._force_full_sorrify()
 
                 if not fatal_errors and not unsolved_goals:
-                    tqdm.write("\nSUCCESS: File is fully compiled with sorries.")
                     return self.current_content
 
                 is_fatal = bool(fatal_errors)
@@ -76,9 +68,7 @@ class Sorrifier:
                         self._resolve_infinite_loop(err_line)
                     except IndexError as e:
                         tqdm.write(f"Index error during oscillation fallback: {e}. Force full sorrify.")
-                        self.current_content = self._force_full_sorrify()
-                        return self.current_content
-                    self._log_state("Fallback: Oscillation Resolution")
+                        return self._force_full_sorrify()
                     pbar.update(1)
                     continue
 
@@ -89,13 +79,11 @@ class Sorrifier:
                     success = self._apply_normal_fix(err_line, is_fatal, err_msg)
                 except IndexError as e:
                     tqdm.write(f"Index error during normal fix: {e}. Force full sorrify.")
-                    self.current_content = self._force_full_sorrify()
-                    return self.current_content
+                    return self._force_full_sorrify()
                 if not success:
                     tqdm.write(f"\nHALTED: Unrecoverable error at line {err_line}.")
                     break
 
-                self._log_state(self._last_action_msg)
                 pbar.update(1)
 
         return self.current_content
@@ -271,7 +259,7 @@ class Sorrifier:
         trong background process, sau đó phân loại lỗi.
         """
         req_ids = self.repl_verifier.submit_all_request(
-            [dict(code=self.current_content, timeout=self.verify_timeout)]
+            [dict(code=self.current_content)]
         )
         result = self.repl_verifier.get_all_request_outputs(req_ids)[0]
         print(f"[REPL] verify_lean_code executed in {result.get('verify_time', 0):.4f} seconds")
@@ -333,7 +321,7 @@ class Sorrifier:
         total = len(self.current_content.splitlines())
         return total > 0 and 1 <= line_no <= total
 
-    def _normalize_line_number(self, line_no: int, total_lines: Optional[int] = None) -> int:
+    def _normalize_line_number(self, line_no: int, total_lines: int | None = None) -> int:
         if total_lines is None:
             total_lines = len(self.current_content.splitlines())
         if total_lines <= 0:
@@ -348,17 +336,6 @@ class Sorrifier:
         if end < start:
             end = start
         return start, end
-
-    def _log_state(self, step_name: str):
-        """
-        If log_path is set, append the current state of the code to the log file, 
-        labeled with the step name.
-        """
-        if self.log_path:
-            with open(self.log_path, "a", encoding="utf-8") as f:
-                f.write(f"--- {step_name} ---\n\n")
-                f.write(self.current_content)
-                f.write("\n\n")
 
     @staticmethod
     def _byte_to_line(raw_bytes: bytes, byte_offset: int) -> int:
@@ -397,8 +374,8 @@ if __name__ == "__main__":
 
     verifier = Lean4ServerScheduler(max_concurrent_requests=1, timeout=300, name="auto_sorrifier_cli")
     try:
-        patcher = Sorrifier(source_code, verifier)
-        fixed_code = patcher.fix_code()
+        patcher = Sorrifier(verifier)
+        fixed_code = patcher.fix_code(source_code)
         if fixed_code:
             with open(target_path, "w", encoding="utf-8") as f:
                 f.write(fixed_code)
