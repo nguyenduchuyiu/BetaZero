@@ -11,214 +11,92 @@ Architecture:
    intolerance and resets the parent block to prevent halting.
 """
 
-import subprocess
-import json
-import threading
 import sys
-import os
-import tempfile
-import atexit
 from typing import Tuple, List, Dict, Optional
 from tqdm import tqdm
-from prover.lean.verifier import Lean4ServerScheduler
+from lean_verifier import Lean4ServerScheduler
+from ast_parser import get_lean_ast
 
-# Constants
-REPL_DIR = os.environ.get("LEAN_WORKSPACE", os.path.join(os.getcwd(), "repl/"))
 BLOCK_STARTERS = (
     "have", "·", ".", "cases ", "cases' ", "induction ", 
     "induction' ", "rintro ", "intro ", "calc", "match", 
     "lemma", "theorem", "def"
 )
 
-# Dùng lock toàn cục để bảo vệ AST daemon khi dùng đa luồng
-AST_LOCK = threading.Lock()
-
-class PersistentASTDaemon:
-    def __init__(self, repl_dir):
-        self.repl_dir = repl_dir        
-        # Gọi file exe của dump_ast_server
-        self.proc = subprocess.Popen(
-            ["lake", "exe", "dump_ast_server"], 
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            cwd=self.repl_dir,
-            bufsize=1 # Ép xả buffer liên tục
-        )
-        
-        self.stderr_thread = threading.Thread(target=self._read_stderr, daemon=True)
-        self.stderr_thread.start()
-
-    def _read_stderr(self):
-        """Hàm chạy ngầm: Hứng mọi log từ Lean in ra và hiển thị"""
-        for line in self.proc.stderr:
-            line = line.strip()
-            if line:
-                # In màu vàng cho ngầu và dễ phân biệt
-                print(f"\033[93m{line}\033[0m") 
-
-    def get_ast(self, file_path: str) -> List[Dict]:
-        """Gửi tên file vào ống nước và móc JSON ra"""
-        if self.proc.poll() is not None:
-            print("  [!] AST Daemon đã ngỏm. Đang hồi sinh...")
-            self.__init__(self.repl_dir) # Hồi sinh nếu sập
-            
-        # Ném tên file vào cho Lean
-        self.proc.stdin.write(file_path + "\n")
-        self.proc.stdin.flush()
-        
-        blocks = []
-        while True:
-            line = self.proc.stdout.readline()
-            if not line:
-                break # Lean sập
-                
-            line = line.strip()
-            if line == "===EOF===":
-                break # Lean báo đã bóc xong AST của file
-                
-            if line.startswith("{"):
-                try:
-                    blocks.append(json.loads(line))
-                except json.JSONDecodeError as e:
-                    print(f"  [!] Lỗi parse JSON từ AST Server: {e}")
-                    
-        return blocks
-
-    def warmup(self):
-        """Gửi file Lean tối thiểu để preload Mathlib vào AST server ngay khi khởi động"""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".lean", dir=self.repl_dir, delete=False, encoding="utf-8") as tf:
-            tf.write("import Mathlib")
-            tmp = tf.name
-        try:
-            print(f"Warming up AST server...")
-            self.get_ast(tmp)
-            print(f"AST server warmed up.")
-        finally:
-            os.remove(tmp)
-
-    def close(self):
-        """Giết server khi toàn bộ chương trình kết thúc"""
-        if self.proc.poll() is None:
-            self.proc.terminate()
-            self.proc.wait()
-
-# ── Module-level singleton ──────────────────────────────────────────────────
-AST_DAEMON = PersistentASTDaemon(REPL_DIR)
-_warmup_done = threading.Event()
-
-def _do_warmup():
-    AST_DAEMON.warmup()
-    _warmup_done.set()
-
-threading.Thread(target=_do_warmup, daemon=True).start()
-atexit.register(AST_DAEMON.close)
-
-def wait_warmup():
-    """Block until AST daemon has finished preloading Mathlib."""
-    _warmup_done.wait()
-# ────────────────────────────────────────────────────────────────────────────
+TRIVIAL_TACTICS = frozenset({"skip", "done", "trivial", "decide", "rfl"})
 
 
-class AutoSorrifier:
+class Sorrifier:
     def __init__(self, code: str,
                  repl_verifier: Lean4ServerScheduler,
-                 ast_daemon: Optional[PersistentASTDaemon] = None,
                  max_cycles: int = 50, 
                  log_path: Optional[str] = None,
                  verify_timeout: int = 60):
-        self.current_content = code
+        self.current_content = self._strip_noop_tactics(code)
         self.max_cycles = max_cycles
         self.log_path = log_path
-        self.temp_file_path = ""
         self._last_action_msg = ""
-        self.ast_daemon = ast_daemon if ast_daemon is not None else AST_DAEMON
         self.repl_verifier = repl_verifier
         self.verify_timeout = verify_timeout
 
     def fix_code(self) -> str:
-        """
-        Main execution loop to iteratively fix Lean 4 errors.
-        Tracks previous program states to prevent oscillation, manages
-        temp file resources, and coordinates progressive code repair.
-        """
+        """Iteratively patch Lean 4 errors until the code compiles or max_cycles is reached."""
         tqdm.write("Starting Auto Sorrifier")
-        
-        # Track previous file states to detect infinite loops (oscillation)
         seen_states = set()
-        
-        # Initialize an invisible temporary file for Lean compiler
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".lean", dir=REPL_DIR, delete=False, encoding="utf-8") as temp_file:
-            self.temp_file_path = temp_file.name
+        self._log_state("Initial State")
 
-        try:
-            self._log_state("Initial State")
-            
-            with tqdm(total=self.max_cycles, desc="Processing", unit="cycle") as pbar:
-                for _ in range(self.max_cycles):
-                    self._write_to_temp_file()
-                    
+        with tqdm(total=self.max_cycles, desc="Processing", unit="cycle") as pbar:
+            for _ in range(self.max_cycles):
+                try:
+                    fatal_errors, unsolved_goals = self._get_lean_errors()
+                except RuntimeError as e:
+                    tqdm.write(f"\nHALTED: {e}")
+                    self.current_content = self._force_full_sorrify()
+                    tqdm.write("Timeout/crash fallback: force full sorrify.")
+                    return self.current_content
+
+                if not fatal_errors and not unsolved_goals:
+                    tqdm.write("\nSUCCESS: File is fully compiled with sorries.")
+                    return self.current_content
+
+                is_fatal = bool(fatal_errors)
+                err_line, err_msg = fatal_errors[0] if is_fatal else unsolved_goals[0]
+                if not self._is_valid_line_number(err_line):
                     try:
                         fatal_errors, unsolved_goals = self._get_lean_errors()
-                    except RuntimeError as e:
-                        tqdm.write(f"\nHALTED: {e}")
-                        self.current_content = self._force_full_sorrify()
-                        tqdm.write("Timeout/crash fallback: force full sorrify.")
-                        return self.current_content
-                    
-                    # Exit condition: Compilation is fully successful
-                    if not fatal_errors and not unsolved_goals:
-                        tqdm.write("\nSUCCESS: File is fully compiled with sorries.")
-                        return self.current_content
-                        
-                    # Prioritize fatal syntax/type errors over unsolved goals
-                    is_fatal = bool(fatal_errors)
-                    err_line, err_msg = fatal_errors[0] if is_fatal else unsolved_goals[0]
-                    if not self._is_valid_line_number(err_line):
-                        # Error position can be stale after previous mutations; re-fetch once.
-                        try:
-                            fatal_errors, unsolved_goals = self._get_lean_errors()
-                            is_fatal = bool(fatal_errors)
-                            err_line, err_msg = fatal_errors[0] if is_fatal else unsolved_goals[0]
-                        except RuntimeError:
-                            pass
-                    err_line = self._normalize_line_number(err_line)
+                        is_fatal = bool(fatal_errors)
+                        err_line, err_msg = fatal_errors[0] if is_fatal else unsolved_goals[0]
+                    except RuntimeError:
+                        pass
+                err_line = self._normalize_line_number(err_line)
 
-                    # Infinite loop detection fallback (oscillation resolution)
-                    if self.current_content in seen_states:
-                        tqdm.write(f"\nOscillation detected at line {err_line}. Triggering Parent Block Reset...")
-                        try:
-                            self._resolve_infinite_loop(err_line)
-                        except IndexError as e:
-                            tqdm.write(f"Index error during oscillation fallback: {e}. Force full sorrify.")
-                            self.current_content = self._force_full_sorrify()
-                            return self.current_content
-                        self._log_state("Fallback: Oscillation Resolution")
-                        pbar.update(1)
-                        continue 
-                        
-                    seen_states.add(self.current_content)
-                    pbar.set_postfix_str(f"{'Fatal' if is_fatal else 'Unsolved'} @ L{err_line}")
-                        
-                    # Apply standard AST-based fix
+                if self.current_content in seen_states:
+                    tqdm.write(f"\nOscillation detected at line {err_line}. Triggering Parent Block Reset...")
                     try:
-                        success = self._apply_normal_fix(err_line, is_fatal, err_msg)
+                        self._resolve_infinite_loop(err_line)
                     except IndexError as e:
-                        tqdm.write(f"Index error during normal fix: {e}. Force full sorrify.")
+                        tqdm.write(f"Index error during oscillation fallback: {e}. Force full sorrify.")
                         self.current_content = self._force_full_sorrify()
                         return self.current_content
-                    if not success:
-                        tqdm.write(f"\nHALTED: Unrecoverable error at line {err_line}.")
-                        break
-                        
-                    self._log_state(getattr(self, "_last_action_msg", "Post-Fix State"))
+                    self._log_state("Fallback: Oscillation Resolution")
                     pbar.update(1)
-                    
-        finally:
-            # Cleanup temporary file to prevent storage leaks
-            if os.path.exists(self.temp_file_path):
-                os.remove(self.temp_file_path)
+                    continue
+
+                seen_states.add(self.current_content)
+                pbar.set_postfix_str(f"{'Fatal' if is_fatal else 'Unsolved'} @ L{err_line}")
+
+                try:
+                    success = self._apply_normal_fix(err_line, is_fatal, err_msg)
+                except IndexError as e:
+                    tqdm.write(f"Index error during normal fix: {e}. Force full sorrify.")
+                    self.current_content = self._force_full_sorrify()
+                    return self.current_content
+                if not success:
+                    tqdm.write(f"\nHALTED: Unrecoverable error at line {err_line}.")
+                    break
+
+                self._log_state(self._last_action_msg)
+                pbar.update(1)
 
         return self.current_content
 
@@ -286,22 +164,22 @@ class AutoSorrifier:
             self.current_content = self._clean_redundant_sorries(lines)
 
     def _apply_normal_fix(self, error_line: int, is_fatal: bool, err_msg: str) -> bool:
-        """
-        Applies standard correction based on error type:
-        - Fatal (Syntax/Type): Replaces the problematic leaf tactic with `sorry`.
-        - Unsolved Goal: Appends `sorry` to close the current scope.
-        """
-        blocks = self._get_ast_lines()
-        enclosing = [b for b in blocks if b["start_line"] <= error_line <= b["end_line"]]
         lines = self.current_content.splitlines()
         error_line = self._normalize_line_number(error_line, total_lines=len(lines))
 
+        # 1. Xử lý Trivial Tactics (Spam rác)
+        line_content = lines[error_line - 1].strip()
+        if line_content in TRIVIAL_TACTICS:
+            lines[error_line - 1] = ""
+            self._last_action_msg = f"Removed failing trivial tactic '{line_content}' at L{error_line}"
+            tqdm.write(self._last_action_msg)
+            self.current_content = self._clean_redundant_sorries(lines)
+            return True
+
+        blocks = self._get_ast_lines()
+        enclosing = [b for b in blocks if b["start_line"] <= error_line <= b["end_line"]]
+
         def emergency_fallback():
-            """
-            Failsafe: If AST cannot parse the syntax error,
-            perform a basic single-line replacement with `sorry`
-            at the error line.
-            """
             msg = f"AST parsing failed at L{error_line}. Applying basic single-line replacement."
             tqdm.write(msg)
             self._last_action_msg = msg
@@ -310,55 +188,65 @@ class AutoSorrifier:
             self.current_content = "\n".join(lines) + "\n"
             return True
 
+        # 2. Xử lý Lỗi Cú pháp / Logic sai (Fatal Error)
         if is_fatal:
             valid_nodes = [b for b in enclosing if "tactic" in b["kind"].lower() or "seq" in b["kind"].lower()]
             if not valid_nodes: return emergency_fallback()
             
-            # Identify the narrowest scope (leaf node) to preserve surrounding logic
             target = min(valid_nodes, key=lambda x: x["end_line"] - x["start_line"])
-            L_start, L_end = self._normalize_line_range(target["start_line"], target["end_line"], len(lines))
+            L_start, L_end = target["start_line"], target["end_line"]
             start_line_str = lines[L_start - 1]
-            new_lines = lines[:L_start - 1]
             
             is_orphan_error = "no goals" in err_msg.lower() or "goals accomplished" in err_msg.lower()
             
+            # --- Tách mảng an toàn ---
+            new_lines = lines[:L_start - 1]
+            indent = len(start_line_str) - len(start_line_str.lstrip())
+            
             if is_orphan_error:
-                # Remove tactic that is operating on an already closed goal
+                # Lỗi Orphan: Tactic bị thừa vì goal đã đóng. 
+                # -> XÓA SẠCH, KHÔNG CHÈN SORRY.
                 self._last_action_msg = f"Removed orphaned tactic [{target['kind']}] L{L_start}..L{L_end}"
-                indent = len(start_line_str) - len(start_line_str.lstrip())
-                new_lines.append(" " * indent + "sorry")
+                # Bỏ qua đoạn code thừa, nối thẳng phần đuôi vào
                 new_lines.extend(lines[L_end:])
+                
             elif self._is_block_starter(start_line_str) and ":=" in start_line_str:
-                # Truncate declaration body
+                # Lỗi thủng Block (have/let): Truncate toàn bộ body của nó
                 self._last_action_msg = f"Hollowed out block [{target['kind']}] starting at L{L_start}"
                 clean_header = start_line_str.split(":=")[0] + ":= by sorry"
                 new_lines.append(clean_header)
                 new_lines.extend(lines[L_end:])
+                
             else:
-                # Replace standard leaf tactic
+                # Lỗi tactic lá thông thường: Thay node đó bằng sorry
                 self._last_action_msg = f"Replaced leaf tactic [{target['kind']}] L{L_start}..L{L_end}"
-                indent = len(start_line_str) - len(start_line_str.lstrip())
                 new_lines.append(" " * indent + "sorry")
                 new_lines.extend(lines[L_end:])
                 
             tqdm.write(self._last_action_msg)
+            self.current_content = "\n".join(new_lines) + "\n"
                 
-        else: # Unsolved Goal Handling
+        # 3. Xử lý Chưa chứng minh xong (Unsolved Goals)
+        else: 
             scopes = ["declaration", "tactichave", "tacticcases", "tacticmatch", "tacticlet"]
             valid_nodes = [b for b in enclosing if any(s in b["kind"].lower() for s in scopes)]
+            
             if not valid_nodes:
                 valid_nodes = [b for b in enclosing if "seq" in b["kind"].lower() or "bytactic" in b["kind"].lower()]
                 if not valid_nodes: return emergency_fallback()
-                # Use the largest block to ensure we close the outermost scope
                 target = max(valid_nodes, key=lambda x: x["end_line"] - x["start_line"])
             else:
                 target = min(valid_nodes, key=lambda x: x["end_line"] - x["start_line"])
 
-            L_start, L_end = self._normalize_line_range(target["start_line"], target["end_line"], len(lines))
+            L_start, L_end = target["start_line"], target["end_line"]
             
-            # Find the indentation of the first executable child tactic within the block
-            indent = 0
-            for i in range(L_start - 1, L_end):
+            # --- FIX LOGIC INDENT ---
+            # Default fallback: thụt vào 2 space so với dòng cha (block starter)
+            parent_indent = len(lines[L_start - 1]) - len(lines[L_start - 1].lstrip())
+            indent = parent_indent + 2 
+            
+            # Cố gắng dò tìm indent của thằng con đầu tiên (nếu có)
+            for i in range(L_start, L_end): # Bỏ qua dòng cha (L_start-1)
                 line = lines[i]
                 if line.strip() and not line.strip().startswith("--"):
                     indent = len(line) - len(line.lstrip())
@@ -367,23 +255,26 @@ class AutoSorrifier:
             self._last_action_msg = f"Closed scope [{target['kind']}] at L{L_end} (Indent: {indent})"
             tqdm.write(self._last_action_msg)
             
+            # Chèn sorry vào cuối scope (không xóa code cũ)
             new_lines = lines[:L_end]
             new_lines.append(" " * indent + "sorry")
             new_lines.extend(lines[L_end:])
+            
+            self.current_content = "\n".join(new_lines) + "\n"
 
-        self.current_content = self._clean_redundant_sorries(new_lines)
+        self.current_content = self._clean_redundant_sorries(self.current_content.splitlines())
         return True
 
     def _get_lean_errors(self) -> Tuple[List[Tuple[int, str]], List[Tuple[int, str]]]:
         """
-        Dùng Lean4ServerScheduler (`repl_verifier`) để chạy `verify_lean4_file`
+        Dùng Lean4ServerScheduler (`repl_verifier`) để chạy `verify_lean_code`
         trong background process, sau đó phân loại lỗi.
         """
         req_ids = self.repl_verifier.submit_all_request(
             [dict(code=self.current_content, timeout=self.verify_timeout)]
         )
         result = self.repl_verifier.get_all_request_outputs(req_ids)[0]
-        print(f"[REPL] verify_lean4_file executed in {result.get('verify_time', 0):.4f} seconds")
+        print(f"[REPL] verify_lean_code executed in {result.get('verify_time', 0):.4f} seconds")
 
         if result.get("system_errors"):
             raise RuntimeError(f"Lean verification timed out or crashed: {result['system_errors'][:200]}")
@@ -402,18 +293,14 @@ class AutoSorrifier:
         return sorted(fatal_errors), sorted(unsolved_goals)
 
     def _get_ast_lines(self) -> List[Dict]:
-        """Gọi thẳng Persistent AST Server qua Stdin/Stdout"""
-        
-        # Nhờ Daemon móc AST (bảo vệ bằng lock vì dùng chung 1 process, 1 pipe)
-        with AST_LOCK:
-            blocks = self.ast_daemon.get_ast(self.temp_file_path)
-                    
-        # Tính toán line từ byte
+        """Fetch AST blocks and convert byte offsets to line numbers."""
+        blocks = get_lean_ast(self.current_content)
+
         raw_bytes = self.current_content.encode('utf-8')
         for b in blocks:
             b["start_line"] = self._byte_to_line(raw_bytes, b["start_byte"])
             b["end_line"] = self._byte_to_line(raw_bytes, b["end_byte"])
-            
+
         return blocks
 
     def _clean_redundant_sorries(self, lines: List[str]) -> str:
@@ -423,10 +310,12 @@ class AutoSorrifier:
         cleaned = []
         for line in lines:
             if line == "":
-                continue 
-            if line.strip() == "sorry" and cleaned and cleaned[-1].strip() == "sorry":
+                continue
+            stripped = line.strip()
+            if stripped == "sorry" and cleaned and cleaned[-1].strip() == "sorry":
                 continue
             cleaned.append(line)
+            
         return "\n".join(cleaned) + "\n"
 
     def _force_full_sorrify(self) -> str:
@@ -460,13 +349,6 @@ class AutoSorrifier:
             end = start
         return start, end
 
-    def _write_to_temp_file(self):
-        """
-        Writes the in-memory Lean code content to the temporary file for Lean to compile.
-        """
-        with open(self.temp_file_path, "w", encoding="utf-8") as tf:
-            tf.write(self.current_content)
-
     def _log_state(self, step_name: str):
         """
         If log_path is set, append the current state of the code to the log file, 
@@ -484,6 +366,12 @@ class AutoSorrifier:
         Converts zero-indexed byte offset to 1-indexed line number.
         """
         return raw_bytes[:byte_offset].count(b"\n") + 1
+
+    @staticmethod
+    def _strip_noop_tactics(code: str) -> str:
+        """Remove standalone skip/done lines - they are no-ops and cause 'no goals' errors."""
+        lines = [l for l in code.splitlines() if l.strip() not in ("skip", "done")]
+        return "\n".join(lines) + "\n"
 
     @staticmethod
     def _is_block_starter(line: str) -> bool:
@@ -507,10 +395,9 @@ if __name__ == "__main__":
     with open(target_path, "r", encoding="utf-8") as f:
         source_code = f.read()
 
-    verifier = Lean4ServerScheduler(max_concurrent_requests=1, timeout=300, memory_limit=-1, name="auto_sorrifier_cli")
+    verifier = Lean4ServerScheduler(max_concurrent_requests=1, timeout=300, name="auto_sorrifier_cli")
     try:
-        wait_warmup()
-        patcher = AutoSorrifier(source_code, verifier)
+        patcher = Sorrifier(source_code, verifier)
         fixed_code = patcher.fix_code()
         if fixed_code:
             with open(target_path, "w", encoding="utf-8") as f:

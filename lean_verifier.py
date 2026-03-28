@@ -8,20 +8,26 @@ import uuid
 from concurrent.futures import ProcessPoolExecutor
 import signal
 
+# Default path for the lake executable
 DEFAULT_LAKE_PATH = shutil.which("lake") or "lake"
+# Default Lean workspace directory
 DEFAULT_LEAN_WORKSPACE = os.path.join(os.getcwd(), "repl/")
 
-def verify_lean4_file(code, timeout=300, **kwargs):
-    """Hàm verify lõi, nhận code dạng string và trả về dict kết quả."""
+def verify_lean_code(code, timeout=300):
+    """
+    Core verification function. Receives Lean code as a string and returns a result dict.
+    """
     command = {"cmd": code}
     message_str = json.dumps(command, ensure_ascii=False)
     start_time = time.time()
     
     try:
         with tempfile.TemporaryFile(mode='w+', encoding='utf-8') as temp_file:
+            # Write the command to the temporary file and seek back to the start
             temp_file.write(message_str + "\r\n\r\n")
             temp_file.seek(0)
             
+            # Start the Lean REPL process
             proc = subprocess.Popen(
                 [DEFAULT_LAKE_PATH, "exe", 'repl'],
                 stdin=temp_file,
@@ -34,7 +40,7 @@ def verify_lean4_file(code, timeout=300, **kwargs):
             try:
                 stdout, stderr = proc.communicate(timeout=timeout)
             except subprocess.TimeoutExpired:
-                # Kill the whole process group so spawned `repl` is terminated too.
+                # Kill the whole process group so the spawned `repl` is terminated as well
                 os.killpg(proc.pid, signal.SIGKILL)
                 proc.communicate()
                 raise
@@ -48,6 +54,7 @@ def verify_lean4_file(code, timeout=300, **kwargs):
         sorries = result_json.get('sorries', [])
         
         is_pass = len(errors) == 0
+        # Consider warnings about 'sorry' or 'failed' as incomplete
         has_sorry_or_failed_warning = any(
             "declaration uses 'sorry'" in w.get('data', '') or 'failed' in w.get('data', '') 
             for w in warnings
@@ -66,10 +73,13 @@ def verify_lean4_file(code, timeout=300, **kwargs):
         }
 
     except subprocess.TimeoutExpired:
+        # Timed out waiting for Lean
         result = {"pass": False, "complete": False, "system_errors": "Timeout", "errors": []}
     except json.JSONDecodeError:
+        # The process output was not valid JSON
         result = {"pass": False, "complete": False, "system_errors": f"JSON Error. Stdout: {stdout}", "errors": []}
     except Exception as e:
+        # Catch-all for any other exception
         result = {"pass": False, "complete": False, "system_errors": str(e), "errors": []}
         
     result['verify_time'] = time.time() - start_time
@@ -78,29 +88,29 @@ def verify_lean4_file(code, timeout=300, **kwargs):
 
 class Lean4ServerScheduler:
     """
-    Scheduler persistent: Duy trì dàn worker liên tục để nhận task mới.
-    Tương thích hoàn toàn với interface của DeepSeek-Prover.
+    Persistent scheduler that maintains a pool of workers to process new tasks.
+    Fully compatible with the DeepSeek-Prover interface.
     """
     def __init__(self, max_concurrent_requests=1, timeout=300, name='verifier', **kwargs):
         self.timeout = timeout
-        # Khởi tạo Pool 1 lần, dàn worker sẽ túc trực ở đây cho đến khi gọi .close()
+        # Initialize the process pool once; workers remain alive until .close() is called
         self.executor = ProcessPoolExecutor(max_workers=max_concurrent_requests)
-        self.futures = {} # Lưu trạng thái các task đang chạy
-        print(f"[{name}] Đã khởi động scheduler với {max_concurrent_requests} worker(s).")
+        self.futures = {}  # Store futures representing running tasks
+        print(f"[{name}] Scheduler started with {max_concurrent_requests} worker(s).")
 
     def submit_all_request(self, tasks):
         """
-        Nhận 1 list các dictionary (vd: [{'code': '...'}])
-        Ném vào cho worker xử lý và trả về list chứa các ID của request.
+        Accept a list of task dictionaries (e.g., [{'code': '...'}])
+        Submits each to the worker pool and returns a list of request IDs.
         """
         request_ids = []
         for task in tasks:
-            req_id = str(uuid.uuid4()) # Tạo ID ngẫu nhiên cho mỗi task
+            req_id = str(uuid.uuid4())  # Generate a unique ID for each task
             code = task.get('code', '')
             task_timeout = task.get('timeout', self.timeout)
             
-            # Giao việc cho worker, lưu lại cái 'thẻ hẹn' (future)
-            future = self.executor.submit(verify_lean4_file, code, task_timeout)
+            # Submit the job to an executor worker and save the future
+            future = self.executor.submit(verify_lean_code, code, task_timeout)
             self.futures[req_id] = future
             request_ids.append(req_id)
             
@@ -108,22 +118,22 @@ class Lean4ServerScheduler:
 
     def get_all_request_outputs(self, request_ids):
         """
-        Chờ và thu thập kết quả từ các ID tương ứng.
+        Waits for and collects results for the specified request IDs.
         """
         outputs = []
         for req_id in request_ids:
             if req_id in self.futures:
-                # Hàm .result() sẽ chặn (block) cho đến khi file đó chạy xong
+                # .result() blocks until the worker process for this request finishes
                 result = self.futures[req_id].result()
                 outputs.append(result)
-                # Lấy xong kết quả thì xoá thẻ hẹn đi cho nhẹ RAM
+                # Remove the future to free up memory after result is collected
                 del self.futures[req_id] 
                 
         return outputs
 
     def close(self):
         """
-        Dọn dẹp và đóng dàn worker. Bắt buộc gọi ở cuối script.
+        Clean up and close the worker pool. Must be called at the end of the script.
         """
         self.executor.shutdown(wait=True)
-        print("Đã đóng Lean4ServerScheduler an toàn.")
+        print("Lean4ServerScheduler closed safely.")
