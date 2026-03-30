@@ -1,10 +1,4 @@
-"""
-Utility module for accessing the Lean AST daemon.
-
-Maintains a single persistent `dump_ast_server` process for the lifetime of
-the Python interpreter.  Any module that imports `get_lean_ast` shares the
-same process and the same lock — no matter how many files import this module.
-"""
+"""Persistent Lean AST daemon. Single shared process across all imports."""
 
 import atexit
 import json
@@ -27,7 +21,6 @@ class SingletonASTDaemon:
     def _start_process(self):
         if self.proc and self.proc.poll() is None:
             self.proc.terminate()
-
         self.proc = subprocess.Popen(
             ["lake", "exe", "dump_ast_server"],
             stdin=subprocess.PIPE,
@@ -37,24 +30,22 @@ class SingletonASTDaemon:
             cwd=self.repl_dir,
             bufsize=1,
         )
-
-        # Warmup: preload Mathlib so the first real call is fast
+        # Warmup: cache Mathlib environment so the first real call is fast
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".lean", dir=self.repl_dir, delete=False, encoding="utf-8"
         ) as tf:
             tf.write("import Mathlib")
             tmp = tf.name
         try:
-            print("[Server] New imports detected. Loading Environment...")
+            print("[AST] Loading Mathlib environment...")
             self._get_ast_raw(tmp)
-            print("[Server] Mathlib loaded. AST Daemon ready.")
+            print("[AST] Ready.")
         finally:
             os.remove(tmp)
 
     def _get_ast_raw(self, file_path: str) -> list:
         self.proc.stdin.write(file_path + "\n")
         self.proc.stdin.flush()
-
         blocks = []
         while True:
             line = self.proc.stdout.readline()
@@ -71,10 +62,10 @@ class SingletonASTDaemon:
         return blocks
 
     def get_ast(self, file_path: str) -> list:
-        """Thread-safe: acquire lock, auto-restart if daemon crashed."""
+        """Thread-safe AST fetch; auto-restarts daemon on crash."""
         with self.lock:
             if self.proc.poll() is not None:
-                print("[!] AST Daemon ngỏm, đang tự động hồi sinh...")
+                print("[AST] Daemon crashed, restarting...")
                 self._start_process()
             return self._get_ast_raw(file_path)
 
@@ -88,10 +79,7 @@ _SHARED_DAEMON = SingletonASTDaemon(REPL_DIR)
 
 
 def get_lean_ast(code: str) -> list:
-    """
-    Return a list of AST block dicts for a Lean code string.
-    Thread-safe; backed by a single persistent daemon process.
-    """
+    """Return AST block dicts for a Lean code string. Thread-safe."""
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".lean", dir=REPL_DIR, delete=False, encoding="utf-8"
     ) as f:

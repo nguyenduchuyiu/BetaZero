@@ -8,6 +8,7 @@ from lean_env import LeanEnv
 from sorrifier import Sorrifier
 from and_or_graph import ANDORGraph
 from reward import RewardCalculator
+from lean_verifier import Lean4ServerScheduler
 
 
 class MockPolicy:
@@ -53,7 +54,7 @@ def print_graph(graph: ANDORGraph, state: ProofState, depth: int = 0, visited: s
     visited.add(state)
     
     print(f"{indent}🔵 State: {state.goal.splitlines()[0]}")
-    actions = graph._actions.get(state, [])
+    actions = graph.get_actions(state)
     
     if not actions:
         print(f"{indent}   (Không có action nào)")
@@ -61,7 +62,7 @@ def print_graph(graph: ANDORGraph, state: ProofState, depth: int = 0, visited: s
         
     for i, act in enumerate(actions):
         status = "✅ Solved" if graph.is_solved(act) else "❌ Open"
-        reward = graph._r_env.get(act, 0.0)
+        reward = graph.get_r_env(act)
         content_preview = act.content.strip().replace('\n', '\\n')
         if len(content_preview) > 40: content_preview = content_preview[:37] + "..."
         
@@ -73,8 +74,9 @@ def print_graph(graph: ANDORGraph, state: ProofState, depth: int = 0, visited: s
 
 if __name__ == "__main__":
     # 1. Khởi tạo môi trường thật
-    lean_env = LeanEnv()
-    sorrifier = Sorrifier()
+    verifier = Lean4ServerScheduler(max_concurrent_requests=1, timeout=60, name="auto_sorrifier_cli")
+    lean_env = LeanEnv(verifier)
+    sorrifier = Sorrifier(verifier)
     
     # 2. Khởi tạo mock
     policy = MockPolicy()

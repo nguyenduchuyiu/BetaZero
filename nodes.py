@@ -5,7 +5,7 @@ from typing import Literal
 
 @dataclass(frozen=True)
 class ProofState:
-    """OR-node: a proof state in the AND/OR search graph."""
+    """OR-node: a proof state (context, goal) in the AND/OR search graph."""
     context: str
     goal: str
 
@@ -21,6 +21,4 @@ class Action:
     children: tuple[ProofState, ...] = field(default_factory=tuple)
 
     def __post_init__(self):
-        # ensure children is always a tuple (hashable)
         object.__setattr__(self, "children", tuple(self.children))
-    

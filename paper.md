@@ -121,7 +121,7 @@ By systematically isolating and replacing errors, the Auto-Sorrifier prevents lo
 
 # 6. Dense Reward Formulation and Credit Assignment
 
-Standard RL methods typically propagate a uniform scalar reward across an entire trajectory. This approach fails to assign accurate credit in hierarchical theorem proving, where a single action (e.g., a goal decomposition) can produce multiple subgoals with entirely different roles—some necessary, some redundant, and some unprovable. To address this, we compute the return by explicitly analyzing how each generated subgoal contributes to the final proof structure. We define two levels of reward: an immediate syntactic reward that measures whether the generated code compiles, and a delayed structural reward evaluated via a hindsight tree backup on the AND/OR graph.
+Standard RL methods typically propagate a uniform scalar reward across an entire trajectory. This approach fails to assign accurate credit in hierarchical theorem proving, where a single action (e.g., a goal decomposition) can produce multiple subgoals with entirely different roles—some necessary, some redundant, and some unprovable. To address this, we compute the return by explicitly analyzing how each generated subgoal contributes to the final proof structure. We define two levels of reward: an immediate syntactic reward that measures whether the generated code compiles, and a delayed structural reward evaluated via a bottom-up topological backup on the AND/OR graph..
 
 ## 6.1. Immediate Syntactic Reward
 
