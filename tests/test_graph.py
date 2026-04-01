@@ -1,14 +1,15 @@
+import sys, os; sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 # ==========================================
-# PHẦN TEST SCRIPT MOCK ĐỂ IN CÂY MCTS
+# PHẦN TEST SCRIPT MOCK ĐỂ IN CÂY
 # ==========================================
 
-from nodes import ProofState
-from rollout import LevelwiseRollout
-from lean_env import LeanEnv
-from sorrifier import Sorrifier
-from and_or_graph import ANDORGraph
-from reward import RewardCalculator
-from lean_verifier import Lean4ServerScheduler
+from betazero.data.nodes import ProofState
+from betazero.logic.rollout import LevelwiseRollout
+from betazero.env.lean_env import LeanEnv
+from betazero.logic.sorrifier import Sorrifier
+from betazero.logic.and_or_graph import ANDORGraph
+from betazero.logic.reward import RewardCalculator
+from betazero.env.lean_verifier import Lean4ServerScheduler
 
 
 class MockPolicy:

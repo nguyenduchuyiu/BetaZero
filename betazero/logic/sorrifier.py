@@ -15,8 +15,8 @@ from __future__ import annotations
 import sys
 from typing import Tuple, List, Dict
 from tqdm import tqdm
-from lean_verifier import Lean4ServerScheduler
-from ast_parser import get_lean_ast
+from betazero.env.lean_verifier import Lean4ServerScheduler
+from betazero.env.ast_parser import get_lean_ast
 
 BLOCK_STARTERS = (
     "have", "·", ".", "cases ", "cases' ", "induction ", 

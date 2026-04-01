@@ -31,7 +31,7 @@ class Config:
     total_iterations: int = 1000
     theorems_per_iter: int = 16
     checkpoint_every: int = 50
-    checkpoint_dir: str = "checkpoints"
+    checkpoint_dir: str = "outputs/checkpoints"
 
     # Dataset
     dataset_dir: str = "problems/miniF2F-Valid"
@@ -47,8 +47,12 @@ class Config:
     max_new_tokens: int = 128
     temperature: float = 0.7
 
+    # vLLM subprocess (rollout phase)
+    vllm_port: int = 8000
+    vllm_gpu_memory_utilization: float = 0.5
+
     # Logging
-    log_dir: str = "runs"
+    log_dir: str = "outputs/runs"
 
     @classmethod
     def from_yaml(cls, path: str) -> Config:

@@ -1,17 +1,20 @@
 from __future__ import annotations
 
-from nodes import ProofState, Action
-from lean_env import LeanEnv
-from sorrifier import Sorrifier
-from and_or_graph import ANDORGraph
-from reward import RewardCalculator
-from policy_model import PolicyModel
+from betazero.data.nodes import ProofState, Action
+from betazero.env.lean_env import LeanEnv
+from betazero.logic.sorrifier import Sorrifier
+from betazero.logic.and_or_graph import ANDORGraph
+from betazero.logic.reward import RewardCalculator
+from typing import Protocol
+
+class SamplePolicy(Protocol):
+    def sample(self, states: list[ProofState], action_type: str, n: int) -> list[list[str]]: ...
 
 TACTIC_RATIO = 0.8
 
 
 class LevelwiseRollout:
-    def __init__(self, policy: PolicyModel, lean: LeanEnv,
+    def __init__(self, policy: SamplePolicy, lean: LeanEnv,
                  sorrifier: Sorrifier, reward: RewardCalculator,
                  K: int = 32, max_depth: int = 5, max_nodes: int = 128):
         self.policy = policy

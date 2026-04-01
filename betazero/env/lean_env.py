@@ -1,8 +1,8 @@
 import re
 
-from nodes import ProofState
-from ast_parser import get_lean_ast
-from lean_verifier import Lean4ServerScheduler
+from betazero.data.nodes import ProofState
+from betazero.env.ast_parser import get_lean_ast
+from betazero.env.lean_verifier import Lean4ServerScheduler
 
 
 class LeanEnv:
@@ -72,7 +72,7 @@ class LeanEnv:
 
 
 if __name__ == "__main__":
-    from lean_verifier import Lean4ServerScheduler
+    from betazero.env.lean_verifier import Lean4ServerScheduler
     env = LeanEnv(Lean4ServerScheduler(max_concurrent_requests=1, timeout=30, name="lean_env_test"))
 
     print("--- Testing execute() ---")

@@ -2,7 +2,7 @@ import os
 import re
 import random
 
-from nodes import ProofState
+from betazero.data.nodes import ProofState
 
 
 def _extract_params(params_str: str) -> list[str]:

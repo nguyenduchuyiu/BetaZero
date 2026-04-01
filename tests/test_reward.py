@@ -1,7 +1,8 @@
+import sys, os; sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import json
-from reward import RewardCalculator
-from sorrifier import Sorrifier
-from lean_verifier import Lean4ServerScheduler
+from betazero.logic.reward import RewardCalculator
+from betazero.logic.sorrifier import Sorrifier
+from betazero.env.lean_verifier import Lean4ServerScheduler
 
 verifier = Lean4ServerScheduler(max_concurrent_requests=1, timeout=300, name="auto_sorrifier_cli")
 

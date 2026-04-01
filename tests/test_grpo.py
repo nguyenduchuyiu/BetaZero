@@ -1,9 +1,10 @@
+import sys, os; sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import torch
 import torch.nn as nn
 from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizer, PreTrainedModel
 import torch.nn.functional as F
-from nodes import ProofState, Action
-from grpo_trainer import GRPOTrainer
+from betazero.data.nodes import ProofState, Action
+from betazero.logic.grpo_trainer import GRPOTrainer
 
 # ==========================================
 # 1. MODEL SIÊU NHỎ ĐỂ ÉP HỌC VẸT

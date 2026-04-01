@@ -1,0 +1,126 @@
+import os
+import signal
+import subprocess
+import time
+import requests
+import socket
+
+from betazero.data.nodes import ProofState
+from betazero.model.prompt import build_prompt
+from betazero.utils.config import Config
+
+
+class VLLMProcess:
+    """vLLM server as a subprocess. kill() → OS reclaims 100% VRAM."""
+
+    def __init__(self, cfg: Config):
+        self.model_name  = cfg.model_name
+        self.base_port        = cfg.vllm_port
+        self.port          = self.base_port
+        self.gpu_util    = cfg.vllm_gpu_memory_utilization
+        self.max_tokens  = cfg.max_new_tokens
+        self.temperature = cfg.temperature
+        self.proc: subprocess.Popen | None = None
+
+    def _get_free_port(self, start_port: int) -> int:
+        """Scan from start_port, find the first empty port and return it."""
+        port = start_port
+        while port < start_port + 1000: # Scan up to 1000 ports
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                try:
+                    # Try to bind to the port. If OS allows -> Port is empty!
+                    s.bind(('127.0.0.1', port))
+                    return port
+                except OSError:
+                    # Error (Already in use) -> OS rejects -> Try next port
+                    port += 1
+        raise RuntimeError(f"Scan 1000 ports from {start_port} but no empty port found!")
+
+    def start(self, adapter_path: str | None = None):
+        """Spawn vLLM subprocess; block until /health is up."""
+        
+        # 1. Port Hopping to avoid TIME_WAIT
+        self.port = self._get_free_port(self.base_port)
+            
+        env = {**os.environ, "VLLM_ALLOW_RUNTIME_LORA_UPDATING": "1"}
+        cmd = [
+            "python", "-m", "vllm.entrypoints.openai.api_server",
+            "--model", self.model_name,
+            "--port", str(self.port),
+            "--gpu-memory-utilization", str(self.gpu_util),
+        ]
+        if adapter_path and os.path.exists(adapter_path):
+            cmd += ["--enable-lora", "--lora-modules", f"adapter={adapter_path}"]
+            
+        print(f"\n[vLLM] Starting on port {self.port}...")
+        
+        # 2. Open log file & create process group (setsid)
+        os.makedirs("outputs", exist_ok=True)
+        self.log_file = open(f"outputs/vllm_port_{self.port}.log", "w")
+        
+        self.proc = subprocess.Popen(
+            cmd, 
+            env=env,
+            stdout=self.log_file, 
+            stderr=subprocess.STDOUT, 
+            preexec_fn=os.setsid     
+        )
+        self._wait_ready()
+
+
+    def kill(self):
+        """Kill subprocess AND ALL ITS CHILDREN; VRAM is fully reclaimed by the OS."""
+        if self.proc and self.proc.poll() is None:
+            print(f"[vLLM] Killing Process Group {self.proc.pid}...")
+            try:
+                os.killpg(os.getpgid(self.proc.pid), signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            self.proc.wait()
+            
+        self.proc = None
+        
+        if self.log_file and not self.log_file.closed:
+            self.log_file.close()
+            
+        time.sleep(2)
+
+
+    def sample(self, states: list[ProofState], action_type: str, n: int) -> list[list[str]]:
+        if not states:
+            return []
+        prompts = [build_prompt(s, action_type) for s in states]
+        model   = "adapter" if self._adapter_loaded() else self.model_name
+        try:
+            r = requests.post(
+                f"http://localhost:{self.port}/v1/completions",
+                json={"model": model, "prompt": prompts, "n": n,
+                      "max_tokens": self.max_tokens, "temperature": self.temperature},
+                timeout=300,
+            )
+            r.raise_for_status()
+            choices = r.json().get("choices", [])
+        except requests.exceptions.RequestException as e:
+            print(f"[vLLM] sample error: {e}")
+            return [[] for _ in states]
+        return [[choices[i * n + j]["text"].strip() for j in range(n)]
+                for i in range(len(states))]
+
+
+    def _adapter_loaded(self) -> bool:
+        try:
+            r = requests.get(f"http://localhost:{self.port}/v1/models", timeout=2)
+            return any(m["id"] == "adapter" for m in r.json().get("data", []))
+        except Exception:
+            return False
+
+    def _wait_ready(self, timeout: int = 180):
+        for _ in range(timeout):
+            try:
+                if requests.get(f"http://localhost:{self.port}/health", timeout=1).ok:
+                    return
+            except Exception:
+                pass
+            time.sleep(1)
+        self.kill()
+        raise RuntimeError(f"vLLM did not start within {timeout}s")
