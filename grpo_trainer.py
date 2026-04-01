@@ -2,6 +2,7 @@ from __future__ import annotations
 from collections import defaultdict
 
 import torch
+from contextlib import nullcontext
 
 from nodes import ProofState, Action
 from rollout import LevelwiseRollout, PolicyModel
@@ -10,12 +11,10 @@ from rollout import LevelwiseRollout, PolicyModel
 class GRPOTrainer:
     """GRPO training loop with decoupled tactic/skeleton groups (Section 7)."""
 
-    def __init__(self, policy: PolicyModel, ref_policy: PolicyModel,
-                 rollout: LevelwiseRollout,
+    def __init__(self, policy: PolicyModel, rollout: LevelwiseRollout,
                  lr: float = 1e-5, eps_clip: float = 0.2, beta_kl: float = 0.01,
                  grpo_epochs: int = 4, mini_batch_size: int = 8):
         self.policy = policy
-        self.ref_policy = ref_policy  # frozen SFT reference model
         self.rollout = rollout
         self.eps_clip = eps_clip
         self.beta_kl = beta_kl
@@ -61,7 +60,10 @@ class GRPOTrainer:
         adv_t        = torch.tensor([adv[i] for i in train_idx], dtype=torch.float32, device=device)
 
         # Compute reference log-probs once in mini-batches to avoid OOM
-        ref_log_probs = self._batch_log_probs(self.ref_policy, states, actions, action_types, no_grad=True)
+        ref_log_probs = self._batch_log_probs(
+            self.policy, states, 
+            actions, action_types, 
+            no_grad=True, disable_adapter=True)
 
         total_loss = total_kl = 0.0
         n_steps = 0
@@ -105,11 +107,12 @@ class GRPOTrainer:
         }
 
     def _batch_log_probs(self, model: PolicyModel, states, actions, action_types,
-                         no_grad: bool = False) -> torch.Tensor:
+                         no_grad: bool = False, disable_adapter: bool = False) -> torch.Tensor:
         """Compute log_probs in mini-batches; optionally disable gradients."""
         results = []
         ctx = torch.no_grad() if no_grad else torch.enable_grad()
-        with ctx:
+        adapter_ctx = model.model.disable_adapter() if disable_adapter else nullcontext()
+        with ctx, adapter_ctx:
             for i in range(0, len(states), self.mini_batch_size):
                 s  = states[i:i + self.mini_batch_size]
                 a  = actions[i:i + self.mini_batch_size]

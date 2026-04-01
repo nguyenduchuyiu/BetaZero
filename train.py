@@ -24,12 +24,7 @@ def train(cfg: Config = Config()):
     logger.info(f"Run: {cfg.run_name}  |  {cfg}")
 
     logger.info(f"Loading policy: {cfg.model_name}")
-    policy     = PolicyModel(cfg.model_name, device=cfg.device)
-    ref_policy = PolicyModel(cfg.model_name, device=cfg.device)
-    ref_policy.model.load_state_dict(policy.model.state_dict())
-    ref_policy.model.eval()
-    for p in ref_policy.model.parameters():
-        p.requires_grad_(False)
+    policy     = PolicyModel(cfg)
 
     scheduler = Lean4ServerScheduler(max_concurrent_requests=cfg.lean_workers,
                                      timeout=cfg.lean_timeout, name=cfg.run_name)
@@ -38,7 +33,7 @@ def train(cfg: Config = Config()):
     reward    = RewardCalculator()
     rollout   = LevelwiseRollout(policy, lean, sorrifier, reward,
                                  K=cfg.K, max_depth=cfg.max_depth, max_nodes=cfg.max_nodes)
-    trainer   = GRPOTrainer(policy, ref_policy, rollout,
+    trainer   = GRPOTrainer(policy, rollout,
                             lr=cfg.lr, eps_clip=cfg.eps_clip, beta_kl=cfg.beta_kl,
                             grpo_epochs=cfg.grpo_epochs,
                             mini_batch_size=cfg.mini_batch_size)
@@ -62,12 +57,9 @@ def train(cfg: Config = Config()):
         writer.add_scalar("train/solve_rate", m["solve_rate"], iteration)
         writer.add_scalar("train/n_samples",  m["n_samples"],  iteration)
 
-        ref_policy.model.load_state_dict(policy.model.state_dict())
-
         if iteration % cfg.checkpoint_every == 0:
-            path = os.path.join(ckpt_dir, f"iter{iteration}.pt")
-            torch.save(policy.model.state_dict(), path)
-            logger.info(f"Checkpoint: {path}")
+            policy.model.save_pretrained(ckpt_dir)
+            logger.info(f"LoRA Checkpoint saved at: {ckpt_dir}")
 
     writer.close()
     scheduler.close()

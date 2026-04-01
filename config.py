@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
 from dataclasses import dataclass, asdict, field
+from typing import Optional
 import yaml
 
 
@@ -34,6 +35,17 @@ class Config:
 
     # Dataset
     dataset_dir: str = "problems/miniF2F-Valid"
+
+    # LoRA (PEFT)
+    lora_r: int = 16
+    lora_alpha: int = 32
+    lora_dropout: float = 0.05
+    lora_target_modules: Optional[list] = None  # None → use model default
+
+    # Training efficiency
+    gradient_checkpointing: bool = True
+    max_new_tokens: int = 128
+    temperature: float = 0.7
 
     # Logging
     log_dir: str = "runs"
