@@ -2,7 +2,7 @@ import os
 import re
 import random
 
-from betazero.data.nodes import ProofState
+from betazero.core.nodes import ProofState
 
 
 def _extract_params(params_str: str) -> list[str]:
@@ -30,6 +30,8 @@ def parse_lean_file(path: str) -> ProofState | None:
     m = re.search(r'\btheorem\s+\w+(.*?):=\s*by\s+sorry', content, re.DOTALL)
     if not m:
         return None
+    header = content[:m.start()].strip()
+    header = header.replace("set_option maxHeartbeats 0", "set_option maxHeartbeats 100000")
     sig = m.group(1).strip()
     depth, colon_pos = 0, -1
     for i, c in enumerate(sig):
@@ -41,7 +43,7 @@ def parse_lean_file(path: str) -> ProofState | None:
         return None
     goal    = sig[colon_pos + 1:].strip()
     context = "\n".join(_extract_params(sig[:colon_pos]))
-    return ProofState(context=context, goal=goal)
+    return ProofState(context=context, goal=goal, header=header)
 
 
 class TheoremDataset:

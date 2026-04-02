@@ -34,7 +34,7 @@ class SingletonASTDaemon:
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".lean", dir=self.repl_dir, delete=False, encoding="utf-8"
         ) as tf:
-            tf.write("import Mathlib")
+            tf.write('import Mathlib')
             tmp = tf.name
         try:
             print("[AST] Loading Mathlib environment...")

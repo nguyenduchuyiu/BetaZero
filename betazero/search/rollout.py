@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from betazero.data.nodes import ProofState, Action
+from betazero.core.nodes import ProofState, Action
 from betazero.env.lean_env import LeanEnv
-from betazero.logic.sorrifier import Sorrifier
-from betazero.logic.and_or_graph import ANDORGraph
-from betazero.logic.reward import RewardCalculator
+from betazero.search.sorrifier import Sorrifier
+from betazero.search.and_or_graph import ANDORGraph
+from betazero.search.reward import RewardCalculator
 from typing import Protocol
 
 class SamplePolicy(Protocol):
@@ -36,7 +36,9 @@ class LevelwiseRollout:
             frontier = [s for s in graph.unsolved_states() if graph.get_depth(s) == depth]
             if not frontier or total_expanded >= self.max_nodes:
                 break
-            tac_batches  = self.policy.sample(frontier, "tactic", K_tac)
+                
+            # Sample half of budget for tactic actions and self-correction for remaining budget
+            tac_batches  = self.policy.sample(frontier, "tactic", K_tac/2)
             skel_batches = self.policy.sample(frontier, "skeleton", K_skel)
 
             for i, state in enumerate(frontier):
@@ -80,6 +82,7 @@ class LevelwiseRollout:
         r_fail = self.reward.r_env(state_code, patched, patched_vr)
         # Store original action code with penalty; tactic dead-end gets no children
         graph.expand(state, Action("tactic", action_code, ()), r_env=r_fail, closed=False)
+        #TODO: self-correction for failed tactic
 
     def _process_skeleton(self, graph: ANDORGraph, state: ProofState, action_code: str,
                           state_code: str, state_vr: dict, subgoals: list[ProofState]):
@@ -99,7 +102,10 @@ class LevelwiseRollout:
         graph.expand(state, Action("skeleton", action_code, ()), r_env=r_fail)
         # Patched node: sorrified code with valid subgoals, allowed to expand
         r_patch = self.reward.r_env(patched, patched, patched_vr)
-        new_subgoals = [self.lean._parse_proof_state(s.get("goal", "")) for s in patched_vr.get("sorries", [])]
+        new_subgoals = [
+            self.lean._parse_proof_state(s.get("goal", ""), header=state.header)
+            for s in patched_vr.get("sorries", [])
+        ]
         graph.expand(state, Action("skeleton", patched_action_code, tuple(new_subgoals)), r_env=r_patch)
 
     def _assign_dep_rewards(self, graph: ANDORGraph):

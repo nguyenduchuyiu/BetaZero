@@ -1,4 +1,4 @@
-from betazero.data.nodes import ProofState
+from betazero.core.nodes import ProofState
 
 
 def build_prompt(state: ProofState, action_type: str) -> str:

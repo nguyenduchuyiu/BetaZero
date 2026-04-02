@@ -1,1 +1,3 @@
-python=3.12
+# python=3.12
+# pip install -r requirements.txt
+# tensorboard --logdir outputs/runs/ serve

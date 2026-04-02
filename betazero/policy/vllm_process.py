@@ -5,8 +5,8 @@ import time
 import requests
 import socket
 
-from betazero.data.nodes import ProofState
-from betazero.model.prompt import build_prompt
+from betazero.core.nodes import ProofState
+from betazero.policy.prompt import build_prompt
 from betazero.utils.config import Config
 
 
@@ -20,6 +20,7 @@ class VLLMProcess:
         self.gpu_util    = cfg.vllm_gpu_memory_utilization
         self.max_tokens  = cfg.max_new_tokens
         self.temperature = cfg.temperature
+        self.max_model_len = cfg.max_model_len
         self.proc: subprocess.Popen | None = None
 
     def _get_free_port(self, start_port: int) -> int:
@@ -48,6 +49,8 @@ class VLLMProcess:
             "--model", self.model_name,
             "--port", str(self.port),
             "--gpu-memory-utilization", str(self.gpu_util),
+            "--max-model-len", str(self.max_model_len),
+            "--enforce-eager"
         ]
         if adapter_path and os.path.exists(adapter_path):
             cmd += ["--enable-lora", "--lora-modules", f"adapter={adapter_path}"]

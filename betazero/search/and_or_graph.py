@@ -1,5 +1,5 @@
 from __future__ import annotations
-from betazero.data.nodes import ProofState, Action
+from betazero.core.nodes import ProofState, Action
 
 
 class ANDORGraph:

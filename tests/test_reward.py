@@ -9,8 +9,8 @@ verifier = Lean4ServerScheduler(max_concurrent_requests=1, timeout=300, name="au
 
 def mock_sorrify(code: str) -> str:
     """Mock Auto-Sorrifier: Thay thế dòng code lỗi bằng sorry."""
-    sorrifier = Sorrifier(code, verifier)
-    fixed_code = sorrifier.fix_code()
+    sorrifier = Sorrifier(verifier)
+    fixed_code = sorrifier.fix_code(code)
     return fixed_code
 
 if __name__ == "__main__":

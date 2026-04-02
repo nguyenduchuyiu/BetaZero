@@ -50,6 +50,7 @@ class Config:
     # vLLM subprocess (rollout phase)
     vllm_port: int = 8000
     vllm_gpu_memory_utilization: float = 0.5
+    max_model_len: int = 2048
 
     # Logging
     log_dir: str = "outputs/runs"

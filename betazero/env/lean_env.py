@@ -1,6 +1,6 @@
 import re
 
-from betazero.data.nodes import ProofState
+from betazero.core.nodes import ProofState
 from betazero.env.ast_parser import get_lean_ast
 from betazero.env.lean_verifier import Lean4ServerScheduler
 
@@ -18,7 +18,10 @@ class LeanEnv:
         """Build, verify, and parse subgoals for a tactic applied to state."""
         candidate_code = self._build_cmd(state, code)
         vr = self.scheduler.verify(candidate_code)
-        subgoals = [self._parse_proof_state(s.get("goal", "")) for s in vr.get("sorries", [])]
+        subgoals = [
+            self._parse_proof_state(s.get("goal", ""), header=state.header)
+            for s in vr.get("sorries", [])
+        ]
         return candidate_code, vr, subgoals
 
     def get_ast(self, code: str) -> list:
@@ -47,8 +50,8 @@ class LeanEnv:
         return {"core": core, "benign": benign, "malignant": malignant}
 
     @staticmethod
-    def _parse_proof_state(goal_str: str) -> ProofState:
-        """Parse Lean Infoview goal string into a ProofState."""
+    def _parse_proof_state(goal_str: str, header: str = "") -> ProofState:
+        """Parse Lean Infoview goal string into a ProofState (with inherited header)."""
         s = goal_str.strip()
         if "\n⊢ " in s:
             ctx, goal = s.rsplit("\n⊢ ", 1)
@@ -56,19 +59,21 @@ class LeanEnv:
             ctx, goal = "", s[2:]
         else:
             ctx, goal = "", s
-        return ProofState(context=ctx.strip(), goal=goal.strip())
+        return ProofState(context=ctx.strip(), goal=goal.strip(), header=header)
 
     @staticmethod
     def _build_cmd(state: ProofState, code: str) -> str:
-        """Wrap state context and goal into a compilable `example` block."""
+        """Wrap state header, context and goal into a compilable `example` block."""
         params = [
             f"({line.strip()})"
             for line in state.context.splitlines()
             if line.strip() and ":" in line and not line.strip().startswith("case ")
         ] if state.context else []
+
         param_str = (" ".join(params) + " ") if params else ""
         indented = "\n".join(f"  {l}" for l in code.strip().splitlines())
-        return f"example {param_str}: {state.goal} := by\n{indented}"
+        prefix = (state.header + "\n\n") if state.header else ""
+        return f"{prefix}example {param_str}: {state.goal} := by\n{indented}"
 
 
 if __name__ == "__main__":

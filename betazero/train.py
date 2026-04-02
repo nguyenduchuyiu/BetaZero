@@ -5,14 +5,14 @@ from tqdm import tqdm
 from betazero.utils.config import Config
 from betazero.utils.dataloader import TheoremDataset
 from betazero.utils.logger import setup as setup_logger
-from betazero.model.vllm_process import VLLMProcess
-from betazero.model.trainable_policy import TrainablePolicy
+from betazero.policy.vllm_process import VLLMProcess
+from betazero.policy.trainable_policy import TrainablePolicy
 from betazero.env.lean_env import LeanEnv
 from betazero.env.lean_verifier import Lean4ServerScheduler
-from betazero.logic.sorrifier import Sorrifier
-from betazero.logic.reward import RewardCalculator
-from betazero.logic.rollout import LevelwiseRollout
-from betazero.logic.grpo_trainer import GRPOTrainer
+from betazero.search.sorrifier import Sorrifier
+from betazero.search.reward import RewardCalculator
+from betazero.search.rollout import LevelwiseRollout
+from betazero.search.grpo_trainer import GRPOTrainer
 
 
 def train(cfg: Config = Config()):

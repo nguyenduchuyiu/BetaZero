@@ -1,6 +1,6 @@
 from betazero.env.ast_parser import get_lean_ast
-from betazero.logic.and_or_graph import ANDORGraph
-from betazero.data.nodes import Action
+from betazero.search.and_or_graph import ANDORGraph
+from betazero.core.nodes import Action
 
 
 class RewardCalculator:

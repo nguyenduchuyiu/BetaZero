@@ -5,8 +5,8 @@ from contextlib import nullcontext
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import get_peft_model, PeftModel, LoraConfig, TaskType
 
-from betazero.data.nodes import ProofState
-from betazero.model.prompt import build_prompt
+from betazero.core.nodes import ProofState
+from betazero.policy.prompt import build_prompt
 from betazero.utils.config import Config
 
 
