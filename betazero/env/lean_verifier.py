@@ -12,49 +12,81 @@ DEFAULT_LAKE_PATH = shutil.which("lake") or "lake"
 DEFAULT_LEAN_WORKSPACE = os.path.join(os.getcwd(), "repl/")
 
 
+import os
+import signal # Thêm cái này
+import time
+import json
+import subprocess
+import shutil
+import uuid
+import threading
+from queue import Queue
+from concurrent.futures import ThreadPoolExecutor
+
+DEFAULT_LAKE_PATH = shutil.which("lake") or "lake"
+DEFAULT_LEAN_WORKSPACE = os.path.join(os.getcwd(), "repl/")
+
 class PersistentLeanWorker:
     """A persistent Lean REPL process that caches Mathlib in its base environment."""
     
-    def __init__(self, workspace=DEFAULT_LEAN_WORKSPACE, timeout=60):
+    def __init__(self, workspace=DEFAULT_LEAN_WORKSPACE, timeout=20, max_requests=50): 
         self.workspace = workspace
         self.timeout = timeout
+        self.max_requests = max_requests 
+        self.request_count = 0           
         self.proc = None
         self.base_env = None
         self.lock = threading.Lock()
+        self._is_timed_out = False # Cờ báo hiệu bom nổ
         self._start_repl()
 
+    def _kill_proc(self):
+        # Lấy proc ra và gán None ngay lập tức để tránh Race Condition với Thread bom
+        proc_to_kill = self.proc
+        self.proc = None
+        if proc_to_kill:
+            try:
+                if proc_to_kill.poll() is None:
+                    os.killpg(os.getpgid(proc_to_kill.pid), signal.SIGKILL)
+                    proc_to_kill.wait(timeout=2)
+            except Exception as e:
+                pass # Nuốt lỗi vì process có thể đã chết
+
+    def _timeout_handler(self):
+        """Hàm kích nổ: Gây án mạng khi hết giờ."""
+        self._is_timed_out = True
+        self._kill_proc()
+
     def _read_json_response(self):
-        """Hút rác và tự động gom (accumulate) các dòng lại nếu Lean in JSON trên nhiều dòng."""
         buffer = ""
         while True:
+            # Nếu _kill_proc() được gọi từ Timer, proc sẽ bị None hoặc pipe bị đứt
+            if not self.proc or not self.proc.stdout:
+                raise RuntimeError("Process killed by timeout or died.")
+                
             line = self.proc.stdout.readline()
             
-            # Xử lý trường hợp Lean bị đột tử (OOM / Segfault) khi đang in dở JSON
             if not line:
                 if buffer:
                     print(f"\n[CRITICAL FATAL] Lean REPL đột tử khi đang in JSON! Code dở dang:\n{buffer}")
                 raise RuntimeError("REPL closed unexpectedly (EOF). Lean Process died.")
             
-            # Lọc rác ở những dòng đầu tiên (trước khi dấu ngoặc '{' bắt đầu)
             if not buffer and not line.strip().startswith("{"):
                 print(f"[REPL GARBAGE] {line.strip()}")
                 continue
             
-            # Nhét dòng mới đọc vào kho
             buffer += line
             
             try:
-                # Thử parse toàn bộ kho hiện tại
                 parsed_json = json.loads(buffer)
-                return parsed_json  # Thành công! Thoát vòng lặp và trả về JSON chuẩn
+                return parsed_json
             except json.JSONDecodeError:
-                # Nếu văng lỗi -> Nghĩa là JSON chưa đóng ngoặc xong (JSON nhiều dòng)
-                # Kệ mẹ nó, tiếp tục vòng lặp để lấy dòng tiếp theo ghép vào!
                 continue
 
     def _start_repl(self):
-        if self.proc and self.proc.poll() is None:
-            self.proc.kill()
+        self._kill_proc()
+        self.request_count = 0
+        self._is_timed_out = False
         
         self.proc = subprocess.Popen(
             [DEFAULT_LAKE_PATH, "exe", "repl"],
@@ -63,11 +95,11 @@ class PersistentLeanWorker:
             stderr=subprocess.DEVNULL,
             text=True,
             cwd=self.workspace,
-            bufsize=1, # Line buffered
+            bufsize=1,
+            preexec_fn=os.setsid
         )
         warmup_cmd = json.dumps({"cmd": "import Mathlib"})
         
-        # CHỈ GỬI ĐÚNG 1 DẤU \n THÔI
         self.proc.stdin.write(warmup_cmd + "\n\n")
         self.proc.stdin.flush()
         
@@ -76,17 +108,20 @@ class PersistentLeanWorker:
             self.base_env = res_json.get("env")
             print(f"[Worker PID {self.proc.pid}] Mathlib warmed up. Base env: {self.base_env}")
         except Exception as e:
-            print(f"[Worker PID {self.proc.pid}] Warmup failed: {e}")
+            print(f"[Worker PID {self.proc.pid if self.proc else 'N/A'}] Warmup failed: {e}")
             self.base_env = None
 
     def verify(self, code: str) -> dict:
-        """Verify code strictly branching from the warmed-up base_env."""
         start_time = time.time()
         
         with self.lock:
-            # Nếu process chết (ví dụ rò rỉ RAM OOM), respawn lại
-            if self.proc.poll() is not None:
-                print("Worker died. Respawning...")
+            self.request_count += 1 
+            
+            if self.proc is None or self.proc.poll() is not None or self.request_count >= self.max_requests:
+                if self.request_count >= self.max_requests:
+                    print(f"Worker reached {self.max_requests} requests. Respawning to flush RAM leak...")
+                else:
+                    print("Worker died or missing. Respawning...")
                 self._start_repl()
 
             payload = {"cmd": code}
@@ -94,6 +129,11 @@ class PersistentLeanWorker:
                 payload["env"] = self.base_env
 
             message_str = json.dumps(payload, ensure_ascii=False)
+            
+            # GÀI BOM HẸN GIỜ!
+            self._is_timed_out = False
+            timer = threading.Timer(self.timeout, self._timeout_handler)
+            timer.start()
             
             try:
                 self.proc.stdin.write(message_str + "\n\n")
@@ -123,17 +163,23 @@ class PersistentLeanWorker:
                     "verified_code": code,
                 }
             except Exception as e:
-                result = {"pass": False, "complete": False, "system_errors": str(e), "errors": []}
-                # Khởi động lại nếu lỗi quá nặng
-                self._start_repl()
+                # Kiểm tra xem có phải do bom nổ không
+                if self._is_timed_out:
+                    sys_err = f"Lean verification TIMED OUT after {self.timeout} seconds!"
+                else:
+                    sys_err = str(e)
+                    
+                result = {"pass": False, "complete": False, "system_errors": sys_err, "errors": []}
+                print(f"[Worker] Failed/Timeout: {sys_err}. Respawning...")
+                self._start_repl() # Thay máu công nhân mới
+            finally:
+                timer.cancel() # Gỡ bom nếu Lean chạy xong sớm!
 
         result["verify_time"] = time.time() - start_time
         return result
 
     def close(self):
-        if self.proc and self.proc.poll() is None:
-            self.proc.terminate()
-            self.proc.wait()
+        self._kill_proc()
 
 
 class Lean4ServerScheduler:

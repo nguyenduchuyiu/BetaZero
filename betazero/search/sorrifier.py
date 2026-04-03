@@ -348,9 +348,8 @@ class Sorrifier:
         return True
 
     def _get_lean_errors(self) -> Tuple[List[Tuple[int, str]], List[Tuple[int, str]]]:
-        req_ids = self.repl_verifier.submit_all_request([dict(code=self.current_content)])
-        result = self.repl_verifier.get_all_request_outputs(req_ids)[0]
-        
+        result = self.repl_verifier.verify(self.current_content)
+
         if result.get("system_errors"):
             raise RuntimeError(f"Lean verification timed out or crashed: {result['system_errors'][:200]}")
 
@@ -424,24 +423,3 @@ class Sorrifier:
         if not any(stripped.startswith(cmd) for cmd in BLOCK_STARTERS): return False
         if stripped.startswith("have") and ":=" not in stripped: return False
         return True
-
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python sorrifier.py <path_to_lean_file> [debug_log_path]")
-        sys.exit(1)
-
-    target_path = sys.argv[1]
-    log_path = sys.argv[2] if len(sys.argv) > 2 else target_path + ".sorrifier.log"
-    with open(target_path, "r", encoding="utf-8") as f:
-        source_code = f.read()
-
-    verifier = Lean4ServerScheduler(max_concurrent_requests=1, timeout=300, name="auto_sorrifier_cli")
-    try:
-        patcher = Sorrifier(verifier, log_path=log_path)
-        fixed_code = patcher.fix_code(source_code)
-        if fixed_code:
-            with open(target_path, "w", encoding="utf-8") as f:
-                f.write(fixed_code)
-            print("Done.")
-    finally:
-        verifier.close()

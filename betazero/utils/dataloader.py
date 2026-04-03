@@ -31,7 +31,6 @@ def parse_lean_file(path: str) -> ProofState | None:
     if not m:
         return None
     header = content[:m.start()].strip()
-    header = header.replace("set_option maxHeartbeats 0", "set_option maxHeartbeats 100000")
     sig = m.group(1).strip()
     depth, colon_pos = 0, -1
     for i, c in enumerate(sig):

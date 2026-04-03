@@ -38,7 +38,7 @@ class LevelwiseRollout:
                 break
                 
             # Sample half of budget for tactic actions and self-correction for remaining budget
-            tac_batches  = self.policy.sample(frontier, "tactic", K_tac/2)
+            tac_batches  = self.policy.sample(frontier, "tactic", K_tac//2)
             skel_batches = self.policy.sample(frontier, "skeleton", K_skel)
 
             for i, state in enumerate(frontier):

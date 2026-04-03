@@ -62,6 +62,22 @@ class LeanEnv:
         return ProofState(context=ctx.strip(), goal=goal.strip(), header=header)
 
     @staticmethod
+    def _sanitize_header(header: str) -> str:
+        """Remove redundant Mathlib imports and normalize maxHeartbeats for Lean execution."""
+        if not header:
+            return ""
+
+        out: list[str] = []
+        for line in header.splitlines():
+            if re.match(r'^\s*import\s+Mathlib', line):
+                continue
+            if re.match(r'^\s*set_option\s+maxHeartbeats\s+0\s*$', line):
+                out.append("set_option maxHeartbeats 100000")
+                continue
+            out.append(line)
+        return "\n".join(out).strip()
+
+    @staticmethod
     def _build_cmd(state: ProofState, code: str) -> str:
         """Wrap state header, context and goal into a compilable `example` block."""
         params = [
@@ -72,28 +88,6 @@ class LeanEnv:
 
         param_str = (" ".join(params) + " ") if params else ""
         indented = "\n".join(f"  {l}" for l in code.strip().splitlines())
-        prefix = (state.header + "\n\n") if state.header else ""
+        prefix_header = LeanEnv._sanitize_header(state.header) if state.header else ""
+        prefix = (prefix_header + "\n\n") if prefix_header else ""
         return f"{prefix}example {param_str}: {state.goal} := by\n{indented}"
-
-
-if __name__ == "__main__":
-    from betazero.env.lean_verifier import Lean4ServerScheduler
-    env = LeanEnv(Lean4ServerScheduler(max_concurrent_requests=1, timeout=30, name="lean_env_test"))
-
-    print("--- Testing execute() ---")
-    initial_state = ProofState(context="n : Nat\nm : Nat", goal="n + m = m + n")
-    _, _, children = env.execute(initial_state, "have h : 1 = 1 := by sorry\nsorry")
-    print(f"Initial:\n{initial_state}\n")
-    for i, child in enumerate(children, 1):
-        print(f"Child {i}:\n{child}\n")
-
-    print("--- Testing dep_graph() ---")
-    deps = env.dep_graph(
-        "have h_core : 1 = 1 := by exact rfl\n"
-        "have h_benign : 2 = 2 := by exact rfl\n"
-        "have h_malignant : 3 = 3 := by sorry\n"
-        "exact h_core"
-    )
-    print(f" Core      : {deps['core']}")
-    print(f" Benign    : {deps['benign']}")
-    print(f" Malignant : {deps['malignant']}")
