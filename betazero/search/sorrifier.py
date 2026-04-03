@@ -5,7 +5,7 @@ This module automates the process of fixing broken Lean 4 proofs by replacing
 faulty tactics with the `sorry` axiom. 
 
 Architecture:
-1. AST-Guided Truncation: Uses Lean's AST to precisely locate tactic boundaries.
+1. AST-Guided Truncation: Uses Lean's AST (with Elaborator) to precisely locate tactic boundaries using Spatial Heuristics (Byte Length).
 2. Indentation Heuristics: Infers structural hierarchy where AST lacks context (e.g., closing scopes).
 3. Oscillation Fallback: Detects infinite correction loops caused by Lean's syntax 
    intolerance and resets the parent block to prevent halting.
@@ -21,7 +21,7 @@ from betazero.env.ast_parser import get_lean_ast
 BLOCK_STARTERS = (
     "have", "·", ".", "cases ", "cases' ", "induction ", 
     "induction' ", "rintro ", "intro ", "calc", "match", 
-    "lemma", "theorem", "def"
+    "lemma", "theorem", "def", "example"
 )
 
 TRIVIAL_TACTICS = frozenset({"skip", "done", "trivial", "decide", "rfl"})
@@ -93,18 +93,15 @@ class Sorrifier:
     # ==========================================
 
     def _resolve_infinite_loop(self, err_line: int):
-        """
-        Fallback resolution for correction oscillations.
-        """
+        """Fallback resolution for correction oscillations."""
         lines = self.current_content.splitlines()
         err_line = self._normalize_line_number(err_line, total_lines=len(lines))
-        original_content = self.current_content # Lưu lại trạng thái cũ để so sánh
+        original_content = self.current_content 
         
-        # 1. Search backward for nearest parent block by string match
         boss_idx = -1
         for i in range(err_line - 1, -1, -1):
             line_str = lines[i].strip()
-            if any(line_str.startswith(kw) for kw in ["have ", "lemma ", "theorem ", "def ", "·", "cases ", "match "]):
+            if any(line_str.startswith(kw) for kw in ["have ", "lemma ", "theorem ", "def ", "example ", "·", "cases ", "match "]):
                 boss_idx = i
                 break
         
@@ -112,7 +109,6 @@ class Sorrifier:
             boss_line = lines[boss_idx]
             boss_indent = len(boss_line) - len(boss_line.lstrip())
             
-            # 2. Replace parent block body with sorry, retain declaration
             if ":=" in boss_line:
                 lines[boss_idx] = boss_line.split(":=")[0] + ":= by sorry"
             elif boss_line.strip().startswith("·"):
@@ -122,7 +118,6 @@ class Sorrifier:
             
             tqdm.write(f"Reset parent block at line {boss_idx + 1}")
             
-            # 3. Remove all child lines (greater indent) following parent
             i = boss_idx + 1
             while i < len(lines):
                 if not lines[i].strip():
@@ -142,9 +137,6 @@ class Sorrifier:
             
         self.current_content = self._clean_redundant_sorries(lines)
         
-        # 4. Deadlock Breaker: 
-        # Nếu logic phía trên không làm code thay đổi (ví dụ parent đã bị sorry từ trước 
-        # và child không bị xóa do khác indent), ta ép buộc xóa bỏ dòng gây lỗi.
         if self.current_content == original_content:
             tqdm.write(f"Fallback didn't mutate code! Force deleting error line {err_line}.")
             if err_line - 1 < len(lines):
@@ -155,7 +147,7 @@ class Sorrifier:
         lines = self.current_content.splitlines()
         error_line = self._normalize_line_number(error_line, total_lines=len(lines))
 
-        # 1. Xử lý Trivial Tactics (Spam rác)
+        # 1. Trivial Tactics
         line_content = lines[error_line - 1].strip()
         if line_content in TRIVIAL_TACTICS:
             lines[error_line - 1] = ""
@@ -166,75 +158,81 @@ class Sorrifier:
 
         blocks = self._get_ast_lines()
         enclosing = [b for b in blocks if b["start_line"] <= error_line <= b["end_line"]]
+        
+        # Bỏ đi cái bóng ma Module to nhất (toàn file)
+        enclosing = [b for b in enclosing if b["kind"] != "Module"]
 
         def emergency_fallback():
-            msg = f"AST parsing failed at L{error_line}. Applying basic single-line replacement."
+            msg = f"AST fallback at L{error_line}."
             tqdm.write(msg)
             self._last_action_msg = msg
             indent = len(lines[error_line - 1]) - len(lines[error_line - 1].lstrip())
-            lines[error_line - 1] = " " * indent + "sorry"
+            line_str = lines[error_line - 1]
+            
+            # Đai an toàn: TUYỆT ĐỐI KHÔNG XÓA HEADER CỦA BÀI TOÁN
+            if any(line_str.strip().startswith(kw) for kw in ["lemma", "theorem", "def", "example"]):
+                if ":=" in line_str:
+                    lines[error_line - 1] = line_str.split(":=")[0] + ":= by sorry"
+                else:
+                    lines[error_line - 1] = line_str + " sorry"
+            else:
+                lines[error_line - 1] = " " * indent + "sorry"
+                
             self.current_content = "\n".join(lines) + "\n"
             return True
 
-        # 2. Xử lý Lỗi Cú pháp / Logic sai (Fatal Error)
+        if not enclosing:
+            return emergency_fallback()
+
+        # 2. Lỗi Cú pháp / Logic sai (Fatal Error)
         if is_fatal:
-            valid_nodes = [b for b in enclosing if "tactic" in b["kind"].lower() or "seq" in b["kind"].lower()]
+            # Lấy node NHỎ NHẤT (Lá), loại bỏ bọn Command to đùng để tránh xóa nhầm hàm
+            valid_nodes = [b for b in enclosing if "command" not in b["kind"].lower()]
             if not valid_nodes: return emergency_fallback()
             
-            target = min(valid_nodes, key=lambda x: x["end_line"] - x["start_line"])
+            # BÍ QUYẾT: Dùng end_byte - start_byte để tìm node hẹp nhất không gian
+            target = min(valid_nodes, key=lambda x: x["end_byte"] - x["start_byte"])
+            
             L_start, L_end = target["start_line"], target["end_line"]
             start_line_str = lines[L_start - 1]
-            
             is_orphan_error = "no goals" in err_msg.lower() or "goals accomplished" in err_msg.lower()
             
-            # --- Tách mảng an toàn ---
             new_lines = lines[:L_start - 1]
             indent = len(start_line_str) - len(start_line_str.lstrip())
             
             if is_orphan_error:
-                # Lỗi Orphan: Tactic bị thừa vì goal đã đóng. 
-                # -> XÓA SẠCH, KHÔNG CHÈN SORRY.
                 self._last_action_msg = f"Removed orphaned tactic [{target['kind']}] L{L_start}..L{L_end}"
-                # Bỏ qua đoạn code thừa, nối thẳng phần đuôi vào
                 new_lines.extend(lines[L_end:])
-                
             elif self._is_block_starter(start_line_str) and ":=" in start_line_str:
-                # Lỗi thủng Block (have/let): Truncate toàn bộ body của nó
                 self._last_action_msg = f"Hollowed out block [{target['kind']}] starting at L{L_start}"
                 clean_header = start_line_str.split(":=")[0] + ":= by sorry"
                 new_lines.append(clean_header)
                 new_lines.extend(lines[L_end:])
-                
             else:
-                # Lỗi tactic lá thông thường: Thay node đó bằng sorry
                 self._last_action_msg = f"Replaced leaf tactic [{target['kind']}] L{L_start}..L{L_end}"
                 new_lines.append(" " * indent + "sorry")
                 new_lines.extend(lines[L_end:])
                 
             tqdm.write(self._last_action_msg)
             self.current_content = "\n".join(new_lines) + "\n"
-                
+            
         # 3. Xử lý Chưa chứng minh xong (Unsolved Goals)
         else: 
-            scopes = ["declaration", "tactichave", "tacticcases", "tacticmatch", "tacticlet"]
+            # Lấy cái Scope NHỎ NHẤT bao trọn lỗi, đéo chơi trò max() nữa!
+            scopes = ["declaration", "have", "cases", "match", "let", "induction", "calc", "bytactic"]
             valid_nodes = [b for b in enclosing if any(s in b["kind"].lower() for s in scopes)]
             
             if not valid_nodes:
-                valid_nodes = [b for b in enclosing if "seq" in b["kind"].lower() or "bytactic" in b["kind"].lower()]
-                if not valid_nodes: return emergency_fallback()
-                target = max(valid_nodes, key=lambda x: x["end_line"] - x["start_line"])
-            else:
-                target = min(valid_nodes, key=lambda x: x["end_line"] - x["start_line"])
-
+                return emergency_fallback()
+                
+            # ĐÂY LÀ CHÌA KHÓA: Dùng min() để khóa đúng cái scope hẹp nhất bị lỗi
+            target = min(valid_nodes, key=lambda x: x["end_byte"] - x["start_byte"])
             L_start, L_end = target["start_line"], target["end_line"]
             
-            # --- FIX LOGIC INDENT ---
-            # Default fallback: thụt vào 2 space so với dòng cha (block starter)
             parent_indent = len(lines[L_start - 1]) - len(lines[L_start - 1].lstrip())
             indent = parent_indent + 2 
             
-            # Cố gắng dò tìm indent của thằng con đầu tiên (nếu có)
-            for i in range(L_start, L_end): # Bỏ qua dòng cha (L_start-1)
+            for i in range(L_start, L_end):
                 line = lines[i]
                 if line.strip() and not line.strip().startswith("--"):
                     indent = len(line) - len(line.lstrip())
@@ -243,7 +241,6 @@ class Sorrifier:
             self._last_action_msg = f"Closed scope [{target['kind']}] at L{L_end} (Indent: {indent})"
             tqdm.write(self._last_action_msg)
             
-            # Chèn sorry vào cuối scope (không xóa code cũ)
             new_lines = lines[:L_end]
             new_lines.append(" " * indent + "sorry")
             new_lines.extend(lines[L_end:])
@@ -254,16 +251,9 @@ class Sorrifier:
         return True
 
     def _get_lean_errors(self) -> Tuple[List[Tuple[int, str]], List[Tuple[int, str]]]:
-        """
-        Dùng Lean4ServerScheduler (`repl_verifier`) để chạy `verify_lean_code`
-        trong background process, sau đó phân loại lỗi.
-        """
-        req_ids = self.repl_verifier.submit_all_request(
-            [dict(code=self.current_content)]
-        )
+        req_ids = self.repl_verifier.submit_all_request([dict(code=self.current_content)])
         result = self.repl_verifier.get_all_request_outputs(req_ids)[0]
-        print(f"[REPL] verify_lean_code executed in {result.get('verify_time', 0):.4f} seconds")
-
+        
         if result.get("system_errors"):
             raise RuntimeError(f"Lean verification timed out or crashed: {result['system_errors'][:200]}")
 
@@ -281,35 +271,23 @@ class Sorrifier:
         return sorted(fatal_errors), sorted(unsolved_goals)
 
     def _get_ast_lines(self) -> List[Dict]:
-        """Fetch AST blocks and convert byte offsets to line numbers."""
         blocks = get_lean_ast(self.current_content)
-
         raw_bytes = self.current_content.encode('utf-8')
         for b in blocks:
             b["start_line"] = self._byte_to_line(raw_bytes, b["start_byte"])
             b["end_line"] = self._byte_to_line(raw_bytes, b["end_byte"])
-
         return blocks
 
     def _clean_redundant_sorries(self, lines: List[str]) -> str:
-        """
-        Removes duplicated `sorry` lines and empty lines generated during automated fixes.
-        """
         cleaned = []
         for line in lines:
-            if line == "":
-                continue
+            if line == "": continue
             stripped = line.strip()
-            if stripped == "sorry" and cleaned and cleaned[-1].strip() == "sorry":
-                continue
+            if stripped == "sorry" and cleaned and cleaned[-1].strip() == "sorry": continue
             cleaned.append(line)
-            
         return "\n".join(cleaned) + "\n"
 
     def _force_full_sorrify(self) -> str:
-        """
-        On verifier timeout/crash, collapse the proof body to a single `sorry`.
-        """
         marker = ":= by"
         idx = self.current_content.find(marker)
         if idx != -1:
@@ -322,50 +300,37 @@ class Sorrifier:
         return total > 0 and 1 <= line_no <= total
 
     def _normalize_line_number(self, line_no: int, total_lines: int | None = None) -> int:
-        if total_lines is None:
-            total_lines = len(self.current_content.splitlines())
-        if total_lines <= 0:
-            return 1
+        if total_lines is None: total_lines = len(self.current_content.splitlines())
+        if total_lines <= 0: return 1
         return max(1, min(line_no, total_lines))
 
     def _normalize_line_range(self, start_line: int, end_line: int, total_lines: int) -> Tuple[int, int]:
-        if total_lines <= 0:
-            return 1, 1
+        if total_lines <= 0: return 1, 1
         start = self._normalize_line_number(start_line, total_lines)
         end = self._normalize_line_number(end_line, total_lines)
-        if end < start:
-            end = start
+        if end < start: end = start
         return start, end
 
     @staticmethod
     def _byte_to_line(raw_bytes: bytes, byte_offset: int) -> int:
-        """
-        Converts zero-indexed byte offset to 1-indexed line number.
-        """
         return raw_bytes[:byte_offset].count(b"\n") + 1
 
     @staticmethod
     def _strip_noop_tactics(code: str) -> str:
-        """Remove standalone skip/done lines - they are no-ops and cause 'no goals' errors."""
         lines = [l for l in code.splitlines() if l.strip() not in ("skip", "done")]
         return "\n".join(lines) + "\n"
 
     @staticmethod
     def _is_block_starter(line: str) -> bool:
-        """
-        Heuristic to identify if a line starts a new logical block, such as
-        'have', 'def', etc., possibly with assignment.
-        """
         stripped = line.strip()
         if stripped.startswith("_") and ":=" in stripped: return True
         if not any(stripped.startswith(cmd) for cmd in BLOCK_STARTERS): return False
         if stripped.startswith("have") and ":=" not in stripped: return False
         return True
 
-
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python auto_sorrifier.py <path_to_lean_file>")
+        print("Usage: python sorrifier.py <path_to_lean_file>")
         sys.exit(1)
         
     target_path = sys.argv[1]

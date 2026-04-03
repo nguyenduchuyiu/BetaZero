@@ -3,7 +3,6 @@ import Lean
 
 open Lean Lean.Parser
 
-/-- Trích xuất Node AST và in ra JSON phẳng -/
 partial def extractBlocks (stx : Syntax) : IO Unit := do
   let kindStr := toString stx.getKind
   match stx.getPos?, stx.getTailPos? with
@@ -20,21 +19,18 @@ partial def parseLoop (inputCtx : InputContext) (pmctx : ParserModuleContext) (p
   if p'.pos == p.pos then return ()
   else parseLoop inputCtx pmctx p' m'
 
-/-- Xử lý file với cơ chế Smart Cache Environment -/
 def processFile (fileName : String) (lastHeader : String) (lastEnv : Environment) : IO (String × Environment) := do
   let content ← IO.FS.readFile fileName
   let inputCtx := mkInputContext content fileName
   let (header, parserState, messages) ← parseHeader inputCtx
-
-  -- [GIẢI PHÁP TỐI THƯỢNG]: Chuyển AST của Header thành chuỗi làm Cache Key
-  -- Né hoàn toàn Dependent Type của String Slice trong bản Lean mới
   let headerStr := toString header.raw
 
   let mut currentEnv := lastEnv
   let mut newHeader := lastHeader
 
-  -- Nếu Header khác với file trước đó -> Bắt buộc nạp lại Environment (Mất 20s+)
-  if headerStr != lastHeader || lastHeader == "" then
+  -- [ĐÃ FIX]: Chỉ nạp lại Environment khi có Import MỚI và KHÁC RỖNG
+  -- Nếu file đéo có import (headerStr == ""), nó sẽ bốc luôn cái currentEnv (Mathlib) ra dùng!
+  if headerStr != lastHeader && headerStr != "" then
     IO.eprintln s!"[Server] New imports detected. Loading Environment..."
     let (env, _) ← try
       Lean.Elab.processHeader header {} messages inputCtx
@@ -43,10 +39,9 @@ def processFile (fileName : String) (lastHeader : String) (lastEnv : Environment
     currentEnv := env
     newHeader := headerStr
   else
-    -- Nếu Header y xì đúc -> FAST PATH (0ms) DÙNG LẠI MÔI TRƯỜNG CŨ!
+    -- Kế thừa toàn bộ Mathlib từ file Warmup
     pure ()
 
-  -- Nhờ currentEnv này, Parser sẽ hiểu các Macro của Mathlib (linarith, ring...)
   let pmctx : ParserModuleContext := { env := currentEnv, options := {} }
 
   extractBlocks header.raw
@@ -57,7 +52,6 @@ def processFile (fileName : String) (lastHeader : String) (lastEnv : Environment
 
   return (newHeader, currentEnv)
 
-/-- Vòng lặp Server truyền Trạng thái Cache -/
 partial def serverLoop (stdin : IO.FS.Stream) (lastHeader : String) (lastEnv : Environment) : IO Unit := do
   let line ← stdin.getLine
   if line == "" then return ()
@@ -68,13 +62,9 @@ partial def serverLoop (stdin : IO.FS.Stream) (lastHeader : String) (lastEnv : E
 
   if fileName != "" then
     try
-      let t0 ← IO.monoMsNow
-      -- Truyền Cache qua từng vòng lặp
       let (h, e) ← processFile fileName lastHeader lastEnv
       nextHeader := h
       nextEnv := e
-      let t1 ← IO.monoMsNow
-      IO.eprintln s!"[Server] Processed {fileName} in {t1 - t0} ms"
     catch e =>
       IO.eprintln s!"[Error] Failed to process {fileName}: {e}"
       IO.println "===EOF==="
@@ -85,11 +75,11 @@ partial def serverLoop (stdin : IO.FS.Stream) (lastHeader : String) (lastEnv : E
 def main : IO Unit := do
   initSearchPath (← Lean.findSysroot)
 
-  let imports : Array Import := #[{ module := `Mathlib : Import }]
-  let baseEnv ← importModules imports {}
+  -- [ĐÃ FIX]: Khởi đầu với tay trắng (mkEmptyEnvironment), đéo nạp Mathlib thừa thãi ở main nữa!
+  let emptyEnv ← mkEmptyEnvironment
 
   let stdin ← IO.getStdin
   IO.eprintln "[Server] Lean AST Server is ready!"
 
-  -- Khởi động Server, gieo baseEnv vào làm vốn mồi
-  serverLoop stdin "" baseEnv
+  -- Gieo môi trường rỗng vào. Lúc Warmup gửi file "import Mathlib" tới, server sẽ tự độ lại Environment.
+  serverLoop stdin "" emptyEnv

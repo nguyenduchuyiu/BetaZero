@@ -48,14 +48,19 @@ def _tree_to_lines(graph: ANDORGraph, root: ProofState) -> list[str]:
         goal_head = (s.goal.splitlines()[0] if s.goal else "").strip()
         return f"{prefix}STATE goal={goal_head!r}"
 
-    def action_line(prefix: str, a: Action, i: int) -> str:
+    def action_lines(prefix: str, a: Action, i: int) -> list[str]:
         status = "SOLVED" if graph.is_solved(a) else "OPEN"
         r_env = graph.get_r_env(a)
-        content_head = a.content.strip().splitlines()[0] if a.content.strip() else ""
-        return (
-            f"{prefix}ACTION#{i} type={a.action_type} status={status} "
-            f"r_env={r_env:.3f} content={content_head!r}"
-        )
+        out = [
+            f"{prefix}ACTION#{i} type={a.action_type} status={status} r_env={r_env:.3f}"
+        ]
+        body = a.content.strip()
+        if body:
+            for line in body.splitlines():
+                out.append(f"{prefix}  {line}")
+        else:
+            out.append(f"{prefix}  (empty)")
+        return out
 
     def rec(state: ProofState, depth: int):
         indent = "  " * depth
@@ -71,7 +76,7 @@ def _tree_to_lines(graph: ANDORGraph, root: ProofState) -> list[str]:
             return
 
         for i, act in enumerate(actions, 1):
-            lines.append(action_line(f"{indent}  ", act, i))
+            lines.extend(action_lines(f"{indent}  ", act, i))
             for child in act.children:
                 rec(child, depth + 2)
 
@@ -174,3 +179,4 @@ def main():
 if __name__ == "__main__":
     main()
 
+#python3 run_rollout.py   --config configs/qwen2.5_0.5b.yaml   --lean-file problems/aime_1984_p5.lean   --out-md outputs/rollout_aime_1984_p5.md   --policy vllm

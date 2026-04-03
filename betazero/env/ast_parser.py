@@ -80,10 +80,18 @@ _SHARED_DAEMON = SingletonASTDaemon(REPL_DIR)
 
 def get_lean_ast(code: str) -> list:
     """Return AST block dicts for a Lean code string. Thread-safe."""
+    # 1. Bơm lén import Mathlib nếu code chưa có
+    has_import = "import " in code
+    if not has_import:
+        prefix = "import Mathlib\n"
+        full_code = prefix + code
+    else:
+        full_code = code
+
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".lean", dir=REPL_DIR, delete=False, encoding="utf-8"
     ) as f:
-        f.write(code)
+        f.write(full_code)
         path = f.name
     try:
         return _SHARED_DAEMON.get_ast(path)
