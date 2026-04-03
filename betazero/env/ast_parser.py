@@ -79,21 +79,39 @@ _SHARED_DAEMON = SingletonASTDaemon(REPL_DIR)
 
 
 def get_lean_ast(code: str) -> list:
-    """Return AST block dicts for a Lean code string. Thread-safe."""
-    # 1. Bơm lén import Mathlib nếu code chưa có
+    """Return AST block dicts for a Lean code string. Thread-safe with auto-import injection and offset correction."""
+    
+    prefix = "import Mathlib\n"
     has_import = "import " in code
+    
     if not has_import:
-        prefix = "import Mathlib\n"
         full_code = prefix + code
+        offset_bytes = len(prefix.encode('utf-8')) # Chính xác là 15 bytes
     else:
         full_code = code
+        offset_bytes = 0
 
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".lean", dir=REPL_DIR, delete=False, encoding="utf-8"
     ) as f:
         f.write(full_code)
         path = f.name
+        
     try:
-        return _SHARED_DAEMON.get_ast(path)
+        blocks = _SHARED_DAEMON.get_ast(path)
+        
+        # BẮT BUỘC PHẢI TRỪ LÙI TỌA ĐỘ NẾU CÓ TIÊM THUỐC!
+        if offset_bytes > 0:
+            valid_blocks = []
+            for b in blocks:
+                b["start_byte"] -= offset_bytes
+                b["end_byte"] -= offset_bytes
+                
+                # Chỉ lấy những node thuộc về code thật (>= 0), vứt bỏ cái node của dòng import giả mạo
+                if b["start_byte"] >= 0:
+                    valid_blocks.append(b)
+            return valid_blocks
+            
+        return blocks
     finally:
         os.remove(path)

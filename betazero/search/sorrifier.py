@@ -13,7 +13,8 @@ Architecture:
 
 from __future__ import annotations
 import sys
-from typing import Tuple, List, Dict
+import datetime
+from typing import Tuple, List, Dict, TextIO, Optional
 from tqdm import tqdm
 from betazero.env.lean_verifier import Lean4ServerScheduler
 from betazero.env.ast_parser import get_lean_ast
@@ -28,63 +29,178 @@ TRIVIAL_TACTICS = frozenset({"skip", "done", "trivial", "decide", "rfl"})
 
 
 class Sorrifier:
-    def __init__(self, repl_verifier: Lean4ServerScheduler, max_cycles: int = 50):
+    def __init__(
+        self,
+        repl_verifier: Lean4ServerScheduler,
+        max_cycles: int = 50,
+        log_path: Optional[str] = None,
+    ):
         self.repl_verifier = repl_verifier
         self.max_cycles = max_cycles
+        self.log_path = log_path
         self.current_content = ""
         self._last_action_msg = ""
+        self._log_fp: Optional[TextIO] = None
+
+    def _log_open(self):
+        if self.log_path and self._log_fp is None:
+            self._log_fp = open(self.log_path, "w", encoding="utf-8")
+
+    def _log_close(self):
+        if self._log_fp:
+            self._log_fp.close()
+            self._log_fp = None
+
+    def _log(self, text: str) -> None:
+        if self._log_fp:
+            self._log_fp.write(text)
+            if not text.endswith("\n"):
+                self._log_fp.write("\n")
+            self._log_fp.flush()
+
+    def _log_section(self, title: str) -> None:
+        ts = datetime.datetime.now().isoformat(timespec="seconds")
+        bar = "=" * 76
+        self._log(f"\n{bar}\n[{ts}] {title}\n{bar}\n")
+
+    @staticmethod
+    def _format_numbered_source(content: str, width: int = 5) -> str:
+        lines = content.splitlines()
+        out = [f"{i:>{width}} | {line}" for i, line in enumerate(lines, start=1)]
+        return "\n".join(out) + ("\n" if out else "")
+
+    def _log_source_block(self, label: str, content: str, err_line: int | None = None) -> None:
+        self._log(f"--- {label} (numbered) ---")
+        if err_line is not None:
+            self._log(f"(error line ref: L{err_line})")
+        self._log(self._format_numbered_source(content))
+
+    def _log_error_batch(
+        self,
+        fatal_errors: List[Tuple[int, str]],
+        unsolved_goals: List[Tuple[int, str]],
+        primary_line: int,
+        primary_msg: str,
+        is_fatal: bool,
+    ) -> None:
+        self._log("Primary (first) issue:")
+        self._log(f"  kind: {'fatal' if is_fatal else 'unsolved_goals'}")
+        self._log(f"  line: {primary_line}")
+        self._log(f"  message: {primary_msg}")
+        if fatal_errors:
+            self._log("All fatal errors (line, message):")
+            for ln, msg in fatal_errors:
+                self._log(f"  L{ln}: {msg[:500]}{'…' if len(msg) > 500 else ''}")
+        if unsolved_goals:
+            self._log("All unsolved goals (line, message):")
+            for ln, msg in unsolved_goals:
+                self._log(f"  L{ln}: {msg[:500]}{'…' if len(msg) > 500 else ''}")
 
     def fix_code(self, code: str) -> str:
         """Iteratively patch Lean 4 errors until the code compiles or max_cycles is reached."""
-        self.current_content = self._strip_noop_tactics(code)
-        self._last_action_msg = ""
-        seen_states = set()
+        self._log_open()
+        try:
+            self.current_content = self._strip_noop_tactics(code)
+            self._last_action_msg = ""
+            seen_states = set()
 
-        with tqdm(total=self.max_cycles, desc="Processing", unit="cycle") as pbar:
-            for _ in range(self.max_cycles):
-                try:
-                    fatal_errors, unsolved_goals = self._get_lean_errors()
-                except RuntimeError as e:
-                    tqdm.write(f"\nHALTED: {e}")
-                    return self._force_full_sorrify()
+            if self._log_fp:
+                self._log_section("Sorrifier start")
+                self._log("After _strip_noop_tactics, initial source:")
+                self._log_source_block("INITIAL", self.current_content)
 
-                if not fatal_errors and not unsolved_goals:
-                    return self.current_content
-
-                is_fatal = bool(fatal_errors)
-                err_line, err_msg = fatal_errors[0] if is_fatal else unsolved_goals[0]
-                if not self._is_valid_line_number(err_line):
+            with tqdm(total=self.max_cycles, desc="Processing", unit="cycle") as pbar:
+                for cycle in range(1, self.max_cycles + 1):
                     try:
                         fatal_errors, unsolved_goals = self._get_lean_errors()
-                        is_fatal = bool(fatal_errors)
-                        err_line, err_msg = fatal_errors[0] if is_fatal else unsolved_goals[0]
-                    except RuntimeError:
-                        pass
-                err_line = self._normalize_line_number(err_line)
-
-                if self.current_content in seen_states:
-                    tqdm.write(f"\nOscillation detected at line {err_line}. Triggering Parent Block Reset...")
-                    try:
-                        self._resolve_infinite_loop(err_line)
-                    except IndexError as e:
-                        tqdm.write(f"Index error during oscillation fallback: {e}. Force full sorrify.")
+                    except RuntimeError as e:
+                        tqdm.write(f"\nHALTED: {e}")
+                        if self._log_fp:
+                            self._log_section(f"HALTED (cycle {cycle}) — Lean/runtime")
+                            self._log(str(e))
+                            self._log_source_block("STATE AT HALT", self.current_content)
                         return self._force_full_sorrify()
+
+                    if not fatal_errors and not unsolved_goals:
+                        if self._log_fp:
+                            self._log_section(f"SUCCESS (cycle {cycle})")
+                            self._log("No fatal errors and no unsolved goals.")
+                            self._log_source_block("FINAL", self.current_content)
+                        return self.current_content
+
+                    is_fatal = bool(fatal_errors)
+                    err_line, err_msg = fatal_errors[0] if is_fatal else unsolved_goals[0]
+                    if not self._is_valid_line_number(err_line):
+                        try:
+                            fatal_errors, unsolved_goals = self._get_lean_errors()
+                            is_fatal = bool(fatal_errors)
+                            err_line, err_msg = fatal_errors[0] if is_fatal else unsolved_goals[0]
+                        except RuntimeError:
+                            pass
+                    err_line = self._normalize_line_number(err_line)
+
+                    if self.current_content in seen_states:
+                        tqdm.write(f"\nOscillation detected at line {err_line}. Triggering Parent Block Reset...")
+                        if self._log_fp:
+                            self._log_section(f"Cycle {cycle} — OSCILLATION / parent block reset")
+                            self._log_error_batch(fatal_errors, unsolved_goals, err_line, err_msg, is_fatal)
+                            self._log_source_block("BEFORE reset", self.current_content, err_line)
+                        try:
+                            self._resolve_infinite_loop(err_line)
+                        except IndexError as e:
+                            tqdm.write(f"Index error during oscillation fallback: {e}. Force full sorrify.")
+                            if self._log_fp:
+                                self._log_section("FORCE full sorrify (IndexError in oscillation)")
+                                self._log(str(e))
+                                self._log_source_block("STATE", self.current_content)
+                            return self._force_full_sorrify()
+                        if self._log_fp:
+                            self._log("--- AFTER reset ---")
+                            if self._last_action_msg:
+                                self._log(f"action: {self._last_action_msg}")
+                            self._log_source_block("AFTER reset", self.current_content, err_line)
+                        pbar.update(1)
+                        continue
+
+                    seen_states.add(self.current_content)
+                    pbar.set_postfix_str(f"{'Fatal' if is_fatal else 'Unsolved'} @ L{err_line}")
+
+                    if self._log_fp:
+                        self._log_section(f"Cycle {cycle} — normal fix")
+                        self._log_error_batch(fatal_errors, unsolved_goals, err_line, err_msg, is_fatal)
+                        self._log_source_block("BEFORE fix", self.current_content, err_line)
+
+                    try:
+                        success = self._apply_normal_fix(err_line, is_fatal, err_msg)
+                    except IndexError as e:
+                        tqdm.write(f"Index error during normal fix: {e}. Force full sorrify.")
+                        if self._log_fp:
+                            self._log_section("FORCE full sorrify (IndexError in normal fix)")
+                            self._log(str(e))
+                            self._log_source_block("STATE", self.current_content)
+                        return self._force_full_sorrify()
+                    if not success:
+                        tqdm.write(f"\nHALTED: Unrecoverable error at line {err_line}.")
+                        if self._log_fp:
+                            self._log_section(f"HALTED (cycle {cycle}) — unrecoverable")
+                            self._log(f"line {err_line}")
+                            self._log_source_block("STATE AT HALT", self.current_content, err_line)
+                        break
+
+                    if self._log_fp:
+                        self._log("--- AFTER fix ---")
+                        if self._last_action_msg:
+                            self._log(f"action: {self._last_action_msg}")
+                        self._log_source_block("AFTER fix", self.current_content, err_line)
+
                     pbar.update(1)
-                    continue
 
-                seen_states.add(self.current_content)
-                pbar.set_postfix_str(f"{'Fatal' if is_fatal else 'Unsolved'} @ L{err_line}")
-
-                try:
-                    success = self._apply_normal_fix(err_line, is_fatal, err_msg)
-                except IndexError as e:
-                    tqdm.write(f"Index error during normal fix: {e}. Force full sorrify.")
-                    return self._force_full_sorrify()
-                if not success:
-                    tqdm.write(f"\nHALTED: Unrecoverable error at line {err_line}.")
-                    break
-
-                pbar.update(1)
+            if self._log_fp:
+                self._log_section("Run finished — loop ended without early success return")
+                self._log("(Either max_cycles exhausted or break after unrecoverable error.)")
+                self._log_source_block("FINAL", self.current_content)
+        finally:
+            self._log_close()
 
         return self.current_content
 
@@ -93,139 +209,121 @@ class Sorrifier:
     # ==========================================
 
     def _resolve_infinite_loop(self, err_line: int):
-        """Fallback resolution for correction oscillations."""
         lines = self.current_content.splitlines()
         err_line = self._normalize_line_number(err_line, total_lines=len(lines))
-        original_content = self.current_content 
         
-        boss_idx = -1
-        for i in range(err_line - 1, -1, -1):
-            line_str = lines[i].strip()
-            if any(line_str.startswith(kw) for kw in ["have ", "lemma ", "theorem ", "def ", "example ", "·", "cases ", "match "]):
-                boss_idx = i
-                break
+        line_str = lines[err_line - 1]
+        indent = len(line_str) - len(line_str.lstrip())
         
-        if boss_idx != -1:
-            boss_line = lines[boss_idx]
-            boss_indent = len(boss_line) - len(boss_line.lstrip())
-            
-            if ":=" in boss_line:
-                lines[boss_idx] = boss_line.split(":=")[0] + ":= by sorry"
-            elif boss_line.strip().startswith("·"):
-                lines[boss_idx] = " " * boss_indent + "· sorry"
-            elif "=>" in boss_line:
-                lines[boss_idx] = boss_line.split("=>")[0] + "=> sorry"
-            
-            tqdm.write(f"Reset parent block at line {boss_idx + 1}")
-            
-            i = boss_idx + 1
-            while i < len(lines):
-                if not lines[i].strip():
-                    lines[i] = ""
-                    i += 1
-                    continue
+        if any(line_str.strip().startswith(kw) for kw in ["lemma", "theorem", "def", "example"]):
+            lines.append(" " * 2 + "sorry")
+        else:
+            # Phanh khẩn cấp xịn: Comment dòng lỗi và toàn bộ các dòng con thụt lề sâu hơn
+            lines[err_line - 1] = "-- " + lines[err_line - 1]
+            i = err_line
+            while i < len(lines) and lines[i].strip():
                 curr_indent = len(lines[i]) - len(lines[i].lstrip())
-                if curr_indent > boss_indent:
-                    lines[i] = ""
+                if curr_indent > indent:
+                    lines[i] = "-- " + lines[i]
                     i += 1
                 else:
                     break
-        else:
-            tqdm.write("Parent block not found, deleting problematic line.")
-            if err_line - 1 < len(lines):
-                lines[err_line - 1] = ""
+            # Nhét sorry vào cuối để thoát kẹt
+            lines.insert(i, " " * indent + "sorry")
             
-        self.current_content = self._clean_redundant_sorries(lines)
-        
-        if self.current_content == original_content:
-            tqdm.write(f"Fallback didn't mutate code! Force deleting error line {err_line}.")
-            if err_line - 1 < len(lines):
-                lines[err_line - 1] = ""
-            self.current_content = self._clean_redundant_sorries(lines)
+        self.current_content = "\n".join(lines) + "\n"
 
     def _apply_normal_fix(self, error_line: int, is_fatal: bool, err_msg: str) -> bool:
         lines = self.current_content.splitlines()
         error_line = self._normalize_line_number(error_line, total_lines=len(lines))
 
-        # 1. Trivial Tactics
         line_content = lines[error_line - 1].strip()
         if line_content in TRIVIAL_TACTICS:
             lines[error_line - 1] = ""
             self._last_action_msg = f"Removed failing trivial tactic '{line_content}' at L{error_line}"
             tqdm.write(self._last_action_msg)
-            self.current_content = self._clean_redundant_sorries(lines)
+            self.current_content = "\n".join(lines) + "\n"
             return True
 
         blocks = self._get_ast_lines()
-        enclosing = [b for b in blocks if b["start_line"] <= error_line <= b["end_line"]]
-        
-        # Bỏ đi cái bóng ma Module to nhất (toàn file)
-        enclosing = [b for b in enclosing if b["kind"] != "Module"]
+        enclosing = [b for b in blocks if b["start_line"] <= error_line <= b["end_line"] and b["kind"] != "Module"]
 
         def emergency_fallback():
-            msg = f"AST fallback at L{error_line}."
-            tqdm.write(msg)
-            self._last_action_msg = msg
             indent = len(lines[error_line - 1]) - len(lines[error_line - 1].lstrip())
             line_str = lines[error_line - 1]
-            
-            # Đai an toàn: TUYỆT ĐỐI KHÔNG XÓA HEADER CỦA BÀI TOÁN
             if any(line_str.strip().startswith(kw) for kw in ["lemma", "theorem", "def", "example"]):
-                if ":=" in line_str:
-                    lines[error_line - 1] = line_str.split(":=")[0] + ":= by sorry"
-                else:
-                    lines[error_line - 1] = line_str + " sorry"
+                lines.append(" " * 2 + "sorry")
             else:
-                lines[error_line - 1] = " " * indent + "sorry"
-                
+                lines[error_line - 1] = "-- " + line_str + "\n" + " " * indent + "sorry"
             self.current_content = "\n".join(lines) + "\n"
             return True
 
         if not enclosing:
             return emergency_fallback()
 
-        # 2. Lỗi Cú pháp / Logic sai (Fatal Error)
         if is_fatal:
-            # Lấy node NHỎ NHẤT (Lá), loại bỏ bọn Command to đùng để tránh xóa nhầm hàm
+            # CHỐNG BÃO SORRY: Lean đòi Command, tuyệt đối không chèn sorry bừa bãi
+            if "expected command" in err_msg.lower():
+                indent = len(lines[error_line - 1]) - len(lines[error_line - 1].lstrip())
+                lines[error_line - 1] = "-- " + lines[error_line - 1]
+                i = error_line
+                while i < len(lines) and lines[i].strip() and not lines[i].strip().startswith("--"):
+                    curr_indent = len(lines[i]) - len(lines[i].lstrip())
+                    if curr_indent > indent:
+                        lines[i] = "-- " + lines[i]
+                        i += 1
+                    else:
+                        break
+                self._last_action_msg = f"Commented invalid syntax block at L{error_line}"
+                self.current_content = "\n".join(lines) + "\n"
+                return True
+
             valid_nodes = [b for b in enclosing if "command" not in b["kind"].lower()]
             if not valid_nodes: return emergency_fallback()
             
-            # BÍ QUYẾT: Dùng end_byte - start_byte để tìm node hẹp nhất không gian
             target = min(valid_nodes, key=lambda x: x["end_byte"] - x["start_byte"])
-            
             L_start, L_end = target["start_line"], target["end_line"]
             start_line_str = lines[L_start - 1]
-            is_orphan_error = "no goals" in err_msg.lower() or "goals accomplished" in err_msg.lower()
-            
-            new_lines = lines[:L_start - 1]
             indent = len(start_line_str) - len(start_line_str.lstrip())
             
+            is_orphan_error = "no goals" in err_msg.lower() or "goals accomplished" in err_msg.lower()
+            
             if is_orphan_error:
-                self._last_action_msg = f"Removed orphaned tactic [{target['kind']}] L{L_start}..L{L_end}"
+                for i in range(L_start - 1, L_end):
+                    lines[i] = "-- " + lines[i]
+                self._last_action_msg = f"Commented orphaned tactic [{target['kind']}] L{L_start}..L{L_end}"
+                self.current_content = "\n".join(lines) + "\n"
+                return True
+
+            if self._is_block_starter(start_line_str):
+                new_lines = lines[:L_end]
+                new_lines.append(" " * (indent + 2) + "sorry")
                 new_lines.extend(lines[L_end:])
-            elif self._is_block_starter(start_line_str) and ":=" in start_line_str:
-                self._last_action_msg = f"Hollowed out block [{target['kind']}] starting at L{L_start}"
-                clean_header = start_line_str.split(":=")[0] + ":= by sorry"
-                new_lines.append(clean_header)
-                new_lines.extend(lines[L_end:])
+                self._last_action_msg = f"Appended sorry to block [{target['kind']}] starting at L{L_start}"
+                self.current_content = "\n".join(new_lines) + "\n"
             else:
-                self._last_action_msg = f"Replaced leaf tactic [{target['kind']}] L{L_start}..L{L_end}"
+                for i in range(L_start - 1, L_end):
+                    lines[i] = "-- " + lines[i]
+                new_lines = lines[:L_end]
                 new_lines.append(" " * indent + "sorry")
                 new_lines.extend(lines[L_end:])
-                
-            tqdm.write(self._last_action_msg)
-            self.current_content = "\n".join(new_lines) + "\n"
-            
-        # 3. Xử lý Chưa chứng minh xong (Unsolved Goals)
+                self._last_action_msg = f"Commented failing tactic [{target['kind']}] L{L_start}..L{L_end}"
+                self.current_content = "\n".join(new_lines) + "\n"
+
         else: 
-            # Lấy cái Scope NHỎ NHẤT bao trọn lỗi, đéo chơi trò max() nữa!
-            scopes = ["declaration", "have", "cases", "match", "let", "induction", "calc", "bytactic"]
+            # UNSOLVED GOALS: Đã fix danh sách scope chuẩn, đéo bao giờ vồ nhầm lá nữa!
+            scopes = [
+                "tactichave__", "tacticcases__", "tacticlet__", 
+                "tacticinduction__", "tacticcalc__", "tacticmatch__", 
+                "bytactic", "declval"
+            ]
             valid_nodes = [b for b in enclosing if any(s in b["kind"].lower() for s in scopes)]
             
             if not valid_nodes:
-                return emergency_fallback()
+                lines.append("  sorry")
+                self.current_content = "\n".join(lines) + "\n"
+                return True
                 
-            # ĐÂY LÀ CHÌA KHÓA: Dùng min() để khóa đúng cái scope hẹp nhất bị lỗi
             target = min(valid_nodes, key=lambda x: x["end_byte"] - x["start_byte"])
             L_start, L_end = target["start_line"], target["end_line"]
             
@@ -247,7 +345,6 @@ class Sorrifier:
             
             self.current_content = "\n".join(new_lines) + "\n"
 
-        self.current_content = self._clean_redundant_sorries(self.current_content.splitlines())
         return True
 
     def _get_lean_errors(self) -> Tuple[List[Tuple[int, str]], List[Tuple[int, str]]]:
@@ -330,16 +427,17 @@ class Sorrifier:
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python sorrifier.py <path_to_lean_file>")
+        print("Usage: python sorrifier.py <path_to_lean_file> [debug_log_path]")
         sys.exit(1)
-        
+
     target_path = sys.argv[1]
+    log_path = sys.argv[2] if len(sys.argv) > 2 else target_path + ".sorrifier.log"
     with open(target_path, "r", encoding="utf-8") as f:
         source_code = f.read()
 
     verifier = Lean4ServerScheduler(max_concurrent_requests=1, timeout=300, name="auto_sorrifier_cli")
     try:
-        patcher = Sorrifier(verifier)
+        patcher = Sorrifier(verifier, log_path=log_path)
         fixed_code = patcher.fix_code(source_code)
         if fixed_code:
             with open(target_path, "w", encoding="utf-8") as f:
