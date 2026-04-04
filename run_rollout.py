@@ -10,27 +10,14 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "."))
 from betazero.core.nodes import ProofState, Action
 from betazero.env.lean_env import LeanEnv
 from betazero.env.lean_verifier import Lean4ServerScheduler
-from betazero.search.and_or_graph import ANDORGraph
-from betazero.search.rollout import LevelwiseRollout
+from betazero.search.graph.and_or_graph import ANDORGraph
+from betazero.search.rollout.levelwise_rollout import LevelwiseRollout
 from betazero.search.sorrifier import Sorrifier
 from betazero.search.reward import RewardCalculator
 from betazero.utils.dataloader import parse_lean_file
 from betazero.utils.config import Config
-from betazero.policy.vllm_process import VLLMProcess
+from betazero.policy.vllm_server import VLLMServer
 
-
-class MockPolicy:
-    """Policy mock để sinh hành động 'sorry' cho mục đích test rollout/graph."""
-
-    def __init__(self, tactic_code: str = "sorry", skeleton_code: str = "sorry"):
-        self.tactic_code = tactic_code
-        self.skeleton_code = skeleton_code
-
-    def sample(self, states: list[ProofState], action_type: str, n: int) -> list[list[str]]:
-        if not states:
-            return []
-        code = self.tactic_code if action_type == "tactic" else self.skeleton_code
-        return [[code] * n for _ in states]
 
 
 def _find_graph(root_state: ProofState) -> Optional[ANDORGraph]:
@@ -49,7 +36,7 @@ def _tree_to_lines(graph: ANDORGraph, root: ProofState) -> list[str]:
         return f"{prefix}STATE goal={goal_head!r}"
 
     def action_lines(prefix: str, a: Action, i: int) -> list[str]:
-        status = "SOLVED" if graph.is_solved(a) else "OPEN"
+        status = graph.status(a)
         r_env = graph.get_r_env(a)
         out = [
             f"{prefix}ACTION#{i} type={a.action_type} status={status} r_env={r_env:.3f}"
@@ -89,7 +76,6 @@ def main():
     ap.add_argument("--config", type=str, default=None)
     ap.add_argument("--lean-file", type=str, default="problems/aime_1984_p5.lean")
     ap.add_argument("--out-md", type=str, default="outputs/rollout_aime_1984_p5.md")
-    ap.add_argument("--policy", type=str, choices=["mock", "vllm"], default="mock")
     ap.add_argument("--adapter", type=str, default=None)
     ap.add_argument("--K", type=int, default=None)
     ap.add_argument("--max-depth", type=int, default=None)
@@ -123,13 +109,10 @@ def main():
 
     vllm = None
     try:
-        if args.policy == "mock":
-            policy = MockPolicy()
-        else:
-            # Use cfg loaded from --config for model/vLLM settings.
-            vllm = VLLMProcess(cfg)
-            vllm.start(args.adapter)
-            policy = vllm
+        # Use cfg loaded from --config for model/vLLM settings.
+        vllm = VLLMServer(cfg)
+        vllm.start(args.adapter)
+        policy = vllm
 
         rollout = LevelwiseRollout(
             policy=policy,
@@ -156,7 +139,7 @@ def main():
             f.write(f"- lean file: `{args.lean_file}`\n") 
             if args.config:
                 f.write(f"- config: `{args.config}`\n")
-            f.write(f"- policy: `{args.policy}`\n")
+            f.write(f"- policy: `vLLM`\n")
             f.write(f"- params: K={K}, max_depth={max_depth}, max_nodes={max_nodes}, lean_timeout={lean_timeout}\n")
             f.write("\n")
             f.write("## Root theorem\n")

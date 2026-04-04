@@ -1,10 +1,10 @@
 from betazero.env.ast_parser import get_lean_ast
-from betazero.search.and_or_graph import ANDORGraph
-from betazero.core.nodes import Action
+from betazero.search import ANDORGraph
+from betazero.core import Action
 
 
 class RewardCalculator:
-    """Computes r_env (syntactic) and r_dep (structural) rewards per Section 6."""
+    """Computes environment and dependency rewards, then backs them up through the graph."""
 
     def __init__(self, W_c: float = 1.0, W_b: float = 0.0, W_m: float = -1.0,
                  W_solve: float = 1.0, gamma: float = 1.0):

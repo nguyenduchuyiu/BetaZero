@@ -1,8 +1,8 @@
 import re
 
-from betazero.core.nodes import ProofState
+from betazero.core import ProofState
 from betazero.env.ast_parser import get_lean_ast
-from betazero.env.lean_verifier import Lean4ServerScheduler
+from betazero.env import Lean4ServerScheduler
 
 
 class LeanEnv:
@@ -28,6 +28,7 @@ class LeanEnv:
         return get_lean_ast(code)
 
     def dep_graph(self, proof_code: str) -> dict:
+        # TODO: Implement this
         """Classify 'have' hypotheses as core / benign / malignant."""
         result = self.scheduler.verify(proof_code)
         if result.get("errors") and not result.get("sorries"):

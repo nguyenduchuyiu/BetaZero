@@ -2,6 +2,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Literal
 
+NodeStatus = Literal["OPEN", "SOLVED", "FAILED"]
+
 
 @dataclass(frozen=True)
 class ProofState:
@@ -16,7 +18,7 @@ class ProofState:
 
 @dataclass(frozen=True)
 class Action:
-    """AND-node: a tactic sequence or proof skeleton applied to a ProofState."""
+    """AND-node: tactic or skeleton. `content` is raw LLM output; Lean execution uses extracted ```lean4``` body."""
     action_type: Literal["tactic", "skeleton"]
     content: str
     children: tuple[ProofState, ...] = field(default_factory=tuple)

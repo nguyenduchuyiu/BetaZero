@@ -1,13 +1,13 @@
 import os
+import gc
 import torch
-import torch.nn.functional as F
 from contextlib import nullcontext
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import get_peft_model, PeftModel, LoraConfig, TaskType
 
-from betazero.core.nodes import ProofState
+from betazero.core import ProofState
 from betazero.policy.prompt import build_prompt
-from betazero.utils.config import Config
+from betazero.utils import Config
 
 
 class TrainablePolicy:
@@ -43,6 +43,7 @@ class TrainablePolicy:
 
     def unload(self):
         del self.model
+        gc.collect()
         torch.cuda.empty_cache()
 
     def log_probs(self, states: list[ProofState], actions: list[str],
@@ -64,13 +65,19 @@ class TrainablePolicy:
         with ctx:
             logits = self.model(**inputs).logits
 
-        log_probs_all = F.log_softmax(logits[:, :-1, :], dim=-1)
-        token_lp = torch.gather(
-            log_probs_all, dim=2, index=inputs.input_ids[:, 1:].unsqueeze(-1)
-        ).squeeze(-1)
-
         mask = torch.zeros_like(inputs.input_ids[:, 1:], dtype=torch.bool)
         for i in range(len(states)):
             mask[i, prompt_lens[i].item() - 1: inputs.attention_mask[i].sum().item() - 1] = True
 
-        return (token_lp * mask).sum(dim=1)
+        min_prompt_len = prompt_lens.min().item()
+        start_idx = min_prompt_len - 1
+        
+        rel_logits = logits[:, start_idx:-1, :]  # [B, T_action, V]
+        rel_targets = inputs.input_ids[:, start_idx+1:].unsqueeze(-1) # [B, T_action, 1]
+        rel_mask = mask[:, start_idx:] # [B, T_action]
+
+        tok_logits = torch.gather(rel_logits, dim=2, index=rel_targets).squeeze(-1)
+        lse = torch.logsumexp(rel_logits, dim=-1) 
+        rel_token_lp = tok_logits.float() - lse
+
+        return (rel_token_lp * rel_mask).sum(dim=1)

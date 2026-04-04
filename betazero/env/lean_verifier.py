@@ -29,7 +29,7 @@ DEFAULT_LEAN_WORKSPACE = os.path.join(os.getcwd(), "repl/")
 class PersistentLeanWorker:
     """A persistent Lean REPL process that caches Mathlib in its base environment."""
     
-    def __init__(self, workspace=DEFAULT_LEAN_WORKSPACE, timeout=20, max_requests=50): 
+    def __init__(self, workspace=DEFAULT_LEAN_WORKSPACE, timeout=20, max_requests=500): 
         self.workspace = workspace
         self.timeout = timeout
         self.max_requests = max_requests 

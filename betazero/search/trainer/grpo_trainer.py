@@ -3,15 +3,15 @@ from collections import defaultdict
 
 import torch
 
-from betazero.core.nodes import ProofState, Action
-from betazero.policy.trainable_policy import TrainablePolicy
+from betazero.core import ProofState, Action
+from betazero.policy import TrainablePolicy
 
 _EMPTY = {"loss": 0.0, "kl": 0.0, "n_samples": 0, "n_groups": 0,
           "r_env_mean": 0.0, "Q_mean": 0.0, "solve_rate": 0.0}
 
 
 class GRPOTrainer:
-    """GRPO update step. Stateless except hyperparams — call update() each iteration."""
+    """Applies GRPO updates to a policy from rollout samples collected during search."""
 
     def __init__(self, lr: float = 1e-5, eps_clip: float = 0.2, beta_kl: float = 0.01,
                  grpo_epochs: int = 1, mini_batch_size: int = 8):

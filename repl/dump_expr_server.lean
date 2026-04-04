@@ -1,0 +1,117 @@
+import Mathlib
+import Lean
+
+open Lean Lean.Parser Lean.Elab Lean.Meta
+
+partial def exprToJson (e : Expr) : String :=
+  match e with
+  | .bvar idx => s!"\{\"expr\": \"bvar\", \"idx\": {idx}}"
+  | .fvar fv => s!"\{\"expr\": \"fvar\", \"id\": \"{fv.name}\"}"
+  | .mvar mv => s!"\{\"expr\": \"mvar\", \"id\": \"{mv.name}\"}"
+  | .sort lvl => s!"\{\"expr\": \"sort\", \"level\": \"{lvl}\"}"
+  | .const n _ => s!"\{\"expr\": \"const\", \"name\": \"{n}\"}"
+  | .app fn arg => s!"\{\"expr\": \"app\", \"fn\": {exprToJson fn}, \"arg\": {exprToJson arg}}"
+  | .lam n t b _ => s!"\{\"expr\": \"lam\", \"var_name\": \"{n}\", \"var_type\": {exprToJson t}, \"body\": {exprToJson b}}"
+  | .forallE n t b _ => s!"\{\"expr\": \"forallE\", \"var_name\": \"{n}\", \"var_type\": {exprToJson t}, \"body\": {exprToJson b}}"
+  | .letE n t v b _ => s!"\{\"expr\": \"letE\", \"var_name\": \"{n}\", \"var_type\": {exprToJson t}, \"val\": {exprToJson v}, \"body\": {exprToJson b}}"
+  | .lit (.natVal v) => s!"\{\"expr\": \"lit\", \"type\": \"nat\", \"val\": {v}}"
+  | .lit (.strVal v) => s!"\{\"expr\": \"lit\", \"type\": \"str\", \"val\": \"{v}\"}"
+  | .mdata _ inner => s!"\{\"expr\": \"mdata\", \"inner\": {exprToJson inner}}"
+  | .proj s i inner => s!"\{\"expr\": \"proj\", \"struct\": \"{s}\", \"idx\": {i}, \"inner\": {exprToJson inner}}"
+
+-- [ĐÃ FIX]: Ép lấy tham số expr thẳng thừng, đéo kiểm tra value nữa
+def dumpExprTree (name : Name) (expr : Expr) : IO Unit := do
+  IO.println s!"\{\"theorem\": \"{name}\", \"expr_tree\": {exprToJson expr}}"
+
+partial def elabLoop (inputCtx : InputContext) (pmctx : ParserModuleContext)
+                     (p : ModuleParserState) (c : Command.State) : IO Command.State := do
+  let (stx, p', messages) := parseCommand inputCtx pmctx p c.messages
+  if p'.pos == p.pos then
+    return { c with messages := messages }
+  else
+    let c' ← try
+      -- 1. Thêm snap? và cancelTk? vào Context
+      let cmdCtx : Command.Context := {
+        fileName := inputCtx.fileName,
+        fileMap := inputCtx.fileMap,
+        snap? := none,
+        cancelTk? := none
+      }
+      -- 2. Ép kiểu EIO Exception về IO để try-catch không bị chửi
+      let ((), newC) ← (Command.elabCommand stx).run cmdCtx
+        |>.run { c with messages := messages }
+        |>.toIO (fun _ => IO.userError "Command Elaboration Failed")
+      pure newC
+    catch e =>
+      IO.eprintln s!"[Command Panic] {e}"
+      pure { c with messages := messages }
+
+    elabLoop inputCtx pmctx p' c'
+
+def processFileExpr (fileName : String) (lastHeader : String) (lastEnv : Environment) : IO (String × Environment) := do
+  let content ← IO.FS.readFile fileName
+  let inputCtx := mkInputContext content fileName
+  let (header, parserState, messages) ← parseHeader inputCtx
+  let headerStr := toString header.raw
+
+  let mut currentEnv := lastEnv
+  let mut newHeader := lastHeader
+
+  if headerStr != lastHeader && headerStr != "" then
+    IO.eprintln s!"[Server] Loading imports for {fileName}..."
+    let (env, _) ← try
+      Lean.Elab.processHeader header {} messages inputCtx
+    catch e =>
+      IO.eprintln s!"[HEADER FATAL] {e}"
+      pure (← mkEmptyEnvironment, messages)
+    currentEnv := env
+    newHeader := headerStr
+
+  let cmdState := Command.mkState currentEnv messages {}
+  let pmctx : ParserModuleContext := { env := currentEnv, options := {} }
+
+  let finalCmdState ← elabLoop inputCtx pmctx parserState cmdState
+  let newEnv := finalCmdState.env
+
+  -- [THẦN CHÚ GỌI HỒN Ở ĐÂY]: In sạch sành sanh lỗi của Compiler ra Terminal
+  for msg in finalCmdState.messages.toList do
+    let msgStr ← msg.toString
+    IO.eprintln s!"[Compiler Msg] {msgStr}"
+
+  let localDecls := newEnv.constants.map₂
+
+  localDecls.forM fun name cinfo => do
+    -- Nôn cái Expr Tree của Phát biểu (Type) ra đây!
+    dumpExprTree name cinfo.type
+
+  IO.println "===EOF==="
+  (← IO.getStdout).flush
+  return (newHeader, newEnv)
+
+partial def serverLoop (stdin : IO.FS.Stream) (lastHeader : String) (lastEnv : Environment) : IO Unit := do
+  let line ← stdin.getLine
+  if line == "" then return ()
+
+  let fileName := line.trimAscii.toString
+  let mut nextHeader := lastHeader
+  let mut nextEnv := lastEnv
+
+  if fileName != "" then
+    try
+      let (h, e) ← processFileExpr fileName lastHeader lastEnv
+      nextHeader := h
+      nextEnv := e
+    catch e =>
+      IO.eprintln s!"[Expr Server Panic] {e}"
+      IO.println "===EOF==="
+      (← IO.getStdout).flush
+
+  serverLoop stdin nextHeader nextEnv
+
+def main : IO Unit := do
+  initSearchPath (← Lean.findSysroot)
+  let emptyEnv ← mkEmptyEnvironment
+  let stdin ← IO.getStdin
+
+  IO.eprintln "[Server] Lean Expr Tree Dump Server is ready!"
+  serverLoop stdin "" emptyEnv

@@ -3,13 +3,13 @@ import sys, os; sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..")
 # PHẦN TEST SCRIPT MOCK ĐỂ IN CÂY
 # ==========================================
 
-from betazero.data.nodes import ProofState
-from betazero.logic.rollout import LevelwiseRollout
+from betazero.core import ProofState
+from betazero.search import LevelwiseRollout
 from betazero.env.lean_env import LeanEnv
-from betazero.logic.sorrifier import Sorrifier
-from betazero.logic.and_or_graph import ANDORGraph
-from betazero.logic.reward import RewardCalculator
-from betazero.env.lean_verifier import Lean4ServerScheduler
+from betazero.search import Sorrifier
+from betazero.search import ANDORGraph
+from betazero.search import RewardCalculator
+from betazero.env import Lean4ServerScheduler
 
 
 class MockPolicy:
@@ -62,7 +62,7 @@ def print_graph(graph: ANDORGraph, state: ProofState, depth: int = 0, visited: s
         return
         
     for i, act in enumerate(actions):
-        status = "✅ Solved" if graph.is_solved(act) else "❌ Open"
+        status = graph.status(act)
         reward = graph.get_r_env(act)
         content_preview = act.content.strip().replace('\n', '\\n')
         if len(content_preview) > 40: content_preview = content_preview[:37] + "..."

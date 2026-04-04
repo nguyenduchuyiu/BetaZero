@@ -1,4 +1,4 @@
-"""Persistent Lean AST daemon. Single shared process across all imports."""
+"""Persistent Lean EXPR Tree daemon. Single shared process across all imports."""
 
 import atexit
 import json
@@ -11,10 +11,11 @@ import threading
 REPL_DIR = os.environ.get("LEAN_WORKSPACE", os.path.join(os.getcwd(), "repl/"))
 
 
-class ASTDaemon:
-    def __init__(self, repl_dir: str = REPL_DIR, max_requests: int = 500):
+class EXPRTreeDaemon:
+    def __init__(self, repl_dir: str, max_requests: int = 100):
         self.repl_dir = repl_dir
         self.max_requests = max_requests
+        self.request_count = 0
         self.lock = threading.Lock()
         self.proc = None
         self._start_process()
@@ -34,32 +35,29 @@ class ASTDaemon:
     def _start_process(self):
         self._kill_proc()
         self.request_count = 0
-        
         self.proc = subprocess.Popen(
-            ["lake", "exe", "dump_ast_server"],
+            ["lake", "exe", "dump_expr_server"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             text=True,
             cwd=self.repl_dir,
             bufsize=1,
-            preexec_fn=os.setsid  
+            preexec_fn=os.setsid,
         )
-        
-        # Warmup: cache Mathlib environment so the first real call is fast
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".lean", dir=self.repl_dir, delete=False, encoding="utf-8"
         ) as tf:
             tf.write('import Mathlib')
             tmp = tf.name
         try:
-            print("[AST] Loading Mathlib environment...")
-            self._get_ast_raw(tmp)
-            print("[AST] Ready.")
+            self._get_expr_raw(tmp)
         finally:
             os.remove(tmp)
 
-    def _get_ast_raw(self, file_path: str) -> list:
+    def _get_expr_raw(self, file_path: str) -> list:
+        if not self.proc or not self.proc.stdin:
+            return []
         self.proc.stdin.write(file_path + "\n")
         self.proc.stdin.flush()
         blocks = []
@@ -77,41 +75,31 @@ class ASTDaemon:
                     pass
         return blocks
 
-    def get_ast(self, file_path: str) -> list:
+    def get_expr_tree(self, file_path: str) -> list:
         with self.lock:
             self.request_count += 1
-            
-            if self.proc is None or self.proc.poll() is not None or self.request_count >= self.max_requests:
+            if (
+                self.proc is None
+                or self.proc.poll() is not None
+                or self.request_count >= self.max_requests
+            ):
                 if self.request_count >= self.max_requests:
-                    print(f"\n[AST Server] Reached {self.max_requests} requests. Respawning to flush RAM leak =))...")
+                    print(
+                        f"[EXPR] Reached {self.max_requests} requests. Respawning to flush RAM..."
+                    )
+                else:
+                    print("[EXPR] Daemon crashed or missing. Restarting...")
                 self._start_process()
-
-            try:
-                return self._get_ast_raw(file_path)
-            except Exception as e:
-                print(f"[AST Server] Error during AST dump: {e}. Respawning...")
-                self._start_process()  
-                return []
+            return self._get_expr_raw(file_path)
 
     def close(self):
         self._kill_proc()
 
+_SHARED_TREE_DAEMON = EXPRTreeDaemon(REPL_DIR)
 
-_SHARED_DAEMON = ASTDaemon()
-
-
-def get_lean_ast(code: str) -> list:
-    """Return AST block dicts for a Lean code string. Thread-safe with auto-import injection and offset correction."""
-    
+def get_lean_expr_tree(code: str) -> list:
     prefix = "import Mathlib\n"
-    has_import = "import " in code
-    
-    if not has_import:
-        full_code = prefix + code
-        offset_bytes = len(prefix.encode('utf-8')) # Chính xác là 15 bytes
-    else:
-        full_code = code
-        offset_bytes = 0
+    full_code = code if "import " in code else prefix + code
 
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".lean", dir=REPL_DIR, delete=False, encoding="utf-8"
@@ -120,19 +108,6 @@ def get_lean_ast(code: str) -> list:
         path = f.name
         
     try:
-        blocks = _SHARED_DAEMON.get_ast(path)
-        
-        if offset_bytes > 0:
-            valid_blocks = []
-            for b in blocks:
-                b["start_byte"] -= offset_bytes
-                b["end_byte"] -= offset_bytes
-                
-                # Chỉ lấy những node thuộc về code thật (>= 0), vứt bỏ cái node của dòng import giả mạo
-                if b["start_byte"] >= 0:
-                    valid_blocks.append(b)
-            return valid_blocks
-            
-        return blocks
+        return _SHARED_TREE_DAEMON.get_expr_tree(path)
     finally:
         os.remove(path)

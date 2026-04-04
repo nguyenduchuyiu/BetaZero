@@ -16,7 +16,7 @@ import sys
 import datetime
 from typing import Tuple, List, Dict, TextIO, Optional
 from tqdm import tqdm
-from betazero.env.lean_verifier import Lean4ServerScheduler
+from betazero.env import Lean4ServerScheduler
 from betazero.env.ast_parser import get_lean_ast
 
 BLOCK_STARTERS = (
