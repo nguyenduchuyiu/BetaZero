@@ -4,6 +4,8 @@ import threading
 from typing import Any, Literal
 
 from betazero.core.nodes import Action, NodeStatus, ProofState
+from betazero.policy.output_parser import get_lean_code
+from betazero.search.sorrifier.stitcher import ProofStitcher
 
 
 class ANDORGraph:
@@ -18,6 +20,7 @@ class ANDORGraph:
         self._tactic_status: dict[Action, Literal["SOLVED", "FAILED"]] = {}
         self._depth: dict[ProofState, int] = {root: 0}
         self._solved_cache: dict[Any, bool] = {}
+        self._skeleton_override: dict[Action, bool] = {} 
 
     def expand(
         self,
@@ -42,31 +45,36 @@ class ANDORGraph:
                 if child not in self._depth:
                     self._depth[child] = self._depth[state] + 1
 
+    def _node_solved(
+        self, node: ProofState | Action, visiting: set, memo: dict[Any, bool]
+    ) -> bool:
+        if node in visiting:
+            return False
+        if node in memo:
+            return memo[node]
+        visiting.add(node)
+        try:
+            if isinstance(node, ProofState):
+                res = any(self._node_solved(a, visiting, memo) for a in self._actions.get(node, []))
+            elif node.action_type == "tactic":
+                res = self._tactic_status.get(node) == "SOLVED"
+            else:
+                if node in self._skeleton_override:
+                    res = self._skeleton_override[node]
+                else:
+                    res = bool(node.children) and all(
+                        self._node_solved(c, visiting, memo) for c in node.children
+                    )
+            memo[node] = res
+            return res
+        finally:
+            visiting.remove(node)
+
     def is_solved(self, node: ProofState | Action, visiting: set | None = None) -> bool:
         with self._lock:
             if visiting is None:
                 visiting = set()
-            if node in visiting:
-                return False
-            if node in self._solved_cache:
-                return self._solved_cache[node]
-            visiting.add(node)
-            try:
-                if isinstance(node, ProofState):
-                    res = any(
-                        self.is_solved(a, visiting)
-                        for a in list(self._actions.get(node, []))
-                    )
-                elif node.action_type == "tactic":
-                    res = self._tactic_status.get(node) == "SOLVED"
-                else:
-                    res = bool(node.children) and all(
-                        self.is_solved(c, visiting) for c in node.children
-                    )
-                self._solved_cache[node] = res
-                return res
-            finally:
-                visiting.remove(node)
+            return self._node_solved(node, visiting, self._solved_cache)
 
     def status(self, node: ProofState | Action) -> NodeStatus:
         with self._lock:
@@ -110,82 +118,73 @@ class ANDORGraph:
         with self._lock:
             self._r_dep[action] = r_dep
 
+    def set_skeleton_override(self, action: Action, is_solved: bool):
+        with self._lock:
+            self._skeleton_override[action] = is_solved
+            self._solved_cache.clear() # Nhớ xóa cache để graph tính lại từ đầu
+
     def get_depth(self, state: ProofState) -> int:
         with self._lock:
             return self._depth.get(state, -1)
 
-    @staticmethod
-    def _is_solved_from_snapshot(
-        node: ProofState | Action,
-        actions: dict[ProofState, list[Action]],
-        tactic_status: dict[Action, Literal["SOLVED", "FAILED"]],
-        visiting: set,
-        memo: dict[Any, bool],
-    ) -> bool:
-        if node in visiting:
-            return False
-        if node in memo:
-            return memo[node]
-        visiting.add(node)
-        try:
-            if isinstance(node, ProofState):
-                res = any(
-                    ANDORGraph._is_solved_from_snapshot(a, actions, tactic_status, visiting, memo)
-                    for a in actions.get(node, [])
-                )
-            elif node.action_type == "tactic":
-                res = tactic_status.get(node) == "SOLVED"
-            else:
-                res = bool(node.children) and all(
-                    ANDORGraph._is_solved_from_snapshot(c, actions, tactic_status, visiting, memo)
-                    for c in node.children
-                )
-            memo[node] = res
-            return res
-        finally:
-            visiting.remove(node)
-
     def backup(self, gamma: float = 1.0, W_solve: float = 1.0) -> dict[Action, float]:
         with self._lock:
-            actions = {k: list(v) for k, v in self._actions.items()}
-            parent = dict(self._parent)
-            r_env = dict(self._r_env)
-            r_dep = dict(self._r_dep)
-            tactic_status = dict(self._tactic_status)
+            q_cache: dict[Action, float] = {}
+            v_cache: dict[ProofState, float] = {}
+            visiting_v: set[ProofState] = set()
+            solve_memo: dict[Any, bool] = {}
 
-        q_cache: dict[Action, float] = {}
-        v_cache: dict[ProofState, float] = {}
-        visiting_v: set[ProofState] = set()
-        solve_memo: dict[Any, bool] = {}
+            def V(state: ProofState) -> float:
+                if state in v_cache:
+                    return v_cache[state]
+                if state in visiting_v:
+                    return 0.0
+                visiting_v.add(state)
+                val = max((Q(a) for a in self._actions.get(state, [])), default=0.0)
+                visiting_v.remove(state)
+                v_cache[state] = val
+                return val
 
-        def is_solved_snap(n: ProofState | Action) -> bool:
-            return self._is_solved_from_snapshot(n, actions, tactic_status, set(), solve_memo)
+            def Q(action: Action) -> float:
+                if action in q_cache:
+                    return q_cache[action]
+                r_e = self._r_env.get(action, 0.0)
+                solved = self._node_solved(action, set(), solve_memo)
+                if action.action_type == "tactic":
+                    val = r_e + W_solve * float(solved)
+                else:
+                    r_d = self._r_dep.get(action, 0.0)
+                    future = gamma * min((V(c) for c in action.children), default=0.0)
+                    val = r_e + float(solved) * (r_d + future)
+                q_cache[action] = val
+                return val
 
-        def V(state: ProofState) -> float:
-            if state in v_cache:
-                return v_cache[state]
-            if state in visiting_v:
-                return 0.0
-            visiting_v.add(state)
-            val = max((Q(a) for a in actions.get(state, [])), default=0.0)
-            visiting_v.remove(state)
-            v_cache[state] = val
-            return val
+            for action in self._parent:
+                Q(action)
+            for state in self._actions:
+                V(state)
+            return q_cache
 
-        def Q(action: Action) -> float:
-            if action in q_cache:
-                return q_cache[action]
-            r_e = r_env.get(action, 0.0)
-            solved = is_solved_snap(action)
-            if action.action_type == "tactic":
-                val = r_e + W_solve * float(solved)
-            else:
-                r_d = r_dep.get(action, 0.0)
-                future = gamma * min((V(c) for c in action.children), default=0.0)
-                val = r_e + float(solved) * (r_d + future)
-            q_cache[action] = val
-            return val
+    def get_successful_action(self, state: ProofState) -> Action | None:
+        """Retrieve the action that successfully solved this state."""
+        with self._lock:
+            for action in self.get_actions(state):
+                if self.status(action) == "SOLVED":
+                    return action
+        return None
 
-        for action in parent:
-            Q(action)
-        return q_cache
+    def extract_proof_code(self, state: ProofState) -> str | None:
+        """Recursively extract and stitch the successful proof code for a state."""
+        
+        action = self.get_successful_action(state)
+        if not action:
+            return None
+            
+        parsed_code = get_lean_code(action.content)
+        
+        if action.action_type == "tactic":
+            return parsed_code
+            
+        # Skeleton: recurse down to children
+        child_proofs = [self.extract_proof_code(child) for child in action.children]
+        return ProofStitcher.stitch(parsed_code, child_proofs)

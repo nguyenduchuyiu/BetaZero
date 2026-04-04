@@ -3,6 +3,8 @@ import re
 from betazero.core import ProofState
 from betazero.env.ast_parser import get_lean_ast
 from betazero.env import Lean4ServerScheduler
+from betazero.search.sorrifier.dependency_analyzer import ExprDependencyAnalyzer
+from betazero.env.expr_parser import get_lean_expr_tree
 
 
 class LeanEnv:
@@ -10,6 +12,7 @@ class LeanEnv:
 
     def __init__(self, scheduler: Lean4ServerScheduler):
         self.scheduler = scheduler
+        self.analyzer = ExprDependencyAnalyzer()
 
     def verify(self, code: str) -> dict:
         return self.scheduler.verify(code)
@@ -27,28 +30,28 @@ class LeanEnv:
     def get_ast(self, code: str) -> list:
         return get_lean_ast(code)
 
-    def dep_graph(self, proof_code: str) -> dict:
-        # TODO: Implement this
-        """Classify 'have' hypotheses as core / benign / malignant."""
-        result = self.scheduler.verify(proof_code)
-        if result.get("errors") and not result.get("sorries"):
-            return {"core": [], "benign": [], "malignant": []}
-        sorry_lines = {s["pos"]["line"] for s in result.get("sorries", []) if s.get("pos")}
-        code_lines = proof_code.splitlines()
-        have_names = re.findall(r'\bhave\s+(\w+)\s*:', proof_code)
-        malignant, core, benign = [], [], []
-        for name in have_names:
-            decl_idx = next(
-                (i for i, l in enumerate(code_lines) if re.search(rf'\bhave\s+{re.escape(name)}\s*:', l)),
-                -1,
-            )
-            if any(abs(sl - (decl_idx + 1)) <= 1 for sl in sorry_lines):
-                malignant.append(name)
-            elif re.search(rf'\b{re.escape(name)}\b', "\n".join(code_lines[decl_idx + 1:])):
-                core.append(name)
-            else:
-                benign.append(name)
-        return {"core": core, "benign": benign, "malignant": malignant}
+    def analyze_dependencies(self, proof_code: str) -> dict:
+        """
+        Classify subgoals using Lean 4 Expr Tree deep analysis.
+        Returns classifications for: core_solved, core_failed, malignant, benign.
+        """
+        
+        # We don't even need scheduler.verify here because Expr Tree compilation 
+        # naturally fails or succeeds, exposing the core structures.
+        ast_expr_list = get_lean_expr_tree(proof_code)
+        
+        empty_classification = {
+            "core_solved": [], "core_failed": [], "malignant": [], "benign": []
+        }
+        
+        if not ast_expr_list:
+            return empty_classification
+            
+        # The target theorem is usually the last block extracted
+        root_expr = ast_expr_list[-1].get("expr_tree", {})
+        classification = self.analyzer.classify_skeleton_subgoals(root_expr)
+        
+        return classification
 
     @staticmethod
     def _parse_proof_state(goal_str: str, header: str = "") -> ProofState:
