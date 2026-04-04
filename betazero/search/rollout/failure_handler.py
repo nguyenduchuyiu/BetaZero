@@ -1,8 +1,8 @@
 from betazero.core import ProofState, Action
 from betazero.env.lean_env import LeanEnv
-from betazero.search import ANDORGraph
-from betazero.search import RewardCalculator
-from betazero.search import Sorrifier
+from betazero.search.graph import ANDORGraph
+from betazero.search.reward import RewardCalculator
+from betazero.search.sorrifier import Sorrifier
 
 from .execution_result import LeanExecutionResult
 from .utils import extract_action_body

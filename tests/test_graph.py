@@ -93,14 +93,7 @@ if __name__ == "__main__":
     root_state = ProofState(context="a b : Nat", goal="a + b = b + a")
     
     print("\n🚀 BẮT ĐẦU CHẠY ROLLOUT...\n")
-    rollout.rollout(root_state)
+    _, graph, _ = rollout.rollout(root_state)
     
     print("🌳 ĐỒ THỊ AND/OR SAU KHI ROLLOUT:")
-    # Móc vào đồ thị ẩn trong class để in ra
-    # (Vì hàm rollout trả về tuple Q-value, ta lấy tạm Graph được tạo lúc chạy để in)
-    # T viết đoạn code này để test nhanh, m có thể nhét print_graph vào cuối hàm rollout
-    import gc
-    for obj in gc.get_objects():
-        if isinstance(obj, ANDORGraph):
-            print_graph(obj, root_state)
-            break
+    print_graph(graph, root_state)

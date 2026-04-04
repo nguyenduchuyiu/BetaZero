@@ -1,5 +1,5 @@
 from betazero.env.ast_parser import get_lean_ast
-from betazero.search import ANDORGraph
+from betazero.search.graph import ANDORGraph
 from betazero.core import Action
 
 

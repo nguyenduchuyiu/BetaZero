@@ -21,6 +21,7 @@ class VLLMServer:
         self.max_tokens       = cfg.max_new_tokens
         self.temperature      = cfg.temperature
         self.max_model_len    = cfg.max_model_len
+        self.ready_timeout    = cfg.vllm_ready_timeout
         self.proc: subprocess.Popen | None = None
         self.log_file = None
         self._adapter_flag: bool | None = None  # Cache for whether adapter is loaded
@@ -66,7 +67,7 @@ class VLLMServer:
             preexec_fn=os.setsid     
         )
         self._adapter_flag = None  # Reset adapter cached state at startup
-        self._wait_ready()
+        self._wait_ready(self.ready_timeout)
 
     def kill(self):
         """Kill subprocess AND ALL ITS CHILDREN; VRAM is fully reclaimed by the OS."""
@@ -132,7 +133,7 @@ class VLLMServer:
         except Exception:
             return False
 
-    def _wait_ready(self, timeout: int = 180):
+    def _wait_ready(self, timeout: int):
         for _ in range(timeout):
             try:
                 if requests.get(f"http://localhost:{self.port}/health", timeout=1).ok:

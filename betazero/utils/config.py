@@ -51,9 +51,11 @@ class Config:
     vllm_port: int = 8000
     vllm_gpu_memory_utilization: float = 0.5
     max_model_len: int = 2048
+    vllm_ready_timeout: int = 300  # first HF download + load often exceeds 180s
 
     # Logging
     log_dir: str = "outputs/runs"
+    rollout_graph_log_dir: Optional[str] = None  # e.g. outputs/rollouts → JSON per theorem/iter
 
     @classmethod
     def from_yaml(cls, path: str) -> Config:

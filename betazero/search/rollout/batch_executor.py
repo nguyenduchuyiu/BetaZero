@@ -5,9 +5,9 @@ import threading
 
 from betazero.core import ProofState, Action
 from betazero.env.lean_env import LeanEnv
-from betazero.policy.llm_output import get_lean_code
-from betazero.search import ANDORGraph
-from betazero.search import RewardCalculator
+from betazero.policy.output_parser import get_lean_code
+from betazero.search.graph import ANDORGraph
+from betazero.search.reward import RewardCalculator
 
 from .execution_result import LeanExecutionResult
 from .failure_handler import FailureHandler
@@ -15,7 +15,7 @@ from .utils import format_lean_feedback
 
 
 class RolloutBudget:
-    __slots__ = ("max_nodes", "used")
+    __slots__ = ("max_nodes", "used", "_lock")
 
     def __init__(self, max_nodes: int):
         self.max_nodes = max_nodes

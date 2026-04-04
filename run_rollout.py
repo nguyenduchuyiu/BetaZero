@@ -1,9 +1,7 @@
 import argparse
 import datetime as _dt
-import gc
 import os
 import sys
-from typing import Optional
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "."))
 
@@ -17,14 +15,8 @@ from betazero.search.reward import RewardCalculator
 from betazero.utils.dataloader import parse_lean_file
 from betazero.utils.config import Config
 from betazero.policy.vllm_server import VLLMServer
+from betazero.policy.output_parser import get_lean_code
 
-
-
-def _find_graph(root_state: ProofState) -> Optional[ANDORGraph]:
-    for obj in gc.get_objects():
-        if isinstance(obj, ANDORGraph) and len(obj.get_actions(root_state)) > 0:
-            return obj
-    return None
 
 
 def _tree_to_lines(graph: ANDORGraph, root: ProofState) -> list[str]:
@@ -47,6 +39,9 @@ def _tree_to_lines(graph: ANDORGraph, root: ProofState) -> list[str]:
                 out.append(f"{prefix}  {line}")
         else:
             out.append(f"{prefix}  (empty)")
+        
+        out.append(f"Lean code:\n")
+        out.append(f"{get_lean_code(a.content)}\n")
         return out
 
     def rec(state: ProofState, depth: int):
@@ -124,10 +119,7 @@ def main():
             max_nodes=max_nodes,
         )
 
-        _ = rollout.rollout(root_state)
-        graph = _find_graph(root_state)
-        if graph is None:
-            raise RuntimeError("Could not locate ANDORGraph instance after rollout.")
+        _, graph, _ = rollout.rollout(root_state)
 
         tree_lines = _tree_to_lines(graph, root_state)
         now = _dt.datetime.now().isoformat(timespec="seconds")

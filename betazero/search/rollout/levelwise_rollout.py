@@ -5,10 +5,9 @@ from typing import Protocol
 from betazero.core import ProofState, Action
 from betazero.env.lean_env import LeanEnv
 from betazero.policy.prompt import build_tactic_self_correct_prompt
-from betazero.search import ANDORGraph
-from betazero.search import RewardCalculator
-from betazero.search import DependencyRewardAssigner
-from betazero.search import Sorrifier
+from betazero.search.graph import ANDORGraph
+from betazero.search.reward import DependencyRewardAssigner, RewardCalculator
+from betazero.search.sorrifier import Sorrifier
 
 from .batch_executor import BatchExecutor, RolloutBudget
 from .failure_handler import FailureHandler
@@ -82,7 +81,8 @@ class LevelwiseRollout:
 
         self.reward_assigner.assign(graph)
         q_values = self.reward.compute_returns(graph)
-        return [(graph.get_parent(a, theorem), a, graph.get_r_env(a), q) for a, q in q_values.items()]
+        samples = [(graph.get_parent(a, theorem), a, graph.get_r_env(a), q) for a, q in q_values.items()]
+        return samples, graph, q_values
 
     def _run_tactic_phase(self, graph: ANDORGraph, frontier: list[ProofState]) -> None:
         """

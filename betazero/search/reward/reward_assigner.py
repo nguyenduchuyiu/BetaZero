@@ -1,6 +1,6 @@
 from betazero.env.lean_env import LeanEnv
-from betazero.policy.llm_output import get_lean_code
-from betazero.search import ANDORGraph
+from betazero.policy.output_parser import get_lean_code
+from betazero.search.graph import ANDORGraph
 from .calculator import RewardCalculator
 
 
