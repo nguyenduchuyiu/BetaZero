@@ -4,7 +4,11 @@ from typing import Protocol
 
 from betazero.core import ProofState, Action
 from betazero.env.lean_env import LeanEnv
-from betazero.policy.prompt import build_prompt, build_tactic_self_correct_prompt
+from betazero.policy.prompt import (
+    TACTIC_SELF_CORRECT_USER_MARKER,
+    build_prompt,
+    build_tactic_self_correct_prompt,
+)
 from betazero.search.graph import ANDORGraph
 from betazero.search.reward import DependencyRewardAssigner, RewardCalculator
 from betazero.search.sorrifier import Sorrifier
@@ -56,6 +60,7 @@ class LevelwiseRollout:
             self.failure_handler = failure_handler
             
         self.reward_assigner = reward_assigner or DependencyRewardAssigner(lean, reward)
+        self.correction_buffer: list[tuple[ProofState, Action, float, float]] = []
 
     @property
     def max_nodes(self) -> int:
@@ -66,8 +71,8 @@ class LevelwiseRollout:
         return self._budget.used
 
     def rollout(self, theorem: ProofState) -> list[tuple[ProofState, Action, float, float]]:
+        self.correction_buffer = []
         graph = ANDORGraph(theorem)
-
         for depth in range(self.max_depth):
             frontier = [s for s in graph.unsolved_states() if graph.get_depth(s) == depth]
             if not frontier or self._budget.used >= self._budget.max_nodes:
@@ -81,7 +86,13 @@ class LevelwiseRollout:
 
         self.reward_assigner.assign(graph)
         q_values = self.reward.compute_returns(graph)
-        samples = [(graph.get_parent(a, theorem), a, graph.get_r_env(a), q) for a, q in q_values.items()]
+        samples: list[tuple[ProofState, Action, float, float]] = []
+        for a, q in q_values.items():
+            tup = (graph.get_parent(a, theorem), a, graph.get_r_env(a), q)
+            if TACTIC_SELF_CORRECT_USER_MARKER in a.prompt:
+                self.correction_buffer.append(tup)
+            else:
+                samples.append(tup)
         return samples, graph, q_values
 
     def _run_tactic_phase(self, graph: ANDORGraph, frontier: list[ProofState]) -> None:

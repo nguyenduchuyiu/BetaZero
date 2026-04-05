@@ -79,7 +79,6 @@ class FailureHandler:
         ]
         graph.expand(
             state,
-            Action("skeleton", patched_action_code, tuple(new_subgoals), prompt=""),
+            Action("skeleton", patched_action_code, tuple(new_subgoals), prompt=prompt),
             r_env=r_patch,
         )
-

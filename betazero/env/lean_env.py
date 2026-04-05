@@ -3,7 +3,6 @@ import re
 from betazero.core import ProofState
 from betazero.env.ast_parser import get_lean_ast
 from betazero.env import Lean4ServerScheduler
-from betazero.search.sorrifier.dependency_analyzer import SHARED_EXPR_ANALYZER
 from betazero.env.expr_parser import get_lean_expr_tree
 
 
@@ -20,10 +19,14 @@ class LeanEnv:
         """Build, verify, and parse subgoals for a tactic applied to state."""
         candidate_code = self._build_cmd(state, code)
         vr = self.scheduler.verify(candidate_code)
-        subgoals = [
-            self._parse_proof_state(s.get("goal", ""), header=state.header)
-            for s in vr.get("sorries", [])
-        ]
+        
+        subgoals = []
+        if vr.get("pass"):
+            for s in vr.get("sorries", []):
+                ps = self._parse_proof_state(s.get("goal", ""), header=state.header)
+                if ps.goal not in ["SOLVED_OR_EMPTY", "ELABORATION_FAULT"]:
+                    subgoals.append(ps)
+
         return candidate_code, vr, subgoals
 
     def get_ast(self, code: str) -> list:
@@ -34,9 +37,7 @@ class LeanEnv:
         Classify subgoals using Lean 4 Expr Tree deep analysis.
         Returns classifications for: core_solved, core_failed, malignant, benign.
         """
-        
-        # We don't even need scheduler.verify here because Expr Tree compilation 
-        # naturally fails or succeeds, exposing the core structures.
+        from betazero.search.sorrifier.dependency_analyzer import SHARED_EXPR_ANALYZER
         ast_expr_list = get_lean_expr_tree(proof_code)
         
         empty_classification = {
@@ -46,7 +47,6 @@ class LeanEnv:
         if not ast_expr_list:
             return empty_classification
             
-        # The target theorem is usually the last block extracted
         root_expr = ast_expr_list[-1].get("expr_tree", {})
         classification = SHARED_EXPR_ANALYZER.classify_skeleton_subgoals(root_expr)
         
@@ -56,13 +56,38 @@ class LeanEnv:
     def _parse_proof_state(goal_str: str, header: str = "") -> ProofState:
         """Parse Lean Infoview goal string into a ProofState (with inherited header)."""
         s = goal_str.strip()
-        if "\n⊢ " in s:
-            ctx, goal = s.rsplit("\n⊢ ", 1)
-        elif s.startswith("⊢ "):
-            ctx, goal = "", s[2:]
+        
+        if not s or "Goals accomplished" in s or "no goals" in s:
+            return ProofState(context="", goal="SOLVED_OR_EMPTY", header=header)
+
+        parts = s.split("⊢")
+        
+        if len(parts) > 1:
+            ctx_raw = parts[0].strip()
+            main_goal_raw = parts[1].strip()
+            
+            goal_lines = []
+            for line in main_goal_raw.splitlines():
+                if line.startswith("case ") or "Goals accomplished" in line:
+                    break
+                goal_lines.append(line)
+            goal = "\n".join(goal_lines).strip()
         else:
-            ctx, goal = "", s
-        return ProofState(context=ctx.strip(), goal=goal.strip(), header=header)
+            ctx_raw, goal = "", s.strip()
+
+        if goal.lower() == "sorry":
+            goal = "ELABORATION_FAULT"
+
+        valid_ctx_lines = []
+        if ctx_raw:
+            for line in ctx_raw.splitlines():
+                line = line.strip()
+                if ":" in line and not line.startswith("case"):
+                    valid_ctx_lines.append(line)
+                    
+        ctx = "\n".join(valid_ctx_lines)
+
+        return ProofState(context=ctx, goal=goal, header=header)
 
     @staticmethod
     def _sanitize_header(header: str) -> str:

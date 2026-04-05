@@ -26,12 +26,16 @@ class Config:
     beta_kl: float = 0.01
     grpo_epochs: int = 1
     mini_batch_size: int = 8
+    # Micro-batches per optimizer.step (1 = disabled). Effective batch ≈ mini_batch_size * this.
+    grpo_accumulation_steps: int = 1
 
     # Training loop
     total_iterations: int = 1000
     theorems_per_iter: int = 16
     checkpoint_every: int = 50
     checkpoint_dir: str = "outputs/checkpoints"
+    # 0 = train on this iter only (no cross-iter buffer). >0 = accumulate rollout samples until >= this count before GRPO.
+    min_samples_for_grpo: int = 0
 
     # Dataset
     dataset_dir: str = "problems/miniF2F-Valid"
@@ -44,6 +48,7 @@ class Config:
 
     # Training efficiency
     gradient_checkpointing: bool = True
+    logprob_chunk_size: int = 128
     max_new_tokens: int = 128
     temperature: float = 0.7
 

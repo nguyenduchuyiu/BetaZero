@@ -53,6 +53,9 @@ theorem <ACTUAL_THEOREM_NAME> (<ACTUAL_VARIABLES>) : <ACTUAL_GOAL> := by
 ```
 """).strip()
 
+# Rollout splits phase-2 tactic samples when this appears in `Action.prompt`.
+TACTIC_SELF_CORRECT_USER_MARKER = "[PREVIOUS FAILED TACTIC]"
+
 _TACTIC_SELF_CORRECT_INSTRUCTION = textwrap.dedent("""
 
 Analyze the compiler feedback. Write a CORRECTED Lean 4 tactic to replace the failed one.
@@ -103,7 +106,7 @@ def build_tactic_self_correct_prompt(
     user_msg = (
         "[CONTEXT]\n" + state.context.strip() + "\n\n" +
         "[GOAL]\n" + state.goal.strip() + "\n\n" +
-        "[PREVIOUS FAILED TACTIC]\nlean4\n" + original_tactic.strip() + "\n\n\n" +
+        f"{TACTIC_SELF_CORRECT_USER_MARKER}\nlean4\n" + original_tactic.strip() + "\n\n\n" +
         "[LEAN 4 COMPILER FEEDBACK]\n" + (lean_feedback.strip() or '(No clear error message)') + "\n\n" +
         "[SYNTAX-FIXED REFERENCE (Used sorry)]\nlean4\n" + sorrified_tactic.strip()
     )

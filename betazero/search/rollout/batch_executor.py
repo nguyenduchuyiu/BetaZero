@@ -100,25 +100,30 @@ class BatchExecutor:
                     )
                     continue
                 state_code, state_vr, subgoals = res.state_code, res.verify, list(res.subgoals)
-                if action_type == "tactic":
-                    if state_vr.get("complete"):
-                        graph.expand(
-                            state,
-                            Action("tactic", raw_output, (), prompt=prompt),
-                            r_env=self.reward.r_env(state_code, state_code, state_vr),
-                            tactic_status="SOLVED",
-                        )
-                    else:
-                        sorr_body = self.failure.handle_failed_tactic(
-                            graph, state, raw_output, state_code, state_vr, prompt
-                        )
-                        feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), sorr_body)
+                r_env = self.reward.r_env(state_code, state_code, state_vr)
+                if state_vr.get("complete"):
+                    if action_type not in ("tactic", "skeleton"):
+                        raise ValueError(f"Invalid action type: {action_type}")
+                    act = Action(action_type, raw_output, (), prompt=prompt)
+                    graph.expand(
+                        state,
+                        act,
+                        r_env=r_env,
+                        tactic_status="SOLVED" if action_type == "tactic" else None,
+                    )
+                    if action_type == "skeleton":
+                        graph.set_skeleton_override(act, True)
+                elif action_type == "tactic":
+                    sorr_body = self.failure.handle_failed_tactic(
+                        graph, state, raw_output, state_code, state_vr, prompt
+                    )
+                    feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), sorr_body)
                 elif action_type == "skeleton":
-                    if state_vr.get("complete"):
+                    if state_vr.get("pass"):
                         graph.expand(
                             state,
                             Action("skeleton", raw_output, tuple(subgoals), prompt=prompt),
-                            r_env=self.reward.r_env(state_code, state_code, state_vr),
+                            r_env=r_env,
                         )
                     else:
                         self.failure.handle_failed_skeleton(
