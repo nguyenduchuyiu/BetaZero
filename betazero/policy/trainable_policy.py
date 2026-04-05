@@ -6,7 +6,6 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import get_peft_model, PeftModel, LoraConfig, TaskType
 
 from betazero.core import ProofState
-from betazero.policy.prompt import build_prompt
 from betazero.utils import Config
 
 
@@ -47,10 +46,9 @@ class TrainablePolicy:
         torch.cuda.empty_cache()
 
     def log_probs(self, states: list[ProofState], actions: list[str],
-                  action_types: list[str],
+                  prompts: list[str],
                   disable_adapter: bool = False) -> torch.Tensor:
-        """Sum log pi(a|s) over action tokens. disable_adapter=True → base model (ref policy)."""
-        prompts    = [build_prompt(s, at) for s, at in zip(states, action_types)]
+        """Sum log pi(a|s) over action tokens. `prompts` must match rollout/vLLM inputs."""
         full_texts = [p + a for p, a in zip(prompts, actions)]
 
         prompt_lens = self.tokenizer(
@@ -66,7 +64,7 @@ class TrainablePolicy:
             logits = self.model(**inputs).logits
 
         mask = torch.zeros_like(inputs.input_ids[:, 1:], dtype=torch.bool)
-        for i in range(len(states)):
+        for i in range(len(prompts)):
             mask[i, prompt_lens[i].item() - 1: inputs.attention_mask[i].sum().item() - 1] = True
 
         min_prompt_len = prompt_lens.min().item()

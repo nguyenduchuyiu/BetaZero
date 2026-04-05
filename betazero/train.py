@@ -55,9 +55,9 @@ def train(cfg: Config = Config()):
                 for j, thm in enumerate(theorems):
                     batch, g, qv = rollout.rollout(thm)
                     samples.extend(batch)
-                    if cfg.rollout_graph_dir:
+                    if cfg.rollout_graph_log_dir:
                         path = os.path.join(
-                            cfg.rollout_graph_dir, cfg.run_name, f"iter{iteration:04d}_thm{j:02d}.json"
+                            cfg.rollout_graph_log_dir, cfg.run_name, f"iter{iteration:04d}_thm{j:02d}.json"
                         )
                         GraphLogger().save_json(g, thm, qv, filepath=path)
             finally:

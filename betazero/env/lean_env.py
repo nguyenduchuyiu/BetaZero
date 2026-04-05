@@ -3,7 +3,7 @@ import re
 from betazero.core import ProofState
 from betazero.env.ast_parser import get_lean_ast
 from betazero.env import Lean4ServerScheduler
-from betazero.search.sorrifier.dependency_analyzer import ExprDependencyAnalyzer
+from betazero.search.sorrifier.dependency_analyzer import SHARED_EXPR_ANALYZER
 from betazero.env.expr_parser import get_lean_expr_tree
 
 
@@ -12,7 +12,6 @@ class LeanEnv:
 
     def __init__(self, scheduler: Lean4ServerScheduler):
         self.scheduler = scheduler
-        self.analyzer = ExprDependencyAnalyzer()
 
     def verify(self, code: str) -> dict:
         return self.scheduler.verify(code)
@@ -49,7 +48,7 @@ class LeanEnv:
             
         # The target theorem is usually the last block extracted
         root_expr = ast_expr_list[-1].get("expr_tree", {})
-        classification = self.analyzer.classify_skeleton_subgoals(root_expr)
+        classification = SHARED_EXPR_ANALYZER.classify_skeleton_subgoals(root_expr)
         
         return classification
 

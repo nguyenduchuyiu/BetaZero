@@ -19,9 +19,12 @@ partial def exprToJson (e : Expr) : String :=
   | .mdata _ inner => s!"\{\"expr\": \"mdata\", \"inner\": {exprToJson inner}}"
   | .proj s i inner => s!"\{\"expr\": \"proj\", \"struct\": \"{s}\", \"idx\": {i}, \"inner\": {exprToJson inner}}"
 
--- [ĐÃ FIX]: Ép lấy tham số expr thẳng thừng, đéo kiểm tra value nữa
-def dumpExprTree (name : Name) (expr : Expr) : IO Unit := do
-  IO.println s!"\{\"theorem\": \"{name}\", \"expr_tree\": {exprToJson expr}}"
+def dumpExprTree (name : Name) (typeExpr : Expr) (valExpr? : Option Expr) : IO Unit := do
+  let typeJson := exprToJson typeExpr
+  let valJson := match valExpr? with
+    | some v => exprToJson v
+    | none => "null"
+  IO.println s!"\{\"theorem\": \"{name}\", \"expr_tree\": {typeJson}, \"expr_value_tree\": {valJson}}"
 
 partial def elabLoop (inputCtx : InputContext) (pmctx : ParserModuleContext)
                      (p : ModuleParserState) (c : Command.State) : IO Command.State := do
@@ -30,14 +33,12 @@ partial def elabLoop (inputCtx : InputContext) (pmctx : ParserModuleContext)
     return { c with messages := messages }
   else
     let c' ← try
-      -- 1. Thêm snap? và cancelTk? vào Context
       let cmdCtx : Command.Context := {
         fileName := inputCtx.fileName,
         fileMap := inputCtx.fileMap,
         snap? := none,
         cancelTk? := none
       }
-      -- 2. Ép kiểu EIO Exception về IO để try-catch không bị chửi
       let ((), newC) ← (Command.elabCommand stx).run cmdCtx
         |>.run { c with messages := messages }
         |>.toIO (fun _ => IO.userError "Command Elaboration Failed")
@@ -73,7 +74,6 @@ def processFileExpr (fileName : String) (lastHeader : String) (lastEnv : Environ
   let finalCmdState ← elabLoop inputCtx pmctx parserState cmdState
   let newEnv := finalCmdState.env
 
-  -- [THẦN CHÚ GỌI HỒN Ở ĐÂY]: In sạch sành sanh lỗi của Compiler ra Terminal
   for msg in finalCmdState.messages.toList do
     let msgStr ← msg.toString
     IO.eprintln s!"[Compiler Msg] {msgStr}"
@@ -81,8 +81,11 @@ def processFileExpr (fileName : String) (lastHeader : String) (lastEnv : Environ
   let localDecls := newEnv.constants.map₂
 
   localDecls.forM fun name cinfo => do
-    -- Nôn cái Expr Tree của Phát biểu (Type) ra đây!
-    dumpExprTree name cinfo.type
+    let val? := match cinfo with
+      | .thmInfo val => some val.value
+      | .defnInfo val => some val.value
+      | _ => none
+    dumpExprTree name cinfo.type val?
 
   IO.println "===EOF==="
   (← IO.getStdout).flush

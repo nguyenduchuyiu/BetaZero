@@ -6,6 +6,7 @@ import threading
 from betazero.core import ProofState, Action
 from betazero.env.lean_env import LeanEnv
 from betazero.policy.output_parser import get_lean_code
+from betazero.policy.prompt import build_prompt
 from betazero.search.graph import ANDORGraph
 from betazero.search.reward import RewardCalculator
 
@@ -69,7 +70,11 @@ class BatchExecutor:
         action_batches: list[list[str]],
         action_type: str,
         budget: RolloutBudget,
+        prompts: list[str] | None = None,
     ) -> list[list[tuple[str, str, str] | None]]:
+        if prompts is None:
+            prompts = [build_prompt(s, action_type) for s in states]
+
         tasks: list[tuple[int, int, ProofState, str, str, concurrent.futures.Future]] = []
         feedbacks: list[list[tuple[str, str, str] | None]] = [
             [None] * len(actions) for actions in action_batches
@@ -88,9 +93,10 @@ class BatchExecutor:
 
             for i, j, state, raw_output, lean_code, future in tasks:
                 res: LeanExecutionResult = future.result()
+                prompt = prompts[i]
                 if res.has_system_failure:
                     self.failure.handle_system_execute_failure(
-                        graph, state, action_type, raw_output, res
+                        graph, state, action_type, raw_output, res, prompt
                     )
                     continue
                 state_code, state_vr, subgoals = res.state_code, res.verify, list(res.subgoals)
@@ -98,25 +104,25 @@ class BatchExecutor:
                     if state_vr.get("complete"):
                         graph.expand(
                             state,
-                            Action("tactic", raw_output, ()),
+                            Action("tactic", raw_output, (), prompt=prompt),
                             r_env=self.reward.r_env(state_code, state_code, state_vr),
                             tactic_status="SOLVED",
                         )
                     else:
                         sorr_body = self.failure.handle_failed_tactic(
-                            graph, state, raw_output, state_code, state_vr
+                            graph, state, raw_output, state_code, state_vr, prompt
                         )
                         feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), sorr_body)
                 elif action_type == "skeleton":
                     if state_vr.get("complete"):
                         graph.expand(
                             state,
-                            Action("skeleton", raw_output, tuple(subgoals)),
+                            Action("skeleton", raw_output, tuple(subgoals), prompt=prompt),
                             r_env=self.reward.r_env(state_code, state_code, state_vr),
                         )
                     else:
                         self.failure.handle_failed_skeleton(
-                            graph, state, raw_output, state_code, state_vr
+                            graph, state, raw_output, state_code, state_vr, prompt
                         )
                 else:
                     raise ValueError(f"Invalid action type: {action_type}")

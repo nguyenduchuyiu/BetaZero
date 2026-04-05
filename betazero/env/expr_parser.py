@@ -12,7 +12,7 @@ REPL_DIR = os.environ.get("LEAN_WORKSPACE", os.path.join(os.getcwd(), "repl/"))
 
 
 class EXPRTreeDaemon:
-    def __init__(self, repl_dir: str, max_requests: int = 100):
+    def __init__(self, repl_dir: str = REPL_DIR, max_requests: int = 500):
         self.repl_dir = repl_dir
         self.max_requests = max_requests
         self.request_count = 0
@@ -51,7 +51,9 @@ class EXPRTreeDaemon:
             tf.write('import Mathlib')
             tmp = tf.name
         try:
+            print("[EXPR] Loading Mathlib environment...")
             self._get_expr_raw(tmp)
+            print("[EXPR] Ready.")
         finally:
             os.remove(tmp)
 

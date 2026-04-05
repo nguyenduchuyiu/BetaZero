@@ -70,6 +70,7 @@ class GraphLogger:
                 "action_type": action.action_type,
                 "status": graph.status(action),
                 "content": action.content,
+                "prompt": action.prompt,
                 "metrics": {
                     "r_env": graph.get_r_env(action),
                     "r_dep": r_d,

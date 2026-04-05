@@ -4,7 +4,7 @@ from typing import Protocol
 
 from betazero.core import ProofState, Action
 from betazero.env.lean_env import LeanEnv
-from betazero.policy.prompt import build_tactic_self_correct_prompt
+from betazero.policy.prompt import build_prompt, build_tactic_self_correct_prompt
 from betazero.search.graph import ANDORGraph
 from betazero.search.reward import DependencyRewardAssigner, RewardCalculator
 from betazero.search.sorrifier import Sorrifier
@@ -94,11 +94,12 @@ class LevelwiseRollout:
         first_round_budget = max(1, self.K_tac // 2)
         second_round_budget = self.K_tac - first_round_budget
 
-        # Stage 1: Initial exploratory sampling
-        first_round_actions = self.policy.sample(frontier, "tactic", first_round_budget)
-        # Execute in parallel and collect feedback (error msg, patched code) for potential correction
+        first_prompts = [build_prompt(s, "tactic") for s in frontier]
+        first_round_actions = self.policy.sample(
+            frontier, "tactic", first_round_budget, prompts=first_prompts
+        )
         round_one_outcomes = self.executor.execute(
-            graph, frontier, first_round_actions, "tactic", self._budget
+            graph, frontier, first_round_actions, "tactic", self._budget, prompts=first_prompts
         )
 
         # Prepare self-correction data for states that were not solved in Round 1
@@ -120,8 +121,18 @@ class LevelwiseRollout:
                 correction_states, "tactic", second_round_budget, prompts=correction_prompts
             )
             # Verify the corrected actions in parallel
-            self.executor.execute(graph, correction_states, second_round_actions, "tactic", self._budget)
+            self.executor.execute(
+                graph,
+                correction_states,
+                second_round_actions,
+                "tactic",
+                self._budget,
+                prompts=correction_prompts,
+            )
 
     def _run_skeleton_phase(self, graph: ANDORGraph, frontier: list[ProofState]) -> None:
-        skel_batches = self.policy.sample(frontier, "skeleton", self.K_skel)
-        self.executor.execute(graph, frontier, skel_batches, "skeleton", self._budget)
+        skel_prompts = [build_prompt(s, "skeleton") for s in frontier]
+        skel_batches = self.policy.sample(frontier, "skeleton", self.K_skel, prompts=skel_prompts)
+        self.executor.execute(
+            graph, frontier, skel_batches, "skeleton", self._budget, prompts=skel_prompts
+        )
