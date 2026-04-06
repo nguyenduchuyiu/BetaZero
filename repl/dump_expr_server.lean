@@ -49,36 +49,40 @@ partial def elabLoop (inputCtx : InputContext) (pmctx : ParserModuleContext)
 
     elabLoop inputCtx pmctx p' c'
 
-def processFileExpr (fileName : String) (lastHeader : String) (lastEnv : Environment) : IO (String × Environment) := do
+def processFileExpr (fileName : String) (cachedHeader : String) (cachedBaseEnv : Environment) : IO (String × Environment) := do
   let content ← IO.FS.readFile fileName
   let inputCtx := mkInputContext content fileName
   let (header, parserState, messages) ← parseHeader inputCtx
   let headerStr := toString header.raw
 
-  let mut currentEnv := lastEnv
-  let mut newHeader := lastHeader
+  let mut baseEnv := cachedBaseEnv
+  let mut currentHeader := cachedHeader
 
-  if headerStr != lastHeader && headerStr != "" then
+  -- Nếu header khác, tạo baseEnv MỚI SẠCH
+  if headerStr != cachedHeader && headerStr != "" then
     IO.eprintln s!"[Server] Loading imports for {fileName}..."
     let (env, _) ← try
       Lean.Elab.processHeader header {} messages inputCtx
     catch e =>
       IO.eprintln s!"[HEADER FATAL] {e}"
       pure (← mkEmptyEnvironment, messages)
-    currentEnv := env
-    newHeader := headerStr
+    baseEnv := env
+    currentHeader := headerStr
 
-  let cmdState := Command.mkState currentEnv messages {}
-  let pmctx : ParserModuleContext := { env := currentEnv, options := {} }
+  -- Khởi tạo cmdState từ baseEnv SẠCH
+  let cmdState := Command.mkState baseEnv messages {}
+  let pmctx : ParserModuleContext := { env := baseEnv, options := {} }
 
+  -- Chạy elabLoop (nó sẽ đắp thêm data của file hiện tại vào)
   let finalCmdState ← elabLoop inputCtx pmctx parserState cmdState
-  let newEnv := finalCmdState.env
+  let envWithFileDecls := finalCmdState.env
 
   for msg in finalCmdState.messages.toList do
     let msgStr ← msg.toString
     IO.eprintln s!"[Compiler Msg] {msgStr}"
 
-  let localDecls := newEnv.constants.map₂
+  -- Lấy các constant MỚI thêm vào trong module này (nhờ map₂)
+  let localDecls := envWithFileDecls.constants.map₂
 
   localDecls.forM fun name cinfo => do
     let val? := match cinfo with
@@ -89,27 +93,30 @@ def processFileExpr (fileName : String) (lastHeader : String) (lastEnv : Environ
 
   IO.println "===EOF==="
   (← IO.getStdout).flush
-  return (newHeader, newEnv)
 
-partial def serverLoop (stdin : IO.FS.Stream) (lastHeader : String) (lastEnv : Environment) : IO Unit := do
+  -- QUAN TRỌNG NHẤT: Trả về baseEnv (chỉ chứa Mathlib), KHÔNG trả về envWithFileDecls
+  return (currentHeader, baseEnv)
+
+partial def serverLoop (stdin : IO.FS.Stream) (cachedHeader : String) (cachedBaseEnv : Environment) : IO Unit := do
   let line ← stdin.getLine
   if line == "" then return ()
 
   let fileName := line.trimAscii.toString
-  let mut nextHeader := lastHeader
-  let mut nextEnv := lastEnv
+  let mut nextHeader := cachedHeader
+  let mut nextBaseEnv := cachedBaseEnv
 
   if fileName != "" then
     try
-      let (h, e) ← processFileExpr fileName lastHeader lastEnv
+      -- Truyền và nhận lại baseEnv SẠCH
+      let (h, baseE) ← processFileExpr fileName cachedHeader cachedBaseEnv
       nextHeader := h
-      nextEnv := e
+      nextBaseEnv := baseE
     catch e =>
       IO.eprintln s!"[Expr Server Panic] {e}"
       IO.println "===EOF==="
       (← IO.getStdout).flush
 
-  serverLoop stdin nextHeader nextEnv
+  serverLoop stdin nextHeader nextBaseEnv
 
 def main : IO Unit := do
   initSearchPath (← Lean.findSysroot)
