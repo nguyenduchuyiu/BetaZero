@@ -107,7 +107,7 @@ class LeanEnv:
 
     @staticmethod
     def _build_cmd(state: ProofState, code: str) -> str:
-        """Wrap state header, context and goal into a compilable `example` block."""
+        """Wrap state header, context and goal into a compilable theorem block."""
         params = [
             f"({line.strip()})"
             for line in state.context.splitlines()
@@ -118,4 +118,5 @@ class LeanEnv:
         indented = "\n".join(f"  {l}" for l in code.strip().splitlines())
         prefix_header = LeanEnv._sanitize_header(state.header) if state.header else ""
         prefix = (prefix_header + "\n\n") if prefix_header else ""
-        return f"{prefix}example {param_str}: {state.goal} := by\n{indented}"
+        # Use a stable, named declaration so downstream tooling (e.g. expr dump) can reliably find it.
+        return f"{prefix}theorem __bz_tmp {param_str}: {state.goal} := by\n{indented}"
