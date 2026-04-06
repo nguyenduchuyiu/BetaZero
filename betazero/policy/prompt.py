@@ -1,15 +1,6 @@
 from __future__ import annotations
 import textwrap
-# from betazero.core import ProofState
-class ProofState:
-    """OR-node: a proof state (context, goal) in the AND/OR search graph."""
-    def __init__(self, context: str, goal: str, header: str = "") -> None:
-        self.context = context
-        self.goal = goal
-        self.header = header  # import lines from the source .lean file
-
-    def __str__(self) -> str:
-        return f"{self.context}\n⊢ {self.goal}" if self.context else f"⊢ {self.goal}"
+from betazero.core.nodes import ProofState
 
 _SYSTEM_BASE_INSTRUCTION = textwrap.dedent("""\
 You are an elite expert in Lean 4 theorem proving.
@@ -200,24 +191,24 @@ def clean_prompt(text: str) -> str:
     # Thay thế NBSP (khoảng trắng lạ) bằng khoảng trắng chuẩn ASCII 32
     return text.replace('\u00a0', ' ')
 
-if __name__ == "__main__":
-    state = ProofState(
-        context="n : ℕ",
-        goal="n + 0 = n",
-    )
-    original_tactic = "theorem add_zero_fix (n : ℕ) : n + 0 = n := by\n  rw [add_zero_property]"
-    lean_feedback = "error: unknown identifier 'add_zero_property'"
-    sorrified_tactic = "theorem add_zero_fix (n : ℕ) : n + 0 = n := by\n  sorry"
-    print("-" * 100)
-    print("SELF-CORRECT PROMPT")
-    print("-" * 100)
-    print(build_tactic_self_correct_prompt(state, original_tactic, lean_feedback, sorrified_tactic))
-    print("-" * 100)
-    print("SKELETON PROMPT")
-    print("-" * 100)
-    print(build_prompt(state, "skeleton"))
-    print("-" * 100)
-    print("TACTIC PROMPT")
-    print("-" * 100)
-    print(build_prompt(state, "tactic"))
-    print("-" * 100)
+# if __name__ == "__main__":
+#     state = ProofState(
+#         context="n : ℕ",
+#         goal="n + 0 = n",
+#     )
+#     original_tactic = "theorem add_zero_fix (n : ℕ) : n + 0 = n := by\n  rw [add_zero_property]"
+#     lean_feedback = "error: unknown identifier 'add_zero_property'"
+#     sorrified_tactic = "theorem add_zero_fix (n : ℕ) : n + 0 = n := by\n  sorry"
+#     print("-" * 100)
+#     print("SELF-CORRECT PROMPT")
+#     print("-" * 100)
+#     print(build_tactic_self_correct_prompt(state, original_tactic, lean_feedback, sorrified_tactic))
+#     print("-" * 100)
+#     print("SKELETON PROMPT")
+#     print("-" * 100)
+#     print(build_prompt(state, "skeleton"))
+#     print("-" * 100)
+#     print("TACTIC PROMPT")
+#     print("-" * 100)
+#     print(build_prompt(state, "tactic"))
+#     print("-" * 100)
