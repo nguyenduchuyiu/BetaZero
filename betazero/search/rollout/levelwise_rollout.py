@@ -4,11 +4,7 @@ from typing import Protocol
 
 from betazero.core import ProofState, Action
 from betazero.env.lean_env import LeanEnv
-from betazero.policy.prompt import (
-    TACTIC_SELF_CORRECT_USER_MARKER,
-    build_prompt,
-    build_tactic_self_correct_prompt,
-)
+from betazero.policy.prompt import build_prompt, build_tactic_self_correct_prompt
 from betazero.search.graph import ANDORGraph
 from betazero.search.reward import DependencyRewardAssigner, RewardCalculator
 from betazero.search.sorrifier import Sorrifier
@@ -60,7 +56,6 @@ class LevelwiseRollout:
             self.failure_handler = failure_handler
             
         self.reward_assigner = reward_assigner or DependencyRewardAssigner(lean, reward)
-        self.self_correction_buffer: list[tuple[ProofState, Action, float, float]] = []
 
     @property
     def max_nodes(self) -> int:
@@ -70,8 +65,14 @@ class LevelwiseRollout:
     def total_expanded(self) -> int:
         return self._budget.used
 
-    def rollout(self, theorem: ProofState) -> list[tuple[ProofState, Action, float, float]]:
-        self.self_correction_buffer = []
+    def rollout(
+        self, theorem: ProofState
+    ) -> tuple[
+        list[tuple[ProofState, Action, float, float]],
+        list[tuple[ProofState, Action, float, float]],
+        ANDORGraph,
+        dict[Action, float],
+    ]:
         graph = ANDORGraph(theorem)
         for depth in range(self.max_depth):
             frontier = [s for s in graph.unsolved_states() if graph.get_depth(s) == depth]
@@ -87,13 +88,11 @@ class LevelwiseRollout:
         self.reward_assigner.assign(graph)
         q_values = self.reward.compute_returns(graph)
         samples: list[tuple[ProofState, Action, float, float]] = []
+        sc_samples: list[tuple[ProofState, Action, float, float]] = []
         for a, q in q_values.items():
             tup = (graph.get_parent(a, theorem), a, graph.get_r_env(a), q)
-            if TACTIC_SELF_CORRECT_USER_MARKER in a.prompt:
-                self.self_correction_buffer.append(tup)
-            else:
-                samples.append(tup)
-        return samples, graph, q_values
+            (sc_samples if a.is_sc_tactic else samples).append(tup)
+        return samples, sc_samples, graph, q_values
 
     def _run_tactic_phase(self, graph: ANDORGraph, frontier: list[ProofState]) -> None:
         """
@@ -137,6 +136,7 @@ class LevelwiseRollout:
                 "tactic",
                 self._budget,
                 prompts=correction_prompts,
+                is_sc_tactic=True,
             )
 
     def _run_skeleton_phase(self, graph: ANDORGraph, frontier: list[ProofState]) -> None:

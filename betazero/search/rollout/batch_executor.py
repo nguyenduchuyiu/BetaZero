@@ -71,6 +71,8 @@ class BatchExecutor:
         action_type: str,
         budget: RolloutBudget,
         prompts: list[str] | None = None,
+        *,
+        is_sc_tactic: bool = False,
     ) -> list[list[tuple[str, str, str] | None]]:
         if prompts is None:
             prompts = [build_prompt(s, action_type) for s in states]
@@ -94,6 +96,7 @@ class BatchExecutor:
                             raw_output,
                             LeanExecutionResult.from_transport_error("empty_lean_code"),
                             prompts[i],
+                            is_sc_tactic=is_sc_tactic,
                         )
                         continue
                     fut = pool.submit(BatchExecutor.safe_execute, self.lean, state, lean_code)
@@ -106,7 +109,7 @@ class BatchExecutor:
                 prompt = prompts[i]
                 if res.has_system_failure:
                     self.failure.handle_system_execute_failure(
-                        graph, state, action_type, raw_output, res, prompt
+                        graph, state, action_type, raw_output, res, prompt, is_sc_tactic=is_sc_tactic
                     )
                     continue
                 state_code, state_vr, subgoals = res.state_code, res.verify, list(res.subgoals)
@@ -114,7 +117,7 @@ class BatchExecutor:
                 if state_vr.get("complete"):
                     if action_type not in ("tactic", "skeleton"):
                         raise ValueError(f"Invalid action type: {action_type}")
-                    act = Action(action_type, raw_output, (), prompt=prompt)
+                    act = Action(action_type, raw_output, (), prompt=prompt, is_sc_tactic=is_sc_tactic)
                     graph.expand(
                         state,
                         act,
@@ -125,19 +128,31 @@ class BatchExecutor:
                         graph.set_skeleton_override(act, True)
                 elif action_type == "tactic":
                     sorr_body = self.failure.handle_failed_tactic(
-                        graph, state, raw_output, state_code, state_vr, prompt
+                        graph, state, raw_output, state_code, state_vr, prompt, is_sc_tactic=is_sc_tactic
                     )
                     feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), sorr_body)
                 elif action_type == "skeleton":
                     if state_vr.get("pass"):
                         graph.expand(
                             state,
-                            Action("skeleton", raw_output, tuple(subgoals), prompt=prompt),
+                            Action(
+                                "skeleton",
+                                raw_output,
+                                tuple(subgoals),
+                                prompt=prompt,
+                                is_sc_tactic=is_sc_tactic,
+                            ),
                             r_env=r_env,
                         )
                     else:
                         self.failure.handle_failed_skeleton(
-                            graph, state, raw_output, state_code, state_vr, prompt
+                            graph,
+                            state,
+                            raw_output,
+                            state_code,
+                            state_vr,
+                            prompt,
+                            is_sc_tactic=is_sc_tactic,
                         )
                 else:
                     raise ValueError(f"Invalid action type: {action_type}")

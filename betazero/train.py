@@ -51,7 +51,7 @@ def train(cfg: Config = Config()):
             theorems = dataset.sample(cfg.theorems_per_iter)
 
             samples = []
-            self_correction_samples: list = []
+            sc_samples: list = []
             try:
                 # ── Phase 1: Rollout with vLLM subprocess ─────────────────────
                 vllm.start(adapter_path)
@@ -60,9 +60,9 @@ def train(cfg: Config = Config()):
                         vllm, lean, sorrifier, reward,
                         K=cfg.K, max_depth=cfg.max_depth, max_nodes=cfg.max_nodes,
                     )
-                    batch, g, qv = rollout.rollout(thm)
+                    batch, sc_batch, g, qv = rollout.rollout(thm)
                     samples.extend(batch)
-                    self_correction_samples.extend(rollout.self_correction_buffer)
+                    sc_samples.extend(sc_batch)
                     if cfg.rollout_graph_log_dir:
                         path = os.path.join(
                             cfg.rollout_graph_log_dir, cfg.run_name, f"iter{iteration:04d}_thm{j:02d}.json"
@@ -75,14 +75,14 @@ def train(cfg: Config = Config()):
 
             if cfg.min_samples_for_grpo > 0:
                 grpo_buffer.extend(samples)
-                self_correction_buffer.extend(self_correction_samples)
+                self_correction_buffer.extend(sc_samples)
                 train_batch = grpo_buffer
                 aux_train_batch = self_correction_buffer
                 need = cfg.min_samples_for_grpo
                 do_train = len(train_batch) >= need or (last_iter and len(train_batch) > 0)
             else:
                 train_batch = samples
-                aux_train_batch = self_correction_samples
+                aux_train_batch = sc_samples
                 need = 1
                 do_train = len(train_batch) > 0
 

@@ -23,6 +23,7 @@ class Action:
     content: str
     children: tuple[ProofState, ...] = field(default_factory=tuple)
     prompt: str = ""  # exact prompt shown to the LLM for this content
+    is_sc_tactic: bool = False  # phase-2 self-correct rollout sample (training split)
 
     def __post_init__(self):
         object.__setattr__(self, "children", tuple(self.children))

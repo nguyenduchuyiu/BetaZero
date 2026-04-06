@@ -24,6 +24,8 @@ class FailureHandler:
         action_code: str,
         result: LeanExecutionResult,
         prompt: str = "",
+        *,
+        is_sc_tactic: bool = False,
     ) -> None:
         """Timeout / crash / transport errors: penalize graph edge; do not run sorrifier."""
         sc = result.state_code
@@ -36,7 +38,7 @@ class FailureHandler:
         r = self.reward.r_env(sc, sc, vr)
         graph.expand(
             state,
-            Action(action_kind, action_code, (), prompt=prompt),
+            Action(action_kind, action_code, (), prompt=prompt, is_sc_tactic=is_sc_tactic),
             r_env=r,
             tactic_status="FAILED" if action_kind == "tactic" else None,
         )
@@ -49,12 +51,17 @@ class FailureHandler:
         state_code: str,
         state_vr: dict,
         prompt: str = "",
+        *,
+        is_sc_tactic: bool = False,
     ) -> str:
         patched = self.sorrifier.fix_code(state_code)
         patched_vr = self.lean.verify(patched)
         r_fail = self.reward.r_env(state_code, patched, patched_vr)
         graph.expand(
-            state, Action("tactic", action_code, (), prompt=prompt), r_env=r_fail, tactic_status="FAILED"
+            state,
+            Action("tactic", action_code, (), prompt=prompt, is_sc_tactic=is_sc_tactic),
+            r_env=r_fail,
+            tactic_status="FAILED",
         )
         return extract_action_body(patched)
 
@@ -66,12 +73,18 @@ class FailureHandler:
         state_code: str,
         state_vr: dict,
         prompt: str = "",
+        *,
+        is_sc_tactic: bool = False,
     ) -> None:
         patched = self.sorrifier.fix_code(state_code)
         patched_vr = self.lean.verify(patched)
         patched_action_code = extract_action_body(patched)
         r_fail = self.reward.r_env(state_code, patched, patched_vr)
-        graph.expand(state, Action("skeleton", action_code, (), prompt=prompt), r_env=r_fail)
+        graph.expand(
+            state,
+            Action("skeleton", action_code, (), prompt=prompt, is_sc_tactic=is_sc_tactic),
+            r_env=r_fail,
+        )
         r_patch = self.reward.r_env(patched, patched, patched_vr)
         new_subgoals = [
             self.lean._parse_proof_state(s.get("goal", ""), header=state.header)
@@ -79,6 +92,12 @@ class FailureHandler:
         ]
         graph.expand(
             state,
-            Action("skeleton", patched_action_code, tuple(new_subgoals), prompt=prompt),
+            Action(
+                "skeleton",
+                patched_action_code,
+                tuple(new_subgoals),
+                prompt=prompt,
+                is_sc_tactic=is_sc_tactic,
+            ),
             r_env=r_patch,
         )

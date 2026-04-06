@@ -119,7 +119,7 @@ def main():
             max_nodes=max_nodes,
         )
 
-        _, graph, _ = rollout.rollout(root_state)
+        _, _, graph, _ = rollout.rollout(root_state)
 
         tree_lines = _tree_to_lines(graph, root_state)
         now = _dt.datetime.now().isoformat(timespec="seconds")
