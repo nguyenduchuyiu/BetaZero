@@ -1,41 +1,45 @@
 run_name: "qwen2.5-0.5b"
 
-# Model
+# Model 
 model_name: "Qwen/Qwen2.5-0.5B"
 device: "cuda"
 
 # Rollout
-K: 1
-max_depth: 1
-max_nodes: 1
-lean_workers: 1
-lean_timeout: 60
+K: 16
+max_depth: 5
+max_nodes: 128
+lean_workers: 4
+lean_timeout: 120
 
 # GRPO
 lr: 0.000005
 eps_clip: 0.2
-beta_kl: 0.01 
+beta_kl: 0.05 
 grpo_epochs: 1
-mini_batch_size: 8
+mini_batch_size: 16
+grpo_accumulation_steps: 4
 
 # Training loop
-total_iterations: 2
+total_iterations: 20
 theorems_per_iter: 1
 checkpoint_every: 1
 checkpoint_dir: "outputs/checkpoints"
+# 0 = train on current iter only. >0 = stack samples until >= this (weak iters still add to buffer).
+min_samples_for_grpo: 256
 
 # Dataset
 dataset_dir: "problems/miniF2F-Valid"
 
 # LoRA
-lora_r: 8
-lora_alpha: 16
-lora_dropout: 0.05
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.0
 lora_target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
 
 
 # Training efficiency
 gradient_checkpointing: true
+logprob_chunk_size: 128
 max_new_tokens: 4096
 temperature: 0.7
 
@@ -44,6 +48,9 @@ log_dir: "outputs/runs"
 
 # vLLM
 vllm_port: 8000
-vllm_gpu_memory_utilization: 0.9
-max_model_len: 5000
-vllm_ready_timeout: 300
+vllm_gpu_memory_utilization: 0.2
+max_model_len: 6000
+vllm_ready_timeout: 900
+
+# Rollout graph logging
+rollout_graph_log_dir: "outputs/rollouts"

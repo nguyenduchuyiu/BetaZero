@@ -60,7 +60,7 @@ class LevelwiseRollout:
             self.failure_handler = failure_handler
             
         self.reward_assigner = reward_assigner or DependencyRewardAssigner(lean, reward)
-        self.correction_buffer: list[tuple[ProofState, Action, float, float]] = []
+        self.self_correction_buffer: list[tuple[ProofState, Action, float, float]] = []
 
     @property
     def max_nodes(self) -> int:
@@ -71,7 +71,7 @@ class LevelwiseRollout:
         return self._budget.used
 
     def rollout(self, theorem: ProofState) -> list[tuple[ProofState, Action, float, float]]:
-        self.correction_buffer = []
+        self.self_correction_buffer = []
         graph = ANDORGraph(theorem)
         for depth in range(self.max_depth):
             frontier = [s for s in graph.unsolved_states() if graph.get_depth(s) == depth]
@@ -90,7 +90,7 @@ class LevelwiseRollout:
         for a, q in q_values.items():
             tup = (graph.get_parent(a, theorem), a, graph.get_r_env(a), q)
             if TACTIC_SELF_CORRECT_USER_MARKER in a.prompt:
-                self.correction_buffer.append(tup)
+                self.self_correction_buffer.append(tup)
             else:
                 samples.append(tup)
         return samples, graph, q_values
@@ -103,8 +103,6 @@ class LevelwiseRollout:
         """
         # Split the tactic budget into two rounds
         first_round_budget = max(1, self.K_tac // 2)
-        second_round_budget = self.K_tac - first_round_budget
-
         first_prompts = [build_prompt(s, "tactic") for s in frontier]
         first_round_actions = self.policy.sample(
             frontier, "tactic", first_round_budget, prompts=first_prompts
@@ -126,10 +124,10 @@ class LevelwiseRollout:
                 correction_states.append(state)
                 correction_prompts.append(build_tactic_self_correct_prompt(state, *feedback))
 
-        # Stage 2: Self-correction attempt using refined prompts
+        # Stage 2: Self-correction attempt, retry once for each failed tactic action
         if correction_states and self._budget.used < self._budget.max_nodes:
             second_round_actions = self.policy.sample(
-                correction_states, "tactic", second_round_budget, prompts=correction_prompts
+                correction_states, "tactic", 1, prompts=correction_prompts
             )
             # Verify the corrected actions in parallel
             self.executor.execute(

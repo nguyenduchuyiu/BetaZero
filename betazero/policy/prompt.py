@@ -1,84 +1,166 @@
+from __future__ import annotations
 import textwrap
-from betazero.core import ProofState
-from betazero.search.sorrifier.dependency_analyzer import SHARED_EXPR_ANALYZER
-from betazero.env.expr_parser import get_lean_expr_tree
+# from betazero.core import ProofState
+class ProofState:
+    """OR-node: a proof state (context, goal) in the AND/OR search graph."""
+    def __init__(self, context: str, goal: str, header: str = "") -> None:
+        self.context = context
+        self.goal = goal
+        self.header = header  # import lines from the source .lean file
+
+    def __str__(self) -> str:
+        return f"{self.context}\n⊢ {self.goal}" if self.context else f"⊢ {self.goal}"
 
 _SYSTEM_BASE_INSTRUCTION = textwrap.dedent("""\
 You are an elite expert in Lean 4 theorem proving.
 Your task is to advance or solve the given mathematical state.
-
-STRICT OUTPUT RULES:
-1. You MUST think step-by-step inside <think>...</think> tags first.
-2. Then output EXACTLY ONE ```lean4 code block.
-3. No conversational explanations outside the tags.
 """).strip()
 
 _USER_BASE_INSTRUCTION = textwrap.dedent("""\
 This is the current state of the proof.
-You may only use the information in the [CONTEXT] and [GOAL] to solve the problem.
+You may only use the information in the following [CONTEXT] and [GOAL].
 """).strip()
 
 _TACTIC_INSTRUCTION = textwrap.dedent("""\
 Write Lean 4 tactics to solve the goal based on the provided [CONTEXT] and [GOAL].
 
-CRITICAL: Do NOT copy the literal names from the example below. You MUST use the actual theorem name, actual variables, and actual goal from the current state.
+### EXAMPLES OF EXPECTED OUTPUT
 
-Output Format Example:
+Example 1:
+
+[CONTEXT]
+p q : Prop
+hp : p
+hq : q
+
+[GOAL]
+p ∧ q
+
+# Example 1 OUTPUT
+
 <think>
-Brief reasoning about which tactics to apply.
+The goal is a conjunction. I have both individual components in the context. I can use the constructor tactic.
 </think>
 ```lean4
-theorem <ACTUAL_THEOREM_NAME> (<ACTUAL_VARIABLES>) : <ACTUAL_GOAL> := by
-    <your_actual_tactic_1>
-    <your_actual_tactic_2>
+theorem solve_conj (p q : Prop) (hp : p) (hq : q) : p ∧ q := by
+  constructor
+  · exact hp
+  · exact hq
+```
+Example 2:
+
+[CONTEXT]
+n : ℕ
+
+[GOAL]
+n + 0 = n
+
+# Example 2 OUTPUT
+<think>
+This is a fundamental property of natural numbers in Lean. The rw tactic with Nat.add_zero will solve it.
+</think>
+```lean4
+theorem add_zero_id (n : ℕ) : n + 0 = n := by
+  rw [Nat.add_zero]
 ```
 """).strip()
 
 _SKELETON_INSTRUCTION = textwrap.dedent("""\
-Write a modular Lean 4 proof skeleton based on the provided [CONTEXT] and [GOAL]. Use sorry for unresolved subgoals.
+Write a modular Lean 4 proof skeleton. Break the goal into logical intermediate steps using 'have'.
+### EXAMPLES OF EXPECTED OUTPUT
 
-CRITICAL: Do NOT output literal strings like "solve_current_goal". You MUST use the actual theorem signature from the state.
+Example 1:
 
-Output Format Example:
+[CONTEXT]
+a b c : ℕ
+
+[GOAL]
+(a + b) + c = a + (b + c)
+
+# Example 1 OUTPUT
 <think>
-Break the goal into intermediate steps and prove them separately.
+I will prove this by showing the left side equals the right side using associativity.
 </think>
 ```lean4
-theorem <ACTUAL_THEOREM_NAME> (<ACTUAL_VARIABLES>) : <ACTUAL_GOAL> := by
-    have h1 : <actual_intermediate_step_1> := by
-        sorry
-    have h2 : <actual_intermediate_step_2> := by
-        sorry
-    exact <actual_final_step>
+theorem add_assoc_skeleton (a b c : ℕ) : (a + b) + c = a + (b + c) := by
+  have h1 : (a + b) + c = a + b + c := by
+    sorry
+  have h2 : a + (b + c) = a + b + c := by
+    sorry
+  rw [h1, h2]
+```
+
+Example 2:
+
+[CONTEXT]
+p q : Prop
+
+[GOAL]
+p ↔ q
+
+# Example 2 OUTPUT
+<think>
+An iff goal requires proving two directions: p → q and q → p.
+</think>
+```lean4
+theorem iff_skeleton (p q : Prop) : p ↔ q := by
+  constructor
+  · intro hp
+    sorry
+  · intro hq
+    sorry
 ```
 """).strip()
 
 # Rollout splits phase-2 tactic samples when this appears in `Action.prompt`.
 TACTIC_SELF_CORRECT_USER_MARKER = "[PREVIOUS FAILED TACTIC]"
 
-_TACTIC_SELF_CORRECT_INSTRUCTION = textwrap.dedent("""
+_TACTIC_SELF_CORRECT_INSTRUCTION = textwrap.dedent("""\
+Analyze the compiler feedback and the failed tactic. Write a complete Lean 4 tactic that fixes the error.
+You should use the [SYNTAX-FIXED REFERENCE] as a hint for the correct structure.
 
-Analyze the compiler feedback. Write a CORRECTED Lean 4 tactic to replace the failed one.
+### EXAMPLES OF SELF-CORRECTION
 
-CRITICAL: Use the actual theorem signature from the state. Do NOT use placeholder names from the example.
+Example 1 (Error: Unknown identifier):
 
-Output Format Example:
+[CONTEXT]
+n : ℕ
+
+[GOAL]
+n + 0 = n
+
+[PREVIOUS FAILED TACTIC]
+```lean4
+theorem add_zero_fix (n : ℕ) : n + 0 = n := by
+  rw [add_zero_property]
+```
+  
+[LEAN 4 COMPILER FEEDBACK]
+error: unknown identifier 'add_zero_property'
+
+[SYNTAX-FIXED REFERENCE (Used sorry)]
+```lean4
+theorem add_zero_fix (n : ℕ) : n + 0 = n := by
+  sorry
+```
+
+# Example 1 OUTPUT
 <think>
-Analyze why the previous tactic failed and how to fix it.
+The compiler can't find 'add_zero_property'. Looking at the syntax-fixed reference, the correct lemma name is 'Nat.add_zero'.
 </think>
 ```lean4
-theorem <ACTUAL_THEOREM_NAME> (<ACTUAL_VARIABLES>) : <ACTUAL_GOAL> := by
-    <corrected_actual_tactic_1>
-    <corrected_actual_tactic_2>
+theorem add_zero_fix (n : ℕ) : n + 0 = n := by
+  rw [Nat.add_zero]
 ```
 """).strip()
 
 def _format_chatml(system_msg: str, user_msg: str) -> str:
-    return (
+    full_prompt = (
         f"<|im_start|>system\n{system_msg}\n<|im_end|>\n"
         f"<|im_start|>user\n{user_msg}\n<|im_end|>\n"
         f"<|im_start|>assistant\n<think>\n"
     )
+    return clean_prompt(full_prompt)
 
 def build_prompt(state: ProofState, action_type: str) -> str:
     if action_type == "tactic":
@@ -90,6 +172,7 @@ def build_prompt(state: ProofState, action_type: str) -> str:
 
     full_system = _SYSTEM_BASE_INSTRUCTION + '\n\n' + instruction
     user_msg = (
+        _USER_BASE_INSTRUCTION + "\n\n" +
         "[CONTEXT]\n" + state.context.strip() + "\n\n" +
         "[GOAL]\n" + state.goal.strip()
     )
@@ -104,10 +187,37 @@ def build_tactic_self_correct_prompt(
     
     full_system = _SYSTEM_BASE_INSTRUCTION + '\n\n' + _TACTIC_SELF_CORRECT_INSTRUCTION
     user_msg = (
+        _USER_BASE_INSTRUCTION + "\n\n" +
         "[CONTEXT]\n" + state.context.strip() + "\n\n" +
         "[GOAL]\n" + state.goal.strip() + "\n\n" +
-        f"{TACTIC_SELF_CORRECT_USER_MARKER}\nlean4\n" + original_tactic.strip() + "\n\n\n" +
+        f"{TACTIC_SELF_CORRECT_USER_MARKER}\n```lean4\n" + original_tactic.strip() + "\n```\n\n" +
         "[LEAN 4 COMPILER FEEDBACK]\n" + (lean_feedback.strip() or '(No clear error message)') + "\n\n" +
-        "[SYNTAX-FIXED REFERENCE (Used sorry)]\nlean4\n" + sorrified_tactic.strip()
+        "[SYNTAX-FIXED REFERENCE (Used sorry)]\n```lean4\n" + sorrified_tactic.strip() + "\n```"
     )
     return _format_chatml(full_system, user_msg)
+
+def clean_prompt(text: str) -> str:
+    # Thay thế NBSP (khoảng trắng lạ) bằng khoảng trắng chuẩn ASCII 32
+    return text.replace('\u00a0', ' ')
+
+if __name__ == "__main__":
+    state = ProofState(
+        context="n : ℕ",
+        goal="n + 0 = n",
+    )
+    original_tactic = "theorem add_zero_fix (n : ℕ) : n + 0 = n := by\n  rw [add_zero_property]"
+    lean_feedback = "error: unknown identifier 'add_zero_property'"
+    sorrified_tactic = "theorem add_zero_fix (n : ℕ) : n + 0 = n := by\n  sorry"
+    print("-" * 100)
+    print("SELF-CORRECT PROMPT")
+    print("-" * 100)
+    print(build_tactic_self_correct_prompt(state, original_tactic, lean_feedback, sorrified_tactic))
+    print("-" * 100)
+    print("SKELETON PROMPT")
+    print("-" * 100)
+    print(build_prompt(state, "skeleton"))
+    print("-" * 100)
+    print("TACTIC PROMPT")
+    print("-" * 100)
+    print(build_prompt(state, "tactic"))
+    print("-" * 100)

@@ -686,6 +686,8 @@
         <div class="detail-code" id="d-action-type"></div>
         <div class="detail-section-title" style="margin-top:10px">Content</div>
         <div class="detail-code" id="d-action-content"></div>
+        <div class="detail-section-title" style="margin-top:10px">Lean code (extracted)</div>
+        <div class="detail-code" id="d-action-lean"></div>
         <div class="detail-section-title" style="margin-top:10px">Prompt</div>
         <div class="detail-code" id="d-prompt" style="max-height:80px"></div>
       </div>
@@ -717,6 +719,49 @@
 </div>
 
 <script>
+// Mirrors strict get_lean_code
+/**
+ * Clean các ký tự khoảng trắng lạ (NBSP) trước khi parse
+ */
+ function cleanPrompt(text) {
+    return text.replace(/\u00a0/g, ' ');
+}
+
+const _LEAN_HEADER = /\b(theorem|lemma|example|def)\b/is;
+// Nới lỏng divider: cho phép bất kỳ loại whitespace nào
+const _PROOF_DIVIDER = /:=\s+by|(?<=\s)by(?=\s)/is;
+
+function getLeanCode(raw) {
+    // BƯỚC QUAN TRỌNG: Clean sạch trước khi làm bất cứ việc gì
+    let t = cleanPrompt(raw).trim();
+
+    if (t.includes("<|im_")) return "";
+
+    // Nới lỏng: \s* thay vì \s+ để bắt được cả trường hợp dính sát
+    const fenceRegex = /```lean4\s*(.*?)\s*```/gis;
+    const matches = Array.from(t.matchAll(fenceRegex));
+
+    if (matches.length === 0) return "";
+
+    const codeBlock = matches[matches.length - 1][1];
+
+    if (!_LEAN_HEADER.test(codeBlock) || !_PROOF_DIVIDER.test(codeBlock)) {
+        return "";
+    }
+
+    const dividerMatch = codeBlock.match(_PROOF_DIVIDER);
+    if (!dividerMatch) return "";
+
+    const startIndex = dividerMatch.index + dividerMatch[0].length;
+    const proofBody = codeBlock.slice(startIndex);
+
+    if (!proofBody || proofBody.includes("<|im_")) return "";
+
+    // Trả về proof_body (giữ nguyên lề gốc bên trong)
+    return proofBody;
+}
+
+
 // ───── STATE ─────
 let graphData = null;
 let simulation = null;
@@ -728,9 +773,15 @@ let selectedId = null;
 let currentLayout = 'force';
 let currentTransform = d3.zoomIdentity;
 
+/** JSON from GraphLogger uses SOLVED/FAILED; filters/colors use proved/failed/open */
+function canonicalStatus(raw) {
+  const s = (raw == null || raw === '') ? 'open' : String(raw).toLowerCase();
+  return s === 'solved' ? 'proved' : s;
+}
+
 // ───── COLORS ─────
 function nodeColor(d) {
-  const s = (d.status || 'open').toLowerCase();
+  const s = canonicalStatus(d.status);
   if (d.type === 'OR') {
     return s === 'proved' ? '#1D9E75' : s === 'failed' ? '#E24B4A' : '#378ADD';
   } else {
@@ -738,7 +789,7 @@ function nodeColor(d) {
   }
 }
 function nodeBorderColor(d) {
-  const s = (d.status || 'open').toLowerCase();
+  const s = canonicalStatus(d.status);
   if (d.type === 'OR') {
     return s === 'proved' ? '#2dcb97' : s === 'failed' ? '#f06a69' : '#5b9ee8';
   } else {
@@ -746,7 +797,7 @@ function nodeBorderColor(d) {
   }
 }
 function statusColor(status) {
-  const s = (status||'open').toLowerCase();
+  const s = canonicalStatus(status);
   return s === 'proved' ? '#1D9E75' : s === 'failed' ? '#E24B4A' : '#378ADD';
 }
 
@@ -793,8 +844,8 @@ function processData(data) {
   document.getElementById('stat-nodes').textContent = data.total_nodes || data.nodes.length;
   document.getElementById('stat-edges').textContent = data.edges.length;
 
-  const proved = data.nodes.filter(n => (n.status||'').toLowerCase() === 'proved').length;
-  const failed = data.nodes.filter(n => (n.status||'').toLowerCase() === 'failed').length;
+  const proved = data.nodes.filter(n => canonicalStatus(n.status) === 'proved').length;
+  const failed = data.nodes.filter(n => canonicalStatus(n.status) === 'failed').length;
   const open = data.nodes.length - proved - failed;
   document.getElementById('stat-proved').textContent = proved;
   document.getElementById('stat-failed').textContent = failed;
@@ -1179,6 +1230,11 @@ function selectNode(d, nodeMap, visEdges) {
     document.getElementById('d-metrics-section').style.display = '';
     document.getElementById('d-action-type').textContent = d.action_type || '—';
     document.getElementById('d-action-content').textContent = typeof d.content === 'string' ? d.content : JSON.stringify(d.content, null, 2) || '—';
+    const rawStr = typeof d.content === 'string' ? d.content : '';
+    const extracted = (typeof d.extracted_lean_code === 'string' && d.extracted_lean_code.trim())
+      ? d.extracted_lean_code
+      : (rawStr ? getLeanCode(rawStr) : '');
+    document.getElementById('d-action-lean').textContent = extracted || '—';
     document.getElementById('d-prompt').textContent = d.prompt || '—';
     const m = d.metrics || {};
     document.getElementById('d-r-env').textContent = m.r_env != null ? m.r_env.toFixed(3) : '—';
@@ -1234,7 +1290,7 @@ function hideTooltip() {
 
 // ───── FILTERS ─────
 function isVisible(n) {
-  const s = (n.status||'open').toLowerCase();
+  const s = canonicalStatus(n.status);
   const statusOk = activeFilters[s] !== false;
   const typeOk = activeFilters[n.type] !== false;
   return statusOk && typeOk;

@@ -86,6 +86,16 @@ class BatchExecutor:
                     if not budget.try_consume():
                         break
                     lean_code = get_lean_code(raw_output)
+                    if not lean_code:
+                        self.failure.handle_system_execute_failure(
+                            graph,
+                            state,
+                            action_type,
+                            raw_output,
+                            LeanExecutionResult.from_transport_error("empty_lean_code"),
+                            prompts[i],
+                        )
+                        continue
                     fut = pool.submit(BatchExecutor.safe_execute, self.lean, state, lean_code)
                     tasks.append((i, j, state, raw_output, lean_code, fut))
                 if budget.used >= budget.max_nodes:
