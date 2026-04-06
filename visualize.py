@@ -56,6 +56,7 @@ def _patch_pyvis_html_full_height(html_path: str) -> None:
         ".card{height:100%!important;border:none!important;margin:0!important;box-shadow:none!important;}"
         ".card-body{height:100%!important;padding:0!important;min-height:0!important;}"
         "#mynetwork{height:100%!important;width:100%!important;min-height:0!important;border:none!important;box-sizing:border-box;}"
+        ".node-tooltip{font-family:JetBrains Mono,monospace;font-size:11px;max-width:420px;white-space:pre-wrap;margin:0;}"
         "</style>\n"
     )
     if "</head>" in s:
@@ -154,8 +155,7 @@ class LeanExprVisualizer:
         self.net.add_node(
             nid,
             label=self._node_label(d),
-            title=f'<pre style="font-family:monospace;font-size:11px;max-width:320px;white-space:pre-wrap">'
-                  f'{json.dumps(d, indent=2, ensure_ascii=False)}</pre>',
+            title=json.dumps(d, indent=2, ensure_ascii=False),
             color=self._node_color(kind),
             shape="dot",
             size=size,

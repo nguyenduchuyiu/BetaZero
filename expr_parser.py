@@ -3,6 +3,7 @@
 import atexit
 import json
 import os
+import resource
 import signal
 import subprocess
 import tempfile
@@ -35,6 +36,10 @@ class EXPRTreeDaemon:
     def _start_process(self):
         self._kill_proc()
         self.request_count = 0
+
+        def _preexec():
+            os.setsid()
+            resource.setrlimit(resource.RLIMIT_AS, (1024**3*10, 1024**3*10))
         self.proc = subprocess.Popen(
             ["lake", "exe", "dump_expr_server"],
             stdin=subprocess.PIPE,
@@ -43,7 +48,7 @@ class EXPRTreeDaemon:
             text=True,
             cwd=self.repl_dir,
             bufsize=1,
-            preexec_fn=os.setsid,
+            preexec_fn=_preexec,
         )
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".lean", dir=self.repl_dir, delete=False, encoding="utf-8"
