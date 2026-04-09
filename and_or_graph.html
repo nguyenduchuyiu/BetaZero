@@ -1026,6 +1026,18 @@ function renderGraph() {
     .text(d => d.metrics ? 'Q:' + (d.metrics.Q_value||0).toFixed(2) : '')
     .attr('display', showMetrics ? '' : 'none');
 
+  // Self-correct marker for AND nodes
+  nodeG.filter(d => d.type === 'AND' && (d.is_sc_tactic))
+    .append('text')
+    .attr('class', 'sc-badge')
+    .attr('dy', -(nodeR + 10))
+    .attr('text-anchor', 'middle')
+    .attr('font-size', 8)
+    .attr('font-family', 'JetBrains Mono, monospace')
+    .attr('fill', '#ffcc66')
+    .attr('pointer-events', 'none')
+    .text('SC');
+
   svgEl.on('click', () => closeDetail());
 
   // Simulation
@@ -1228,7 +1240,9 @@ function selectNode(d, nodeMap, visEdges) {
     document.getElementById('d-content-section').style.display = 'none';
     document.getElementById('d-action-section').style.display = '';
     document.getElementById('d-metrics-section').style.display = '';
-    document.getElementById('d-action-type').textContent = d.action_type || '—';
+    const isSc = !!(d.is_sc_tactic || d.is_sc || d.sc_tactic);
+    const t = d.action_type || '—';
+    document.getElementById('d-action-type').textContent = (t !== '—' && isSc) ? `${t} (sc)` : t;
     document.getElementById('d-action-content').textContent = typeof d.content === 'string' ? d.content : JSON.stringify(d.content, null, 2) || '—';
     const rawStr = typeof d.content === 'string' ? d.content : '';
     const extracted = (typeof d.extracted_lean_code === 'string' && d.extracted_lean_code.trim())
@@ -1266,6 +1280,10 @@ function showTooltip(e, d) {
   html += `<div class="tt-row"><span>Type</span><span>${d.type}</span></div>`;
   html += `<div class="tt-row"><span>Status</span><span style="color:${statusColor(d.status)}">${d.status||'open'}</span></div>`;
   if (d.depth != null) html += `<div class="tt-row"><span>Depth</span><span>${d.depth}</span></div>`;
+  if (d.type === 'AND') {
+    const isSc = !!(d.is_sc_tactic);
+    if (isSc) html += `<div class="tt-row"><span>SC</span><span style="color:#ffcc66">yes</span></div>`;
+  }
   if (d.metrics) {
     html += `<div class="tt-row"><span>Q-value</span><span style="color:#5b7fff">${(d.metrics.Q_value||0).toFixed(4)}</span></div>`;
   }

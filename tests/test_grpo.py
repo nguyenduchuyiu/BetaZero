@@ -75,8 +75,8 @@ class FixedRollout:
     def rollout(self, theorem: ProofState):
         s = ProofState("ctx_root", theorem.goal)
 
-        a_good = Action("tactic", "rw [Nat.add_comm]", ())
-        a_mid  = Action("tactic", "apply Nat.add_comm", ()) # Cùng ý nghĩa nhưng điểm thấp hơn 1 tí
+        a_good = Action(action_type="tactic", content="rw [Nat.add_comm]", extracted_code="rw [Nat.add_comm]", children=())
+        a_mid  = Action(action_type="tactic", content="apply Nat.add_comm", extracted_code="apply Nat.add_comm", children=()) # Cùng ý nghĩa nhưng điểm thấp hơn 1 tí
 
         return [
             (s, a_good, 1.0, 0.0), 

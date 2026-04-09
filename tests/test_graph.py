@@ -31,11 +31,11 @@ def run_real_test():
     graph.expand(S_root, A_skel, r_env=0.5)
 
     # Giải subgoal Core thành công
-    A_core_solve = Action("tactic", "exact a_proof", children=())
+    A_core_solve = Action(action_type="tactic", content="exact a_proof", extracted_code="exact a_proof", children=())
     graph.expand(S_core, A_core_solve, r_env=1.0, tactic_status="SOLVED")
 
     # Giải subgoal Junk thất bại
-    A_junk_fail = Action("tactic", "exact wrong", children=())
+    A_junk_fail = Action(action_type="tactic", content="exact wrong", extracted_code="exact wrong", children=())
     graph.expand(S_junk, A_junk_fail, r_env=0.1, tactic_status="FAILED")
 
     print("\n[Trạng thái trước Assigner (Đọc từ Graph thật)]")

@@ -15,7 +15,6 @@ from betazero.search.reward import RewardCalculator
 from betazero.utils.dataloader import parse_lean_file
 from betazero.utils.config import Config
 from betazero.policy.vllm_server import VLLMServer
-from betazero.policy.output_parser import get_lean_code
 
 
 
@@ -41,7 +40,7 @@ def _tree_to_lines(graph: ANDORGraph, root: ProofState) -> list[str]:
             out.append(f"{prefix}  (empty)")
         
         out.append(f"Lean code:\n")
-        out.append(f"{get_lean_code(a.content)}\n")
+        out.append(f"{a.extracted_code}\n")
         return out
 
     def rec(state: ProofState, depth: int):

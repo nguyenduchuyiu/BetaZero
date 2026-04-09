@@ -126,7 +126,7 @@ class Sorrifier:
                             self._log_section(f"SUCCESS (cycle {cycle})")
                             self._log("No fatal errors and no unsolved goals.")
                             self._log_source_block("FINAL", self.current_content)
-                        return self.current_content
+                        return self._strip_line_comments(self.current_content)
 
                     is_fatal = bool(fatal_errors)
                     err_line, err_msg = fatal_errors[0] if is_fatal else unsolved_goals[0]
@@ -202,7 +202,7 @@ class Sorrifier:
         finally:
             self._log_close()
 
-        return self.current_content
+        return self._strip_line_comments(self.current_content)
 
     # ==========================================
     # CORE FIXING LOGIC
@@ -415,6 +415,14 @@ class Sorrifier:
     def _strip_noop_tactics(code: str) -> str:
         lines = [l for l in code.splitlines() if l.strip() not in ("skip", "done")]
         return "\n".join(lines) + "\n"
+
+    @staticmethod
+    def _strip_line_comments(code: str) -> str:
+        """Drop full-line Lean comments (`-- ...`) from final patched code."""
+        lines = [l for l in code.splitlines() if not l.lstrip().startswith("--")]
+        if not lines:
+            return ""
+        return "\n".join(lines) + ("\n" if code.endswith("\n") else "")
 
     @staticmethod
     def _is_block_starter(line: str) -> bool:

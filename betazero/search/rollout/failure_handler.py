@@ -1,11 +1,13 @@
 from betazero.core import ProofState, Action
 from betazero.env.lean_env import LeanEnv
+from betazero.utils.lean_cmd import build_theorem
+from betazero.utils.lean_parse import parse_proof_state
 from betazero.search.graph import ANDORGraph
 from betazero.search.reward import RewardCalculator
 from betazero.search.sorrifier import Sorrifier
 
 from .execution_result import LeanExecutionResult
-from .utils import extract_action_body
+from .utils import extract_action_body, inject_patched_code_to_raw
 
 
 class FailureHandler:
@@ -31,14 +33,20 @@ class FailureHandler:
         sc = result.state_code
         if not sc:
             try:
-                sc = self.lean._build_cmd(state, action_code)
+                sc = build_theorem(state, action_code)
             except Exception:
                 sc = action_code
-        vr = result.verify
-        r = self.reward.r_env(sc, sc, vr)
+        r = 0.0
         graph.expand(
             state,
-            Action(action_kind, action_code, (), prompt=prompt, is_sc_tactic=is_sc_tactic),
+            Action(
+                action_type=action_kind,
+                content=action_code,
+                extracted_code="",
+                children=(),
+                prompt=prompt,
+                is_sc_tactic=is_sc_tactic,
+            ),
             r_env=r,
             tactic_status="FAILED" if action_kind == "tactic" else None,
         )
@@ -59,7 +67,14 @@ class FailureHandler:
         r_fail = self.reward.r_env(state_code, patched, patched_vr)
         graph.expand(
             state,
-            Action("tactic", action_code, (), prompt=prompt, is_sc_tactic=is_sc_tactic),
+            Action(
+                action_type="tactic",
+                content=action_code,
+                extracted_code=extract_action_body(patched),
+                children=(),
+                prompt=prompt,
+                is_sc_tactic=is_sc_tactic,
+            ),
             r_env=r_fail,
             tactic_status="FAILED",
         )
@@ -73,31 +88,35 @@ class FailureHandler:
         state_code: str,
         state_vr: dict,
         prompt: str = "",
-        *,
-        is_sc_tactic: bool = False,
     ) -> None:
-        patched = self.sorrifier.fix_code(state_code)
-        patched_vr = self.lean.verify(patched)
-        patched_action_code = extract_action_body(patched)
-        r_fail = self.reward.r_env(state_code, patched, patched_vr)
+        patched_skeleton = self.sorrifier.fix_code(state_code)
+        patched_vr = self.lean.verify(patched_skeleton)
+        patched_action_code = extract_action_body(patched_skeleton)
+        r_fail = self.reward.r_env(state_code, patched_skeleton, patched_vr)
         graph.expand(
             state,
-            Action("skeleton", action_code, (), prompt=prompt, is_sc_tactic=is_sc_tactic),
+            Action(
+                action_type="skeleton",
+                content=action_code,
+                extracted_code="",
+                children=(),
+                prompt=prompt,
+            ),
             r_env=r_fail,
         )
-        r_patch = self.reward.r_env(patched, patched, patched_vr)
+        r_patch = self.reward.r_env(patched_skeleton, patched_skeleton, patched_vr)
         new_subgoals = [
-            self.lean._parse_proof_state(s.get("goal", ""), header=state.header)
+            parse_proof_state(s.get("goal", ""), header=state.header)
             for s in patched_vr.get("sorries", [])
         ]
         graph.expand(
             state,
             Action(
-                "skeleton",
-                patched_action_code,
-                tuple(new_subgoals),
+                action_type="skeleton",
+                content=inject_patched_code_to_raw(state_code, patched_skeleton),
+                extracted_code=patched_action_code,
+                children=tuple(new_subgoals),
                 prompt=prompt,
-                is_sc_tactic=is_sc_tactic,
             ),
             r_env=r_patch,
         )

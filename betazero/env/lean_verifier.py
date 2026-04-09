@@ -1,4 +1,5 @@
 import os
+import signal
 import time
 import json
 import subprocess
@@ -7,21 +8,7 @@ import uuid
 import threading
 from queue import Queue
 from concurrent.futures import ThreadPoolExecutor
-
-DEFAULT_LAKE_PATH = shutil.which("lake") or "lake"
-DEFAULT_LEAN_WORKSPACE = os.path.join(os.getcwd(), "repl/")
-
-
-import os
-import signal # Thêm cái này
-import time
-import json
-import subprocess
-import shutil
-import uuid
-import threading
-from queue import Queue
-from concurrent.futures import ThreadPoolExecutor
+from betazero.utils.lean_cmd import sanitize_header
 
 DEFAULT_LAKE_PATH = shutil.which("lake") or "lake"
 DEFAULT_LEAN_WORKSPACE = os.path.join(os.getcwd(), "repl/")
@@ -124,6 +111,7 @@ class PersistentLeanWorker:
                     print("Worker died or missing. Respawning...")
                 self._start_repl()
 
+            code = sanitize_header(code)
             payload = {"cmd": code}
             if self.base_env is not None:
                 payload["env"] = self.base_env

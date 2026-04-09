@@ -179,12 +179,10 @@ class ANDORGraph:
         action = self.get_successful_action(state)
         if not action:
             return None
-            
-        parsed_code = get_lean_code(action.content)
-        
+
         if action.action_type == "tactic":
-            return parsed_code
+            return action.extracted_code
             
         # Skeleton: recurse down to children
         child_proofs = [self.extract_proof_code(child) for child in action.children]
-        return ProofStitcher.stitch(parsed_code, child_proofs)
+        return ProofStitcher.stitch(action.extracted_code, child_proofs)

@@ -4,6 +4,7 @@ from betazero.env.lean_env import LeanEnv
 from betazero.policy.output_parser import get_lean_code
 from betazero.search.graph import ANDORGraph
 from betazero.search.sorrifier.stitcher import ProofStitcher
+from betazero.utils.lean_cmd import build_theorem
 from .calculator import RewardCalculator
 
 
@@ -24,9 +25,8 @@ class DependencyRewardAssigner:
             child_proofs = [graph.extract_proof_code(child) for child in action.children]
             
             # 2. Stitch code
-            skeleton_code = get_lean_code(action.content)
-            stitched_code = ProofStitcher.stitch(skeleton_code, child_proofs)
-            full_compilable_code = self.lean._build_cmd(parent_state, stitched_code)
+            stitched_code = ProofStitcher.stitch(action.extracted_code, child_proofs)
+            full_compilable_code = build_theorem(parent_state, stitched_code)
             
             # 3. Analyze through Kernel Expr Tree
             dep_analysis = self.lean.analyze_dependencies(full_compilable_code)

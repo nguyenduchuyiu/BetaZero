@@ -3,7 +3,6 @@ import os
 from typing import Any, Dict
 
 from betazero.core import ProofState, Action
-from betazero.policy.output_parser import get_lean_code
 from betazero.search.graph import ANDORGraph
 
 class GraphLogger:
@@ -65,12 +64,13 @@ class GraphLogger:
             # Truy cập internal _r_dep (nếu ông chưa viết hàm get_r_dep trong ANDORGraph)
             r_d = graph._r_dep.get(action, 0.0) 
             prompt = action.prompt or ""
-            extracted_lean_code = get_lean_code(prompt.replace("\u00a0", " "))
+            extracted_lean_code = action.extracted_code
 
             nodes.append({
                 "id": a_id,
                 "type": "AND",
                 "action_type": action.action_type,
+                "is_sc_tactic": action.is_sc_tactic,
                 "status": graph.status(action),
                 "content": action.content,
                 "prompt": action.prompt,

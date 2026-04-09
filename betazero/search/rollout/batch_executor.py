@@ -9,6 +9,7 @@ from betazero.policy.output_parser import get_lean_code
 from betazero.policy.prompt import build_prompt
 from betazero.search.graph import ANDORGraph
 from betazero.search.reward import RewardCalculator
+from betazero.utils.lean_cmd import build_theorem
 
 from .execution_result import LeanExecutionResult
 from .failure_handler import FailureHandler
@@ -58,7 +59,7 @@ class BatchExecutor:
             return LeanExecutionResult.ok(sc, vr, sg)
         except Exception as e:
             try:
-                sc = lean._build_cmd(state, action_code)
+                sc = build_theorem(state, action_code)
             except Exception:
                 sc = ""
             return LeanExecutionResult.from_transport_error(f"{type(e).__name__}: {e}", sc)
@@ -117,7 +118,14 @@ class BatchExecutor:
                 if state_vr.get("complete"):
                     if action_type not in ("tactic", "skeleton"):
                         raise ValueError(f"Invalid action type: {action_type}")
-                    act = Action(action_type, raw_output, (), prompt=prompt, is_sc_tactic=is_sc_tactic)
+                    act = Action(
+                        action_type=action_type,
+                        content=raw_output,
+                        extracted_code=lean_code,
+                        children=(),
+                        prompt=prompt,
+                        is_sc_tactic=is_sc_tactic,
+                    )
                     graph.expand(
                         state,
                         act,
@@ -136,11 +144,11 @@ class BatchExecutor:
                         graph.expand(
                             state,
                             Action(
-                                "skeleton",
-                                raw_output,
-                                tuple(subgoals),
+                                action_type="skeleton",
+                                content=raw_output,
+                                extracted_code=lean_code,
+                                children=tuple(subgoals),
                                 prompt=prompt,
-                                is_sc_tactic=is_sc_tactic,
                             ),
                             r_env=r_env,
                         )
@@ -152,7 +160,6 @@ class BatchExecutor:
                             state_code,
                             state_vr,
                             prompt,
-                            is_sc_tactic=is_sc_tactic,
                         )
                 else:
                     raise ValueError(f"Invalid action type: {action_type}")

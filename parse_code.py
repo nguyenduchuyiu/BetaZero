@@ -4,7 +4,7 @@ def parse_all_python_files_and_write_to_code_md(root: str):
     code_lines = []
     for root, dirs, files in os.walk(root):
         for file in files:
-            if file.endswith('.py') and file != os.path.basename(__file__):
+            if file.endswith('.py') or file.endswith('.json') or file.endswith('.mjs') and file != os.path.basename(__file__):
                 file_path = os.path.join(root, file)
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
@@ -17,4 +17,4 @@ def parse_all_python_files_and_write_to_code_md(root: str):
         code_md.writelines(code_lines)
 
 if __name__ == "__main__":
-    parse_all_python_files_and_write_to_code_md(root="betazero")
+    parse_all_python_files_and_write_to_code_md(root="deepseek-api")

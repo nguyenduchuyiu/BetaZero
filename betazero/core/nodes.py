@@ -21,6 +21,7 @@ class Action:
     """AND-node: tactic or skeleton. `content` is raw LLM output; Lean execution uses extracted ```lean4``` body."""
     action_type: Literal["tactic", "skeleton"]
     content: str
+    extracted_code: str = ""  # parsed Lean code/body used for execution/stitching/logging
     children: tuple[ProofState, ...] = field(default_factory=tuple)
     prompt: str = ""  # exact prompt shown to the LLM for this content
     is_sc_tactic: bool = False  # phase-2 self-correct rollout sample (training split)
