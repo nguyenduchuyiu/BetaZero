@@ -35,9 +35,11 @@ Your task is to translate informal mathematical plans into formal structural ske
 3. STRICT "HAVE" SYNTAX: You MUST explicitly declare the proposition type in EVERY `have` statement (e.g., `have h : a = b := ...`).
 4. HANDLING SUBGOALS: 
    - For complex, multi-step subgoals, MUST leave them as `:= sorry`.
-   - For trivial subgoals, you MAY close them using exactly ONE automated tactic: `:= by ring`, `:= by linarith`, `:= by norm_num`, `:= by omega`, `:= rfl`, or `:= trivial`.
-   - DO NOT write multi-line or chained tactics (e.g., BAD: `:= by rw [h]; ring`).
-5. NO BRANCHING IN SKELETON: DO NOT use `cases`, `induction`, or `by_cases` inside the skeleton, as they create nested blocks. 
+   - For trivial subgoals, you MAY close them using exactly ONE automated tactic: `:= by ring`, `:= by linarith`, `:= by norm_num`, `:= by omega`, `:= rfl`, or `:= trivial`. You may pass arguments (e.g., `:= by linarith [h1]`). 
+   - Simple 1-hit term-mode applications (e.g., `:= ⟨x, y⟩` or `:= h1.trans h2`) are also allowed.
+   - DO NOT write multi-line, chained tactics, or `calc` blocks.
+   - DO NOT append comments (e.g., `-- explanation`) at the end of `have` lines.
+5. NO BRANCHING IN SKELETON: DO NOT use `cases`, `induction`, `by_cases`, or `obtain` inside the skeleton. Extract them into flat lemmas (implications or functions).
    - If induction is needed, extract it into flat lemmas:
      `have h_base : P 0 := sorry`
      `have h_step : ∀ (k : ℕ), P k → P (k + 1) := sorry`
@@ -118,7 +120,6 @@ def _format_problem(state: ProofState) -> str:
         f"{code}\n"
         "```"
     )
-
 
 def build_prompt(state: ProofState, action_type: str) -> str:
     if action_type == "tactic":

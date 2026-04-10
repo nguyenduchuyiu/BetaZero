@@ -59,7 +59,6 @@ class PersistentLeanWorker:
                 raise RuntimeError("REPL closed unexpectedly (EOF). Lean Process died.")
             
             if not buffer and not line.strip().startswith("{"):
-                print(f"[REPL GARBAGE] {line.strip()}")
                 continue
             
             buffer += line

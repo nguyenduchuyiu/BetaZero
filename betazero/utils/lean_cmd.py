@@ -38,7 +38,15 @@ def build_theorem(state: ProofState, code: str, *, name: str = "__bz_tmp") -> st
     ]
     param_str = (" ".join(params) + " ") if params else ""
 
-    indented = "\n".join(f"  {l}" for l in (code or "").strip().splitlines())
+    import textwrap
+    lines = (code or "").splitlines()
+    # Remove leading/trailing empty lines
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    code_clean = textwrap.dedent("\n".join(lines))
+    indented = "\n".join(f"  {l}" for l in code_clean.splitlines())
 
     header = state.header if state.header else DEFAULT_OPEN
 
@@ -46,7 +54,5 @@ def build_theorem(state: ProofState, code: str, *, name: str = "__bz_tmp") -> st
 theorem {name} {param_str}: {state.goal} := by
 {indented}
 """
-
-    # Sanitization is the verifier's responsibility (REPL/env compatibility).
     return full_code
 
