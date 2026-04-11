@@ -6,7 +6,8 @@ set -o pipefail
 THRESHOLD=500
 INTERVAL=30
 CONDA_ENV="betaproof"
-TRAIN_CMD="python -u train.py configs/deepseek_r1_distill_7B.yaml"
+# TRAIN_CMD="python -u train.py configs/deepseek_r1_distill_7B.yaml"
+TRAIN_CMD="python -u train_sft.py"
 LOG_FILE="gpu_watcher.log"
 
 log_message() {

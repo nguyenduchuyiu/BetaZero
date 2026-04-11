@@ -1,123 +1,145 @@
 #!/usr/bin/env python3
 import json
-import re
-import urllib.request
-from dataclasses import dataclass
-from pathlib import Path
 import random
+import re
+import time
+import urllib.request
+from pathlib import Path
 
-from datasets import load_dataset
-from betazero.policy.prompt import build_prompt
-from betazero.policy.output_parser import get_lean_code
-from betazero.utils.lean_cmd import DEFAULT_OPEN
-from betazero.utils.lean_parse import parse_proof_state
+from betazero.policy.prompt import (
+    _SKELETON_INSTRUCTION,
+    _OUTPUT_FORMAT_INSTRUCTION,
+    _TACTIC_INSTRUCTION,
+    _USER_BASE_INSTRUCTION,
+    _format_chatml,
+)
 
 # ============================================================================
-# ⚙️ CẤU HÌNH (Sửa trực tiếp ở đây cho lẹ)
+# Cấu hình
 # ============================================================================
-DATASET = "deepseek-ai/DeepSeek-Prover-V1"
-SPLIT   = "train"
-LIMIT   = 406           # Số lượng mẫu "HOÀN HẢO" mục tiêu
-SHUFFLE = True          # Xáo trộn thứ tự câu hỏi?
-SEED    = 1234
+ROOT = Path(__file__).resolve().parent
+PROBLEMS_DIR = ROOT / "problems" / "miniF2F-Valid"
 
-API_URL = "http://127.0.0.1:8787/chat"
-ACTION  = "skeleton"  # "skeleton" hoặc "tactic"
-MODE    = "Instant"   # DeepSeek mode
+LIMIT = 244
+SHUFFLE = False
+SEED = 42
 
-# API Timeouts (ms)
-TIMEOUT_MS     = 240000
-TURN_DELAY_MS  = 2000
+API_URL = "http://127.0.0.1:18787/chat"
+ACTION = "skeleton"  # "skeleton" hoặc "tactic"
+MODE = "Instant"
+
+TIMEOUT_MS = 240_000
+TURN_DELAY_MS = 2000
 PAUSE_LOGIN_MS = 1000
+
+REQUESTS_PER_PROBLEM = 3
+MAX_RETRIES_PER_CALL = 3
+RETRY_DELAY_S = 2.0
 
 EXTRA_CRITICAL_RULES = (
     "\nCRITICAL RULES:\n"
-    "Output in <think> </think> TAG:\n"
     "1. FOCUSED REASONING: Your <think> process MUST be step-by-step and deeply logical. Break the problem into clear milestones.\n"
     "2. SHOW YOUR WORK: Explicitly calculate algebraic steps, but DO NOT over-explain trivial arithmetic.\n"
     "3. DIRECT PATH: Stick strictly to the most promising mathematical path. DO NOT simulate endless alternative approaches or backtrack unnecessarily.\n"
 )
 
-@dataclass(frozen=True)
-class ProblemResult:
-    path: str
-    header: str
-    context: str
-    goal: str
-    prompt: str
-    raw_output: str | None
-    extracted_code: str
+
+def split_header_theorem(text: str) -> tuple[str, str]:
+    lines = text.splitlines()
+    th_i = next((i for i, ln in enumerate(lines) if re.match(r"^\s*theorem\b", ln)), None)
+    if th_i is None:
+        return "", text.strip()
+    header = "\n".join(lines[:th_i]).strip()
+    theorem = "\n".join(lines[th_i:]).strip()
+    return header, theorem
+
+
+def format_problem_block(lean: str) -> str:
+    body = lean if lean.endswith("\n") else lean + "\n"
+    return "[PROBLEM]\n```lean4\n" + body + "```"
+
+
+def action_instruction() -> str:
+    if ACTION == "tactic":
+        return _TACTIC_INSTRUCTION
+    if ACTION == "skeleton":
+        return _SKELETON_INSTRUCTION
+    raise ValueError(ACTION)
+
+
+def build_prompt_from_lean(code_to_verify: str) -> str:
+    full_system = action_instruction() + "\n\n" + _OUTPUT_FORMAT_INSTRUCTION
+    user_msg = EXTRA_CRITICAL_RULES + _USER_BASE_INSTRUCTION + "\n\n" + format_problem_block(code_to_verify)
+    return _format_chatml(full_system, user_msg)
+
 
 def get_deepseek_response(prompt: str) -> str | None:
-    """Gọi API DeepSeek và bóc luôn cái response cuối cùng."""
     payload = {
-        "mode": MODE, "pauseForLoginMs": PAUSE_LOGIN_MS,
-        "turnDelayMs": TURN_DELAY_MS, "timeoutMs": TIMEOUT_MS,
+        "mode": MODE,
+        "pauseForLoginMs": PAUSE_LOGIN_MS,
+        "turnDelayMs": TURN_DELAY_MS,
+        "timeoutMs": TIMEOUT_MS,
         "prompts": [prompt],
     }
-    req = urllib.request.Request(API_URL, data=json.dumps(payload).encode(), headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(
+        API_URL,
+        data=json.dumps(payload).encode(),
+        headers={"Content-Type": "application/json"},
+    )
     try:
         with urllib.request.urlopen(req, timeout=(TIMEOUT_MS // 1000) + 60) as resp:
             data = json.loads(resp.read().decode())
-            return data.get("result", {}).get("turns", [{}])[-1].get("response")
+            out = data.get("result", {}).get("turns", [{}])[-1].get("response")
+            if out is not None and not str(out).strip():
+                return None
+            return out
     except Exception as e:
-        print(f"❌ Lỗi gọi API: {e}")
+        print(f"Lỗi gọi API: {e}")
         return None
 
-def main():
-    ds = load_dataset(DATASET)
-    if SPLIT not in ds:
-        return print(f"❌ Không tìm thấy split '{SPLIT}' trong dataset!")
-    
-    split_data = ds[SPLIT]
-    indices = list(range(len(split_data)))
-    if SHUFFLE: random.Random(SEED).shuffle(indices)
 
-    idx_ptr = 0
+def main() -> None:
+    paths = sorted(PROBLEMS_DIR.glob("*.lean"))
+    if not paths:
+        print(f"Không thấy file .lean trong {PROBLEMS_DIR}")
+        return
+
+    indices = list(range(len(paths)))
+    if SHUFFLE:
+        random.Random(SEED).shuffle(indices)
+
     n_sent = 0
-    while n_sent < LIMIT and idx_ptr < len(indices):
-        idx = indices[idx_ptr]
-        idx_ptr += 1
-        
-        row = split_data[idx]
-        content = (row.get("formal_statement") or "").strip()
-        if not content:
-            continue
-        
-        # Lấy tên Theorem
-        m_name = re.search(r"\btheorem\s+(\w+)\b", content)
-        name = m_name.group(1) if m_name else (row.get("name") or f"row_{idx}")
+    for idx in indices:
+        if n_sent >= LIMIT:
+            break
+        p = paths[idx]
+        raw = p.read_text(encoding="utf-8")
+        header, theorem = split_header_theorem(raw)
+        code_to_verify = f"{header}\n{theorem}".strip() if header else theorem
 
-        # Ép dùng `sorry` thay vì `by ...`
-        content = re.sub(r":=\s*by\b.*", ":= by\n  sorry", content, flags=re.DOTALL)
-        if "sorry" not in content:
-            content += "\n  sorry\n"
+        prompt = build_prompt_from_lean(code_to_verify)
+        for turn in range(1, REQUESTS_PER_PROBLEM + 1):
+            resp: str | None = None
+            for attempt in range(1, MAX_RETRIES_PER_CALL + 1):
+                resp = get_deepseek_response(prompt)
+                if resp is not None:
+                    break
+                print(
+                    f"{p.name} req {turn}/{REQUESTS_PER_PROBLEM}: "
+                    f"lỗi/rỗng ({attempt}/{MAX_RETRIES_PER_CALL}), chờ {RETRY_DELAY_S}s..."
+                )
+                if attempt < MAX_RETRIES_PER_CALL:
+                    time.sleep(RETRY_DELAY_S)
+            if resp is None:
+                print(f"{p.name}: dừng sau {MAX_RETRIES_PER_CALL} lần ở request {turn}/{REQUESTS_PER_PROBLEM}.")
+                break
+            print(f"{p.name} req {turn}/{REQUESTS_PER_PROBLEM} ok")
+        else:
+            n_sent += 1
+            print(f"[{n_sent}/{LIMIT}] {p.name} xong {REQUESTS_PER_PROBLEM} request")
 
-        # Trộn header (import) sao cho chuẩn syntax
-        prefix = (row.get("header") or "").strip() or DEFAULT_OPEN
-        lines = content.splitlines()
-        k = next((i for i, l in enumerate(lines) if l.strip() and not l.strip().startswith("import ")), len(lines))
-        code_to_verify = "\n".join(lines[:k] + [prefix] + lines[k:]) if prefix else content
+    print(f"Hoàn thành. Đủ 3/3 request cho {n_sent} bài (giới hạn LIMIT={LIMIT}).")
 
-        # Build Prompt
-        # Ở đây sẽ không verify Lean, chỉ lấy luôn goal đầu (lấy toàn bộ content làm context/goal nếu thiếu)
-        try:
-            goal_match = re.search(r"\{(.+)\}", code_to_verify, re.DOTALL)
-            goal_str = goal_match.group(1) if goal_match else ""
-        except Exception:
-            goal_str = ""
-
-        # In practice, parse_proof_state dựa vào goal string, header sẽ lấy từ prefix
-        ps = parse_proof_state(goal_str, header=prefix)
-
-        base_prompt = build_prompt(ps, action_type=ACTION)
-        prompt = base_prompt.replace("<|im_start|>user\n", f"{EXTRA_CRITICAL_RULES}<|im_start|>user\n")
-
-        print(f"[{n_sent+1}/{LIMIT}] {name} 🚀 Requesting...", end=" ", flush=True)
-        print("✅ Done")
-        n_sent += 1
-
-    print(f"\n✅ Đã hoàn thành! Đã gửi {n_sent} request.")
 
 if __name__ == "__main__":
     main()

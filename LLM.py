@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers import TextIteratorStreamer
@@ -11,19 +12,22 @@ from betazero.policy.prompt import build_prompt
 
 
 MODEL = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"  # override via env/replace if needed
-ACTION_TYPE = "tactic"  # "tactic" | "skeleton"
+ACTION_TYPE = "skeleton"  # "tactic" | "skeleton"
+_DEFAULT_LORA = "lora_skeleton_model"
+LORA_PATH = os.environ.get("LORA_PATH", _DEFAULT_LORA).strip()
+if LORA_PATH and not os.path.isdir(LORA_PATH):
+    LORA_PATH = ""
 MAX_NEW_TOKENS = 4096
 TEMPERATURE = 0.7
 TOP_P = 0.95
 SEED = 42
 
 CONTEXT = """\
-x b : ℝ
-h₀ : 0 < b
-h₁ : (7 : ℝ) ^ (x + 7) = 8 ^ x
-h₂ : x = Real.logb b (7 ^ 7)
+x : ℝ
+h₀ : 0 < x
+h₁ : Real.logb 2 (Real.logb 8 x) = Real.logb 8 (Real.logb 2 x)
 """
-GOAL = "b = 8 / 7"
+GOAL = "Real.logb 2 x ^ 2 = 27"
 
 
 def main() -> int:
@@ -36,12 +40,17 @@ def main() -> int:
     if tok.pad_token_id is None:
         tok.pad_token_id = tok.eos_token_id
 
+    dtype = torch.bfloat16 if dev == "cuda" and torch.cuda.is_bf16_supported() else torch.float32
     model = AutoModelForCausalLM.from_pretrained(
         MODEL,
-        dtype=(torch.bfloat16 if dev == "cuda" else None),
+        torch_dtype=dtype if dev == "cuda" else None,
         device_map=("auto" if dev == "cuda" else None),
         trust_remote_code=True,
     )
+    if LORA_PATH:
+        from peft import PeftModel
+
+        model = PeftModel.from_pretrained(model, LORA_PATH, is_trainable=False)
 
     state = ProofState(context=CONTEXT.strip(), goal=GOAL.strip(), header="")
     prompt = build_prompt(state, ACTION_TYPE)

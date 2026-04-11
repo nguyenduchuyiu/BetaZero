@@ -3,10 +3,8 @@ import textwrap
 from betazero.core.nodes import ProofState
 from betazero.utils.lean_cmd import build_theorem
 
-_SYSTEM_BASE_INSTRUCTION = textwrap.dedent(
+_OUTPUT_FORMAT_INSTRUCTION = textwrap.dedent(
     """
-    You are an elite expert in Lean 4 theorem proving.
-    CRITICAL RULES:
     1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].
     2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.
     3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.
@@ -28,25 +26,39 @@ _TACTIC_INSTRUCTION = textwrap.dedent(
 
 
 _SKELETON_INSTRUCTION = textwrap.dedent("""
-Your task is to translate informal mathematical plans into formal structural skeletons using `have` statements.
+You are a Subgoal Generator for a Search Tree in Lean 4. 
+Your task is to propose potential intermediate milestones to expand the search space, NOT to solve the problem.
 
-1. PLAN FIRST: Inside the <think> tag, write a step-by-step mathematical plan. Break the goal down logically.
-2. FORMAL SKELETON: After closing </think>, output EXACTLY ONE valid ```lean4``` code block.
-3. STRICT "HAVE" SYNTAX: You MUST explicitly declare the proposition type in EVERY `have` statement (e.g., `have h : a = b := ...`).
-4. HANDLING SUBGOALS: 
-   - For complex, multi-step subgoals, MUST leave them as `:= sorry`.
-   - For trivial subgoals, you MAY close them using exactly ONE automated tactic: `:= by ring`, `:= by linarith`, `:= by norm_num`, `:= by omega`, `:= rfl`, or `:= trivial`. You may pass arguments (e.g., `:= by linarith [h1]`). 
-   - Simple 1-hit term-mode applications (e.g., `:= ⟨x, y⟩` or `:= h1.trans h2`) are also allowed.
-   - DO NOT write multi-line, chained tactics, or `calc` blocks.
-   - DO NOT append comments (e.g., `-- explanation`) at the end of `have` lines.
-5. NO BRANCHING IN SKELETON: DO NOT use `cases`, `induction`, `by_cases`, or `obtain` inside the skeleton. Extract them into flat lemmas (implications or functions).
-   - If induction is needed, extract it into flat lemmas:
-     `have h_base : P 0 := sorry`
-     `have h_step : ∀ (k : ℕ), P k → P (k + 1) := sorry`
-   - If case analysis is needed, extract the cases as implications:
-     `have h_case1 : Case1 → Goal := sorry`
-     `have h_case2 : Case2 → Goal := sorry`
-6. CONNECTING SUBGOALS: Close the final goal using structural tactics (e.g., `exact`, `rw`, `Or.elim`, `Nat.recOn`) combining your `have` statements. The final goal may also be `sorry` if it requires complex reasoning.
+CRITICAL CONSTRAINTS:
+1. DEFER VERIFICATION: You are explicitly forbidden from proving the subgoals. EVERY `have` statement MUST end with `:= sorry`. Even if a step is trivially true, you must delegate it to the search tree using `:= sorry`.
+2. NO TERMINAL STATES: Do not attempt to close the final goal. The proof must remain deliberately incomplete. Connect your subgoals and close the code block with a final `exact sorry` or just `sorry`.
+3. FLAT TOPOLOGY ONLY: Branching tactics are incompatible with this search phase. NEVER use `cases`, `rcases`, `induction`, `obtain`, or `by_cases`. 
+
+Remember: You are generating an exploratory search node, not a finished proof. Incompleteness (using `sorry`) is the strict requirement for success.
+
+### EXAMPLE
+
+[INPUT]
+```lean4
+import Mathlib
+open Nat
+theorem div_six (n : ℕ) : 6 ∣ n^3 - n := by sorry
+````
+
+[EXPECTED OUTPUT]
+<think>
+(Your thinking process here)
+</think>
+```lean4
+theorem div_six (n : ℕ) : 6 ∣ n^3 - n := by
+  have h2 : 2 ∣ n^3 - n := sorry
+  have h3 : 3 ∣ n^3 - n := sorry
+  have h_coprime : Nat.Coprime 2 3 := sorry
+  have h_combine : 2 * 3 ∣ n^3 - n := sorry
+  have h_final : 6 ∣ n^3 - n := sorry
+  exact h_final
+```
+
 """).strip()
 
 _TACTIC_SELF_CORRECT_INSTRUCTION = textwrap.dedent(
@@ -128,7 +140,7 @@ def build_prompt(state: ProofState, action_type: str) -> str:
         instruction = _SKELETON_INSTRUCTION
     else:
         raise ValueError(action_type)
-    full_system = _SYSTEM_BASE_INSTRUCTION + '\n\n' + instruction
+    full_system = instruction + '\n\n' + _OUTPUT_FORMAT_INSTRUCTION
     user_msg = (
         _USER_BASE_INSTRUCTION + "\n\n" +
         _format_problem(state)
@@ -142,7 +154,7 @@ def build_tactic_self_correct_prompt(
     lean_feedback: str,
     sorrified_tactic: str,
 ) -> str:
-    full_system = _SYSTEM_BASE_INSTRUCTION + '\n\n' + _TACTIC_SELF_CORRECT_INSTRUCTION
+    full_system = _TACTIC_SELF_CORRECT_INSTRUCTION + '\n\n' + _OUTPUT_FORMAT_INSTRUCTION
     user_msg = (
         _USER_BASE_INSTRUCTION + "\n\n"
         + _format_problem(state) + "\n\n"
