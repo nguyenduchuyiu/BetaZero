@@ -9,7 +9,7 @@ def test_real_kernel_dependency():
     # h_used: có dùng, h_unused: vứt đi
     # h_core: giải xịn, h_junk: rác + sorry
     lean_code = """
-theorem test_logic (a b c : Nat) (h_used : a = b) (h_unused : b = c) : a = b := by
+theorem my_theorem (a b c : Nat) (h_used : a = b) (h_unused : b = c) : a = b := by
   have h_core : a = b := by 
     exact h_used
   have h_junk : 3 = 3 := by 

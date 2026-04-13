@@ -30,7 +30,7 @@ def sanitize_header(code: str) -> str:
     return "\n".join(out)
 
 
-def build_theorem(state: ProofState, code: str, *, name: str = "__bz_tmp") -> str:
+def build_theorem(state: ProofState, code: str, *, name: str = "my_theorem") -> str:
     params = [
         f"({line.strip()})"
         for line in (state.context or "").splitlines()

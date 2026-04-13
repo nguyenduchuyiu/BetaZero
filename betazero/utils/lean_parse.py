@@ -27,10 +27,22 @@ def parse_proof_state(goal_str: str, *, header: str = "") -> ProofState:
         goal = "ELABORATION_FAULT"
 
     ctx_lines: list[str] = []
+    current_line = ""
+
     for line in ctx_raw.splitlines():
-        line = line.strip()
-        if ":" in line and not line.startswith("case"):
-            ctx_lines.append(line)
+        if not line:
+            continue
+        
+        # In Lean goal output, hypotheses usually start at the beginning of the line (or 1-2 spaces).
+        # Continuation lines for the same hypothesis are typically further indented.
+        # Heuristic: if a line starts with substantial whitespace and doesn't look like a new hyp, join it.
+        if (line.startswith("  ") or not (":" in line)) and ctx_lines:
+            ctx_lines[-1] = f"{ctx_lines[-1]} {line.strip()}"
+        else:
+            line_strip = line.strip()
+            if ":" in line_strip and not line_strip.startswith("case"):
+                ctx_lines.append(line_strip)
+
     ctx = "\n".join(ctx_lines)
     return ProofState(context=ctx, goal=goal, header=header)
 

@@ -6,12 +6,15 @@ import subprocess
 import shutil
 import uuid
 import threading
+from pathlib import Path
 from queue import Queue
 from concurrent.futures import ThreadPoolExecutor
 from betazero.utils.lean_cmd import sanitize_header
 
 DEFAULT_LAKE_PATH = shutil.which("lake") or "lake"
-DEFAULT_LEAN_WORKSPACE = os.path.join(os.getcwd(), "repl/")
+# Đường dẫn tuyệt đối tới thư mục repl ở gốc project
+ROOT = Path(__file__).resolve().parent.parent.parent
+DEFAULT_LEAN_WORKSPACE = str(ROOT / "repl")
 
 class PersistentLeanWorker:
     """A persistent Lean REPL process that caches Mathlib in its base environment."""

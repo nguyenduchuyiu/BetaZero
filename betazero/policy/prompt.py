@@ -18,10 +18,53 @@ _USER_BASE_INSTRUCTION = textwrap.dedent(
     """
 ).strip()
 
-_TACTIC_INSTRUCTION = textwrap.dedent(
-    """
-    Write Lean 4 tactics to solve the goal based on the provided [PROBLEM].
-    """
+
+_TACTIC_INSTRUCTION = textwrap.dedent("""
+You are an elite Lean 4 Tactic Agent. Your objective is to close a goal.
+You will be provided the [PROBLEM].
+
+CRITICAL INSTRUCTIONS:
+1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. 
+2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.
+3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.
+
+---EXAMPLE ---
+[INPUT]
+import Mathlib
+
+open Function
+
+theorem challenge_01 (f : ℤ → ℤ) (a b c : ℤ)
+  (h_inj : Injective f)
+  (h1 : f (2 * a + 3) = f (b - 1))
+  (h2 : b < 10)
+  (h3 : c > a ^ 2 + 5)
+  (h4 : f 0 = 0) : 2 * a < 8 := by sorry
+
+[EXPECTED OUTPUT]
+<think>
+(Example of filtering the noise)
+Goal: `2 * a < 8`.
+Relevant hypotheses: `h_inj` (`Injective f`), `h1` (`f (2 * a + 3) = f (b - 1)`), and `h2` (`b < 10`).
+Irrelevant noise: `c`, `h3`, and `h4` (ignore these distractors).
+Strategy: Use the injectivity of `f` (`h_inj`) on `h1` to extract the equality `2 * a + 3 = b - 1`. This simplifies to `2 * a = b - 4`. Since `b < 10` (`h2`), we can deduce `2 * a < 10 - 4 = 6`, which strictly implies `2 * a < 8`. We can introduce the equality via `have` and then use `omega` to handle the linear arithmetic automatically.
+</think>
+```lean4
+import Mathlib
+
+open Function
+
+theorem challenge_01 (f : ℤ → ℤ) (a b c : ℤ)
+  (h_inj : Injective f)
+  (h1 : f (2 * a + 3) = f (b - 1))
+  (h2 : b < 10)
+  (h3 : c > a ^ 2 + 5)
+  (h4 : f 0 = 0) : 2 * a < 8 := by
+  have h_eq := h_inj h1
+  omega
+```
+
+"""
 ).strip()
 
 
@@ -31,7 +74,7 @@ Your task is to propose potential intermediate milestones to expand the search s
 
 CRITICAL CONSTRAINTS:
 1. DEFER VERIFICATION: You are explicitly forbidden from proving the subgoals. EVERY `have` statement MUST end with `:= sorry`. Even if a step is trivially true, you must delegate it to the search tree using `:= sorry`.
-2. NO TERMINAL STATES: Do not attempt to close the final goal. The proof must remain deliberately incomplete. Connect your subgoals and close the code block with a final `exact sorry` or just `sorry`.
+2. NO TERMINAL STATES: Do not attempt to close the final goal directly. You MUST wrap the final target in a `have` statement named `h_final` with `:= sorry`, and then close the block strictly with `exact h_final`.
 3. FLAT TOPOLOGY ONLY: Branching tactics are incompatible with this search phase. NEVER use `cases`, `rcases`, `induction`, `obtain`, or `by_cases`. 
 
 Remember: You are generating an exploratory search node, not a finished proof. Incompleteness (using `sorry`) is the strict requirement for success.
@@ -42,7 +85,7 @@ Remember: You are generating an exploratory search node, not a finished proof. I
 ```lean4
 import Mathlib
 open Nat
-theorem div_six (n : ℕ) : 6 ∣ n^3 - n := by sorry
+theorem my_theorem (n : ℕ) : 6 ∣ n^3 - n := by sorry
 ````
 
 [EXPECTED OUTPUT]
@@ -50,7 +93,7 @@ theorem div_six (n : ℕ) : 6 ∣ n^3 - n := by sorry
 (Your thinking process here)
 </think>
 ```lean4
-theorem div_six (n : ℕ) : 6 ∣ n^3 - n := by
+theorem my_theorem (n : ℕ) : 6 ∣ n^3 - n := by
   have h2 : 2 ∣ n^3 - n := sorry
   have h3 : 3 ∣ n^3 - n := sorry
   have h_coprime : Nat.Coprime 2 3 := sorry
@@ -115,13 +158,20 @@ _TACTIC_SELF_CORRECT_INSTRUCTION = textwrap.dedent(
 ).strip()
 
 
-def _format_chatml(system_msg: str, user_msg: str) -> str:
-    full_prompt = (
-        f"<|im_start|>system\n{system_msg}\n<|im_end|>\n"
-        f"<|im_start|>user\n{user_msg}\n<|im_end|>\n"
-        f"<|im_start|>assistant\n"
-    )
-    return clean_prompt(full_prompt)
+def _format_chatml_from_messages(messages: list[dict[str, str]]) -> str:
+    parts = []
+    for msg in messages:
+        role = msg["role"]
+        content = msg["content"]
+        parts.append(f"<|im_start|>{role}\n{content}\n<|im_end|>")
+    
+    # Nếu tin nhắn cuối là assistant và rỗng hoặc là prefix, ta bỏ <|im_end|> cuối để model hoàn thiện
+    # Nhưng trong ChatML chuẩn cho completion:
+    res = "\n".join(parts)
+    if messages[-1]["role"] == "assistant":
+        # Bỏ <|im_end|> cuối cùng để model gõ tiếp
+        res = res.rsplit("\n<|im_end|>", 1)[0] + "\n"
+    return clean_prompt(res)
 
 
 def _format_problem(state: ProofState) -> str:
@@ -133,27 +183,38 @@ def _format_problem(state: ProofState) -> str:
         "```"
     )
 
-def build_prompt(state: ProofState, action_type: str) -> str:
+def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -> list[dict[str, str]]:
     if action_type == "tactic":
         instruction = _TACTIC_INSTRUCTION
     elif action_type == "skeleton":
         instruction = _SKELETON_INSTRUCTION
     else:
         raise ValueError(action_type)
+    
     full_system = instruction + '\n\n' + _OUTPUT_FORMAT_INSTRUCTION
-    user_msg = (
-        _USER_BASE_INSTRUCTION + "\n\n" +
-        _format_problem(state)
-    )
-    return _format_chatml(full_system, user_msg)
+    
+    user_msg_content = _USER_BASE_INSTRUCTION + "\n\n" + _format_problem(state)
+    if extra_rules:
+        user_msg_content = extra_rules.strip() + "\n\n" + user_msg_content
+        
+    return [
+        {"role": "system", "content": full_system},
+        {"role": "user", "content": user_msg_content},
+        {"role": "assistant", "content": "<think>\n"}
+    ]
+
+def build_prompt(state: ProofState, action_type: str, extra_rules: str = "") -> str:
+    messages = build_messages(state, action_type, extra_rules)
+    return _format_chatml_from_messages(messages)
 
 
-def build_tactic_self_correct_prompt(
+
+def build_tactic_self_correct_messages(
     state: ProofState,
     original_tactic: str,
     lean_feedback: str,
     sorrified_tactic: str,
-) -> str:
+) -> list[dict[str, str]]:
     full_system = _TACTIC_SELF_CORRECT_INSTRUCTION + '\n\n' + _OUTPUT_FORMAT_INSTRUCTION
     user_msg = (
         _USER_BASE_INSTRUCTION + "\n\n"
@@ -162,7 +223,20 @@ def build_tactic_self_correct_prompt(
         + "[LEAN 4 COMPILER FEEDBACK]\n" + (lean_feedback.strip() or '(No clear error message)') + "\n\n"
         + "[SYNTAX-FIXED REFERENCE (Used sorry)]\n```lean4\n" + sorrified_tactic.strip() + "\n```"
     )
-    return _format_chatml(full_system, user_msg)
+    return [
+        {"role": "system", "content": full_system},
+        {"role": "user", "content": user_msg},
+        {"role": "assistant", "content": "<think>\n"}
+    ]
+
+def build_tactic_self_correct_prompt(
+    state: ProofState,
+    original_tactic: str,
+    lean_feedback: str,
+    sorrified_tactic: str,
+) -> str:
+    messages = build_tactic_self_correct_messages(state, original_tactic, lean_feedback, sorrified_tactic)
+    return _format_chatml_from_messages(messages)
 
 
 def clean_prompt(text: str) -> str:
