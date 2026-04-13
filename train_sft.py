@@ -8,8 +8,8 @@ import torch
 # ⚙️ 1. CẤU HÌNH
 # ==========================================
 MODEL_NAME = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
-DATA_PATH = "automation-output/verified_passed.json"
-OUTPUT_DIR = "lora_skeleton_model"
+DATA_PATH = ["data/passed_skeletons.jsonl", "data/passed_tactics.jsonl"]
+OUTPUT_DIR = "lora_model"
 
 MAX_SEQ_LENGTH = 4096 # Độ dài tối đa (Token)
 
@@ -26,7 +26,7 @@ model = FastLanguageModel.get_peft_model(
     model,
     r=16, # Rank 16 là điểm ngọt cho format
     target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
-    lora_alpha=16,
+    lora_alpha=32,
     lora_dropout=0,
     bias="none",
     use_gradient_checkpointing="unsloth",
@@ -42,12 +42,10 @@ def format_data(examples):
         p = p.rstrip()
         r = r.lstrip()
         text = f"{p}\n{r}"
-        if not text.endswith("<|im_end|>"):
-            text = f"{text}<|im_end|>"
         texts.append(text)
     return {"text": texts}
 
-dataset = load_dataset("json", data_files=DATA_PATH, split="train")
+dataset = load_dataset("json", data_files=DATA_PATH, split="train").shuffle(seed=42)
 dataset = dataset.map(format_data, batched=True, remove_columns=dataset.column_names)
 
 # ==========================================
@@ -63,12 +61,12 @@ trainer = SFTTrainer(
         per_device_train_batch_size=2,
         gradient_accumulation_steps=4,
         warmup_steps=10,
-        num_train_epochs=2, # Ép format thì chạy 1-2 Epoch là dư sức
-        learning_rate=2e-4,
+        num_train_epochs=3, # Ép format thì chạy 1-2 Epoch là dư sức
+        learning_rate=1e-5,
         fp16=not torch.cuda.is_bf16_supported(),
         bf16=torch.cuda.is_bf16_supported(),
         logging_steps=5,
-        optim="adamw_8bit", # Optimizer xịn, ăn ít RAM
+        optim="adamw_torch",
         output_dir=OUTPUT_DIR,
     ),
 )

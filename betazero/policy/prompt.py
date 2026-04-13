@@ -4,18 +4,19 @@ from betazero.core.nodes import ProofState
 from betazero.utils.lean_cmd import build_theorem
 
 _OUTPUT_FORMAT_INSTRUCTION = textwrap.dedent(
-    """
-    1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].
-    2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.
-    3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.
-    """
+"""
+OUTPUT INSTRUCTIONS
+1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].
+2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.
+3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.
+"""
 ).strip()
 
 _USER_BASE_INSTRUCTION = textwrap.dedent(
-    """
-    This is the current state of the proof.
-    You may only use the information in the problem statement below.
-    """
+"""
+This is the current state of the proof.
+You may only use the information in the problem statement below.
+"""
 ).strip()
 
 
@@ -27,43 +28,6 @@ CRITICAL INSTRUCTIONS:
 1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. 
 2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.
 3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.
-
----EXAMPLE ---
-[INPUT]
-import Mathlib
-
-open Function
-
-theorem challenge_01 (f : ℤ → ℤ) (a b c : ℤ)
-  (h_inj : Injective f)
-  (h1 : f (2 * a + 3) = f (b - 1))
-  (h2 : b < 10)
-  (h3 : c > a ^ 2 + 5)
-  (h4 : f 0 = 0) : 2 * a < 8 := by sorry
-
-[EXPECTED OUTPUT]
-<think>
-(Example of filtering the noise)
-Goal: `2 * a < 8`.
-Relevant hypotheses: `h_inj` (`Injective f`), `h1` (`f (2 * a + 3) = f (b - 1)`), and `h2` (`b < 10`).
-Irrelevant noise: `c`, `h3`, and `h4` (ignore these distractors).
-Strategy: Use the injectivity of `f` (`h_inj`) on `h1` to extract the equality `2 * a + 3 = b - 1`. This simplifies to `2 * a = b - 4`. Since `b < 10` (`h2`), we can deduce `2 * a < 10 - 4 = 6`, which strictly implies `2 * a < 8`. We can introduce the equality via `have` and then use `omega` to handle the linear arithmetic automatically.
-</think>
-```lean4
-import Mathlib
-
-open Function
-
-theorem challenge_01 (f : ℤ → ℤ) (a b c : ℤ)
-  (h_inj : Injective f)
-  (h1 : f (2 * a + 3) = f (b - 1))
-  (h2 : b < 10)
-  (h3 : c > a ^ 2 + 5)
-  (h4 : f 0 = 0) : 2 * a < 8 := by
-  have h_eq := h_inj h1
-  omega
-```
-
 """
 ).strip()
 
@@ -78,29 +42,6 @@ CRITICAL CONSTRAINTS:
 3. FLAT TOPOLOGY ONLY: Branching tactics are incompatible with this search phase. NEVER use `cases`, `rcases`, `induction`, `obtain`, or `by_cases`. 
 
 Remember: You are generating an exploratory search node, not a finished proof. Incompleteness (using `sorry`) is the strict requirement for success.
-
-### EXAMPLE
-
-[INPUT]
-```lean4
-import Mathlib
-open Nat
-theorem my_theorem (n : ℕ) : 6 ∣ n^3 - n := by sorry
-````
-
-[EXPECTED OUTPUT]
-<think>
-(Your thinking process here)
-</think>
-```lean4
-theorem my_theorem (n : ℕ) : 6 ∣ n^3 - n := by
-  have h2 : 2 ∣ n^3 - n := sorry
-  have h3 : 3 ∣ n^3 - n := sorry
-  have h_coprime : Nat.Coprime 2 3 := sorry
-  have h_combine : 2 * 3 ∣ n^3 - n := sorry
-  have h_final : 6 ∣ n^3 - n := sorry
-  exact h_final
-```
 
 """).strip()
 
@@ -193,21 +134,19 @@ def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -
     
     full_system = instruction + '\n\n' + _OUTPUT_FORMAT_INSTRUCTION
     
-    user_msg_content = _USER_BASE_INSTRUCTION + "\n\n" + _format_problem(state)
+    user_msg_content = _USER_BASE_INSTRUCTION + "\n" + _format_problem(state)
     if extra_rules:
-        user_msg_content = extra_rules.strip() + "\n\n" + user_msg_content
+        user_msg_content = extra_rules.strip() + "\n" + user_msg_content
         
     return [
         {"role": "system", "content": full_system},
         {"role": "user", "content": user_msg_content},
-        {"role": "assistant", "content": "<think>\n"}
+        {"role": "assistant", "content": ""}
     ]
 
 def build_prompt(state: ProofState, action_type: str, extra_rules: str = "") -> str:
     messages = build_messages(state, action_type, extra_rules)
     return _format_chatml_from_messages(messages)
-
-
 
 def build_tactic_self_correct_messages(
     state: ProofState,
@@ -241,3 +180,4 @@ def build_tactic_self_correct_prompt(
 
 def clean_prompt(text: str) -> str:
     return text.replace('\u00a0', ' ')
+
