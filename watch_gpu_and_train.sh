@@ -4,10 +4,10 @@ set -o pipefail
 
 # --- CẤU HÌNH ---
 THRESHOLD=500
-INTERVAL=30
+INTERVAL=5
 CONDA_ENV="betaproof"
 # TRAIN_CMD="python -u train.py configs/deepseek_r1_distill_7B.yaml"
-TRAIN_CMD="python -u train_sft.py"
+TRAIN_CMD="python -u train_sft_lora.py"
 LOG_FILE="gpu_watcher.log"
 
 log_message() {

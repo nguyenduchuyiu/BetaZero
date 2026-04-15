@@ -127,8 +127,10 @@ def _format_problem(state: ProofState) -> str:
 def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -> list[dict[str, str]]:
     if action_type == "tactic":
         instruction = _TACTIC_INSTRUCTION
+        prefix = "\n>>> [MODE: TACTIC] SOLVE THE GOAL USING TACTICS (`by ...`).<<<\n"
     elif action_type == "skeleton":
         instruction = _SKELETON_INSTRUCTION
+        prefix = "\n>>> [MODE: PLANNER] STRICTLY DEFER ALL PROOFS WITH `:= sorry`. NO TACTICS ALLOWED. <<<\n"
     else:
         raise ValueError(action_type)
     
@@ -141,7 +143,7 @@ def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -
     return [
         {"role": "system", "content": full_system},
         {"role": "user", "content": user_msg_content},
-        {"role": "assistant", "content": ""}
+        {"role": "assistant", "content": prefix}
     ]
 
 def build_prompt(state: ProofState, action_type: str, extra_rules: str = "") -> str:

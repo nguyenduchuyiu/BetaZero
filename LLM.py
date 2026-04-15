@@ -11,9 +11,10 @@ from betazero.policy.output_parser import get_lean_code
 from betazero.policy.prompt import build_prompt
 
 
-MODEL = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"  # override via env/replace if needed
-ACTION_TYPE = "skeleton"  # "tactic" | "skeleton"
-_DEFAULT_LORA = "lora_skeleton_model"
+# MODEL = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
+MODEL = "microsoft/Phi-4-mini-reasoning"
+ACTION_TYPE = "tactic"  # "tactic" | "skeleton"
+_DEFAULT_LORA = "lora_model"
 LORA_PATH = os.environ.get("LORA_PATH", _DEFAULT_LORA).strip()
 if LORA_PATH and not os.path.isdir(LORA_PATH):
     LORA_PATH = ""
@@ -35,7 +36,8 @@ def main() -> int:
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(SEED)
 
-    dev = "cuda" if torch.cuda.is_available() else "cpu"
+    # dev = "cuda" if torch.cuda.is_available() else "cpu"
+    dev = "cpu"
     tok = AutoTokenizer.from_pretrained(MODEL, use_fast=True, trust_remote_code=True)
     if tok.pad_token_id is None:
         tok.pad_token_id = tok.eos_token_id
