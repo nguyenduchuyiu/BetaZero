@@ -28,6 +28,8 @@ class FailureHandler:
         prompt: str = "",
         *,
         is_sc_tactic: bool = False,
+        tokens: tuple[str, ...] | None = None,
+        token_logprobs: tuple[float, ...] | None = None,
     ) -> None:
         """Timeout / crash / transport errors: penalize graph edge; do not run sorrifier."""
         sc = result.state_code

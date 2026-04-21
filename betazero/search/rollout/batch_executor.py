@@ -68,7 +68,7 @@ class BatchExecutor:
         self,
         graph: ANDORGraph,
         states: list[ProofState],
-        action_batches: list[list[str]],
+        action_batches: list[list[dict]],
         action_type: str,
         budget: RolloutBudget,
         prompts: list[str] | None = None,
@@ -85,9 +85,10 @@ class BatchExecutor:
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=self._max_workers) as pool:
             for i, (state, actions) in enumerate(zip(states, action_batches)):
-                for j, raw_output in enumerate(actions):
+                for j, action_dict in enumerate(actions):
                     if not budget.try_consume():
                         break
+                    raw_output = action_dict["text"]
                     lean_code = get_lean_code(raw_output)
                     if not lean_code:
                         self.failure.handle_system_execute_failure(

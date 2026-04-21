@@ -18,7 +18,7 @@ class SamplePolicy(Protocol):
 
     def sample(
         self, states: list[ProofState], action_type: str, n: int, *, prompts: list[str] | None = None
-    ) -> list[list[str]]: ...
+    ) -> list[list[dict]]: ...
 
 
 class LevelwiseRollout:

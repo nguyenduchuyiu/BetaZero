@@ -75,14 +75,21 @@ class GRPOTrainer:
         states  = [samples[i][0] for i in train_idx]
         actions = [samples[i][1].content for i in train_idx]
         prompts = [samples[i][1].prompt for i in train_idx]
+        action_types = [samples[i][1].action_type for i in train_idx]
         device  = next(policy.parameters()).device
         adv_t   = torch.tensor([adv[i] for i in train_idx], dtype=torch.float32, device=device)
 
-        # Tính Reference Log-probs
+        # Tính Old Log-probs bằng Pytorch 4-bit với Active Lora để tránh sai số lượng tử hoá so với vLLM 16-bit
         with torch.no_grad():
-            ref_lp = self._batch_lp(policy, states, actions, prompts, train_groups, disable_adapter=True)
+            old_lp_t = self._batch_lp(policy, states, actions, prompts, action_types, train_groups, disable_adapter=False)
 
-        optimizer  = torch.optim.Adam(policy.parameters(), lr=self.lr)
+        # Tính Reference Log-probs bằng model gốc (Base + Adapter gốc)
+        with torch.no_grad():
+            ref_lp_t = self._batch_lp(policy, states, actions, prompts, action_types, train_groups, disable_adapter=True)
+
+        # Chỉ cấp phát Optimizer cho các Adapter có cờ is_trainable=True
+        trainable_params = [p for p in policy.parameters() if p.requires_grad]
+        optimizer  = torch.optim.Adam(trainable_params, lr=self.lr)
         total_loss = total_kl = 0.0
         n_steps    = 0
         acc        = self.accumulation_steps
@@ -99,31 +106,40 @@ class GRPOTrainer:
                 mb_s = [states[j] for j in mb]
                 mb_a = [actions[j] for j in mb]
                 mb_p = [prompts[j] for j in mb]
+                mb_t = [action_types[j] for j in mb]
                 mb_adv = adv_t[mb]
-                mb_ref = ref_lp[mb]
+                mb_old_lp = old_lp_t[mb]
+                mb_ref = ref_lp_t[mb]
 
-                mb_theta = policy.log_probs(mb_s, mb_a, mb_p)
-                ratio    = torch.exp(mb_theta - mb_ref)
-                surr     = torch.min(ratio * mb_adv,
-                                     torch.clamp(ratio, 1 - self.eps_clip, 1 + self.eps_clip) * mb_adv)
-                kl   = ratio - (mb_theta - mb_ref) - 1.0
-                loss = -(surr - self.beta_kl * kl).mean() / acc
+                mb_theta = policy.log_probs(mb_s, mb_a, mb_p, mb_t)
+                
+                # Ratio PPO là tỷ lệ giữa policy hiện tại và policy từng sinh ra action (old policy)
+                ratio_diff = torch.clamp(mb_theta - mb_old_lp, min=-10.0, max=10.0)
+                ratio = torch.exp(ratio_diff)
+                surr  = torch.min(ratio * mb_adv,
+                                  torch.clamp(ratio, 1 - self.eps_clip, 1 + self.eps_clip) * mb_adv)
+                
+                # KL Divergence là khoảng cách giữa policy hiện tại và Reference Policy (model gốc)
+                # Công thức chuẩn Schulman (GRPO): pi_ref / pi_theta -> log: mb_ref - mb_theta
+                kl_diff = torch.clamp(mb_ref - mb_theta, min=-10.0, max=10.0)
+                ratio_ref = torch.exp(kl_diff)
+                kl = ratio_ref - kl_diff - 1.0
+                
+                # Tính toán kích thước của window hiện tại dựa vào vị trí của mb_idx
+                remainder = n_mb % acc
+                is_last_window = (mb_idx >= n_mb - remainder) if remainder > 0 else False
+                actual_acc_steps = remainder if is_last_window else acc
+                
+                loss = -(surr - self.beta_kl * kl).mean() / actual_acc_steps
 
                 loss.backward()
-                accum_counter += 1
-                is_last = mb_idx + 1 == n_mb
                 
-                if accum_counter >= acc or is_last:
-                    if is_last and accum_counter < acc:
-                        scale = acc / accum_counter
-                        for p in policy.parameters():
-                            if p.grad is not None:
-                                p.grad.mul_(scale)
+                # Step optimizer khi kết thúc một chu kỳ acc hoặc chạm đáy epoch
+                if (mb_idx + 1) % acc == 0 or (mb_idx + 1 == n_mb):
                     optimizer.step()
                     optimizer.zero_grad(set_to_none=True)
-                    accum_counter = 0
 
-                total_loss += loss.item() * acc
+                total_loss += loss.item() * actual_acc_steps
                 total_kl   += kl.mean().item()
                 n_steps    += 1
 
@@ -157,7 +173,7 @@ class GRPOTrainer:
         random.shuffle(all_mbs)
         return all_mbs
 
-    def _batch_lp(self, policy, states, actions, prompts, groups_dict,
+    def _batch_lp(self, policy, states, actions, prompts, action_types, groups_dict,
                   disable_adapter: bool = False) -> torch.Tensor:
         """Dùng logic minibatches gom nhóm để tính reference log probs tốc độ cao."""
         results = torch.zeros(len(states), dtype=torch.float32, device=next(policy.parameters()).device)
@@ -167,8 +183,9 @@ class GRPOTrainer:
             s = [states[i] for i in mb]
             a = [actions[i] for i in mb]
             p = [prompts[i] for i in mb]
+            t = [action_types[i] for i in mb]
             
-            mb_scores = policy.log_probs(s, a, p, disable_adapter=disable_adapter)
+            mb_scores = policy.log_probs(s, a, p, t, disable_adapter=disable_adapter)
             for i, score in zip(mb, mb_scores):
                 results[i] = score
                 

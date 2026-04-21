@@ -7,9 +7,11 @@ import torch
 # ==========================================
 # ⚙️ 1. CẤU HÌNH TACTIC
 # ==========================================
-MODEL_NAME = "microsoft/Phi-4-mini-reasoning"
+MODEL_NAME = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
+
+# MODEL_NAME = "microsoft/Phi-4-mini-reasoning"
 DATA_PATH = "data/passed_tactics.jsonl"
-OUTPUT_DIR = "lora_tactic" # Thư mục lưu riêng cho Tactic
+OUTPUT_DIR = "qwen_lora_tactic" # Thư mục lưu riêng cho Tactic
 MAX_SEQ_LENGTH = 4096
 
 # ==========================================
@@ -18,8 +20,6 @@ MAX_SEQ_LENGTH = 4096
 model, tokenizer = FastLanguageModel.from_pretrained(
     model_name=MODEL_NAME,
     max_seq_length=MAX_SEQ_LENGTH,
-    load_in_4bit=False,
-    load_in_fp16=True,
 )
 
 model = FastLanguageModel.get_peft_model(
@@ -38,8 +38,16 @@ model = FastLanguageModel.get_peft_model(
 def format_data(examples):
     texts = []
     for p, r in zip(examples["prompt"], examples["raw_output"]):
-        text = f"{p.rstrip()}{r.lstrip()}{tokenizer.eos_token}"
-        texts.append(text)
+        # 1. Ghép prompt và câu trả lời. 
+        # Cố tình mớm thêm <|im_end|> vào cuối để chốt câu trả lời của trợ lý (tạm thời dùng tag Qwen)
+        raw_text = f"{p.rstrip()}{r.lstrip()}"
+        
+        # # 2. Dùng replace để "tẩy" toàn bộ tag Qwen sang chuẩn Phi
+        # text = raw_text.replace("<|im_start|>system", "<|system|>")
+        # text = text.replace("<|im_start|>user", "<|user|>")
+        # text = text.replace("<|im_start|>assistant", "<|assistant|>")
+        # text = text.replace("<|im_end|>", "<|end|>")
+        texts.append(raw_text)
     return {"text": texts}
 
 dataset = load_dataset("json", data_files=DATA_PATH, split="train").shuffle(seed=42)
@@ -58,13 +66,15 @@ trainer = SFTTrainer(
         per_device_train_batch_size=2,
         gradient_accumulation_steps=4,
         warmup_steps=10,
-        num_train_epochs=2,
+        num_train_epochs=1,
         learning_rate=2e-5,
         fp16=not torch.cuda.is_bf16_supported(),
         bf16=torch.cuda.is_bf16_supported(),
         logging_steps=5,
         optim="adamw_torch",
         output_dir=OUTPUT_DIR,
+        report_to="none",
+        torch_compile=False,
     ),
 )
 

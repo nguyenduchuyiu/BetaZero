@@ -45,6 +45,9 @@ class Config:
     lora_alpha: int = 32
     lora_dropout: float = 0.05
     lora_target_modules: Optional[list] = None  # None → use model default
+    
+    base_lora_tactic: str = "qwen_lora_tactic"
+    base_lora_skeleton: str = "qwen_lora_skeleton"
 
     # Training efficiency
     gradient_checkpointing: bool = True

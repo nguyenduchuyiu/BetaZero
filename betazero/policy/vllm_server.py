@@ -42,18 +42,35 @@ class VLLMServer:
 
     def start(self, adapter_path: str | None = None):
         """Spawn vLLM subprocess; block until /health is up."""
+        self.active_adapter_path = adapter_path
         
         self.port = self._get_free_port(self.base_port)
-        env = {**os.environ, "VLLM_ALLOW_RUNTIME_LORA_UPDATING": "1"}
+        env = {**os.environ, "VLLM_ALLOW_RUNTIME_LORA_UPDATING": "True"}
         cmd = [
             "python", "-m", "vllm.entrypoints.openai.api_server",
             "--model", self.model_name,
             "--port", str(self.port),
             "--gpu-memory-utilization", str(self.gpu_util),
             "--max-model-len", str(self.max_model_len),
+            "--enable-lora"
         ]
+        
+        self._loaded_loras = set()
+        lora_modules = []
         if adapter_path and os.path.exists(adapter_path):
-            cmd += ["--enable-lora", "--lora-modules", f"adapter={adapter_path}"]
+            lora_modules.append(f"adapter={adapter_path}")
+        
+        if os.path.exists("qwen_lora_tactic"):
+            lora_modules.append("tactic=qwen_lora_tactic")
+            self._loaded_loras.add("tactic")
+        if os.path.exists("qwen_lora_skeleton"):
+            lora_modules.append("skeleton=qwen_lora_skeleton")
+            self._loaded_loras.add("skeleton")
+
+        if lora_modules:
+            cmd += ["--enable-lora", "--max-loras", str(max(2, len(lora_modules))), "--lora-modules"] + lora_modules
+        else:
+            cmd += ["--enable-lora", "--max-loras", "2"]
         print(f"\n[vLLM] Starting on port {self.port}...")
 
         os.makedirs("outputs", exist_ok=True)
@@ -97,7 +114,7 @@ class VLLMServer:
         n: int,
         *,
         prompts: list[str] | None = None,
-    ) -> list[list[str]]:
+    ) -> list[list[dict]]:
         """Sample `n` completions per state row. Returns len(states) lists, each of length `n`."""
         if not states or n <= 0:
             return [[] for _ in states]
@@ -106,15 +123,55 @@ class VLLMServer:
         elif len(prompts) != len(states):
             raise ValueError("prompts length must match states")
         
-        # Use cached adapter flag to avoid HTTP request per sample call.
-        if self._adapter_flag is None:
-            self._adapter_flag = self._adapter_loaded()
-        model = "adapter" if self._adapter_flag else self.model_name
+        lora_name = f"{action_type}_active" if (hasattr(self, 'active_adapter_path') and self.active_adapter_path) else action_type
+        model = self.model_name
+
+        if hasattr(self, "_loaded_loras") and lora_name in self._loaded_loras:
+            model = lora_name
+        else:
+            lora_path = ""
+            if hasattr(self, "active_adapter_path") and self.active_adapter_path:
+                active_path = os.path.join(self.active_adapter_path, action_type)
+                if os.path.exists(active_path):
+                    lora_path = active_path
+            
+            if not lora_path:
+                fallback = getattr(self.cfg, f"base_lora_{action_type}", f"qwen_lora_{action_type}")
+                lora_path = os.path.abspath(fallback)
+                
+            if os.path.exists(lora_path):
+                try:
+                    res = requests.post(f"http://localhost:{self.port}/v1/load_lora_adapter", json={
+                        "lora_name": lora_name,
+                        "lora_path": lora_path,
+                        "load_inplace": True
+                    }, timeout=10)
+                    if res.ok:
+                        if not hasattr(self, "_loaded_loras"): 
+                            self._loaded_loras = set()
+                        self._loaded_loras.add(lora_name)
+                        model = lora_name
+                    else:
+                        print(f"[vLLM] failed dynamically loading {lora_name}: {res.text}")
+                except requests.exceptions.RequestException as e:
+                    print(f"[vLLM] load_lora_adapter error: {e}")
+            else:
+                if self._adapter_flag is None:
+                    self._adapter_flag = self._adapter_loaded()
+                if self._adapter_flag:
+                    model = "adapter"
+
         try:
             r = requests.post(
                 f"http://localhost:{self.port}/v1/completions",
-                json={"model": model, "prompt": prompts, "n": n,
-                      "max_tokens": self.max_tokens, "temperature": self.temperature},
+                json={
+                      "model": model, 
+                      "prompt": prompts, 
+                      "n": n,
+                      "max_tokens": self.max_tokens, 
+                      "temperature": self.temperature,
+                      "stop": ["<|end|>", "<|endoftext|>", "<|im_end|>"]
+                    },
                 timeout=(10, 1800),
             )
             r.raise_for_status()
@@ -123,7 +180,10 @@ class VLLMServer:
             print(f"[vLLM] sample error: {e}")
             return [[] for _ in states]
         
-        return [[choices[i * n + j]["text"].strip() for j in range(n)]
+        def get_choice(c):
+            return {"text": c["text"].strip()}
+
+        return [[get_choice(choices[i * n + j]) for j in range(n)]
                 for i in range(len(states))]
 
     def _adapter_loaded(self) -> bool:

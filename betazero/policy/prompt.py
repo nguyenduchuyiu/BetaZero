@@ -114,6 +114,24 @@ def _format_chatml_from_messages(messages: list[dict[str, str]]) -> str:
         res = res.rsplit("\n<|im_end|>", 1)[0] + "\n"
     return clean_prompt(res)
 
+# def _format_chatml_from_messages(messages: list[dict[str, str]]) -> str:
+#     parts = []
+#     for msg in messages:
+#         role = msg["role"]
+#         content = msg["content"]
+#         # Đóng mở theo chuẩn của Phi-4-mini
+#         parts.append(f"<|{role}|>\n{content}\n<|end|>")
+    
+#     res = "\n".join(parts)
+    
+#     # Nếu tin nhắn cuối là mồi sẵn của assistant, cắt bỏ <|end|> để model viết tiếp
+#     if messages[-1]["role"] == "assistant":
+#         res = res.rsplit("\n<|end|>", 1)[0] + "\n"
+#     # Nếu tin nhắn cuối là của user, phải chủ động mở thẻ <|assistant|> để model biết đến lượt
+#     elif messages[-1]["role"] == "user":
+#         res += "\n<|assistant|>\n"
+        
+#     return clean_prompt(res) # Giả định bạn đã có hàm clean_prompt
 
 def _format_problem(state: ProofState) -> str:
     code = build_theorem(state, "sorry", name="my_theorem").rstrip()
@@ -127,10 +145,10 @@ def _format_problem(state: ProofState) -> str:
 def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -> list[dict[str, str]]:
     if action_type == "tactic":
         instruction = _TACTIC_INSTRUCTION
-        prefix = "\n>>> [MODE: TACTIC] SOLVE THE GOAL USING TACTICS (`by ...`).<<<\n"
+        # prefix = "\n>>> [MODE: TACTIC] SOLVE THE GOAL USING TACTICS (`by ...`).<<<\n"
     elif action_type == "skeleton":
         instruction = _SKELETON_INSTRUCTION
-        prefix = "\n>>> [MODE: PLANNER] STRICTLY DEFER ALL PROOFS WITH `:= sorry`. NO TACTICS ALLOWED. <<<\n"
+        # prefix = "\n>>> [MODE: PLANNER] STRICTLY DEFER ALL PROOFS WITH `:= sorry`. NO TACTICS ALLOWED. <<<\n"
     else:
         raise ValueError(action_type)
     
@@ -143,7 +161,7 @@ def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -
     return [
         {"role": "system", "content": full_system},
         {"role": "user", "content": user_msg_content},
-        {"role": "assistant", "content": prefix}
+        {"role": "assistant", "content": ""}
     ]
 
 def build_prompt(state: ProofState, action_type: str, extra_rules: str = "") -> str:

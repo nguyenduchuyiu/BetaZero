@@ -11,12 +11,11 @@ from betazero.policy.output_parser import get_lean_code
 from betazero.policy.prompt import build_prompt
 
 
-# MODEL = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
-MODEL = "microsoft/Phi-4-mini-reasoning"
+MODEL = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
+# MODEL = "microsoft/Phi-4-mini-reasoning"
 ACTION_TYPE = "tactic"  # "tactic" | "skeleton"
-_DEFAULT_LORA = "lora_model"
-LORA_PATH = os.environ.get("LORA_PATH", _DEFAULT_LORA).strip()
-if LORA_PATH and not os.path.isdir(LORA_PATH):
+LORA_PATH = "qwen_lora_tactic"
+if LORA_PATH.lower() == "none":
     LORA_PATH = ""
 MAX_NEW_TOKENS = 4096
 TEMPERATURE = 0.7
@@ -36,8 +35,8 @@ def main() -> int:
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(SEED)
 
-    # dev = "cuda" if torch.cuda.is_available() else "cpu"
-    dev = "cpu"
+    dev = "cuda" if torch.cuda.is_available() else "cpu"
+    # dev = "cpu"
     tok = AutoTokenizer.from_pretrained(MODEL, use_fast=True, trust_remote_code=True)
     if tok.pad_token_id is None:
         tok.pad_token_id = tok.eos_token_id
@@ -45,7 +44,7 @@ def main() -> int:
     dtype = torch.bfloat16 if dev == "cuda" and torch.cuda.is_bf16_supported() else torch.float32
     model = AutoModelForCausalLM.from_pretrained(
         MODEL,
-        torch_dtype=dtype if dev == "cuda" else None,
+        dtype=dtype if dev == "cuda" else None,
         device_map=("auto" if dev == "cuda" else None),
         trust_remote_code=True,
     )
@@ -58,7 +57,8 @@ def main() -> int:
     prompt = build_prompt(state, ACTION_TYPE)
 
     inputs = tok(prompt, return_tensors="pt")
-    inputs = {k: v.to(dev) for k, v in inputs.items()}
+    inp_dev = model.get_input_embeddings().weight.device
+    inputs = {k: v.to(inp_dev) for k, v in inputs.items()}
 
     print("=" * 80)
     print("PROMPT:")
@@ -74,7 +74,7 @@ def main() -> int:
         temperature=TEMPERATURE,
         top_p=TOP_P,
         pad_token_id=tok.pad_token_id,
-        eos_token_id=tok.eos_token_id,
+        eos_token_id=[tok.eos_token_id],
         streamer=streamer,
     )
 
