@@ -14,6 +14,7 @@ class VLLMServer:
     """vLLM server as a subprocess. kill() → OS reclaims 100% VRAM."""
 
     def __init__(self, cfg: Config):
+        self.cfg              = cfg
         self.model_name       = cfg.model_name
         self.base_port        = cfg.vllm_port
         self.port             = self.base_port

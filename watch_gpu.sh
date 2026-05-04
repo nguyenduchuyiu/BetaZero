@@ -6,7 +6,7 @@ set -o pipefail
 THRESHOLD=2000
 INTERVAL=5
 CONDA_ENV="betaproof"
-TRAIN_CMD="python -u betazero/train.py configs/deepseek_r1_distill_7B.yaml | tee out.txt"
+TRAIN_CMD="python -u betazero/train.py configs/deepseek_r1_distill_qwen_7B.yaml | tee out.txt"
 # TRAIN_CMD="python -u LLM.py 2>&1 | tee out_tac.txt"
 LOG_FILE="gpu_watcher.log"
 
