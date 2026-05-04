@@ -6,6 +6,8 @@ import sys
 import torch
 from tqdm import tqdm
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from betazero.utils.config import Config
 from betazero.utils.dataloader import TheoremDataset
 from betazero.utils.graph_logger import GraphLogger
@@ -34,7 +36,7 @@ def train(cfg: Config = Config()):
     lean      = LeanEnv(scheduler)
     sorrifier = Sorrifier(scheduler)
     reward    = RewardCalculator()
-    dataset   = TheoremDataset(cfg.dataset_dir)
+    dataset   = TheoremDataset(cfg.dataset_dir, scheduler=scheduler)
     trainer   = GRPOTrainer(
         lr=cfg.lr, eps_clip=cfg.eps_clip, beta_kl=cfg.beta_kl,
         grpo_epochs=cfg.grpo_epochs, mini_batch_size=cfg.mini_batch_size,
