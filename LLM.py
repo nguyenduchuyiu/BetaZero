@@ -13,8 +13,8 @@ from betazero.policy.prompt import build_prompt
 
 MODEL = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
 # MODEL = "microsoft/Phi-4-mini-reasoning"
-ACTION_TYPE = "tactic"  # "tactic" | "skeleton"
-LORA_PATH = "qwen_lora_tactic"
+ACTION_TYPE = "skeleton"  # "tactic" | "skeleton"
+LORA_PATH = "base_qwen_lora_skeleton"
 if LORA_PATH.lower() == "none":
     LORA_PATH = ""
 MAX_NEW_TOKENS = 4096
@@ -22,12 +22,10 @@ TEMPERATURE = 0.7
 TOP_P = 0.95
 SEED = 42
 
-CONTEXT = """\
-x : ℝ
-h₀ : 0 < x
-h₁ : Real.logb 2 (Real.logb 8 x) = Real.logb 8 (Real.logb 2 x)
+CONTEXT = """
+u : ℕ → ℕ\nh₀ : u 0 = 4\nh₁ : u 1 = 7\nh₂ : ∀ n ≥ 2, u (n + 2) = (u n + u (n + 1)) % 10
 """
-GOAL = "Real.logb 2 x ^ 2 = 27"
+GOAL = "∀ (n : ℕ), ∑ k ∈ Finset.range n, u k > 10000 → 1999 ≤ n"
 
 
 def main() -> int:

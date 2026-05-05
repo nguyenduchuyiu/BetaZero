@@ -111,7 +111,7 @@ def _format_chatml_from_messages(messages: list[dict[str, str]]) -> str:
     res = "\n".join(parts)
     if messages[-1]["role"] == "assistant":
         # Bỏ <|im_end|> cuối cùng để model gõ tiếp
-        res = res.rsplit("\n<|im_end|>", 1)[0] + "\n"
+        res = res.rsplit("\n<|im_end|>", 1)[0]
     return clean_prompt(res)
 
 # def _format_chatml_from_messages(messages: list[dict[str, str]]) -> str:
@@ -161,7 +161,7 @@ def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -
     return [
         {"role": "system", "content": full_system},
         {"role": "user", "content": user_msg_content},
-        {"role": "assistant", "content": ""}
+        {"role": "assistant", "content": "<think>\n"}
     ]
 
 def build_prompt(state: ProofState, action_type: str, extra_rules: str = "") -> str:
