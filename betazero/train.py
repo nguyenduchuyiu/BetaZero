@@ -3,6 +3,10 @@ from __future__ import annotations
 import os
 import gc
 import sys
+
+# Giảm phân mảnh bộ nhớ (khuyến nghị cho CUDA OOM)
+os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:True"
+
 import torch
 from tqdm import tqdm
 

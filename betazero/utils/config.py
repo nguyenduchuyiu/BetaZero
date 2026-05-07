@@ -19,6 +19,7 @@ class Config:
     max_nodes: int = 128
     lean_workers: int = 4
     lean_timeout: int = 60
+    sorrifier_max_cycles: int = 50
 
     # GRPO
     lr: float = 1e-5
@@ -52,7 +53,7 @@ class Config:
     # Training efficiency
     gradient_checkpointing: bool = True
     logprob_chunk_size: int = 128
-    max_new_tokens: int = 128
+    max_new_tokens: int = 4096
     temperature: float = 0.7
 
     # vLLM subprocess (rollout phase)

@@ -75,14 +75,21 @@ class LevelwiseRollout:
     ]:
         graph = ANDORGraph(theorem)
         for depth in range(self.max_depth):
+            if graph.is_solved(theorem):
+                break
+
             frontier = [s for s in graph.unsolved_states() if graph.get_depth(s) == depth]
             if not frontier or self._budget.used >= self._budget.max_nodes:
                 break
 
             self._run_tactic_phase(graph, frontier)
 
+            # Re-check solved status and budget before skeleton phase
+            if graph.is_solved(theorem) or self._budget.used >= self._budget.max_nodes:
+                break
+
             skel_frontier = [s for s in frontier if not graph.is_solved(s)]
-            if skel_frontier and self.K_skel > 0 and self._budget.used < self._budget.max_nodes:
+            if skel_frontier and self.K_skel > 0:
                 self._run_skeleton_phase(graph, skel_frontier)
 
         self.reward_assigner.assign(graph)
@@ -102,46 +109,70 @@ class LevelwiseRollout:
         """
         # Split the tactic budget into two rounds
         first_round_budget = max(1, self.K_tac // 2)
-        first_prompts = [build_prompt(s, "tactic") for s in frontier]
+
+        # BUDGET CHECK: Only process as many states as we can afford
+        remaining = self.max_nodes - self.total_expanded
+        if remaining <= 0:
+            return
+        
+        # Limit frontier to what we can actually execute
+        max_states = max(1, remaining // first_round_budget)
+        active_frontier = frontier[:max_states]
+
+        first_prompts = [build_prompt(s, "tactic") for s in active_frontier]
         first_round_actions = self.policy.sample(
-            frontier, "tactic", first_round_budget, prompts=first_prompts
+            active_frontier, "tactic", first_round_budget, prompts=first_prompts
         )
         round_one_outcomes = self.executor.execute(
-            graph, frontier, first_round_actions, "tactic", self._budget, prompts=first_prompts
+            graph, active_frontier, first_round_actions, "tactic", self._budget, prompts=first_prompts
         )
 
         # Prepare self-correction data for states that were not solved in Round 1
         correction_states: list[ProofState] = []
         correction_prompts: list[str] = []
         
-        for state, per_action in zip(frontier, round_one_outcomes):
-            if graph.is_solved(state):
+        for state, per_action in zip(active_frontier, round_one_outcomes):
+            if graph.is_solved(state) or self._budget.used >= self._budget.max_nodes:
                 continue
             for feedback in per_action:
-                if feedback is None:
+                if feedback is None or self._budget.used >= self._budget.max_nodes:
                     continue
                 correction_states.append(state)
                 correction_prompts.append(build_tactic_self_correct_prompt(state, *feedback))
 
         # Stage 2: Self-correction attempt, retry once for each failed tactic action
         if correction_states and self._budget.used < self._budget.max_nodes:
-            second_round_actions = self.policy.sample(
-                correction_states, "tactic", 1, prompts=correction_prompts
-            )
-            # Verify the corrected actions in parallel
-            self.executor.execute(
-                graph,
-                correction_states,
-                second_round_actions,
-                "tactic",
-                self._budget,
-                prompts=correction_prompts,
-                is_sc_tactic=True,
-            )
+            # Again, limit correction states by remaining budget
+            remaining_after_round1 = self.max_nodes - self.total_expanded
+            if remaining_after_round1 > 0:
+                correction_states = correction_states[:remaining_after_round1]
+                correction_prompts = correction_prompts[:remaining_after_round1]
+
+                second_round_actions = self.policy.sample(
+                    correction_states, "tactic", 1, prompts=correction_prompts
+                )
+                # Verify the corrected actions in parallel
+                self.executor.execute(
+                    graph,
+                    correction_states,
+                    second_round_actions,
+                    "tactic",
+                    self._budget,
+                    prompts=correction_prompts,
+                    is_sc_tactic=True,
+                )
 
     def _run_skeleton_phase(self, graph: ANDORGraph, frontier: list[ProofState]) -> None:
-        skel_prompts = [build_prompt(s, "skeleton") for s in frontier]
-        skel_batches = self.policy.sample(frontier, "skeleton", self.K_skel, prompts=skel_prompts)
+        # BUDGET CHECK: Only process as many states as we can afford
+        remaining = self.max_nodes - self.total_expanded
+        if remaining <= 0:
+            return
+            
+        max_states = max(1, remaining // self.K_skel)
+        active_frontier = frontier[:max_states]
+
+        skel_prompts = [build_prompt(s, "skeleton") for s in active_frontier]
+        skel_batches = self.policy.sample(active_frontier, "skeleton", self.K_skel, prompts=skel_prompts)
         self.executor.execute(
-            graph, frontier, skel_batches, "skeleton", self._budget, prompts=skel_prompts
+            graph, active_frontier, skel_batches, "skeleton", self._budget, prompts=skel_prompts
         )

@@ -151,10 +151,6 @@ class TrainablePolicy:
             input_ids[i, :L] = torch.tensor(b_ids, dtype=torch.long)
             attention_mask[i, :L] = 1
 
-        # Forward một cách an toàn
-        out = self.model(input_ids=input_ids, attention_mask=attention_mask, use_cache=False)
-        logits = out.logits  # (B, T, V)
-
         target_mask = torch.zeros_like(attention_mask)
         
         # Mask chỉ trùm lên đúng token đầu tiên của Action trở thành Target
@@ -164,17 +160,29 @@ class TrainablePolicy:
             if end_idx > start_idx:
                 target_mask[i, start_idx:end_idx] = 1
 
-        teacher_targets = input_ids[:, 1:]
-        logits = logits[:, :-1, :]
+        action_logprobs = []
+        # Chunking để tránh OOM
+        chunk_size = self.logprob_chunk_size
+        for i in range(0, B, chunk_size):
+            chunk_input_ids = input_ids[i:i+chunk_size]
+            chunk_attention_mask = attention_mask[i:i+chunk_size]
+            chunk_target_mask = target_mask[i:i+chunk_size]
+            
+            # Forward một cách an toàn
+            out = self.model(input_ids=chunk_input_ids, attention_mask=chunk_attention_mask, use_cache=False)
+            logits = out.logits[:, :-1, :]  # (B_chunk, T-1, V)
+            teacher_targets = chunk_input_ids[:, 1:]
+            
+            # Dùng Fused C++ Kernel siêu tốc của Pytorch
+            loss = torch.nn.functional.cross_entropy(
+                logits.float().reshape(-1, logits.size(-1)), 
+                teacher_targets.reshape(-1), 
+                reduction="none"
+            ).view(chunk_input_ids.size(0), max_len - 1)
+            
+            # Chỉ giữ lại phần log_prob của action
+            chunk_logprobs = -(loss * chunk_target_mask[:, :max_len-1]).sum(dim=1)
+            action_logprobs.extend([s for s in chunk_logprobs])
+            
+        return action_logprobs
 
-        # Dùng Fused C++ Kernel siêu tốc của Pytorch
-        loss = torch.nn.functional.cross_entropy(
-            logits.float().reshape(-1, logits.size(-1)), 
-            teacher_targets.reshape(-1), 
-            reduction="none"
-        ).view(B, max_len - 1)
-        
-        # Chỉ giữ lại phần log_prob của action
-        action_logprobs = -(loss * target_mask[:, :max_len-1]).sum(dim=1)
-        
-        return [s for s in action_logprobs]

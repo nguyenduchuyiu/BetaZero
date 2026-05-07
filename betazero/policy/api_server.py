@@ -18,8 +18,8 @@ class APIServer:
         self.cfg = cfg
         self.api_key = os.getenv("DEEPSEEK_API_KEY", "")
         self.base_url = "https://api.deepseek.com/beta"
-        self.model = "deepseek-chat"
-        self.batch_size = 10  # Parallel requests
+        self.model = "deepseek-v4-flash"
+        self.batch_size = 16  # Parallel requests
         self.max_tokens = cfg.max_new_tokens
         self.temperature = cfg.temperature
         self.max_retries = 3
@@ -45,6 +45,7 @@ class APIServer:
             
         payload = {
             "model": self.model,
+            "extra_body": {"thinking": {"type": "disabled"}},
             "prompt": prompt,
             "max_tokens": self.max_tokens,
             "temperature": self.temperature,

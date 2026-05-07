@@ -23,8 +23,9 @@ from betazero.utils.graph_logger import GraphLogger
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", type=str, default=None)
-    ap.add_argument("--lean-file", type=str, default="problems/aime_1984_p5.lean")
-    ap.add_argument("--out-json", type=str, default="outputs/rollout_aime_1984_p5.json")
+    ap.add_argument("--lean-file", type=str, default=None)
+    ap.add_argument("--lean-dir", type=str, default=None)
+    ap.add_argument("--out-json", type=str, default="outputs/")
     ap.add_argument("--adapter", type=str, default=None)
     ap.add_argument("--K", type=int, default=None)
     ap.add_argument("--max-depth", type=int, default=None)
@@ -33,39 +34,42 @@ def main():
     ap.add_argument("--policy", type=str, choices=["vllm", "api"], default="vllm")
     args = ap.parse_args()
 
+    if not args.lean_file and not args.lean_dir:
+        args.lean_file = "problems/aime_1984_p5.lean"
+
     cfg: Config = Config()
     if args.config:
         cfg = Config.from_yaml(args.config)
-
-    lean_path = os.path.join(os.path.dirname(__file__), args.lean_file)
-    if not os.path.exists(lean_path):
-        raise FileNotFoundError(lean_path)
 
     K = args.K if args.K is not None else cfg.K
     max_depth = args.max_depth if args.max_depth is not None else cfg.max_depth
     max_nodes = args.max_nodes if args.max_nodes is not None else cfg.max_nodes
     lean_timeout = args.lean_timeout if args.lean_timeout is not None else cfg.lean_timeout
 
+    lean_files = []
+    if args.lean_dir:
+        if not os.path.exists(args.lean_dir):
+            raise FileNotFoundError(args.lean_dir)
+        for root, _, files in os.walk(args.lean_dir):
+            for f in files:
+                if f.endswith(".lean"):
+                    lean_files.append(os.path.abspath(os.path.join(root, f)))
+        lean_files.sort()
+    else:
+        lean_path = os.path.abspath(args.lean_file)
+        if not os.path.exists(lean_path):
+            raise FileNotFoundError(lean_path)
+        lean_files = [lean_path]
+
     verifier = Lean4ServerScheduler(
         max_concurrent_requests=cfg.lean_workers, timeout=lean_timeout, name="rollout_external"
     )
     lean = LeanEnv(verifier)
-    sorrifier = Sorrifier(verifier)
+    sorrifier = Sorrifier(verifier, max_cycles=cfg.sorrifier_max_cycles)
     reward = RewardCalculator()
-
-    with open(lean_path, encoding="utf-8") as f:
-        content = f.read()
-    vr = verifier.verify(content)
-    sorries = vr.get("sorries") or []
-    goal_str = (sorries[0] or {}).get("goal", "") if sorries else ""
-    root_state = parse_proof_state(goal_str or "", header=DEFAULT_OPEN)
-    
-    if root_state is None:
-        raise RuntimeError(f"Could not parse theorem from: {lean_path}")
 
     policy_server = None
     try:
-        # Use cfg loaded from --config for model/vLLM/API settings.
         if args.policy == "vllm":
             policy_server = VLLMServer(cfg)
         else:
@@ -74,7 +78,7 @@ def main():
         policy_server.start(args.adapter)
         policy = policy_server
 
-        rollout = LevelwiseRollout(
+        rollout_engine = LevelwiseRollout(
             policy=policy,
             lean=lean,
             sorrifier=sorrifier,
@@ -84,10 +88,38 @@ def main():
             max_nodes=max_nodes,
         )
 
-        _, _, graph, q_values = rollout.rollout(root_state)
+        for i, lean_path in enumerate(lean_files):
+            print(f"[{i+1}/{len(lean_files)}] Rolling out: {lean_path}")
+            
+            with open(lean_path, encoding="utf-8") as f:
+                content = f.read()
+            
+            vr = verifier.verify(content)
+            sorries = vr.get("sorries") or []
+            goal_str = (sorries[0] or {}).get("goal", "") if sorries else ""
+            root_state = parse_proof_state(goal_str or "", header=DEFAULT_OPEN)
+            
+            if root_state is None:
+                print(f"Warning: Could not parse theorem from: {lean_path}. Skipping.")
+                continue
 
-        os.makedirs(os.path.dirname(args.out_json), exist_ok=True)
-        GraphLogger().save_json(graph, root_state, q_values, filepath=args.out_json)
+            # Determine output path
+            if args.lean_dir:
+                rel_path = os.path.relpath(lean_path, args.lean_dir)
+                out_path = os.path.join(args.out_json, rel_path.replace(".lean", ".json"))
+            else:
+                out_path = args.out_json
+                if out_path.endswith("/") or os.path.isdir(out_path):
+                    out_path = os.path.join(out_path, os.path.basename(lean_path).replace(".lean", ".json"))
+
+            os.makedirs(os.path.dirname(out_path), exist_ok=True)
+            
+            try:
+                _, _, graph, q_values = rollout_engine.rollout(root_state)
+                GraphLogger().save_json(graph, root_state, q_values, filepath=out_path)
+                print(f"Saved to: {out_path}")
+            except Exception as e:
+                print(f"Error during rollout for {lean_path}: {e}")
 
     finally:
         if policy_server is not None:
@@ -98,4 +130,5 @@ def main():
 if __name__ == "__main__":
     main()
 
-# python3 run_rollout.py --config configs/qwen2.5_0.5b.yaml --lean-file problems/aime_1984_p5.lean --out-json outputs/rollout_aime_1984_p5.json --policy api
+# Example usage:
+# python3 run_rollout.py --config configs/qwen2.5_0.5b.yaml --lean-dir problems/miniF2F-Test/ --out-json outputs/miniF2F-Test/ --policy api

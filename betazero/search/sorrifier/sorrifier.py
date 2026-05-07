@@ -202,7 +202,8 @@ class Sorrifier:
         finally:
             self._log_close()
 
-        return self._strip_line_comments(self.current_content)
+        final_code = self._strip_line_comments(self.current_content)
+        return self._clean_redundant_sorries(final_code.splitlines())
 
     # ==========================================
     # CORE FIXING LOGIC
@@ -377,11 +378,19 @@ class Sorrifier:
     def _clean_redundant_sorries(self, lines: List[str]) -> str:
         cleaned = []
         for line in lines:
-            if line == "": continue
             stripped = line.strip()
-            if stripped == "sorry" and cleaned and cleaned[-1].strip() == "sorry": continue
+            # If the line is purely 'sorry', check if the previous non-empty line was also 'sorry'
+            if stripped == "sorry":
+                prev_sorry = False
+                for prev in reversed(cleaned):
+                    if prev.strip() == "": continue
+                    if prev.strip() == "sorry":
+                        prev_sorry = True
+                    break
+                if prev_sorry:
+                    continue
             cleaned.append(line)
-        return "\n".join(cleaned) + "\n"
+        return "\n".join(cleaned) + ("\n" if cleaned else "")
 
     def _force_full_sorrify(self) -> str:
         marker = ":= by"

@@ -15,16 +15,32 @@ class RewardCalculator:
 
     @staticmethod
     def _categorize_nodes(ast_nodes: list, dead_lines: set = None) -> tuple[int, int, int, int]:
-        """Classify tactic AST nodes. Returns (total, sorries, junk, dead)."""
         total = sorries = junk = dead = 0
         dead_lines = dead_lines or set()
+        
+        # Tập hợp các từ khóa nhận diện node cấu trúc, không phải tactic thực thi
+        STRUCTURAL_KEYWORDS = {
+            "seq",          # tacticSeq, tacticSeq1Indented, tacticSeqBracketed
+            "bytactic",     # Chữ 'by'
+            "focus",        # Dấu chấm focus '·'
+            "evaltactic",   # Wrapper
+            "tacticblock",  # Wrapper
+            "paren"         # Ngoặc
+        }
+
         for n in ast_nodes:
             kind = n.get("kind", "")
-            if not kind or not kind.startswith("Lean.Parser.Tactic."):
+            
+            # Chỉ bắt các node có mùi tactic
+            if not kind or "tactic" not in kind.lower():
                 continue
+                
             low = kind.lower()
-            if "seq" in low:
+            
+            # CHẶN TẤT CẢ CÁC NODE CẤU TRÚC
+            if any(k in low for k in STRUCTURAL_KEYWORDS):
                 continue
+                
             total += 1
             if "sorry" in low:
                 sorries += 1
@@ -32,6 +48,7 @@ class RewardCalculator:
                 junk += 1
             elif n.get("pos", {}).get("line") in dead_lines:
                 dead += 1
+                
         return total, sorries, junk, dead
 
     def r_env(self, original_code: str, patched_code: str, verify_result: dict) -> float:
@@ -40,11 +57,14 @@ class RewardCalculator:
         tot_orig, sorries_orig, _, _ = self._categorize_nodes(ast_orig)
         if tot_orig == 0:
             return 0.0
-        dead_lines = {
-            w["pos"]["line"]
-            for w in verify_result.get("warnings", [])
-            if "unused" in w.get("data", "").lower() or "does nothing" in w.get("data", "").lower()
-        }
+        
+        dead_lines = set()
+        for w in verify_result.get("warnings", []):
+            msg = w.get("data", "").lower()
+            if "unused variable" in msg:
+                continue
+            if "unused" in msg or "does nothing" in msg:
+                dead_lines.add(w["pos"]["line"])
         ast_patched = get_lean_ast(patched_code)
         tot_patch, sorries_patch, junk_patch, dead_patch = self._categorize_nodes(ast_patched, dead_lines)
         new_sorries = max(0, sorries_patch - sorries_orig)  # sorries added by patcher, not model

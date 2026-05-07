@@ -3,6 +3,7 @@ import random
 from collections import defaultdict
 
 import torch
+from tqdm import tqdm
 
 from betazero.core import ProofState, Action
 from betazero.policy import TrainablePolicy
@@ -94,7 +95,7 @@ class GRPOTrainer:
         n_steps    = 0
         acc        = self.accumulation_steps
 
-        for _ in range(self.grpo_epochs):
+        for epoch in range(self.grpo_epochs):
             optimizer.zero_grad(set_to_none=True)
             accum_counter = 0
             
@@ -102,7 +103,7 @@ class GRPOTrainer:
             mb_list = self._minibatches(train_groups)
             n_mb = len(mb_list)
             
-            for mb_idx, mb in enumerate(mb_list):
+            for mb_idx, mb in enumerate(tqdm(mb_list, desc=f"GRPO Epoch {epoch + 1}/{self.grpo_epochs}", leave=False)):
                 mb_s = [states[j] for j in mb]
                 mb_a = [actions[j] for j in mb]
                 mb_p = [prompts[j] for j in mb]
@@ -179,7 +180,8 @@ class GRPOTrainer:
         results = torch.zeros(len(states), dtype=torch.float32, device=next(policy.parameters()).device)
         
         mb_list = self._minibatches(groups_dict)
-        for mb in mb_list:
+        desc = "Ref LogProbs" if disable_adapter else "Old LogProbs"
+        for mb in tqdm(mb_list, desc=desc, leave=False):
             s = [states[i] for i in mb]
             a = [actions[i] for i in mb]
             p = [prompts[i] for i in mb]
