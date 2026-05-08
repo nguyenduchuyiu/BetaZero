@@ -1,0 +1,190 @@
+{
+  "theorem_goal": "a * c + b * c = -2",
+  "root_id": "state_0",
+  "total_nodes": 10,
+  "nodes": [
+    {
+      "id": "state_0",
+      "type": "OR",
+      "status": "SOLVED",
+      "depth": 0,
+      "content": {
+        "context": "a b c : ℂ\nh₀ : a + b = 2 * c\nh₁ : c = Complex.I",
+        "goal": "a * c + b * c = -2"
+      }
+    },
+    {
+      "id": "action_0",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "Possibly irrelevant: h₀ (a+b = 2c). The problem involves complex numbers and the unit i. From h₁: c = I. Then a*c + b*c = (a+b)*c = (2c)*c = 2*c^2 = 2*(I^2) = 2*(-1) = -2. So the goal holds. We need to write the Lean proof.\n- Use `calc` or `rw` with `h₁` and `h₀`. Also recall `I_sq` theorem? There's `Complex.I_sq` in `Complex.thy`: `I_sq : I ^ 2 = -1`. So we can use `simp` or `ring` after rewriting. \nPlan: \n1. `rw [h₁]` to replace c with I.\n2. Then `rw [← mul_add]` or `ring` to combine a*I + b*I = (a+b)*I.\n3. Then `rw [h₀]` to replace a+b by 2*I.\n4. Compute: (2*I)*I = 2*(I^2) = 2*(-1) = -2.\nUse `simp [mul_add, add_mul, mul_comm, mul_left_comm, mul_assoc, Complex.I_sq]`? The `ring` tactic works on rings, including ℂ? Yes, `ring` works on ℂ. So we can do `ring` after rewriting.\nSimplify: \n`calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (c ^ 2) := by ring\n    _ = 2 * (Complex.I ^ 2) := by rw [h₁]\n    _ = 2 * (-1) := by simp [Complex.I_sq]\n    _ = -2 := by ring\n`\nBut we can avoid `calc` by using `rw`s and `simp`. \nBetter: `rw [h₁, mul_add, h₀, mul_comm (2*c) c, mul_assoc, mul_comm c, Complex.I_sq]`? Let's think.\nActually after `rw [h₁]` we have `a*I + b*I = -2`. Then `rw [← add_mul]` gives `(a+b)*I = -2`. Then `rw [h₀]` gives `(2*c)*I = -2`. But c is replaced already? Actually we already replaced c with I, so h₀ becomes `a+b = 2*I`. Then `(a+b)*I = (2*I)*I = 2*(I*I) = 2*I^2 = 2*(-1) = -2`. So we can do:\n`rw [h₁]` at goal? Goal: `a*c + b*c = -2`. `rw [h₁]` gives `a*I + b*I = -2`. Then `rw [mul_add, add_mul]`? Actually `a*I + b*I = (a+b)*I` is `rw [add_mul]`? No, `add_mul` says `(a+b)*I = a*I + b*I`, so we want `rw [← add_mul]`. Then we have `(a+b)*I = -2`. Then `rw [h₀]` (but h₀ uses c, which we already replaced, so h₀ is `a+b = 2*I`) -> `rw [h₀]` gives `(2*I)*I = -2`. Then `simp [mul_comm, mul_assoc, Complex.I_sq]` to get `2*(-1) = -2` and then `simp` again. So the chain is:\n```lean4\n  rw [h₁]\n  rw [← add_mul]\n  rw [h₀, h₁]?  -- h₁ already used, but h₀: a+b = 2*c, which after first rw is 2*I, so we just use h₀.\n  rw [h₀]\n  simp [Complex.I_sq, mul_comm, mul_assoc]\n```\nBut we need to be careful about rewriting h₀ after replacing c. Better to use `rw [h₁]` at h₀ as well. So:\n```lean4\n  rw [h₁] at *\n  rw [← add_mul]\n  rw [h₀]\n  simp [Complex.I_sq, mul_comm, mul_assoc, add_comm, add_left_comm]\n```\nOr simpler: `calc` is clean.\n\nGiven the problem is simple, we can just do:\n```lean4\n  rw [h₁, ← add_mul, h₀, mul_comm (2*I) I, ← mul_assoc, mul_comm I I, Complex.I_sq]\n  norm_num\n```\nBut we need to ensure `norm_num` works on ℂ? Probably yes if `simp` works with `Complex.I_sq`. `norm_num` may have trouble with ℂ but `simp` works. So easiest: `ring` after rewriting h₁ and h₀.\n`rw [h₁, ← add_mul, h₀]` then `ring`? Check: after rewriting, the goal is `(2 * I) * I = -2`. `ring` works on ℂ, but we have I, and ring may not know I^2 = -1. So we must use `simp` with `Complex.I_sq`. Simpler: `simp [h₁, h₀, Complex.I_sq, mul_comm, mul_left_comm, mul_assoc]` might be enough.\nLet's test: `simp [h₁, h₀, Complex.I_sq]` on `a*c + b*c = -2`. `simp` will rewrite h₁ and h₀, but it may not apply `I_sq` automatically because it's not a simplification rule? Actually `simp` can use `simp` attribute on `I_sq`? There's `simp` lemma `I_sq`? In `Complex.thy`, `I_sq` is a theorem, not necessarily a `simp` lemma. So we need to `rw [Complex.I_sq]`. Probably best to use `calc` block.\n\nI'll write the calc version.\n</think>\n```lean4\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (c ^ 2) := by ring\n    _ = 2 * (Complex.I ^ 2) := by rw [h₁]\n    _ = 2 * (-1) := by rw [Complex.I_sq]\n    _ = -2 := by ring\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "",
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_1",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "Given:\n- h₀: a + b = 2 * c\n- h₁: c = Complex.I (where I is the imaginary unit, i² = -1)\nGoal: a * c + b * c = -2\n\nWe can factor: a*c + b*c = (a+b)*c. Using h₀, a+b = 2*c, so (a+b)*c = (2*c)*c = 2*c².\nSince c = Complex.I, c² = I² = -1. So 2*c² = 2*(-1) = -2. So the equality holds.\n\nProof:\n1. calc\n   a * c + b * c = (a + b) * c := by ring\n   _ = (2 * c) * c := by rw [h₀]\n   _ = 2 * (c * c) := by ring\n   _ = 2 * (Complex.I * Complex.I) := by rw [h₁]\n   _ = 2 * (-1) := by simp\n   _ = -2 := by ring\n</think>\n```lean4\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (Complex.I * Complex.I) := by rw [h₁]\n    _ = 2 * (-1) := by simp\n    _ = -2 := by ring\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (Complex.I * Complex.I) := by rw [h₁]\n    _ = 2 * (-1) := by simp\n    _ = -2 := by ring",
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 0.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_2",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "We are in the complex numbers. We have a+b = 2*c and c = I. Need a*c + b*c = -2.\n\nCompute a*c + b*c = (a+b)*c = (2*c)*c = 2*c^2. If c = I, then c^2 = I^2 = -1.\n\nSo 2*(-1) = -2, as required.\n\nTactic sequence: rewrite h₁, then rewrite h₀, then compute field_simp? Actually ring or simp with I^2 = -1? Could do `simp [h₀, h₁, mul_add, add_mul, Complex.I_sq]` or `calc` with `ring` and `simp`. Simpler:\n\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (c^2) := by ring\n    _ = 2 * (Complex.I ^ 2) := by rw [h₁]\n    _ = 2 * (-1) := by simp\n    _ = -2 := by ring\n\nBut we can be shorter: `calc` block is clear.\n\nAlternatively, `simp [h₀, h₁, mul_add, add_mul, Complex.I_sq]` but need to be careful.\n\nI'll go with `calc` with `ring` and `simp`.\n</think>\n```lean4\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (c ^ 2) := by ring\n    _ = 2 * (Complex.I ^ 2) := by rw [h₁]\n    _ = 2 * (-1) := by simp\n    _ = -2 := by ring\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (c ^ 2) := by ring\n    _ = 2 * (Complex.I ^ 2) := by rw [h₁]\n    _ = 2 * (-1) := by simp\n    _ = -2 := by ring",
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 0.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_3",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "We have:\n- `a b c : ℂ`\n- `h₀ : a + b = 2 * c`\n- `h₁ : c = Complex.I`\nGoal: `a * c + b * c = -2`\n\nFirst, factor left side: `a*c + b*c = (a + b)*c` (since `c` is common factor). Using `h₀`, `a + b = 2*c`, so `(a+b)*c = (2*c)*c = 2*c^2`.\nNow using `h₁`, `c = I`. So `c^2 = I^2 = -1` (since `I^2 = -1` in complex numbers). Then `2*c^2 = 2*(-1) = -2`.\nThus `a*c + b*c = -2`.\n\nProof: `calc` block or `rw` and `simp`. Let's do:\n\n```\nrw [h₁] at *\n```\n\nBut careful: `c` appears in `h₀` too. After `rw [h₁]`, `h₀` becomes `a + b = 2*I`. Then `calc\n    a*I + b*I = (a + b)*I := by ring\n    _ = (2*I)*I := by rw [h₀]\n    _ = 2*(I*I) := by ring\n    _ = 2*(-1) := by simp\n    _ = -2 := by ring\n`\nBut we're using `ring` and `simp`. Alternatively simpler: `simp [h₀, h₁, mul_add, add_mul, mul_comm, mul_assoc, pow_two, I_sq]`. Actually `simp` with `h₀`, `h₁` might be enough.\n\nSimplest tactic: `nlinarith` might not work for ℂ. So use field tactics:\n\nWe can do:\n```\ncalc\n  a * c + b * c = (a + b) * c := by ring\n  _ = (2 * c) * c := by rw [h₀]\n  _ = 2 * (c * c) := by ring\n  _ = 2 * (c ^ 2) := by ring\n  _ = 2 * (-1) := by rw [h₁, Complex.I_sq]\n  _ = -2 := by ring\n```\nBut `Complex.I_sq` is a lemma: `I_sq`. Actually `simp` knows `I_sq`? There's `simp` lemma `I_sq`. So we could `rw [h₁, Complex.I_sq]` or `simp [h₁]`. Let's check: `simp [h₁]` might reduce `c^2` to `I^2` to `-1`. But `simp` might require `simp` with `Complex`? The `simp` set includes `I_sq`. Better to be explicit: `rw [h₁]` then `simp`. Simpler:\n\n```\nrw [add_mul, mul_add, h₀, h₁] \n```\n\nHmm not.\n\nActually `a*c + b*c = (a+b)*c` by `mul_add`? `mul_add` gives `(a+b)*c = a*c + b*c`. So `rw [← mul_add a b c]` gives `(a+b)*c`. Then `rw [h₀]` gives `(2*c)*c`. Then `rw [mul_comm (2*c) c]`? No. `calc` is clearer.\n\nGiven the goal: `a*c + b*c = -2`. \n\nWe can use `calc` as outlined. It's safe and explicit.\n\nLet's produce the Lean code.\n</think>\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (c ^ 2) := by ring\n    _ = 2 * (Complex.I ^ 2) := by rw [h₁]\n    _ = 2 * (-1) := by simp\n    _ = -2 := by ring\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (c ^ 2) := by ring\n    _ = 2 * (Complex.I ^ 2) := by rw [h₁]\n    _ = 2 * (-1) := by simp\n    _ = -2 := by ring",
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 0.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_4",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "We need to prove: a*c + b*c = -2 given a + b = 2c and c = Complex.I. \nComplex.I * Complex.I = -1. So c^2 = -1.\nCompute: a*c + b*c = (a+b)*c = (2c)*c = 2*c^2 = 2*(-1) = -2.\nIn Lean: ring can handle this.\nBut note: ring works over ℂ? ring works for commutative rings, ℂ is a commutative ring.\nSo we can write:\n\ncalc\n  a * c + b * c = (a + b) * c := by ring\n  _ = (2 * c) * c := by rw [h₀]\n  _ = 2 * (c * c) := by ring\n  _ = 2 * (c^2) := by ring\n  _ = 2 * (-1) := by rw [h₁, I_sq] -- Complex.I_sq? There is lemma `I_sq` or `I_mul_I`. There's Complex.I_sq. \n  _ = -2 := by ring\n\nOr simpler: using `field_simp`? But we have ℂ, `simp` with `I_sq`. \nLet's check: `Complex.I_sq` is a lemma: `I_sq : I ^ 2 = -1`. Or `I_mul_I`. \nWe can `simp [h₀, h₁, Complex.I_sq]` after `ring`. \nAlternatively, `linear_combination` could also work.\n\nLet's provide a clean proof.\n</think>\n```lean4\nopen Complex\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (c ^ 2) := by ring\n    _ = 2 * (Complex.I ^ 2) := by rw [h₁]\n    _ = 2 * (-1) := by rw [Complex.I_sq]\n    _ = -2 := by ring\n```\n",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (c ^ 2) := by ring\n    _ = 2 * (Complex.I ^ 2) := by rw [h₁]\n    _ = 2 * (-1) := by rw [Complex.I_sq]\n    _ = -2 := by ring",
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 0.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_5",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "We need to show: a*c + b*c = -2.\nGiven:\n- a,b,c: ℂ\n- h₀: a + b = 2 * c\n- h₁: c = Complex.I (the imaginary unit)\n\nWe have a*c + b*c = (a+b)*c by distributivity. Substituting h₀: (2*c)*c = 2*c*c.\n\nSince c = Complex.I, we need to compute 2 * (Complex.I) * (Complex.I) = 2 * (I^2). In ℂ, I^2 = -1, so 2*(-1) = -2.\n\nThus the proof: calc\n  a*c + b*c = (a+b)*c := by ring\n  _ = (2*c)*c := by rw [h₀]\n  _ = 2*(c*c) := by ring\n  _ = 2*(Complex.I * Complex.I) := by rw [h₁]\n  _ = 2*(Complex.I)^2 := by ring\n  _ = 2*(-1) := by simp\n  _ = -2 := by ring\n\nAlternatively, use `simp [h₀, h₁, mul_add, add_mul, mul_comm, mul_assoc]` but simpler: `calc` with `simp` for the complex property.\n\nSince we have ℂ, the property I^2 = -1 is a `simp` lemma? There's `Complex.I_sq` or `Complex.I_mul_I`? In `Complex`, we have `I_sq` = `Complex.I_sq` = `Complex.I*Complex.I = -1`? Actually `simp` knows `I_sq`. There is lemma `Complex.I_sq` = `I^2 = -1`. So we can `simp` using that.\n\nWe'll write:\n\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (Complex.I * Complex.I) := by rw [h₁]\n    _ = 2 * (Complex.I ^ 2) := by ring\n    _ = 2 * (-1) := by simp [Complex.I_sq]\n    _ = -2 := by ring\n\nBut `Complex.I_sq` is `simp`? Actually `simp` with `Complex.I_sq` works.\n\nAlternatively, we can use `field_simp`? Not needed.\n</think>\n```lean4\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (Complex.I * Complex.I) := by rw [h₁]\n    _ = 2 * (Complex.I ^ 2) := by ring\n    _ = 2 * (-1) := by simp [Complex.I_sq]\n    _ = -2 := by ring\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (Complex.I * Complex.I) := by rw [h₁]\n    _ = 2 * (Complex.I ^ 2) := by ring\n    _ = 2 * (-1) := by simp [Complex.I_sq]\n    _ = -2 := by ring",
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 0.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_6",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "We have:\n- a, b, c : ℂ\n- h₀: a + b = 2 * c\n- h₁: c = I\n\nGoal: a * c + b * c = -2\n\nWe can rewrite c as I in the goal:\na * I + b * I = -2\nFactor: (a + b) * I = -2\nBut h₀ says a + b = 2 * c = 2 * I.\nSo (2 * I) * I = 2 * I^2 = 2 * (-1) = -2. Indeed right side is -2.\n\nSo we can do:\ncalc\n  a * c + b * c = (a + b) * c := by ring\n  _ = (2 * c) * c := by rw [h₀]\n  _ = 2 * (c * c) := by ring\n  _ = 2 * (c ^ 2) := by ring\n  _ = 2 * (I ^ 2) := by rw [h₁]\n  _ = 2 * (-1) := by simp\n  _ = -2 := by ring\n\nBut we need to use Complex.I^2 = -1, which is true. `simp` might know that.\nLet's test: `simp` with `Complex.I_sq`? Actually `simp` can use `I_sq`. We can do `simp [h₁]` or `simp` might already know `I_sq`. The lemma `Complex.I_sq` gives `I^2 = -1`. So `simp [Complex.I_sq]` works.\nSimplify: \n`calc` block works.\n\nAlternatively, we can rewrite both sides: `rw [h₁]` at goal, `rw [h₀]` at goal, `simp`. But careful: \nGoal: a*c + b*c = -2\nrw [h₁] -> a*I + b*I = -2\nrw [← mul_add, h₀] -> (2*I)*I = -2\nring -> 2*I^2 = -2\nsimp [Complex.I_sq] -> 2*(-1) = -2, ring finishes.\n\nSo a simple `calc` is clear.\n</think>\n```lean4\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (c ^ 2) := by ring\n    _ = 2 * (Complex.I ^ 2) := by rw [h₁]\n    _ = 2 * (-1) := by simp [Complex.I_sq]\n    _ = -2 := by ring\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (c ^ 2) := by ring\n    _ = 2 * (Complex.I ^ 2) := by rw [h₁]\n    _ = 2 * (-1) := by simp [Complex.I_sq]\n    _ = -2 := by ring",
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 0.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_7",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "We have a, b, c : ℂ, with h₀: a + b = 2*c and h₁: c = Complex.I.\nGoal: a*c + b*c = -2.\nWe can factor (a*c + b*c) = (a+b)*c.\nFrom h₀, a+b = 2*c, so (a+b)*c = (2*c)*c = 2*c^2.\nGiven h₁, c = I, so c^2 = I^2 = -1 in ℂ.\nThus 2*c^2 = 2*(-1) = -2.\nSo the goal follows by rewriting using h₀ and h₁.\n</think>\n```lean4\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (c ^ 2) := by ring\n    _ = 2 * (Complex.I ^ 2) := by rw [h₁]\n    _ = 2 * (-1) := by simp\n    _ = -2 := by ring\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (c ^ 2) := by ring\n    _ = 2 * (Complex.I ^ 2) := by rw [h₁]\n    _ = 2 * (-1) := by simp\n    _ = -2 := by ring",
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 0.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_8",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "We have:\nh₀: a + b = 2*c  \nh₁: c = Complex.I  \n\nGoal: a*c + b*c = -2\n\nSince c is fixed as I, compute:  \na*c + b*c = (a + b)*c = (2*c)*c = 2*c^2.\n\nc = I, so c^2 = I^2 = -1.  \nThus 2* (-1) = -2, which matches the goal.\n\nSo the proof is:\n\nrw [h₁] at *? Actually, we can use h₁ to replace c, then use h₀.\n\nSimplify:\n\ncalc  \n  a*c + b*c = (a+b)*c : by ring  \n  _ = (2*c)*c : by rw [h₀]  \n  _ = 2*c*c : ring  \n  _ = 2*c^2 : by ring  \n  _ = 2*(Complex.I)^2 : by rw [h₁]  \n  _ = 2*(-1) : by simp  \n  _ = -2 : by ring  \n\nAlternatively, use `rw [h₁]` and `h₀` and then `simp`:\n\nrw [h₁] at *? Actually:\n\nrw [h₁, h₀]  \nsimp [mul_add, add_mul]?  \n\nBetter:\n\ncalc\n  a*c + b*c = (a+b) * c : by ring\n  _ = (2*c) * c : by rw [h₀]\n  _ = 2*(c*c) : by ring\n  _ = 2*(c^2) : by ring\n  _ = 2*(Complex.I ^ 2) : by rw [h₁]\n  _ = 2*(-1) : by simp\n  _ = -2 : by ring\n\nThat works.\n</think>\n```lean4\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (c ^ 2) := by ring\n    _ = 2 * (Complex.I ^ 2) := by rw [h₁]\n    _ = 2 * (-1) := by simp\n    _ = -2 := by ring\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b c : ℂ) (h₀ : a + b = 2 * c) (h₁ : c = Complex.I) : a * c + b * c = -2 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  calc\n    a * c + b * c = (a + b) * c := by ring\n    _ = (2 * c) * c := by rw [h₀]\n    _ = 2 * (c * c) := by ring\n    _ = 2 * (c ^ 2) := by ring\n    _ = 2 * (Complex.I ^ 2) := by rw [h₁]\n    _ = 2 * (-1) := by simp\n    _ = -2 := by ring",
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 0.0,
+        "Q_value": 2.0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "state_0",
+      "target": "action_0",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_1",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_2",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_3",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_4",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_5",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_6",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_7",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_8",
+      "relation": "expanded_to"
+    }
+  ]
+}

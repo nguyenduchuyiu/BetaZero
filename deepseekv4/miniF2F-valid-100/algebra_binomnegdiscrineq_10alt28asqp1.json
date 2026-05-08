@@ -1,0 +1,190 @@
+{
+  "theorem_goal": "10 * a ≤ 28 * a ^ 2 + 1",
+  "root_id": "state_0",
+  "total_nodes": 10,
+  "nodes": [
+    {
+      "id": "state_0",
+      "type": "OR",
+      "status": "SOLVED",
+      "depth": 0,
+      "content": {
+        "context": "a : ℝ",
+        "goal": "10 * a ≤ 28 * a ^ 2 + 1"
+      }
+    },
+    {
+      "id": "action_0",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "We need to prove: for any real `a`, we have `10*a ≤ 28*a^2 + 1`. This holds for all real numbers? Let's check: 28*a^2 - 10*a + 1 ≥ 0? Actually rewrite: 28*a^2 - 10*a + 1 ≥ 0. Compute discriminant: D = (-10)^2 - 4*28*1 = 100 - 112 = -12 < 0. Since the leading coefficient 28 > 0, the quadratic is always positive. So the inequality holds.\n\nHow to prove in Lean? We can rearrange to `0 ≤ 28*a^2 - 10*a + 1`. Then recognize that the discriminant is negative. One way: complete the square: 28*a^2 - 10*a + 1 = 28*(a^2 - (10/28)a) + 1 = 28*(a^2 - (5/14)a) + 1. Complete square: (a - 5/28)^2 = a^2 - (5/14)a + (25/784). So a^2 - (5/14)a = (a - 5/28)^2 - 25/784. Multiply by 28: 28*(a - 5/28)^2 - 28*(25/784) + 1 = 28*(a - 5/28)^2 - (25/28) + 1 = 28*(a - 5/28)^2 + (3/28) ≥ 3/28 > 0. So it's positive.\n\nBut easier: Use `nlinarith` or `positivity`? `nlinarith` can handle polynomial inequalities. Since ℝ is an ordered commutative semiring? `nlinarith` works on ℝ. So `nlinarith` should close it.\n\nAlternatively, we can use `calc` with `sq_nonneg`. Let's do `nlinarith`.\n</think>\n```lean4\n  nlinarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "",
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_1",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "We need to prove 10*a ≤ 28*a^2 + 1 for all real a.\n\nThis is a quadratic inequality: 28*a^2 + 1 - 10*a ≥ 0.\n\nExpand: 28*a^2 - 10*a + 1.\n\nFactor? Check discriminant: a^2 coefficient = 28, linear = -10, constant = 1.\n\nDiscriminant D = (-10)^2 - 4*28*1 = 100 - 112 = -12. Negative.\n\nSince leading coefficient is positive (28 > 0) and discriminant negative, the quadratic is always positive. So inequality holds for all real a.\n\nWe can rewrite as 28*a^2 - 10*a + 1 ≥ 0.\n\nComplete square: 28*a^2 - 10*a + 1 = 28*(a^2 - (10/28)*a) + 1 = 28*(a^2 - (5/14)*a) + 1.\n\nComplete square: (a - 5/28)^2 = a^2 - (5/14)*a + (25/784). So a^2 - (5/14)*a = (a - 5/28)^2 - 25/784.\n\nThen 28*((a - 5/28)^2 - 25/784) + 1 = 28*(a - 5/28)^2 - 28*25/784 + 1.\n\nCompute 28*25/784 = 700/784 = 175/196 = 25/28? Actually 28*25/784 = (28/784)*25 = (1/28)*25 = 25/28.\n\nSo expression = 28*(a - 5/28)^2 - 25/28 + 1 = 28*(a - 5/28)^2 + (1 - 25/28) = 28*(a - 5/28)^2 + (3/28).\n\nThus it's always at least 3/28 > 0. So the inequality holds for all a.\n\nBetter to use `nlinarith` or `positivity`? Since `nlinarith` can handle polynomial inequalities.\n\nWe have `a : ℝ`. Use `nlinarith`.\n\nGoal: `10*a ≤ 28*a^2 + 1`. Equivalent to `28*a^2 - 10*a + 1 ≥ 0`.\n\nWe can `nlinarith` which works with reals and polynomial inequalities.\n\nSo tactic: `nlinarith`.\n\nThat should close the goal.\n</think>\n```lean4\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  nlinarith\n```\n",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  nlinarith",
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_2",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "We need to prove: \"10*a ≤ 28*a^2 + 1\" for all real a.\n\nConsider rewriting as 28*a^2 - 10*a + 1 ≥ 0. Compute discriminant: b^2 - 4ac = (-10)^2 - 4*28*1 = 100 - 112 = -12 < 0. Since the quadratic coefficient 28 > 0, the quadratic is always positive, so the inequality holds. But how to formalize in Lean? Perhaps complete the square:\n\n28*a^2 - 10*a + 1 = (something squared) + positive constant.\n\nCompute: 28*a^2 - 10*a + 1 = 28*(a^2 - (10/28)*a) + 1 = 28*(a^2 - (5/14)*a) + 1. Complete square: a^2 - (5/14)a = (a - 5/28)^2 - (5/28)^2. So:\n\n28*( (a - 5/28)^2 - (5/28)^2 ) + 1 = 28*(a - 5/28)^2 - 28*(25/784) + 1 = 28*(a - 5/28)^2 - (25/28) + 1 = 28*(a - 5/28)^2 + (3/28). Indeed, 1 - 25/28 = 3/28 > 0.\n\nSo inequality: 28*a^2 - 10*a + 1 = 28*(a - 5/28)^2 + 3/28 ≥ 0 (since square term nonnegative, plus constant positive), holds.\n\nThus we can prove by nlinarith or nlinarith might handle discriminants? nlinarith works over ℝ, but may need positivity of discriminant? Actually nlinarith can handle quadratic inequalities if the quadratic is always nonnegative. Let's test: nlinarith can prove? Possibly. But we need to write a simple proof.\n\nWe can use nlinarith: \"nlinarith\" is a tactic that solves nonlinear arithmetic over ℝ, ℚ, ℤ, ℕ. So \"nlinarith\" will likely close the goal immediately. But the problem might be expecting a specific approach? Use nlinarith.\n\nAlternatively, we can use \"positivity\" on the expression? Or use \"calc\" with \"ring\" and \"nlinarith\".\n\nThe simplest: `nlinarith`.\n\nThus the proof:\n\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  nlinarith\n\nThat should work.\n\nBut we must ensure we can use nlinarith; it's a tactic in Mathlib. The open imports are BigOperators, Nat, Real, Topology. nlinarith is available in Mathlib. So this is fine.\n\nThus final code block with the theorem and proof.\n\nWe will not output anything else after the code block.\n</think>\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  nlinarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  nlinarith",
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_3",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "We need to prove: 10*a ≤ 28*a^2 + 1 for any real a.\n\nGoal: Show that 28*a^2 - 10*a + 1 ≥ 0.\n\nConsider the quadratic expression: 28*a^2 - 10*a + 1. Its discriminant is (-10)^2 - 4*28*1 = 100 - 112 = -12 < 0. Since the leading coefficient (28) is positive, the quadratic is always positive for all real a. So the inequality holds for all a ∈ ℝ.\n\nWe can rewrite by completing the square: 28*a^2 - 10*a + 1 = 28*(a^2 - (10/28)a) + 1 = 28*(a^2 - (5/14)a) + 1 = 28 * [(a - 5/28)^2 - (25/784)] + 1 = 28*(a-5/28)^2 - 28*(25/784) + 1 = 28*(a-5/28)^2 - (25/28) + 1 = 28*(a-5/28)^2 + (3/28). Since (3/28) > 0, the expression is positive.\n\nAlternatively, can use `nlinarith` but in Lean 4 `nlinarith` is not always available. We can use `positivity`? Or directly `calc` with `ring` and `sq_nonneg`.\n\nSince the discriminant is negative, we can factor? Not over reals. So we use `sq_nonneg` to show that 28*(a - 5/28)^2 ≥ 0, then 28*(a-5/28)^2 + 3/28 > 0.\n\nSo compute:\n\nLet d := a - 5/28.\nThen 28*d^2 + 3/28 ≥ 3/28 > 0.\n\nThus 28*a^2 - 10*a + 1 = 28*(a - 5/28)^2 + 3/28.\n\nLet's verify algebraically:\n\n28*a^2 - 10*a + 1 = 28*a^2 - 10*a + 1.\n\nCompute 28*(a - 5/28)^2 + 3/28. Expand:\n\n28*(a^2 - (10/28)a + (25/784)) + 3/28 = 28*a^2 - 10*a + 28*(25/784) + 3/28 = 28*a^2 - 10*a + (700/784) + 3/28.\n\nNow 700/784 = 25/28. And 3/28 + 25/28 = 28/28 = 1. So it's equal.\n\nSo the identity holds: 28*a^2 - 10*a + 1 = 28*(a - 5/28)^2 + 3/28.\n\nSince (a - 5/28)^2 ≥ 0, we have 28*(a - 5/28)^2 + 3/28 ≥ 3/28 > 0.\n\nThus 28*a^2 - 10*a + 1 > 0 for all real a, implying 10*a ≤ 28*a^2 + 1.\n\nSo we can write a Lean proof using ring and sq_nonneg.\n\nPlan:\n\nnlinarith is not available by default. So we compute directly:\n\nhave h : 28*a^2 - 10*a + 1 = 28*(a - 5/28)^2 + (3/28) := by ring\nBut ring is available. Then note that (a - 5/28)^2 ≥ 0, so the RHS is ≥ 3/28 > 0, so >0.\n\nThen the inequality follows.\n\nLet's write the code:\n\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  have h : 0 ≤ 28*a^2 - 10*a + 1 := by\n    have eq : 28*a^2 - 10*a + 1 = 28*(a - 5/28)^2 + (3/28) := by ring\n    rw [eq]\n    have sq_nonneg' : 0 ≤ (a - 5/28)^2 := sq_nonneg _\n    nlinarith? Actually we have positivity: 28*(a-5/28)^2 ≥ 0 and 3/28 > 0. So sum > 0.\n    nlinarith can handle that but we can use nlinarith with the positivity.\n    But we can avoid nlinarith: \n    have pos : 0 ≤ 28*(a - 5/28)^2 := mul_nonneg (by norm_num) sq_nonneg'\n    have pos2 : 0 < 3/28 := by norm_num\n    linarith\n  linarith\n\nBut careful: linarith works with rational coefficients.\n\nAlternatively: Using `nlinarith` would be straightforward but may not be imported. However, `linarith` is available.\n\nWe can do:\n\nhave h : 0 ≤ 28*a^2 - 10*a + 1 := by\n  have : 28*a^2 - 10*a + 1 = 28*(a - 5/28)^2 + 3/28 := by ring\n  rw [this]\n  have : 0 ≤ 28*(a - 5/28)^2 := mul_nonneg (by norm_num : 0 ≤ (28 : ℝ)) (sq_nonneg _)\n  have : 0 ≤ 3/28 := by norm_num\n  nlinarith? Actually sum of nonnegative numbers is nonnegative.\n  linarith\n\nThen `linarith` from h.\n\nCheck: linarith can handle linear combinations. Since h says 0 ≤ 28*a^2 - 10*a + 1, i.e., 28*a^2 - 10*a + 1 ≥ 0. Then 10*a ≤ 28*a^2 + 1 by rearranging.\n\nlinarith can handle that.\n\nYes.\n\nSo final code.\n</think>\n```lean4\nopen BigOperators Nat Real Topology\n\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  have h : 0 ≤ 28 * a ^ 2 - 10 * a + 1 := by\n    have h_eq : 28 * a ^ 2 - 10 * a + 1 = 28 * ((a - 5/28) ^ 2) + (3/28 : ℝ) := by ring\n    rw [h_eq]\n    have h_nonneg_sq : 0 ≤ (a - 5/28) ^ 2 := sq_nonneg _\n    have h_nonneg_mul : 0 ≤ 28 * ((a - 5/28) ^ 2) := mul_nonneg (by norm_num : (0 : ℝ) ≤ 28) h_nonneg_sq\n    have h_pos_frac : (0 : ℝ) ≤ 3/28 := by norm_num\n    linarith\n  linarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h : 0 ≤ 28 * a ^ 2 - 10 * a + 1 := by\n    have h_eq : 28 * a ^ 2 - 10 * a + 1 = 28 * ((a - 5/28) ^ 2) + (3/28 : ℝ) := by ring\n    rw [h_eq]\n    have h_nonneg_sq : 0 ≤ (a - 5/28) ^ 2 := sq_nonneg _\n    have h_nonneg_mul : 0 ≤ 28 * ((a - 5/28) ^ 2) := mul_nonneg (by norm_num : (0 : ℝ) ≤ 28) h_nonneg_sq\n    have h_pos_frac : (0 : ℝ) ≤ 3/28 := by norm_num\n    linarith\n  linarith",
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 0.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_4",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "We need to prove: ∀ a : ℝ, 10*a ≤ 28*a^2 + 1.\n\nThis is equivalent to showing 28*a^2 - 10*a + 1 ≥ 0. Consider the quadratic in a: 28*a^2 - 10*a + 1 = (2*a - 1/14?) Wait compute discriminant D = (-10)^2 - 4*28*1 = 100 - 112 = -12 < 0, so the quadratic is always positive (since leading coefficient 28 > 0). Therefore the inequality holds for all real a.\n\nBut in Lean, we can prove this by rewriting to a sum of squares. For example:\n28*a^2 - 10*a + 1 = (a*sqrt(28) - 5/sqrt(28))^2 + something? Let's compute perfect square: 28*a^2 - 10*a + 1 = (√28*a - 5/√28)^2 + (1 - 25/28) = (√28*a - 5/√28)^2 + 3/28. That's messy with sqrt.\n\nBetter: Multiply through by 28 to clear denominators? Another approach: Write 28*a^2 - 10*a + 1 = 1/28*(28*a - 5)^2 + 3/28? Check: (28*a-5)^2 = 784*a^2 - 280*a + 25, dividing by 28 gives 28*a^2 - 10*a + 25/28. Then plus 3/28 gives 28*a^2-10*a+1? Actually 25/28 + 3/28 = 28/28 = 1. So yes:\n28*a^2 - 10*a + 1 = (28*a - 5)^2 / 28 + 3/28 = (1/28)*((28*a - 5)^2 + 3). That's non-negative.\n\nBut simpler: nlinarith can handle this directly. Since we import Real, nlinarith is available. So we can just use `nlinarith` tactic.\n\nThus proof: `nlinarith`. That's it.\n</think>\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  nlinarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  nlinarith",
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_5",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "We need to prove: ∀ a : ℝ, 10a ≤ 28a² + 1.\n\nThis is an inequality in ℝ. It's a quadratic inequality: 28a² - 10a + 1 ≥ 0.\n\nCompute discriminant: Δ = 100 - 4*28*1 = 100 - 112 = -12 < 0. Since the leading coefficient (28) is positive, the quadratic is always positive. So the inequality holds for all real a.\n\nBut to prove this in Lean, we can use `nlinarith` tactic, which works over ℝ. Since `nlinarith` handles polynomial inequalities, we can simply use `nlinarith`. Alternatively, we could use `positivity` or `calc` with `ring` and `field`, but `nlinarith` solves it directly.\n\nThus, the proof is just `nlinarith`.\n</think>\n\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  nlinarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  nlinarith",
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_6",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "We need to prove: ∀ a : ℝ, 10*a ≤ 28*a^2 + 1. Equivalently, 28*a^2 - 10*a + 1 ≥ 0. Compute the discriminant: Δ = (-10)^2 - 4*28*1 = 100 - 112 = -12 < 0. Since the leading coefficient (28) is positive, the quadratic is always positive. So the inequality holds for all real a.\n\nWe can rewrite the goal as: 28*a^2 - 10*a + 1 ≥ 0. Complete the square or use the fact that it's a quadratic with negative discriminant. Alternatively, we can rewrite as: 28*a^2 - 10*a + 1 = 28*(a^2 - (10/28)a) + 1 = 28*(a^2 - (5/14)a) + 1 = 28*((a - 5/28)^2 - (5/28)^2) + 1 = 28*(a-5/28)^2 - 28*(25/784) + 1 = 28*(a-5/28)^2 - 25/28 + 1 = 28*(a-5/28)^2 + 3/28. Since 28*(a-5/28)^2 ≥ 0 and 3/28 > 0, we have the inequality.\n\nBut we can use `nlinarith` which handles polynomial inequalities over ℝ. Since we are in Lean 4, `nlinarith` is available. So `nlinarith` should close the goal directly.\n\nThus the proof:\n```lean4\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  nlinarith\n```\n</think>\n```lean4\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  nlinarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  nlinarith",
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_7",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "We need to prove: `10 * a ≤ 28 * a ^ 2 + 1` for all real `a`. This is a quadratic inequality. Rearranging: `28*a^2 - 10*a + 1 ≥ 0`. Compute discriminant: `Δ = (-10)^2 - 4*28*1 = 100 - 112 = -12 < 0`. Since leading coefficient positive (28 > 0) and discriminant negative, the quadratic is always positive. In Lean, we can complete the square or use `nlinarith` or `positivity` if it's always positive. `nlinarith` can handle polynomial inequalities over ℝ. Let's try `nlinarith`. Actually `nlinarith` works for polynomial inequalities. So we can just write `nlinarith`.\n</think>\n```lean4\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  nlinarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  nlinarith",
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_8",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "We need to prove: For all real a, 10*a ≤ 28*a^2 + 1.\n\nThat is equivalent to 28*a^2 - 10*a + 1 ≥ 0.\n\nCompute discriminant: Δ = (-10)^2 - 4*28*1 = 100 - 112 = -12 < 0. Since the coefficient of a^2 is positive (28 > 0), the quadratic is always positive. So the inequality holds for all real a.\n\nBut we need to produce a Lean proof.\n\nWe can rewrite:\n\n28*a^2 + 1 - 10*a = 28*a^2 - 10*a + 1 = 28*(a^2 - (10/28)*a + 1/28) = 28*(a^2 - (5/14)*a + 1/28).\n\nComplete the square: a^2 - (5/14)a + (5/28)^2 - (5/28)^2 + 1/28 = (a - 5/28)^2 - (25/784) + 1/28. But 1/28 = 28/784. So -25/784 + 28/784 = 3/784. Thus the expression = (a - 5/28)^2 + 3/784 ≥ 0.\n\nHence 28*a^2 - 10*a + 1 = 28*((a - 5/28)^2 + 3/784) = 28*(a - 5/28)^2 + 28*(3/784) = 28*(a - 5/28)^2 + 84/784 = 28*(a - 5/28)^2 + 3/28.\n\nBoth terms are nonnegative (28*(a - 5/28)^2 ≥ 0, 3/28 > 0). So sum ≥ 0.\n\nWe can use nlinarith or polyrith or something. Since this is a quadratic inequality in one variable, nlinarith should handle it directly.\n\nSimplify: We can use `nlinarith` to close the goal.\n\nPlan: `nlinarith`.\n\nWe import `Real`. `nlinarith` is available from `Tactic`? Actually `nlinarith` is in `Mathlib`. Since the problem says `open BigOperators Nat Real Topology`, that suggests Mathlib is available. So we can just use `nlinarith`.\n\nThus the code:\n\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  nlinarith\n```\n\nWe need to ensure `nlinarith` is imported. Since the file doesn't show imports, but `open` suggests Mathlib. In many environments, `nlinarith` is available via `import Mathlib.Tactic`. Should we add an explicit import? The problem says \"You may only use the information in the problem statement below.\" So we must work within that. It's likely that `nlinarith` is in scope. I'll just use `nlinarith`.\n\nAlternatively, we can use `positivity`? Not needed.\n\nThus final answer.\n\n</think>\nWe need to show the inequality holds for all real a. The quadratic 28a^2 - 10a + 1 has negative discriminant, so it's always nonnegative. The tactic `nlinarith` can handle such polynomial inequalities directly. Use `nlinarith` to close the goal.\n\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  nlinarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a : ℝ) : 10 * a ≤ 28 * a ^ 2 + 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  nlinarith",
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "state_0",
+      "target": "action_0",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_1",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_2",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_3",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_4",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_5",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_6",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_7",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_8",
+      "relation": "expanded_to"
+    }
+  ]
+}
