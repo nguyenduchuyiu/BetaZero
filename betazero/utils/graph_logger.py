@@ -70,7 +70,6 @@ class GraphLogger:
                 "id": a_id,
                 "type": "AND",
                 "action_type": action.action_type,
-                "is_sc_tactic": action.is_sc_tactic,
                 "status": graph.status(action),
                 "content": action.content,
                 "prompt": action.prompt,

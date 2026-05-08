@@ -12,7 +12,7 @@ REPL_DIR = os.environ.get("LEAN_WORKSPACE", os.path.join(os.getcwd(), "repl/"))
 
 
 class ASTDaemon:
-    def __init__(self, repl_dir: str = REPL_DIR, max_requests: int = 500):
+    def __init__(self, repl_dir: str = REPL_DIR, max_requests: int = 2000):
         self.repl_dir = repl_dir
         self.max_requests = max_requests
         self.lock = threading.Lock()

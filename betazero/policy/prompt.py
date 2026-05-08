@@ -45,60 +45,6 @@ Remember: You are generating an exploratory search node, not a finished proof. I
 
 """).strip()
 
-_TACTIC_SELF_CORRECT_INSTRUCTION = textwrap.dedent(
-  """
-  Analyze the compiler feedback and the failed tactic. Write a complete Lean 4 tactic that fixes the error.
-  You should use the [SYNTAX-FIXED REFERENCE] as a hint for the correct structure.
-
-  ### EXAMPLES OF SELF-CORRECTION
-
-  Example 1 (Error: Unknown identifier):
-
-  [PROBLEM]
-
-  ```lean4
-  theorem my_theorem (n : ℕ) 
-    : n + 0 = n := by
-    sorry
-  ```
-
-  [PREVIOUS FAILED TACTIC]
-
-  ```lean4
-  theorem my_theorem (n : ℕ) 
-    : n + 0 = n := by
-    rw [add_zero_property]
-  ```
-
-  [LEAN 4 COMPILER FEEDBACK]
-  error: unknown identifier 'add_zero_property'
-
-  [SYNTAX-FIXED REFERENCE (Used sorry)]
-
-  ```lean4
-  theorem my_theorem (n : ℕ) 
-    : n + 0 = n := by
-    sorry
-  ```
-
-  # Example 1 OUTPUT
-
-  <think>
-  The compiler can't find 'add_zero_property'. Looking at the syntax-fixed reference, the correct lemma name is 'Nat.add_zero'.
-  </think>
-
-  ```lean4
-  theorem my_theorem (n : ℕ) 
-    : n + 0 = n := by
-    rw [Nat.add_zero]
-  ```
-  
-  END OF EXAMPLES
-  Now, fix the failed tactic in the [PROBLEM] below using the same thought process and format.
-  """
-).strip()
-
-
 def _format_chatml_from_messages(messages: list[dict[str, str]]) -> str:
     parts = []
     for msg in messages:
@@ -106,32 +52,10 @@ def _format_chatml_from_messages(messages: list[dict[str, str]]) -> str:
         content = msg["content"]
         parts.append(f"<|im_start|>{role}\n{content}\n<|im_end|>")
     
-    # Nếu tin nhắn cuối là assistant và rỗng hoặc là prefix, ta bỏ <|im_end|> cuối để model hoàn thiện
-    # Nhưng trong ChatML chuẩn cho completion:
     res = "\n".join(parts)
     if messages[-1]["role"] == "assistant":
-        # Bỏ <|im_end|> cuối cùng để model gõ tiếp
         res = res.rsplit("\n<|im_end|>", 1)[0]
     return clean_prompt(res)
-
-# def _format_chatml_from_messages(messages: list[dict[str, str]]) -> str:
-#     parts = []
-#     for msg in messages:
-#         role = msg["role"]
-#         content = msg["content"]
-#         # Đóng mở theo chuẩn của Phi-4-mini
-#         parts.append(f"<|{role}|>\n{content}\n<|end|>")
-    
-#     res = "\n".join(parts)
-    
-#     # Nếu tin nhắn cuối là mồi sẵn của assistant, cắt bỏ <|end|> để model viết tiếp
-#     if messages[-1]["role"] == "assistant":
-#         res = res.rsplit("\n<|end|>", 1)[0] + "\n"
-#     # Nếu tin nhắn cuối là của user, phải chủ động mở thẻ <|assistant|> để model biết đến lượt
-#     elif messages[-1]["role"] == "user":
-#         res += "\n<|assistant|>\n"
-        
-#     return clean_prompt(res) # Giả định bạn đã có hàm clean_prompt
 
 def _format_problem(state: ProofState) -> str:
     code = build_theorem(state, "sorry", name="my_theorem").rstrip()
@@ -145,10 +69,8 @@ def _format_problem(state: ProofState) -> str:
 def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -> list[dict[str, str]]:
     if action_type == "tactic":
         instruction = _TACTIC_INSTRUCTION
-        # prefix = "\n>>> [MODE: TACTIC] SOLVE THE GOAL USING TACTICS (`by ...`).<<<\n"
     elif action_type == "skeleton":
         instruction = _SKELETON_INSTRUCTION
-        # prefix = "\n>>> [MODE: PLANNER] STRICTLY DEFER ALL PROOFS WITH `:= sorry`. NO TACTICS ALLOWED. <<<\n"
     else:
         raise ValueError(action_type)
     
@@ -166,35 +88,6 @@ def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -
 
 def build_prompt(state: ProofState, action_type: str, extra_rules: str = "") -> str:
     messages = build_messages(state, action_type, extra_rules)
-    return _format_chatml_from_messages(messages)
-
-def build_tactic_self_correct_messages(
-    state: ProofState,
-    original_tactic: str,
-    lean_feedback: str,
-    sorrified_tactic: str,
-) -> list[dict[str, str]]:
-    full_system = _TACTIC_SELF_CORRECT_INSTRUCTION + '\n\n' + _OUTPUT_FORMAT_INSTRUCTION
-    user_msg = (
-        _USER_BASE_INSTRUCTION + "\n\n"
-        + _format_problem(state) + "\n\n"
-        + f"[PREVIOUS FAILED TACTIC]\n```lean4\n" + original_tactic.strip() + "\n```\n\n"
-        + "[LEAN 4 COMPILER FEEDBACK]\n" + (lean_feedback.strip() or '(No clear error message)') + "\n\n"
-        + "[SYNTAX-FIXED REFERENCE (Used sorry)]\n```lean4\n" + sorrified_tactic.strip() + "\n```"
-    )
-    return [
-        {"role": "system", "content": full_system},
-        {"role": "user", "content": user_msg},
-        {"role": "assistant", "content": "<think>\n"}
-    ]
-
-def build_tactic_self_correct_prompt(
-    state: ProofState,
-    original_tactic: str,
-    lean_feedback: str,
-    sorrified_tactic: str,
-) -> str:
-    messages = build_tactic_self_correct_messages(state, original_tactic, lean_feedback, sorrified_tactic)
     return _format_chatml_from_messages(messages)
 
 

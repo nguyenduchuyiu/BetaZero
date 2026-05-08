@@ -22,8 +22,8 @@ class ProofStitcher:
         stitched = parts[0]
         for i, proof in enumerate(child_proofs):
             if proof is not None:
-                # Calculate base indentation from the line containing the 'sorry'
-                lines = parts[0].splitlines()
+                # Calculate base indentation from the current stitched code
+                lines = stitched.splitlines()
                 indent = " " * (len(lines[-1]) - len(lines[-1].lstrip())) if lines else ""
                 
                 # Indent child proof lines appropriately
@@ -31,6 +31,12 @@ class ProofStitcher:
                 indented_proof = "\n".join(
                     (indent + l if idx > 0 else l) for idx, l in enumerate(proof_lines)
                 )
+
+                # Auto-add 'by' if we are filling an assignment ':=' and proof doesn't have it
+                prefix = parts[i].rstrip()
+                if prefix.endswith(":=") and not proof.strip().startswith("by"):
+                    indented_proof = "by " + indented_proof
+                
                 stitched += indented_proof
             else:
                 stitched += "sorry"

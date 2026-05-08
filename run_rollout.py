@@ -115,7 +115,7 @@ def main():
             os.makedirs(os.path.dirname(out_path), exist_ok=True)
             
             try:
-                _, _, graph, q_values = rollout_engine.rollout(root_state)
+                _, graph, q_values = rollout_engine.rollout(root_state)
                 GraphLogger().save_json(graph, root_state, q_values, filepath=out_path)
                 print(f"Saved to: {out_path}")
             except Exception as e:

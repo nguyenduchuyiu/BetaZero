@@ -50,7 +50,6 @@ def train(cfg: Config = Config()):
 
     adapter_path: str | None = None  # updated each iteration
     grpo_buffer: list = []
-    self_correction_buffer: list = []
 
     try:
         for iteration in tqdm(range(1, cfg.total_iterations + 1), desc=cfg.run_name):
@@ -58,7 +57,6 @@ def train(cfg: Config = Config()):
             theorems = dataset.sample(cfg.theorems_per_iter)
 
             samples = []
-            sc_samples: list = []
             try:
                 # ── Phase 1: Rollout with vLLM subprocess ─────────────────────
                 vllm.start(adapter_path)
@@ -67,9 +65,8 @@ def train(cfg: Config = Config()):
                         vllm, lean, sorrifier, reward,
                         K=cfg.K, max_depth=cfg.max_depth, max_nodes=cfg.max_nodes,
                     )
-                    batch, sc_batch, g, qv = rollout.rollout(thm)
+                    batch, g, qv = rollout.rollout(thm)
                     samples.extend(batch)
-                    sc_samples.extend(sc_batch)
                     if cfg.rollout_graph_log_dir:
                         path = os.path.join(
                             cfg.rollout_graph_log_dir, cfg.run_name, f"iter{iteration:04d}_thm{j:02d}.json"
@@ -82,14 +79,11 @@ def train(cfg: Config = Config()):
 
             if cfg.min_samples_for_grpo > 0:
                 grpo_buffer.extend(samples)
-                self_correction_buffer.extend(sc_samples)
                 train_batch = grpo_buffer
-                aux_train_batch = self_correction_buffer
                 need = cfg.min_samples_for_grpo
                 do_train = len(train_batch) >= need or (last_iter and len(train_batch) > 0)
             else:
                 train_batch = samples
-                aux_train_batch = sc_samples
                 need = 1
                 do_train = len(train_batch) > 0
 
@@ -106,7 +100,7 @@ def train(cfg: Config = Config()):
             if do_train:
                 policy = TrainablePolicy(cfg, adapter_path)
                 try:
-                    m = trainer.update(policy, train_batch, aux_train_batch)
+                    m = trainer.update(policy, train_batch)
                     adapter_path = os.path.join(ckpt_dir, f"iter{iteration:04d}")
                     policy.save(adapter_path)
                 finally:
@@ -116,7 +110,6 @@ def train(cfg: Config = Config()):
                     torch.cuda.empty_cache()
                 if cfg.min_samples_for_grpo > 0:
                     grpo_buffer.clear()
-                    self_correction_buffer.clear()
             elif cfg.min_samples_for_grpo > 0:
                 logger.info(
                     f"[{iteration:4d}] skip GRPO: buffer {len(grpo_buffer)}/{cfg.min_samples_for_grpo}"

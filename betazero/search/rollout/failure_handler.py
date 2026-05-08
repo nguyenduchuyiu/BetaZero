@@ -27,7 +27,6 @@ class FailureHandler:
         result: LeanExecutionResult,
         prompt: str = "",
         *,
-        is_sc_tactic: bool = False,
         tokens: tuple[str, ...] | None = None,
         token_logprobs: tuple[float, ...] | None = None,
     ) -> None:
@@ -47,7 +46,6 @@ class FailureHandler:
                 extracted_code="",
                 children=(),
                 prompt=prompt,
-                is_sc_tactic=is_sc_tactic,
             ),
             r_env=r,
             tactic_status="FAILED" if action_kind == "tactic" else None,
@@ -58,11 +56,10 @@ class FailureHandler:
         graph: ANDORGraph,
         state: ProofState,
         action_code: str,
+        lean_code: str,
         state_code: str,
         state_vr: dict,
         prompt: str = "",
-        *,
-        is_sc_tactic: bool = False,
     ) -> str:
         patched = self.sorrifier.fix_code(state_code)
         patched_vr = self.lean.verify(patched)
@@ -72,10 +69,9 @@ class FailureHandler:
             Action(
                 action_type="tactic",
                 content=action_code,
-                extracted_code=extract_action_body(patched),
+                extracted_code=lean_code,
                 children=(),
                 prompt=prompt,
-                is_sc_tactic=is_sc_tactic,
             ),
             r_env=r_fail,
             tactic_status="FAILED",
@@ -87,6 +83,7 @@ class FailureHandler:
         graph: ANDORGraph,
         state: ProofState,
         action_code: str,
+        lean_code: str,
         state_code: str,
         state_vr: dict,
         prompt: str = "",
@@ -100,7 +97,7 @@ class FailureHandler:
             Action(
                 action_type="skeleton",
                 content=action_code,
-                extracted_code="",
+                extracted_code=lean_code,
                 children=(),
                 prompt=prompt,
             ),

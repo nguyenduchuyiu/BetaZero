@@ -25,8 +25,7 @@ class GRPOTrainer:
         self.accumulation_steps = max(1, accumulation_steps)
 
     def update(self, policy: TrainablePolicy,
-               samples: list[tuple[ProofState, Action, float, float]],
-               aux_samples: list[tuple[ProofState, Action, float, float]] | None = None) -> dict:
+               samples: list[tuple[ProofState, Action, float, float]]) -> dict:
         """GRPO update on pre-collected rollout samples. Returns metrics dict."""
         if not samples:
             return _EMPTY

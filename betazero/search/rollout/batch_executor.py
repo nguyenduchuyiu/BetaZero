@@ -24,6 +24,10 @@ class RolloutBudget:
         self.used = 0
         self._lock = threading.Lock()
 
+    def reset(self):
+        with self._lock:
+            self.used = 0
+
     def try_consume(self) -> bool:
         with self._lock:
             if self.used >= self.max_nodes:
@@ -72,8 +76,6 @@ class BatchExecutor:
         action_type: str,
         budget: RolloutBudget,
         prompts: list[str] | None = None,
-        *,
-        is_sc_tactic: bool = False,
     ) -> list[list[tuple[str, str, str] | None]]:
         if prompts is None:
             prompts = [build_prompt(s, action_type) for s in states]
@@ -98,7 +100,6 @@ class BatchExecutor:
                             raw_output,
                             LeanExecutionResult.from_transport_error("empty_lean_code"),
                             prompts[i],
-                            is_sc_tactic=is_sc_tactic,
                         )
                         continue
                     fut = pool.submit(BatchExecutor.safe_execute, self.lean, state, lean_code)
@@ -111,7 +112,7 @@ class BatchExecutor:
                 prompt = prompts[i]
                 if res.has_system_failure:
                     self.failure.handle_system_execute_failure(
-                        graph, state, action_type, raw_output, res, prompt, is_sc_tactic=is_sc_tactic
+                        graph, state, action_type, raw_output, res, prompt
                     )
                     continue
                 state_code, state_vr, subgoals = res.state_code, res.verify, list(res.subgoals)
@@ -125,7 +126,6 @@ class BatchExecutor:
                         extracted_code=lean_code,
                         children=(),
                         prompt=prompt,
-                        is_sc_tactic=is_sc_tactic,
                     )
                     graph.expand(
                         state,
@@ -137,7 +137,7 @@ class BatchExecutor:
                         graph.set_skeleton_override(act, True)
                 elif action_type == "tactic":
                     sorr_body = self.failure.handle_failed_tactic(
-                        graph, state, raw_output, state_code, state_vr, prompt, is_sc_tactic=is_sc_tactic
+                        graph, state, raw_output, lean_code, state_code, state_vr, prompt
                     )
                     feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), sorr_body)
                 elif action_type == "skeleton":
@@ -158,6 +158,7 @@ class BatchExecutor:
                             graph,
                             state,
                             raw_output,
+                            lean_code,
                             state_code,
                             state_vr,
                             prompt,

@@ -10,6 +10,10 @@ from betazero.utils.lean_parse import parse_proof_state
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+os.chdir(ROOT)
+
 SOLVE_B = """
 open Nat Real
 theorem my_theorem (x b : ℝ)
