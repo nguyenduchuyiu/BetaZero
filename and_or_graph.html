@@ -679,6 +679,10 @@
         <div class="detail-code" id="d-goal"></div>
         <div class="detail-section-title" style="margin-top:10px">Context</div>
         <div class="detail-code" id="d-context"></div>
+        <div id="d-proof-section" style="display:none">
+          <div class="detail-section-title" style="margin-top:10px">Proof Body</div>
+          <div class="detail-code" id="d-proof-body" style="color:#2ecc71"></div>
+        </div>
       </div>
 
       <div id="d-action-section" style="display:none">
@@ -692,20 +696,22 @@
         <div class="detail-code" id="d-prompt" style="max-height:80px"></div>
       </div>
 
-      <div id="d-metrics-section" style="display:none">
+      <div id="d-metrics-section">
         <div class="detail-section-title">Metrics</div>
         <div class="metric-grid">
-          <div class="metric-card">
-            <div class="metric-label">r_env</div>
-            <div class="metric-value" id="d-r-env">—</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">r_dep</div>
-            <div class="metric-value" id="d-r-dep">—</div>
+          <div id="m-and-only" style="display:contents">
+            <div class="metric-card">
+              <div class="metric-label">r_env</div>
+              <div class="metric-value" id="d-r-env">—</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">r_dep</div>
+              <div class="metric-value" id="d-r-dep">—</div>
+            </div>
           </div>
           <div class="metric-card" style="grid-column:1/-1">
-            <div class="metric-label">Q-value</div>
-            <div class="metric-value" id="d-q" style="color:var(--accent)">—</div>
+            <div class="metric-label" id="d-metric-main-label">Value</div>
+            <div class="metric-value" id="d-q-v-main" style="color:var(--accent)">—</div>
           </div>
         </div>
       </div>
@@ -1013,8 +1019,8 @@ function renderGraph() {
     })
     .attr('display', showLabels ? '' : 'none');
 
-  // Metric labels (Q value for AND nodes)
-  nodeG.filter(d => d.type === 'AND' && d.metrics)
+  // Metric labels (Q for AND, V for OR)
+  nodeG.filter(d => d.metrics)
     .append('text')
     .attr('class', 'metric-label')
     .attr('dy', '0.35em')
@@ -1023,7 +1029,10 @@ function renderGraph() {
     .attr('font-family', 'JetBrains Mono, monospace')
     .attr('fill', '#e8eaf0')
     .attr('pointer-events', 'none')
-    .text(d => d.metrics ? 'Q:' + (d.metrics.Q_value||0).toFixed(2) : '')
+    .text(d => {
+      if (d.type === 'AND') return 'Q:' + (d.metrics.Q_value||0).toFixed(2);
+      return 'V:' + (d.metrics.V_value||0).toFixed(2);
+    })
     .attr('display', showMetrics ? '' : 'none');
 
   svgEl.on('click', () => closeDetail());
@@ -1221,13 +1230,25 @@ function selectNode(d, nodeMap, visEdges) {
   if (d.type === 'OR') {
     document.getElementById('d-content-section').style.display = '';
     document.getElementById('d-action-section').style.display = 'none';
-    document.getElementById('d-metrics-section').style.display = 'none';
+    document.getElementById('d-metrics-section').style.display = '';
+    document.getElementById('m-and-only').style.display = 'none';
+    document.getElementById('d-metric-main-label').textContent = 'V-value';
     document.getElementById('d-goal').textContent = (d.content && d.content.goal) || '—';
     document.getElementById('d-context').textContent = (d.content && d.content.context) || '—';
+    const pb = (d.content && d.content.proof_body);
+    if (pb) {
+      document.getElementById('d-proof-section').style.display = '';
+      document.getElementById('d-proof-body').textContent = pb;
+    } else {
+      document.getElementById('d-proof-section').style.display = 'none';
+    }
+    document.getElementById('d-q-v-main').textContent = (d.metrics && d.metrics.V_value != null) ? d.metrics.V_value.toFixed(4) : '—';
   } else {
     document.getElementById('d-content-section').style.display = 'none';
     document.getElementById('d-action-section').style.display = '';
     document.getElementById('d-metrics-section').style.display = '';
+    document.getElementById('m-and-only').style.display = 'contents';
+    document.getElementById('d-metric-main-label').textContent = 'Q-value';
     document.getElementById('d-action-type').textContent = d.action_type || '—';
     document.getElementById('d-action-content').textContent = typeof d.content === 'string' ? d.content : JSON.stringify(d.content, null, 2) || '—';
     const rawStr = typeof d.content === 'string' ? d.content : '';
@@ -1239,7 +1260,7 @@ function selectNode(d, nodeMap, visEdges) {
     const m = d.metrics || {};
     document.getElementById('d-r-env').textContent = m.r_env != null ? m.r_env.toFixed(3) : '—';
     document.getElementById('d-r-dep').textContent = m.r_dep != null ? m.r_dep.toFixed(3) : '—';
-    document.getElementById('d-q').textContent = m.Q_value != null ? m.Q_value.toFixed(4) : '—';
+    document.getElementById('d-q-v-main').textContent = m.Q_value != null ? m.Q_value.toFixed(4) : '—';
   }
 
   // Connections
@@ -1267,8 +1288,13 @@ function showTooltip(e, d) {
   html += `<div class="tt-row"><span>Status</span><span style="color:${statusColor(d.status)}">${d.status||'open'}</span></div>`;
   if (d.depth != null) html += `<div class="tt-row"><span>Depth</span><span>${d.depth}</span></div>`;
   if (d.type === 'AND') {
-  if (d.metrics) {
-    html += `<div class="tt-row"><span>Q-value</span><span style="color:#5b7fff">${(d.metrics.Q_value||0).toFixed(4)}</span></div>`;
+    if (d.metrics) {
+      html += `<div class="tt-row"><span>Q-value</span><span style="color:#5b7fff">${(d.metrics.Q_value||0).toFixed(4)}</span></div>`;
+    }
+  } else {
+    if (d.metrics) {
+      html += `<div class="tt-row"><span>V-value</span><span style="color:#5b7fff">${(d.metrics.V_value||0).toFixed(4)}</span></div>`;
+    }
   }
   tt.innerHTML = html;
   tt.style.display = 'block';

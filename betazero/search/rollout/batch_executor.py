@@ -116,7 +116,10 @@ class BatchExecutor:
                     )
                     continue
                 state_code, state_vr, subgoals = res.state_code, res.verify, list(res.subgoals)
-                r_env = self.reward.r_env(state_code, state_code, state_vr)
+                full_code = build_theorem(state, lean_code)
+                # For a complete tactic, code passed Lean with 0 sorries → r_env = 1.0
+                r_env = 1.0
+
                 if state_vr.get("complete"):
                     if action_type not in ("tactic", "skeleton"):
                         raise ValueError(f"Invalid action type: {action_type}")

@@ -11,7 +11,7 @@ from betazero.utils import Config
 from dotenv import load_dotenv
 load_dotenv()
 
-class APIServer:
+class DeepSeekAPIServer:
     """API server policy for parallel generation using official DeepSeek API."""
 
     def __init__(self, cfg: Config):

@@ -76,10 +76,17 @@ class RewardCalculator:
         n_c = len(dep_graph.get("core", []))
         n_b = len(dep_graph.get("benign", []))
         n_m = len(dep_graph.get("malignant", []))
-        h_total = n_c + n_b + n_m
-        if h_total == 0:
+        
+        if n_c == 0:
             return 0.0
-        return (self.W_c * n_c + self.W_b * n_b + self.W_m * n_m) / h_total
+            
+        # Thay vì trừ điểm trực tiếp, ta dùng hệ số phạt ở mẫu số.
+        # - Mỗi benign subgoal làm tăng mẫu số thêm 0.5 (phạt nhẹ vì dù sao cũng giải được)
+        # - Mỗi malignant subgoal làm tăng mẫu số thêm 2.0 (phạt nặng vì rác và để lại sorry)
+        penalty_b = 0.5
+        penalty_m = 2.0
+        
+        return n_c / (n_c + penalty_b * n_b + penalty_m * n_m)
 
     def compute_returns(self, graph: ANDORGraph) -> dict[Action, float]:
         return graph.backup(gamma=self.gamma, W_solve=self.W_solve)

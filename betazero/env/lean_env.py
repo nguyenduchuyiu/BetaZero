@@ -47,7 +47,20 @@ class LeanEnv:
         if not ast_expr_list:
             return empty_classification
             
-        root_expr = ast_expr_list[-1].get("expr_tree", {})
+        # Tìm block có theorem_name là "my_theorem" (mặc định của build_theorem)
+        # Nếu không thấy, lấy block cuối cùng làm fallback.
+        root_expr = {}
+        for block in reversed(ast_expr_list):
+            if block.get("theorem") == "my_theorem":
+                root_expr = block.get("expr_value_tree", {})
+                break
+        
+        if not root_expr and ast_expr_list:
+            root_expr = ast_expr_list[-1].get("expr_value_tree", {})
+            
+        if not root_expr:
+            return empty_classification
+            
         classification = SHARED_EXPR_ANALYZER.classify_skeleton_subgoals(root_expr)
         
         return classification

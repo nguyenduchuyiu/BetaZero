@@ -139,7 +139,8 @@ class Sorrifier:
         boss_idx = -1
         for i in range(err_line - 1, -1, -1):
             line_str = lines[i].strip()
-            if any(line_str.startswith(kw) for kw in ["have ", "lemma ", "theorem ", "def ", "example", "·", "cases ", "match "]):
+            # Keywords that start a block
+            if any(line_str.startswith(kw) for kw in ["have ", "lemma ", "theorem ", "def ", "example", "·", "cases ", "match ", "induction "]):
                 boss_idx = i
                 break
         
@@ -148,20 +149,37 @@ class Sorrifier:
             boss_indent = len(boss_line) - len(boss_line.lstrip())
             
             # 2. Replace parent block body with sorry, retain declaration
+            # Handle multi-line headers: search forward for ':=' if not on this line
+            found_assign = False
             if ":=" in boss_line:
                 lines[boss_idx] = boss_line.split(":=")[0] + ":= by sorry"
+                found_assign = True
             elif boss_line.strip().startswith("·"):
                 lines[boss_idx] = " " * boss_indent + "· sorry"
+                found_assign = True
             elif "=>" in boss_line:
                 lines[boss_idx] = boss_line.split("=>")[0] + "=> sorry"
+                found_assign = True
+            else:
+                # Search forward for ':='
+                for j in range(boss_idx + 1, min(boss_idx + 20, len(lines))):
+                    if ":=" in lines[j]:
+                        lines[j] = lines[j].split(":=")[0] + ":= by sorry"
+                        found_assign = True
+                        # Delete lines between boss_idx and j? No, keep the header.
+                        # But we should stop the child deletion from after j.
+                        boss_idx = j 
+                        break
             
-            # tqdm.write(f"Reset parent block at line {boss_idx + 1}")
+            if not found_assign:
+                # Fallback: just sorry the line where the error is
+                if err_line - 1 < len(lines):
+                    lines[err_line - 1] = " " * boss_indent + "sorry"
             
             # 3. Remove all child lines (greater indent) following parent
             i = boss_idx + 1
             while i < len(lines):
                 if not lines[i].strip():
-                    lines[i] = ""
                     i += 1
                     continue
                 curr_indent = len(lines[i]) - len(lines[i].lstrip())
@@ -171,9 +189,10 @@ class Sorrifier:
                 else:
                     break
         else:
-            # tqdm.write("Parent block not found, deleting problematic line.")
             if err_line - 1 < len(lines):
-                lines[err_line - 1] = ""
+                # Try to just sorry it instead of deleting
+                indent = len(lines[err_line-1]) - len(lines[err_line-1].lstrip())
+                lines[err_line - 1] = " " * indent + "sorry"
             
         self.current_content = self._clean_redundant_sorries(lines)
         
@@ -316,16 +335,8 @@ class Sorrifier:
         return blocks
 
     def _clean_redundant_sorries(self, lines: List[str]) -> str:
-        """Removes empty lines and consecutive duplicated `sorry` lines."""
-        cleaned = []
-        for line in lines:
-            if line.strip() == "":
-                continue
-            stripped = line.strip()
-            if stripped == "sorry" and cleaned and cleaned[-1].strip() == "sorry":
-                continue
-            cleaned.append(line)
-        return "\n".join(cleaned) + "\n"
+        """Keeps all lines to maintain line number stability and avoid loops."""
+        return "\n".join(lines) + ("\n" if lines else "")
 
     def _force_full_sorrify(self) -> str:
         marker = ":= by"

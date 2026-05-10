@@ -20,6 +20,7 @@ def sanitize_header(code: str) -> str:
         if in_header:
             # Catch ALL imports, not just Mathlib
             if re.match(r"^\s*import\s+", line):
+                out.append("")
                 continue
             if re.match(r"^\s*set_option\s+maxHeartbeats\s+0\s*$", line):
                 out.append("set_option maxHeartbeats 100000")

@@ -39,6 +39,9 @@ class GraphLogger:
             visited_states.add(state)
             
             s_id = self._get_state_id(state)
+            # Trích xuất proof body nếu trạng thái đã SOLVED
+            proof_body = graph.extract_proof_code(state) if graph.status(state) == "SOLVED" else "  sorry"
+
             nodes.append({
                 "id": s_id,
                 "type": "OR",
@@ -46,7 +49,11 @@ class GraphLogger:
                 "depth": graph.get_depth(state),
                 "content": {
                     "context": state.context,
-                    "goal": state.goal
+                    "goal": state.goal,
+                    "proof_body": proof_body
+                },
+                "metrics": {
+                    "V_value": max((q_values.get(a, 0.0) for a in graph.get_actions(state)), default=0.0)
                 }
             })
 

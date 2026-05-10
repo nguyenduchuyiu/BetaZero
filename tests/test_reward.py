@@ -41,7 +41,19 @@ if __name__ == "__main__":
     )
     code = "\n  linarith"
 
-    full_code = build_theorem(state, code)
+    full_code = '''
+import Mathlib
+open BigOperators Nat Real Topology
+theorem my_theorem (x : ℝ) (h₀ : 0 < x ∧ x < Real.pi) : 12 ≤ (9 * (x ^ 2 * sin x ^ 2) + 4) / (x * sin x) := by
+  rcases h₀ with ⟨hxpos, hx_lt_pi⟩
+  have hsinpos : sin x > 0 := sin_pos_of_pos_of_lt_pi hxpos hx_lt_pi
+  have hprodpos : x * sin x > 0 := mul_pos hxpos hsinpos
+  have hsq_nonneg : 0 ≤ (3*(x*sin x)-2)^2 := pow_two_nonneg _
+  have h_ineq : 12*(x*sin x) ≤ 9*(x^2*sin x^2)+4 := by
+    nlinarith
+  field_simp [hprodpos.ne.symm]
+  exact h_ineq
+  '''
 
     print("1. Chạy mock Auto-Sorrifier...")
     patched_code = mock_sorrify(full_code)

@@ -28,6 +28,15 @@ CRITICAL INSTRUCTIONS:
 1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. 
 2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.
 3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.
+
+OUTPUT FORMAT EXAMPLE:
+<think>
+[Your thinking process goes here. Be concise and direct.]
+</think>
+```lean4
+theorem my_theorem proposition := by
+  [Your tactic sequence goes here. Be concise and direct.]
+```
 """
 ).strip()
 
@@ -42,6 +51,18 @@ CRITICAL CONSTRAINTS:
 3. FLAT TOPOLOGY ONLY: Branching tactics are incompatible with this search phase. NEVER use `cases`, `rcases`, `induction`, `obtain`, or `by_cases`. 
 
 Remember: You are generating an exploratory search node, not a finished proof. Incompleteness (using `sorry`) is the strict requirement for success.
+
+OUTPUT FORMAT EXAMPLE:
+<think>
+[Your thinking process goes here. Be concise and direct.]
+</think>
+```lean4
+theorem my_theorem proposition := by
+  have h1 prop1 := sorry
+  have h2 prop2 := sorry
+  have h_final final_prop := sorry
+  exact h_final
+```
 
 """).strip()
 

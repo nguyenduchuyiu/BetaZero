@@ -56,8 +56,17 @@ class StandardRewardReconstructor:
                 node['metrics'] = {}
             
             if node['type'] == 'AND':
-                if node.get('action_type') == 'tactic':
-                    node['metrics']['r_env'] = 1.0 if node['status'] == 'SOLVED' else 0.0
+                lean_code = node.get('extracted_lean_code', '')
+                p_id = parent_state_id.get(node['id'])
+                if lean_code and p_id:
+                    p_node = nodes[p_id]
+                    st = ProofState(
+                        context=p_node['content']['context'],
+                        goal=p_node['content']['goal'],
+                        header="import Mathlib\nopen Real"
+                    )
+                    full_code = build_theorem(st, lean_code)
+                    node['metrics']['r_env'] = self.calculator.r_env(full_code, full_code, {})
                 else:
                     node['metrics']['r_env'] = 0.0
                 node['metrics']['r_dep'] = 0.0
@@ -108,7 +117,8 @@ class StandardRewardReconstructor:
                     child_proofs.append(None) # None will be replaced by 'sorry' during stitching
             
             # Stitch even if there are Nones
-            stitched = ProofStitcher.stitch(node['content'], child_proofs)
+            extracted = node.get('extracted_lean_code', '')
+            stitched = ProofStitcher.stitch(extracted, child_proofs)
             p_id = parent_state_id.get(node_id)
             if not p_id: continue
             p_node = nodes[p_id]
@@ -127,15 +137,34 @@ class StandardRewardReconstructor:
                 root_expr = expr_results[-1].get("expr_value_tree")
                 classification = SHARED_EXPR_ANALYZER.classify_skeleton_subgoals(root_expr)
                 
-                if classification.get("core_failed"):
-                    node['metrics']['r_dep'] = -1.0
+                if len(classification.get("core_failed", [])) > 0:
+                    node['metrics']['r_dep'] = 0.0
                 else:
                     mapped_analysis = {
-                        "core": classification.get("core_solved", []) + classification.get("core_failed", []),
+                        "core": classification.get("core_solved", []),
                         "benign": classification.get("benign", []),
                         "malignant": classification.get("malignant", [])
                     }
                     node['metrics']['r_dep'] = self.calculator.r_dep(mapped_analysis)
+                    if extracted:
+                        node['status'] = 'SOLVED'
+
+        # 3.5 Re-propagate Status since some skeletons might have been newly marked as SOLVED
+        for _ in range(10):
+            changed = False
+            for node_id, node in nodes.items():
+                if node['status'] == 'SOLVED': continue
+                if node['type'] == 'OR':
+                    actions = state_actions.get(node_id, [])
+                    if any(nodes[aid]['status'] == 'SOLVED' for aid in actions):
+                        node['status'] = 'SOLVED'
+                        changed = True
+                elif node['type'] == 'AND' and node.get('action_type') == 'skeleton':
+                    subgoals = children.get(node_id, [])
+                    if subgoals and all(nodes[sid]['status'] == 'SOLVED' for sid in subgoals):
+                        node['status'] = 'SOLVED'
+                        changed = True
+            if not changed: break
 
         # 4. Final Reward Propagation (Q and V)
         for _ in range(20): 
@@ -170,7 +199,9 @@ class StandardRewardReconstructor:
 
 if __name__ == "__main__":
     recon = StandardRewardReconstructor(
+        # "outputs/rollouts/deepseekr1qwen/miniF2F-valid-100",
+        # "deepseekr1qwen/miniF2F-valid-100"
         "outputs/rollouts/deepseekv4/miniF2F-valid-100",
-        "outputs/rollouts_recalculated/miniF2F-valid-100"
+        "deepseekv4/miniF2F-valid-100"
     )
     recon.run()

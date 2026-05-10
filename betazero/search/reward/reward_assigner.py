@@ -32,16 +32,20 @@ class DependencyRewardAssigner:
             dep_analysis = self.lean.analyze_dependencies(full_compilable_code)
             
             # 4. Map outputs to Calculator format and assign
-            mapped_analysis = {
-                "core": dep_analysis.get("core_solved", []) + dep_analysis.get("core_failed", []),
-                "benign": dep_analysis.get("benign", []),
-                "malignant": dep_analysis.get("malignant", [])
-            }
-            
-            r_dep_score = self.reward.r_dep(mapped_analysis)
-            
-            # Fatal penalty for missing core subgoals
-            if dep_analysis.get("core_failed"):
-                r_dep_score = -1.0 
+            if len(dep_analysis.get("core_failed", [])) > 0:
+                r_dep_score = 0.0
+            else:
+                mapped_analysis = {
+                    "core": dep_analysis.get("core_solved", []),
+                    "benign": dep_analysis.get("benign", []),
+                    "malignant": dep_analysis.get("malignant", [])
+                }
+                r_dep_score = self.reward.r_dep(mapped_analysis)
                 
+                # Nếu không có core_failed, chứng tỏ các subgoal chứa sorry chỉ là malignant/benign.
+                # Do đó skeleton này THỰC CHẤT đã được solved!
+                # Guard: chỉ set override khi action có code thực sự (tránh false-positive khi extracted_code rỗng)
+                if action.extracted_code:
+                    graph.set_skeleton_override(action, True)
+            
             graph.set_r_dep(action, r_dep_score)

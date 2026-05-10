@@ -14,7 +14,8 @@ from betazero.search.sorrifier import Sorrifier
 from betazero.search.reward import RewardCalculator
 from betazero.utils.config import Config
 from betazero.policy.vllm_server import VLLMServer
-from betazero.policy.api_server import APIServer
+from betazero.policy.deepseek_server import DeepSeekAPIServer
+from betazero.policy.gemini_server import GeminiAPIServer
 from betazero.utils.lean_parse import parse_proof_state
 from betazero.utils.lean_cmd import DEFAULT_OPEN
 from betazero.utils.graph_logger import GraphLogger
@@ -31,7 +32,7 @@ def main():
     ap.add_argument("--max-depth", type=int, default=None)
     ap.add_argument("--max-nodes", type=int, default=None)
     ap.add_argument("--lean-timeout", type=int, default=None)
-    ap.add_argument("--policy", type=str, choices=["vllm", "api"], default="vllm")
+    ap.add_argument("--policy", type=str, choices=["vllm", "deepseek", "gemini"], default="vllm")
     args = ap.parse_args()
 
     if not args.lean_file and not args.lean_dir:
@@ -72,8 +73,12 @@ def main():
     try:
         if args.policy == "vllm":
             policy_server = VLLMServer(cfg)
+        elif args.policy == "deepseek":
+            policy_server = DeepSeekAPIServer(cfg)
+        elif args.policy == "gemini":
+            policy_server = GeminiAPIServer(cfg)
         else:
-            policy_server = APIServer(cfg)
+            raise ValueError(f"Unknown policy: {args.policy}")
             
         policy_server.start(args.adapter)
         policy = policy_server

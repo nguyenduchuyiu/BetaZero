@@ -63,7 +63,10 @@ class FailureHandler:
     ) -> str:
         patched = self.sorrifier.fix_code(state_code)
         patched_vr = self.lean.verify(patched)
-        r_fail = self.reward.r_env(state_code, patched, patched_vr)
+        patched_action_code = extract_action_body(patched)
+        full_orig = build_theorem(state, lean_code)
+        full_patched = build_theorem(state, patched_action_code)
+        r_fail = self.reward.r_env(full_orig, full_patched, patched_vr)
         graph.expand(
             state,
             Action(
@@ -76,7 +79,8 @@ class FailureHandler:
             r_env=r_fail,
             tactic_status="FAILED",
         )
-        return extract_action_body(patched)
+        return patched_action_code
+
 
     def handle_failed_skeleton(
         self,
@@ -91,7 +95,10 @@ class FailureHandler:
         patched_skeleton = self.sorrifier.fix_code(state_code)
         patched_vr = self.lean.verify(patched_skeleton)
         patched_action_code = extract_action_body(patched_skeleton)
-        r_fail = self.reward.r_env(state_code, patched_skeleton, patched_vr)
+        full_orig = build_theorem(state, lean_code)
+        full_patched = build_theorem(state, patched_action_code)
+        r_fail = self.reward.r_env(full_orig, full_patched, patched_vr)
+
         graph.expand(
             state,
             Action(
@@ -103,7 +110,7 @@ class FailureHandler:
             ),
             r_env=r_fail,
         )
-        r_patch = self.reward.r_env(patched_skeleton, patched_skeleton, patched_vr)
+        full_patched_code = build_theorem(state, patched_action_code)
         new_subgoals = [
             parse_proof_state(s.get("goal", ""), header=state.header)
             for s in patched_vr.get("sorries", [])
@@ -117,5 +124,6 @@ class FailureHandler:
                 children=tuple(new_subgoals),
                 prompt=prompt,
             ),
-            r_env=r_patch,
+            r_env=r_fail,
         )
+
