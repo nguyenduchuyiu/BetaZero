@@ -22,12 +22,17 @@ class ProofStitcher:
         stitched = parts[0]
         for i, proof in enumerate(child_proofs):
             if proof is not None:
+                import textwrap
+                
                 # Calculate base indentation from the current stitched code
                 lines = stitched.splitlines()
                 indent = " " * (len(lines[-1]) - len(lines[-1].lstrip())) if lines else ""
                 
+                # Normalize child proof indentation (remove common leading whitespace)
+                clean_proof = textwrap.dedent(proof).strip("\n")
+                
                 # Indent child proof lines appropriately
-                proof_lines = proof.splitlines()
+                proof_lines = clean_proof.splitlines()
                 indented_proof = "\n".join(
                     (indent + l if idx > 0 else l) for idx, l in enumerate(proof_lines)
                 )
@@ -44,3 +49,49 @@ class ProofStitcher:
             stitched += parts[i + 1]
 
         return stitched
+
+    @staticmethod
+    def prune_garbage(stitched_code: str, garbage_vars: list[str]) -> str:
+        """
+        Quét và comment lại toàn bộ các dòng khai báo biến rác.
+        Hỗ trợ dọn dẹp các khối proof nhiều dòng dựa trên Indentation.
+        """
+        if not garbage_vars:
+            return stitched_code
+
+        lines = stitched_code.splitlines()
+        out_lines = []
+        
+        # Regex tìm chính xác biến rác
+        garbage_patterns = [re.compile(rf"^\s*(?:have|let)\s+{re.escape(var)}\b") for var in garbage_vars]
+
+        skip_mode = False
+        base_indent = 0 # Lưu lại độ thụt lề của chữ 'have'
+        
+        for line in lines:
+            # 1. Phát hiện dòng khởi đầu của rác
+            if any(p.search(line) for p in garbage_patterns):
+                out_lines.append("-- [PRUNED] " + line)
+                base_indent = len(line) - len(line.lstrip())
+                skip_mode = True
+                continue
+            
+            # 2. Xử lý các dòng con (body) của rác
+            if skip_mode:
+                if not line.strip():
+                    out_lines.append("-- [PRUNED] " + line)
+                    continue
+                
+                curr_indent = len(line) - len(line.lstrip())
+                # Trong Lean, body của 'have' BẮT BUỘC phải thụt lề sâu hơn base_indent
+                if curr_indent > base_indent:
+                    out_lines.append("-- [PRUNED] " + line)
+                    continue
+                else:
+                    # Thoát khỏi block rác vì đã gặp một lệnh ngang hàng
+                    skip_mode = False
+                    
+            # 3. Code xịn thì cho qua
+            out_lines.append(line)
+
+        return "\n".join(out_lines)

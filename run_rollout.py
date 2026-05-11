@@ -26,12 +26,12 @@ def main():
     ap.add_argument("--config", type=str, default=None)
     ap.add_argument("--lean-file", type=str, default=None)
     ap.add_argument("--lean-dir", type=str, default=None)
-    ap.add_argument("--out-json", type=str, default="outputs/")
-    ap.add_argument("--adapter", type=str, default=None)
-    ap.add_argument("--K", type=int, default=None)
-    ap.add_argument("--max-depth", type=int, default=None)
-    ap.add_argument("--max-nodes", type=int, default=None)
-    ap.add_argument("--lean-timeout", type=int, default=None)
+    ap.add_argument("--out-json", type=str, default="outputs/rollouts/")
+    ap.add_argument("--adapter", type=str, default="adapter-deepseek-qwen-7b")
+    ap.add_argument("--K", type=int, default=16)
+    ap.add_argument("--max-depth", type=int, default=10)
+    ap.add_argument("--max-nodes", type=int, default=512)
+    ap.add_argument("--lean-timeout", type=int, default=60)
     ap.add_argument("--policy", type=str, choices=["vllm", "deepseek", "gemini"], default="vllm")
     args = ap.parse_args()
 
@@ -136,4 +136,4 @@ if __name__ == "__main__":
     main()
 
 # Example usage:
-# python3 run_rollout.py --config configs/qwen2.5_0.5b.yaml --lean-dir problems/miniF2F-Test/ --out-json outputs/miniF2F-Test/ --policy api
+# python3 run_rollout.py --config configs/ --lean-dir problems/ --out-json outputs/ --policy

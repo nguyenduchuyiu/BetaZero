@@ -335,8 +335,18 @@ class Sorrifier:
         return blocks
 
     def _clean_redundant_sorries(self, lines: List[str]) -> str:
-        """Keeps all lines to maintain line number stability and avoid loops."""
-        return "\n".join(lines) + ("\n" if lines else "")
+        """Collapses multiple consecutive empty lines and removes trailing ones."""
+        cleaned = []
+        for line in lines:
+            # Keep line if it has content, or if it's the first empty line after a non-empty line
+            if line.strip() or (cleaned and cleaned[-1].strip()):
+                cleaned.append(line)
+        
+        # Remove any remaining trailing whitespace-only lines
+        while cleaned and not cleaned[-1].strip():
+            cleaned.pop()
+            
+        return "\n".join(cleaned) + ("\n" if cleaned else "")
 
     def _force_full_sorrify(self) -> str:
         marker = ":= by"

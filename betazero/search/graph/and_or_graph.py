@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import threading
 from typing import Any, Literal
+import re
 
 from betazero.core.nodes import Action, NodeStatus, ProofState
 from betazero.policy.output_parser import get_lean_code
 from betazero.search.sorrifier.stitcher import ProofStitcher
+
 
 
 class ANDORGraph:
@@ -21,6 +23,7 @@ class ANDORGraph:
         self._depth: dict[ProofState, int] = {root: 0}
         self._solved_cache: dict[Any, bool] = {}
         self._skeleton_override: dict[Action, bool] = {} 
+        self._garbage_vars: dict[Action, list[str]] = {}
 
     def expand(
         self,
@@ -165,24 +168,72 @@ class ANDORGraph:
                 V(state)
             return q_cache
 
-    def get_successful_action(self, state: ProofState) -> Action | None:
-        """Retrieve the action that successfully solved this state."""
+    def get_successful_actions(self, state: ProofState) -> list[Action]:
+        """Retrieve all actions that successfully solved this state."""
         with self._lock:
-            for action in self.get_actions(state):
-                if self.status(action) == "SOLVED":
-                    return action
-        return None
+            return [a for a in self.get_actions(state) if self.status(a) == "SOLVED"]
 
-    def extract_proof_code(self, state: ProofState) -> str | None:
-        """Recursively extract and stitch the successful proof code for a state."""
-        
-        action = self.get_successful_action(state)
-        if not action:
-            return None
+    def get_successful_action(self, state: ProofState) -> Action | None:
+        """Retrieve the first action that successfully solved this state."""
+        actions = self.get_successful_actions(state)
+        return actions[0] if actions else None
 
+    def set_garbage_vars(self, action: Action, garbage_vars: list[str]):
+        with self._lock:
+            self._garbage_vars[action] = garbage_vars
+
+    def get_garbage_vars(self, action: Action) -> list[str]:
+        with self._lock:
+            return self._garbage_vars.get(action, [])
+
+    def _extract_for_action(self, action: Action, visiting: set[ProofState]) -> str | None:
+        """Extract proof code for a single action (tactic or skeleton)."""
         if action.action_type == "tactic":
             return action.extracted_code
-            
+
         # Skeleton: recurse down to children
-        child_proofs = [self.extract_proof_code(child) for child in action.children]
-        return ProofStitcher.stitch(action.extracted_code, child_proofs)
+        child_proofs = [self._extract_proof_code(child, visiting) for child in action.children]
+        
+        stitched = ProofStitcher.stitch(action.extracted_code, child_proofs)
+        
+        # Dùng máy xén tỉa dựa trên list rác lưu trong graph
+        garbage_vars = self.get_garbage_vars(action)
+        if garbage_vars:
+            stitched = ProofStitcher.prune_garbage(stitched, garbage_vars)
+            
+        return stitched
+
+    def _extract_proof_code(self, state: ProofState, visiting: set[ProofState]) -> str | None:
+        """Internal recursive extraction with cycle detection."""
+        if state in visiting:
+            return None  # Cycle detected — treat as unsolved
+        visiting.add(state)
+        try:
+            solved_actions = self.get_successful_actions(state)
+            if not solved_actions:
+                return None
+
+            fallback: str | None = None
+            for action in solved_actions:
+                proof = self._extract_for_action(action, visiting)
+                if proof is None:
+                    continue
+                
+                # Check if clean: strip comments before searching for 'sorry'
+                clean_check = re.sub(r"/\-(?:.|\n)*?\-/|--.*", "", proof)
+                if not re.search(r'\bsorry\b', clean_check):
+                    return proof  # Clean proof found
+                if fallback is None:
+                    fallback = proof  # Keep first sorry-containing as fallback
+
+            return fallback
+        finally:
+            visiting.discard(state)
+
+    def extract_proof_code(self, state: ProofState) -> str | None:
+        """Recursively extract and stitch the successful proof code for a state.
+        
+        Tries all SOLVED actions and prefers the first one producing a sorry-free proof.
+        Falls back to the first sorry-containing proof if no clean proof exists.
+        """
+        return self._extract_proof_code(state, set())

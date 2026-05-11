@@ -75,6 +75,7 @@ class GraphLogger:
 
             nodes.append({
                 "id": a_id,
+                "internal_id": action.id,  # THÊM ID GỐC ĐỂ TRACE
                 "type": "AND",
                 "action_type": action.action_type,
                 "status": graph.status(action),

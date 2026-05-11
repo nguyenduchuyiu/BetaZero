@@ -1,4 +1,4 @@
-from __future__ import annotations
+import uuid
 from dataclasses import dataclass, field
 from typing import Literal
 
@@ -24,6 +24,12 @@ class Action:
     extracted_code: str = ""  # parsed Lean code/body used for execution/stitching/logging
     children: tuple[ProofState, ...] = field(default_factory=tuple)
     prompt: str = ""  # exact prompt shown to the LLM for this content
+    # THÊM ID DÙNG ĐỂ TRACE (KHÔNG THAM GIA VÀO HASH/EQ)
+    id: str = field(
+        default_factory=lambda: "A_" + uuid.uuid4().hex[:6], 
+        compare=False, 
+        hash=False
+    )
 
     def __post_init__(self):
         object.__setattr__(self, "children", tuple(self.children))

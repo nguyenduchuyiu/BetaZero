@@ -58,20 +58,29 @@ class VLLMServer:
         
         self._loaded_loras = set()
         lora_modules = []
-        if adapter_path and os.path.exists(adapter_path):
-            lora_modules.append(f"adapter={adapter_path}")
-        
-        if os.path.exists("qwen_lora_tactic"):
-            lora_modules.append("tactic=qwen_lora_tactic")
-            self._loaded_loras.add("tactic")
-        if os.path.exists("qwen_lora_skeleton"):
-            lora_modules.append("skeleton=qwen_lora_skeleton")
-            self._loaded_loras.add("skeleton")
+            
+        if not adapter_path:
+            raise ValueError("BetaZero requires an adapter_path.")
 
+        tactic_path = os.path.join(adapter_path, "tactic")
+        skeleton_path = os.path.join(adapter_path, "skeleton")
+
+        for name, path in {
+            "tactic": tactic_path,
+            "skeleton": skeleton_path,
+        }.items():
+            if os.path.isdir(path):
+                lora_modules.append(f"{name}={path}")
+                self._loaded_loras.add(name)
+
+        if not self._loaded_loras:
+            raise FileNotFoundError(
+                f"No adapter found in {adapter_path} "
+                "(expected: tactic/ or skeleton/)"
+            )
+    
         if lora_modules:
             cmd += ["--enable-lora", "--max-loras", str(max(2, len(lora_modules))), "--lora-modules"] + lora_modules
-        else:
-            cmd += ["--enable-lora", "--max-loras", "2"]
         print(f"\n[vLLM] Starting on port {self.port}...")
 
         os.makedirs("outputs", exist_ok=True)
@@ -124,7 +133,7 @@ class VLLMServer:
         elif len(prompts) != len(states):
             raise ValueError("prompts length must match states")
         
-        lora_name = f"{action_type}_active" if (hasattr(self, 'active_adapter_path') and self.active_adapter_path) else action_type
+        lora_name = action_type
         model = self.model_name
 
         if hasattr(self, "_loaded_loras") and lora_name in self._loaded_loras:

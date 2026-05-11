@@ -32,7 +32,7 @@ class LeanEnv:
     def get_ast(self, code: str) -> list:
         return get_lean_ast(code)
 
-    def analyze_dependencies(self, proof_code: str) -> dict:
+    def analyze_dependencies(self, proof_code: str, allowed_vars: set[str] | None = None) -> dict:
         """
         Classify subgoals using Lean 4 Expr Tree deep analysis.
         Returns classifications for: core_solved, core_failed, malignant, benign.
@@ -61,6 +61,6 @@ class LeanEnv:
         if not root_expr:
             return empty_classification
             
-        classification = SHARED_EXPR_ANALYZER.classify_skeleton_subgoals(root_expr)
+        classification = SHARED_EXPR_ANALYZER.classify_skeleton_subgoals(root_expr, allowed_vars=allowed_vars)
         
         return classification

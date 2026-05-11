@@ -139,12 +139,16 @@ class BatchExecutor:
                     if action_type == "skeleton":
                         graph.set_skeleton_override(act, True)
                 elif action_type == "tactic":
-                    sorr_body = self.failure.handle_failed_tactic(
-                        graph, state, raw_output, lean_code, state_code, state_vr, prompt
+                    # Truyền thêm action_type vào vị trí thứ 3
+                    sorr_body = self.failure.handle_failed_action(
+                        graph, state, action_type, raw_output, lean_code, state_code, state_vr, prompt
                     )
                     feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), sorr_body)
+                    
                 elif action_type == "skeleton":
                     if state_vr.get("pass"):
+                        # Calculate r_env even for passing skeletons to catch semantic/AST issues
+                        r_env_score = self.reward.r_env(full_code, full_code, state_vr)
                         graph.expand(
                             state,
                             Action(
@@ -154,12 +158,14 @@ class BatchExecutor:
                                 children=tuple(subgoals),
                                 prompt=prompt,
                             ),
-                            r_env=r_env,
+                            r_env=r_env_score,
                         )
                     else:
-                        self.failure.handle_failed_skeleton(
+                        # Tương tự, truyền thêm action_type vào vị trí thứ 3
+                        self.failure.handle_failed_action(
                             graph,
                             state,
+                            action_type, # <-- BỔ SUNG Ở ĐÂY
                             raw_output,
                             lean_code,
                             state_code,
