@@ -3,40 +3,55 @@ from typing import Dict, List, Any
 
 class ExprDependencyAnalyzer:
     def _contains_sorry(self, node: Any) -> bool:
-        if not isinstance(node, dict): return False
-        if node.get("expr") == "const" and node.get("name") in ("sorryAx", "sorry"): return True
-        return any(self._contains_sorry(v) for k, v in node.items() if k != "expr")
+        stack = [node]
+        while stack:
+            curr = stack.pop()
+            if not isinstance(curr, dict): continue
+            if curr.get("expr") == "const" and curr.get("name") in ("sorryAx", "sorry"):
+                return True
+            for k, v in curr.items():
+                if k != "expr": stack.append(v)
+        return False
 
     def _is_bvar_used(self, node: Any, target_idx: int) -> bool:
-        if not isinstance(node, dict): return False
-        expr_type = node.get("expr")
-        if expr_type == "bvar":
-            return node.get("idx") == target_idx
-        if expr_type in ("lam", "forallE", "letE"):
-            # Binders: check type/val (idx giữ nguyên), check body (idx + 1)
-            return (self._is_bvar_used(node.get("var_type"), target_idx) or 
-                    self._is_bvar_used(node.get("val"), target_idx) or 
-                    self._is_bvar_used(node.get("body"), target_idx + 1))
-        return any(self._is_bvar_used(v, target_idx) for k, v in node.items() if k != "expr")
+        stack = [(node, target_idx)]
+        while stack:
+            curr, idx = stack.pop()
+            if not isinstance(curr, dict): continue
+            expr_type = curr.get("expr")
+            if expr_type == "bvar":
+                if curr.get("idx") == idx: return True
+                continue
+            if expr_type in ("lam", "forallE", "letE"):
+                stack.append((curr.get("var_type"), idx))
+                stack.append((curr.get("val"), idx))
+                stack.append((curr.get("body"), idx + 1))
+            else:
+                for k, v in curr.items():
+                    if k != "expr": stack.append((v, idx))
+        return False
 
     def classify_skeleton_subgoals(self, root_expr: Dict[str, Any], allowed_vars: set[str] | None = None) -> Dict[str, List[str]]:
         results = {"core_solved": [], "core_failed": [], "malignant": [], "benign": []}
 
-        def traverse(node: Any):
-            if not isinstance(node, dict): return
-            
-            # CASE 1: Node là letE (Dạng have tường minh)
-            if node.get("expr") == "letE":
-                self._classify(node, node.get("val"), results, allowed_vars)
-            
-            # CASE 2: Node là App(Lam, Val) - Dạng have bị convert
-            elif node.get("expr") == "app" and isinstance(node.get("fn"), dict) and node["fn"].get("expr") == "lam":
-                lam_node = node["fn"]
-                val_node = node.get("arg") # Giá trị truyền vào chính là proof của subgoal
-                self._classify(lam_node, val_node, results, allowed_vars)
+        def traverse(root_node: Any):
+            stack = [root_node]
+            while stack:
+                node = stack.pop()
+                if not isinstance(node, dict): continue
+                
+                # CASE 1: Node là letE (Dạng have tường minh)
+                if node.get("expr") == "letE":
+                    self._classify(node, node.get("val"), results, allowed_vars)
+                
+                # CASE 2: Node là App(Lam, Val) - Dạng have bị convert
+                elif node.get("expr") == "app" and isinstance(node.get("fn"), dict) and node["fn"].get("expr") == "lam":
+                    lam_node = node["fn"]
+                    val_node = node.get("arg") # Giá trị truyền vào chính là proof của subgoal
+                    self._classify(lam_node, val_node, results, allowed_vars)
 
-            for k, v in node.items():
-                if k != "expr" and isinstance(v, dict): traverse(v)
+                for k, v in node.items():
+                    if k != "expr" and isinstance(v, dict): stack.append(v)
 
         # Check if the main goal itself is closed by a naked 'sorry'
         # We traverse the root to find the innermost body

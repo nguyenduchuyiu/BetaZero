@@ -29,8 +29,12 @@ def get_lean_code(raw: str) -> str:
     
     code_block = fences[-1]
 
-    # Reject if it contains placeholders like '...' which indicate incomplete logic.
-    if "..." in code_block:
+    # Remove comments before checking for placeholders like '...'
+    code_no_comments = re.sub(r"/-(?:.|\n)*?-/|--.*", "", code_block)
+    
+    # Only reject if '...' is used as a standalone placeholder (lazy model behavior)
+    # Allows '...' in math comments or within valid Lean syntax if any.
+    if re.search(r"^\s*\.\.\.\s*$", code_no_comments, re.MULTILINE):
         return ""
 
     # Require header and proof divider.

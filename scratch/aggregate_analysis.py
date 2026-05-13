@@ -19,6 +19,10 @@ def aggregate_stats(directory):
     
     theorem_results = []
 
+    # Track Synthetic vs Normal skeletons
+    synthetic_stats = {"count": 0, "r_envs": [], "r_deps": [], "solved": 0}
+    normal_stats = {"count": 0, "r_envs": [], "r_deps": [], "solved": 0}
+
     for filename in files:
         file_path = os.path.join(directory, filename)
         try:
@@ -31,13 +35,10 @@ def aggregate_stats(directory):
         nodes = data.get('nodes', [])
         total_nodes_all += len(nodes)
         
-        # Check root status (usually the first node or id state_0)
+        # Check root status
         root_node = next((n for n in nodes if n.get('id') == 'state_0'), None)
-        if root_node and root_node.get('status') == 'SOLVED':
-            solved_theorems += 1
-            is_solved = True
-        else:
-            is_solved = False
+        is_solved = root_node and root_node.get('status') == 'SOLVED'
+        if is_solved: solved_theorems += 1
             
         file_r_envs = []
         for node in nodes:
@@ -45,13 +46,27 @@ def aggregate_stats(directory):
             global_node_types[node.get('type', 'UNKNOWN')] += 1
             
             metrics = node.get('metrics', {})
-            if 'r_env' in metrics:
-                r_envs.append(metrics['r_env'])
-                file_r_envs.append(metrics['r_env'])
-            if 'r_dep' in metrics:
-                r_deps.append(metrics['r_dep'])
+            r_e = metrics.get('r_env')
+            r_d = metrics.get('r_dep')
+            
+            if r_e is not None:
+                r_envs.append(r_e)
+                file_r_envs.append(r_e)
+            if r_d is not None:
+                r_deps.append(r_d)
             if 'Q_value' in metrics:
                 q_values.append(metrics['Q_value'])
+
+            # Phân tích sâu nhóm Skeleton (AND nodes)
+            if node.get('type') == "AND" and node.get('action_type') == "skeleton":
+                prompt = node.get('prompt', '')
+                is_synth = prompt.startswith("[SYNTHETIC_PATCH]")
+                target = synthetic_stats if is_synth else normal_stats
+                
+                target["count"] += 1
+                if r_e is not None: target["r_envs"].append(r_e)
+                if r_d is not None: target["r_deps"].append(r_d)
+                if node.get('status') == "SOLVED": target["solved"] += 1
         
         avg_r_env = np.mean(file_r_envs) if file_r_envs else 0
         theorem_results.append({
@@ -77,6 +92,17 @@ def aggregate_stats(directory):
             "ones": int(np.sum(vals == 1.0))
         }
 
+    def format_cat(stats, name):
+        if stats["count"] == 0: return { "name": name, "msg": "N/A" }
+        return {
+            "name": name,
+            "count": stats["count"],
+            "avg_r_env": float(np.mean(stats["r_envs"])) if stats["r_envs"] else 0,
+            "avg_r_dep": float(np.mean(stats["r_deps"])) if stats["r_deps"] else 0,
+            "solved_count": stats["solved"],
+            "solve_rate": stats["solved"] / stats["count"]
+        }
+
     results = {
         "summary": {
             "total_theorems": total_theorems,
@@ -85,6 +111,10 @@ def aggregate_stats(directory):
             "total_nodes": total_nodes_all,
             "avg_nodes_per_theorem": total_nodes_all / total_theorems if total_theorems > 0 else 0
         },
+        "skeleton_analysis": [
+            format_cat(normal_stats, "Normal Skeletons"),
+            format_cat(synthetic_stats, "Synthetic Patches")
+        ],
         "metrics": [
             get_stats(r_envs, "r_env"),
             get_stats(r_deps, "r_dep"),

@@ -24,23 +24,36 @@ class ProofStitcher:
             if proof is not None:
                 import textwrap
                 
-                # Calculate base indentation from the current stitched code
                 lines = stitched.splitlines()
-                indent = " " * (len(lines[-1]) - len(lines[-1].lstrip())) if lines else ""
+                last_line = lines[-1] if lines else ""
                 
                 # Normalize child proof indentation (remove common leading whitespace)
                 clean_proof = textwrap.dedent(proof).strip("\n")
                 
-                # Indent child proof lines appropriately
-                proof_lines = clean_proof.splitlines()
-                indented_proof = "\n".join(
-                    (indent + l if idx > 0 else l) for idx, l in enumerate(proof_lines)
-                )
-
-                # Auto-add 'by' if we are filling an assignment ':=' and proof doesn't have it
+                # Check if we are filling an assignment ':='
                 prefix = parts[i].rstrip()
-                if prefix.endswith(":=") and not proof.strip().startswith("by"):
-                    indented_proof = "by " + indented_proof
+                is_assignment = prefix.endswith(":=")
+                
+                if is_assignment:
+                    base_indent = " " * (len(last_line) - len(last_line.lstrip()))
+                    child_indent = base_indent + "  "
+                    
+                    if clean_proof.startswith("by ") or clean_proof.startswith("by\n"):
+                        clean_proof = clean_proof[2:].lstrip()
+                        
+                    proof_lines = clean_proof.splitlines()
+                    indented_body = "\n".join(child_indent + l for l in proof_lines)
+                    
+                    if parts[i].endswith(" "):
+                        indented_proof = "by\n" + indented_body
+                    else:
+                        indented_proof = " by\n" + indented_body
+                else:
+                    anchor_indent = " " * len(last_line)
+                    proof_lines = clean_proof.splitlines()
+                    indented_proof = "\n".join(
+                        (anchor_indent + l if idx > 0 else l) for idx, l in enumerate(proof_lines)
+                    )
                 
                 stitched += indented_proof
             else:
