@@ -157,7 +157,8 @@ class ANDORGraph:
                     val = r_e + W_solve * float(solved)
                 else:
                     r_d = self._r_dep.get(action, 0.0)
-                    future = gamma * min((V(c) for c in action.children), default=0.0)
+                    live_children = self._live_children_for_action(action)
+                    future = gamma * min((V(c) for c in live_children), default=0.0)
                     val = r_e + float(solved) * (r_d + future)
                 q_cache[action] = val
                 return val
@@ -185,6 +186,47 @@ class ANDORGraph:
     def get_garbage_vars(self, action: Action) -> list[str]:
         with self._lock:
             return self._garbage_vars.get(action, [])
+
+    @staticmethod
+    def _extract_sorry_var_order(code: str) -> list[str]:
+        vars_in_order = []
+        seen = set()
+        stack = []
+
+        for line in code.splitlines():
+            stripped = line.lstrip()
+            if not stripped:
+                continue
+            indent = len(line) - len(stripped)
+
+            while stack and indent <= stack[-1][0]:
+                stack.pop()
+
+            match = re.match(r"(?:have|let)\s+([a-zA-Z0-9_]+)\s*[:=]", stripped)
+            if match:
+                stack.append((indent, match.group(1)))
+
+            if re.search(r"\bsorry\b", stripped) and stack:
+                var_name = stack[-1][1]
+                if var_name not in seen:
+                    vars_in_order.append(var_name)
+                    seen.add(var_name)
+
+        return vars_in_order
+
+    def _live_children_for_action(self, action: Action) -> tuple[ProofState, ...]:
+        garbage_vars = set(self._garbage_vars.get(action, []))
+        if not garbage_vars:
+            return action.children
+
+        child_vars = self._extract_sorry_var_order(action.extracted_code)
+        if len(child_vars) != len(action.children):
+            return action.children
+
+        return tuple(
+            child for var_name, child in zip(child_vars, action.children)
+            if var_name not in garbage_vars
+        )
 
     def _extract_for_action(self, action: Action, visiting: set[ProofState]) -> str | None:
         """Extract proof code for a single action (tactic or skeleton)."""

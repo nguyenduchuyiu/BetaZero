@@ -2,6 +2,42 @@ import pytest
 import re
 from betazero.core.nodes import ProofState, Action
 from betazero.search.graph import ANDORGraph
+from betazero.search.reward.reward_assigner import DependencyRewardAssigner
+
+
+class _FakeLean:
+    def analyze_dependencies(self, proof_code, allowed_vars=None):
+        return {
+            "core_solved": ["MAIN_GOAL", "h_final"],
+            "core_failed": [],
+            "malignant": [],
+            "benign": [],
+        }
+
+    def verify(self, code):
+        raise AssertionError("verify should be skipped when stitched proof still contains sorry")
+
+
+class _FakeReward:
+    def r_dep(self, dep_graph):
+        return 1.0
+
+
+class _FakeLeanRedundantCore:
+    def analyze_dependencies(self, proof_code, allowed_vars=None):
+        return {
+            "core_solved": ["MAIN_GOAL", "h_rel", "h_final"],
+            "core_failed": [],
+            "malignant": [],
+            "benign": ["h_subst"],
+        }
+
+    def verify(self, code):
+        return {
+            "complete": "-- [PRUNED]   have h_rel" in code
+            and "-- [PRUNED]   have h_final" not in code
+            and not re.search(r"(?m)^[^-].*\bsorry\b", code),
+        }
 
 def test_stitch_and_garbage_collection():
     """
@@ -72,20 +108,88 @@ def test_stitch_and_garbage_collection():
     assert proof is not None, "Proof không được phép None"
 
     # Core phải sống sót và được đắp code
-    assert "have h_core : CoreProp := by exact X" in proof or "have h_core : CoreProp := exact X" in proof
+    assert "have h_core : CoreProp := by" in proof
+    assert "exact X" in proof
     assert "-- [PRUNED] have h_core" not in proof, "Core tuyệt đối không được bị comment!"
 
     # Benign phải bị chém
     assert "-- [PRUNED] have h_beg : BegProp :=" in proof, "Benign phải bị dọn rác"
-    assert "-- [PRUNED]   rfl" in proof or "-- [PRUNED] rfl" in proof, "Code của Benign cũng phải bị comment theo"
+    assert "-- [PRUNED]     rfl" in proof or "-- [PRUNED]   rfl" in proof or "-- [PRUNED] rfl" in proof, "Code của Benign cũng phải bị comment theo"
 
     # Malignant phải bị chém
     assert "-- [PRUNED] have h_mag : MagProp :=" in proof, "Malignant phải bị dọn rác"
-    assert "-- [PRUNED]   exact sorry" in proof or "-- [PRUNED] exact sorry" in proof, "Chữ sorry của Malignant phải bị comment giấu đi"
+    assert "-- [PRUNED]     exact sorry" in proof or "-- [PRUNED]   exact sorry" in proof or "-- [PRUNED] exact sorry" in proof, "Chữ sorry của Malignant phải bị comment giấu đi"
 
     # CÚ CHỐT: Máy quét của Lean (Mô phỏng) không được nhìn thấy chữ sorry nào đang "thả rông"
     clean_check = re.sub(r"/\-(?:.|\n)*?\-/|--.*", "", proof)
     assert not re.search(r'\bsorry\b', clean_check), "Báo động: Vẫn còn chữ sorry lọt ra ngoài, Lean sẽ báo False!"
+
+
+def test_dependency_assigner_does_not_override_when_stitched_proof_has_sorry():
+    root = ProofState(context="", goal="MainGoal", header="")
+    child = ProofState(context="", goal="SubGoal", header="")
+    graph = ANDORGraph(root)
+
+    skeleton = Action(
+        action_type="skeleton",
+        content="...",
+        extracted_code="have h_final : MainGoal := sorry\nexact h_final",
+        children=(child,),
+    )
+    graph.expand(root, skeleton, r_env=1.0)
+
+    assigner = DependencyRewardAssigner(_FakeLean(), _FakeReward())
+    assigner.assign(graph)
+
+    assert graph.status(skeleton) == "OPEN"
+    assert not graph.is_solved(root)
+
+
+def test_dependency_assigner_prunes_verifiably_redundant_core_have():
+    root = ProofState(context="", goal="MainGoal", header="")
+    child_rel = ProofState(context="", goal="RelProp", header="")
+    child_subst = ProofState(context="", goal="SubstProp", header="")
+    child_final = ProofState(context="", goal="MainGoal", header="")
+    graph = ANDORGraph(root)
+
+    skeleton = Action(
+        action_type="skeleton",
+        content="...",
+        extracted_code=(
+            "  have h_rel : RelProp := sorry\n"
+            "  have h_subst : SubstProp := sorry\n"
+            "  have h_final : MainGoal := sorry\n"
+            "  exact h_final"
+        ),
+        children=(child_rel, child_subst, child_final),
+    )
+    graph.expand(root, skeleton, r_env=1.0)
+
+    graph.expand(
+        child_rel,
+        Action("tactic", "", "exact relProof", ()),
+        r_env=1.0,
+        tactic_status="SOLVED",
+    )
+    graph.expand(
+        child_subst,
+        Action("tactic", "", "exact h_rel", ()),
+        r_env=1.0,
+        tactic_status="SOLVED",
+    )
+    graph.expand(
+        child_final,
+        Action("tactic", "", "exact finalProof", ()),
+        r_env=1.0,
+        tactic_status="SOLVED",
+    )
+
+    assigner = DependencyRewardAssigner(_FakeLeanRedundantCore(), _FakeReward())
+    assigner.assign(graph)
+
+    assert "h_subst" in graph.get_garbage_vars(skeleton)
+    assert "h_rel" in graph.get_garbage_vars(skeleton)
+    assert "h_final" not in graph.get_garbage_vars(skeleton)
 
 if __name__ == "__main__":
     pytest.main(["-v", "-s", __file__])

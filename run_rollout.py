@@ -28,10 +28,6 @@ def main():
     ap.add_argument("--lean-dir", type=str, default=None)
     ap.add_argument("--out-json", type=str, default="outputs/rollouts/")
     ap.add_argument("--adapter", type=str, default="adapter-deepseek-qwen-7b")
-    ap.add_argument("--K", type=int, default=16)
-    ap.add_argument("--max-depth", type=int, default=10)
-    ap.add_argument("--max-nodes", type=int, default=512)
-    ap.add_argument("--lean-timeout", type=int, default=60)
     ap.add_argument("--policy", type=str, choices=["vllm", "deepseek", "gemini"], default="vllm")
     args = ap.parse_args()
 
@@ -42,10 +38,11 @@ def main():
     if args.config:
         cfg = Config.from_yaml(args.config)
 
-    K = args.K if args.K is not None else cfg.K
-    max_depth = args.max_depth if args.max_depth is not None else cfg.max_depth
-    max_nodes = args.max_nodes if args.max_nodes is not None else cfg.max_nodes
-    lean_timeout = args.lean_timeout if args.lean_timeout is not None else cfg.lean_timeout
+    K = cfg.K
+    tactic_ratio = cfg.tactic_ratio
+    max_depth = cfg.max_depth
+    max_nodes = cfg.max_nodes
+    lean_timeout = cfg.lean_timeout
 
     lean_files = []
     if args.lean_dir:
@@ -91,6 +88,7 @@ def main():
             K=K,
             max_depth=max_depth,
             max_nodes=max_nodes,
+            tactic_ratio=tactic_ratio
         )
 
         for i, lean_path in enumerate(lean_files):

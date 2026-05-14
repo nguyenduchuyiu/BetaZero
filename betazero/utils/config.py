@@ -15,6 +15,7 @@ class Config:
 
     # Rollout
     K: int = 32
+    tactic_ratio: float = 0.8
     max_depth: int = 5
     max_nodes: int = 128
     lean_workers: int = 4
