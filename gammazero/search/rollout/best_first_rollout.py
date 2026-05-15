@@ -77,6 +77,7 @@ class BestFirstRollout:
             self.executor = executor
             self.failure_handler = failure_handler
         self.reward_assigner = reward_assigner or DependencyRewardAssigner(lean, reward)
+        self.last_search_metadata: dict = {}
 
     @property
     def max_nodes(self) -> int:
@@ -98,6 +99,95 @@ class BestFirstRollout:
     ) -> float:
         return self.scorer.score_skeleton(action, parent_state, graph, stats)
 
+    def _empty_search_metadata(self) -> dict:
+        return {
+            "budget": {
+                "max_nodes": self._budget.max_nodes,
+                "used_total": 0,
+                "used_tactic": 0,
+                "used_skeleton_raw": 0,
+                "used_skeleton_sorrified": 0,
+                "lean_verify_calls": 0,
+                "sorrifier_verify_calls": 0,
+            },
+            "skeleton_pipeline": {
+                "requested": 0,
+                "raw_verify_success": 0,
+                "raw_verify_failed": 0,
+                "sorrifier_attempted": 0,
+                "sorrifier_success": 0,
+                "sorrifier_failed": 0,
+                "inserted_raw": 0,
+                "inserted_sorrified": 0,
+                "selected_by_beam": 0,
+                "rejected_by_beam": 0,
+                "valid_zero_children": 0,
+                "children_new": 0,
+                "children_duplicate": 0,
+            },
+            "final_status": {
+                "states": {"OPEN": 0, "SOLVED": 0, "FAILED": 0},
+                "actions": {
+                    "tactic_SOLVED": 0,
+                    "tactic_FAILED": 0,
+                    "skeleton_OPEN": 0,
+                    "skeleton_SOLVED": 0,
+                    "skeleton_FAILED": 0,
+                },
+            },
+            "depth_distribution": {
+                "states_seen_by_depth": {},
+                "states_solved_by_depth": {},
+                "queue_at_stop_by_depth": {},
+                "max_depth_reached": 0,
+            },
+            "beam": {
+                "states_pruned_global": 0,
+                "states_pruned_per_depth": 0,
+                "skeletons_selected": 0,
+                "skeletons_rejected_by_beam": 0,
+            },
+        }
+
+    def _finalize_search_metadata(
+        self,
+        metadata: dict,
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+        queue_at_stop: list[tuple[float, ProofState]],
+    ) -> None:
+        metadata["budget"]["used_total"] = self._budget.used
+
+        for state in graph.all_states():
+            status = graph.status(state)
+            metadata["final_status"]["states"][status] += 1
+            depth = stats[state].depth if state in stats else graph.get_depth(state)
+            key = str(depth)
+            metadata["depth_distribution"]["states_seen_by_depth"][key] = (
+                metadata["depth_distribution"]["states_seen_by_depth"].get(key, 0) + 1
+            )
+            if status == "SOLVED":
+                metadata["depth_distribution"]["states_solved_by_depth"][key] = (
+                    metadata["depth_distribution"]["states_solved_by_depth"].get(key, 0) + 1
+                )
+            metadata["depth_distribution"]["max_depth_reached"] = max(
+                metadata["depth_distribution"]["max_depth_reached"],
+                depth,
+            )
+
+        for action in graph.all_actions():
+            status = graph.status(action)
+            key = f"{action.action_type}_{status}"
+            if key in metadata["final_status"]["actions"]:
+                metadata["final_status"]["actions"][key] += 1
+
+        for _, state in queue_at_stop:
+            depth = stats[state].depth if state in stats else graph.get_depth(state)
+            key = str(depth)
+            metadata["depth_distribution"]["queue_at_stop_by_depth"][key] = (
+                metadata["depth_distribution"]["queue_at_stop_by_depth"].get(key, 0) + 1
+            )
+
     def rollout(
         self, theorem: ProofState
     ) -> tuple[list[tuple[ProofState, Action, float, float]], ANDORGraph, dict[Action, float]]:
@@ -106,6 +196,8 @@ class BestFirstRollout:
         stats: dict[ProofState, StateStats] = {theorem: StateStats(depth=0)}
         queue = StatePriorityQueue()
         seen_states = {self.state_key(theorem)}
+        metadata = self._empty_search_metadata()
+        stop_reason = "unknown"
 
         root_score = self.H_state(theorem, graph, stats)
         stats[theorem].last_score = root_score
@@ -113,33 +205,69 @@ class BestFirstRollout:
 
         while self._budget.used < self._budget.max_nodes:
             if graph.status(theorem) == "SOLVED":
+                stop_reason = "root_solved"
                 break
 
             states = self.pop_state_batch(queue, graph, stats)
             if not states:
+                stop_reason = "queue_empty"
                 break
 
             tactic_jobs = self.make_tactic_jobs(states, graph, stats)
             if tactic_jobs:
-                actual_counts = self.run_jobs(graph, tactic_jobs, "tactic")
+                actual_counts, action_stats = self.run_jobs(graph, tactic_jobs, "tactic")
+                metadata["budget"]["used_tactic"] += action_stats["budget_used"]
+                metadata["budget"]["lean_verify_calls"] += action_stats["budget_used"]
+                metadata["budget"]["sorrifier_verify_calls"] += action_stats["raw_failed"]
                 for state, count in actual_counts.items():
                     stats[state].tactic_tries += count
                 self.propagate(graph, stats)
                 if graph.status(theorem) == "SOLVED":
+                    stop_reason = "root_solved"
                     break
 
             skeleton_jobs = self.make_skeleton_jobs(states, graph, stats)
             if skeleton_jobs:
+                metadata["skeleton_pipeline"]["requested"] += sum(k for _, k in skeleton_jobs)
                 before = set(graph.all_actions())
-                actual_counts = self.run_jobs(graph, skeleton_jobs, "skeleton")
+                actual_counts, action_stats = self.run_jobs(graph, skeleton_jobs, "skeleton")
+                metadata["budget"]["used_skeleton_raw"] += action_stats["budget_used"]
+                metadata["budget"]["lean_verify_calls"] += action_stats["budget_used"]
+                metadata["budget"]["sorrifier_verify_calls"] += action_stats["raw_failed"]
+                metadata["budget"]["used_skeleton_sorrified"] += action_stats["inserted_sorrified"]
+                metadata["skeleton_pipeline"]["raw_verify_success"] += action_stats["raw_success"]
+                metadata["skeleton_pipeline"]["raw_verify_failed"] += action_stats["raw_failed"]
+                metadata["skeleton_pipeline"]["sorrifier_attempted"] += action_stats["raw_failed"]
+                metadata["skeleton_pipeline"]["sorrifier_success"] += action_stats["inserted_sorrified"]
+                metadata["skeleton_pipeline"]["sorrifier_failed"] += max(
+                    0,
+                    action_stats["raw_failed"] - action_stats["inserted_sorrified"],
+                )
+                metadata["skeleton_pipeline"]["inserted_raw"] += action_stats["inserted_raw"]
+                metadata["skeleton_pipeline"]["inserted_sorrified"] += action_stats["inserted_sorrified"]
                 for state, count in actual_counts.items():
                     stats[state].skeleton_tries += count
                 new_actions = [a for a in graph.all_actions() if a not in before]
                 valid_skeletons = self.valid_skeletons_from_actions(graph, new_actions)
+                metadata["skeleton_pipeline"]["valid_zero_children"] += sum(
+                    1 for action in new_actions
+                    if action.action_type == "skeleton"
+                    and not self.is_sorrified_action(action)
+                    and graph.status(action) != "FAILED"
+                    and len(action.children) == 0
+                )
                 selected = self.select_skeletons(valid_skeletons, graph, stats)
-                self.activate_skeleton_children(selected, graph, stats, queue, seen_states)
+                metadata["skeleton_pipeline"]["selected_by_beam"] += len(selected)
+                metadata["skeleton_pipeline"]["rejected_by_beam"] += max(0, len(valid_skeletons) - len(selected))
+                metadata["beam"]["skeletons_selected"] += len(selected)
+                metadata["beam"]["skeletons_rejected_by_beam"] += max(0, len(valid_skeletons) - len(selected))
+                child_stats = self.activate_skeleton_children(selected, graph, stats, queue, seen_states)
+                self.update_skeleton_progress(selected, child_stats["generated_by_parent"], stats)
+                metadata["skeleton_pipeline"]["children_new"] += child_stats["generated"]
+                metadata["skeleton_pipeline"]["children_duplicate"] += child_stats["duplicates"]
                 self.propagate(graph, stats)
                 if graph.status(theorem) == "SOLVED":
+                    stop_reason = "root_solved"
                     break
 
             for state in states:
@@ -150,12 +278,22 @@ class BestFirstRollout:
                 else:
                     self.maybe_exhaust_state(state, graph, stats)
 
-            self.prune_queue(queue, graph, stats)
+            prune_stats = self.prune_queue(queue, graph, stats)
+            metadata["beam"]["states_pruned_global"] += prune_stats["global"]
+            metadata["beam"]["states_pruned_per_depth"] += prune_stats["per_depth"]
 
+        else:
+            stop_reason = "budget_exhausted"
+
+        queue_at_stop = queue.items()
         self.finalize_unresolved(graph, stats)
         self.propagate(graph, stats)
-
         self.reward_assigner.assign(graph)
+        self.propagate(graph, stats)
+        self._finalize_search_metadata(metadata, graph, stats, queue_at_stop)
+        self.last_search_metadata = metadata
+        graph.search_metadata = metadata
+
         q_values = self.reward.compute_returns(graph)
         samples: list[tuple[ProofState, Action, float, float]] = []
         for action, q in q_values.items():
@@ -227,6 +365,8 @@ class BestFirstRollout:
         st = stats[state]
         if st.exhausted or st.depth >= self.max_depth:
             return False
+        if st.skeleton_exhausted:
+            return False
         if st.skeleton_tries >= self.max_skeleton_per_state:
             return False
         if not st.tactic_probe_done:
@@ -262,8 +402,9 @@ class BestFirstRollout:
         graph: ANDORGraph,
         jobs: list[tuple[ProofState, int]],
         action_type: str,
-    ) -> dict[ProofState, int]:
+    ) -> tuple[dict[ProofState, int], dict[str, int]]:
         before = set(graph.all_actions())
+        budget_before = self._budget.used
         groups: dict[int, list[ProofState]] = defaultdict(list)
         for state, k in jobs:
             groups[k].append(state)
@@ -274,13 +415,31 @@ class BestFirstRollout:
             batches = self.policy.sample(states, action_type, k, prompts=prompts)
             self.executor.execute(graph, states, batches, action_type, self._budget, prompts=prompts)
         counts: dict[ProofState, int] = defaultdict(int)
+        action_stats = {
+            "budget_used": self._budget.used - budget_before,
+            "inserted_raw": 0,
+            "inserted_sorrified": 0,
+            "raw_success": 0,
+            "raw_failed": 0,
+        }
         for action in graph.all_actions():
             if action in before or action.action_type != action_type:
                 continue
             parent = graph.get_parent(action)
+            if self.is_sorrified_action(action):
+                action_stats["inserted_sorrified"] += 1
+                continue
             if parent is not None:
                 counts[parent] += 1
-        return dict(counts)
+            action_stats["inserted_raw"] += 1
+            if graph.status(action) == "FAILED":
+                action_stats["raw_failed"] += 1
+            else:
+                action_stats["raw_success"] += 1
+        return dict(counts), action_stats
+
+    def is_sorrified_action(self, action: Action) -> bool:
+        return (action.prompt or "").startswith("[SYNTHETIC_PATCH]")
 
     def valid_skeletons_from_actions(
         self, graph: ANDORGraph, actions: list[Action]
@@ -325,12 +484,16 @@ class BestFirstRollout:
         stats: dict[ProofState, StateStats],
         queue: StatePriorityQueue,
         seen_states: set[str],
-    ) -> None:
+    ) -> dict[str, int]:
+        generated = 0
+        duplicates = 0
+        generated_by_parent: dict[ProofState, int] = defaultdict(int)
         for parent_state, action, _ in selected_skeletons:
             parent_depth = stats[parent_state].depth
             for child in action.children:
                 key = self.state_key(child)
                 if key in seen_states:
+                    duplicates += 1
                     continue
                 seen_states.add(key)
                 depth = parent_depth + 1
@@ -339,6 +502,31 @@ class BestFirstRollout:
                 score = self.H_state(child, graph, stats)
                 stats[child].last_score = score
                 queue.push(child, score)
+                generated += 1
+                generated_by_parent[parent_state] += 1
+        return {
+            "generated": generated,
+            "duplicates": duplicates,
+            "generated_by_parent": dict(generated_by_parent),
+        }
+
+    def update_skeleton_progress(
+        self,
+        selected_skeletons: list[tuple[ProofState, Action, float]],
+        generated_by_parent: dict[ProofState, int],
+        stats: dict[ProofState, StateStats],
+    ) -> None:
+        touched_parents = {parent_state for parent_state, _, _ in selected_skeletons}
+        for parent_state in touched_parents:
+            st = stats[parent_state]
+            new_children = generated_by_parent.get(parent_state, 0)
+            st.last_skeleton_new_children = new_children
+            if new_children == 0:
+                st.bad_skeleton_rounds += 1
+            else:
+                st.bad_skeleton_rounds = 0
+            if st.bad_skeleton_rounds >= 1:
+                st.skeleton_exhausted = True
 
     def state_key(self, state: ProofState) -> str:
         ctx = " ".join((state.context or "").split())
@@ -376,7 +564,7 @@ class BestFirstRollout:
         queue: StatePriorityQueue,
         graph: ANDORGraph,
         stats: dict[ProofState, StateStats],
-    ) -> None:
+    ) -> dict[str, int]:
         rows = []
         while len(queue) > 0:
             state, score = queue.pop()
@@ -387,17 +575,23 @@ class BestFirstRollout:
             rows.append((state, score))
 
         rows.sort(key=lambda x: x[1], reverse=True)
+        before_global = len(rows)
         rows = rows[: self.state_beam_width]
+        global_pruned = before_global - len(rows)
 
         per_depth: dict[int, list[tuple[ProofState, float]]] = defaultdict(list)
         for state, score in rows:
             per_depth[stats[state].depth].append((state, score))
 
         kept = []
+        per_depth_pruned = 0
         for xs in per_depth.values():
             xs.sort(key=lambda x: x[1], reverse=True)
-            kept.extend(xs[: self.state_beam_per_depth])
+            kept_xs = xs[: self.state_beam_per_depth]
+            per_depth_pruned += len(xs) - len(kept_xs)
+            kept.extend(kept_xs)
         queue.rebuild(kept)
+        return {"global": global_pruned, "per_depth": per_depth_pruned}
 
     def propagate(self, graph: ANDORGraph, stats: dict[ProofState, StateStats]) -> None:
         changed = True

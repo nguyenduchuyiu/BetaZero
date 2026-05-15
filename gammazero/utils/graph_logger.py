@@ -101,6 +101,7 @@ class GraphLogger:
             "theorem_goal": root.goal,
             "root_id": self._get_state_id(root),
             "total_nodes": len(nodes),
+            "search_metadata": getattr(graph, "search_metadata", None),
             "nodes": nodes,
             "edges": edges
         }

@@ -203,10 +203,13 @@ class ANDORGraph:
                 if action.action_type == "tactic":
                     val = r_e + W_solve * float(solved)
                 else:
-                    r_d = self._r_dep.get(action, 0.0)
-                    live_children = self._live_children_for_action(action)
-                    future = gamma * min((V(c) for c in live_children), default=0.0)
-                    val = r_e + float(solved) * (r_d + future)
+                    if solved:
+                        r_d = self._r_dep.get(action, 0.0)
+                        live_children = self._live_children_for_action(action)
+                        future = gamma * min((V(c) for c in live_children), default=0.0)
+                        val = r_e + r_d + future
+                    else:
+                        val = 0.0
                 q_cache[action] = val
                 return val
 

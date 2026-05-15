@@ -31,6 +31,10 @@
       --and-border-open: #a49af0;
       --and-border-proved: #87cc33;
       --and-border-failed: #f07a50;
+      --tactic-action: #F0A33A;
+      --skeleton-action: #8B7CFF;
+      --tactic-action-soft: rgba(240, 163, 58, 0.14);
+      --skeleton-action-soft: rgba(139, 124, 255, 0.14);
 
       --edge-color: #3a3f52;
       --edge-hover: #5b7fff;
@@ -765,13 +769,13 @@
         <div style="font-size:10px;color:var(--text3);margin:8px 0 4px;font-weight:700;letter-spacing:0.06em">AND nodes
           (actions)</div>
         <div class="legend-item">
-          <div class="legend-diamond" style="background:var(--and-open)"></div>Open action
+          <div class="legend-diamond" style="background:var(--tactic-action)"></div>Tactic action
         </div>
         <div class="legend-item">
-          <div class="legend-diamond" style="background:var(--and-proved)"></div>Proved action
+          <div class="legend-diamond" style="background:var(--skeleton-action)"></div>Skeleton action
         </div>
         <div class="legend-item">
-          <div class="legend-diamond" style="background:var(--and-failed)"></div>Failed action
+          <div class="legend-diamond" style="background:transparent;border:2px solid var(--and-border-failed)"></div>Status via border
         </div>
       </div>
     </div>
@@ -942,8 +946,14 @@
       if (d.type === 'OR') {
         return s === 'proved' ? '#1D9E75' : s === 'failed' ? '#E24B4A' : '#378ADD';
       } else {
-        return s === 'proved' ? '#639922' : s === 'failed' ? '#D85A30' : '#7F77DD';
+        return d.action_type === 'skeleton' ? '#8B7CFF' : '#F0A33A';
       }
+    }
+    function nodeSoftFill(d) {
+      if (d.type === 'AND') {
+        return d.action_type === 'skeleton' ? 'rgba(139,124,255,0.14)' : 'rgba(240,163,58,0.14)';
+      }
+      return nodeColor(d) + '22';
     }
     function nodeBorderColor(d) {
       const s = canonicalStatus(d.status);
@@ -1132,7 +1142,7 @@
             .attr('width', s * 2).attr('height', s * 2)
             .attr('rx', 3)
             .attr('transform', 'rotate(45)')
-            .attr('fill', col + '22')
+            .attr('fill', nodeSoftFill(d))
             .attr('stroke', bord)
             .attr('stroke-width', 2);
           g.append('rect')
@@ -1404,6 +1414,7 @@
         document.getElementById('m-and-only').style.display = 'contents';
         document.getElementById('d-metric-main-label').textContent = 'Q-value';
         document.getElementById('d-action-type').textContent = d.action_type || '—';
+        document.getElementById('d-action-type').style.color = nodeColor(d);
         document.getElementById('d-action-content').textContent = typeof d.content === 'string' ? d.content : JSON.stringify(d.content, null, 2) || '—';
         const rawStr = typeof d.content === 'string' ? d.content : '';
         const extracted = (typeof d.extracted_lean_code === 'string' && d.extracted_lean_code.trim())
@@ -1442,6 +1453,7 @@
       html += `<div class="tt-row"><span>Status</span><span style="color:${statusColor(d.status)}">${d.status || 'open'}</span></div>`;
       if (d.depth != null) html += `<div class="tt-row"><span>Depth</span><span>${d.depth}</span></div>`;
       if (d.type === 'AND') {
+        html += `<div class="tt-row"><span>Action</span><span style="color:${nodeColor(d)}">${d.action_type || '—'}</span></div>`;
         if (d.metrics) {
           html += `<div class="tt-row"><span>Q-value</span><span style="color:#5b7fff">${(d.metrics.Q_value || 0).toFixed(4)}</span></div>`;
         }

@@ -120,6 +120,18 @@ theorem my_theorem proposition := by
 
 Remember: the search tree solves the `sorry` leaf obligations. Your job is to make sure
 that once those leaves are solved, the original goal closes automatically.
+
+OUTPUT FORMAT EXAMPLE:
+<think>
+[Briefly explain the decomposition plan. Name the intermediate obligations and
+why they are strictly simpler/useful for closing the final goal.]
+</think>
+```lean4
+theorem my_theorem proposition := by
+  have h1 : intermediate_prop_1 := sorry
+  have h2 : intermediate_prop_2 := sorry
+  exact final_assembly_using h1 h2
+```
 """).strip()
 
 
@@ -196,4 +208,3 @@ def build_prompt(state: ProofState, action_type: str, extra_rules: str = "") -> 
 
 def clean_prompt(text: str) -> str:
     return text.replace('\u00a0', ' ')
-

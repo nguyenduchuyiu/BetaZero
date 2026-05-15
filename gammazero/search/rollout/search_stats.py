@@ -10,6 +10,9 @@ class StateStats:
 
     tactic_probe_done: bool = False
     skeleton_probe_done: bool = False
+    last_skeleton_new_children: int = 0
+    bad_skeleton_rounds: int = 0
+    skeleton_exhausted: bool = False
 
     exhausted: bool = False
     depth: int = 0

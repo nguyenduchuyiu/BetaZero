@@ -219,6 +219,36 @@ def test_case_5_max_depth_allows_tactic_but_blocks_skeleton():
     assert not rollout.should_expand_skeleton(root, graph, stats)
 
 
+def test_duplicate_only_skeleton_round_exhausts_skeleton_lane_not_tactic_lane():
+    root = ProofState("", "root")
+    duplicate = ProofState("", "same")
+    action = Action("skeleton", "split", children=(duplicate, duplicate))
+    graph = ANDORGraph(root)
+    stats = {
+        root: StateStats(
+            depth=0,
+            tactic_tries=1,
+            skeleton_tries=1,
+            tactic_probe_done=True,
+            skeleton_probe_done=True,
+        )
+    }
+    queue = StatePriorityQueue()
+    rollout = make_rollout(max_tactic_per_state=2, max_skeleton_per_state=2)
+    seen = {rollout.state_key(root), rollout.state_key(duplicate)}
+
+    child_stats = rollout.activate_skeleton_children([(root, action, 0.0)], graph, stats, queue, seen)
+    rollout.update_skeleton_progress([(root, action, 0.0)], child_stats["generated_by_parent"], stats)
+
+    assert child_stats["generated"] == 0
+    assert child_stats["duplicates"] == 2
+    assert stats[root].last_skeleton_new_children == 0
+    assert stats[root].bad_skeleton_rounds == 1
+    assert stats[root].skeleton_exhausted
+    assert not rollout.should_expand_skeleton(root, graph, stats)
+    assert rollout.should_try_tactic(root, graph, stats)
+
+
 def test_budget_partial_execution_counts_only_inserted_actions():
     root = ProofState("", "root")
     other = ProofState("", "other")
@@ -237,7 +267,7 @@ def test_budget_partial_execution_counts_only_inserted_actions():
     )
 
     jobs = rollout.make_tactic_jobs([root, other], graph, stats)
-    counts = rollout.run_jobs(graph, jobs, "tactic")
+    counts, action_stats = rollout.run_jobs(graph, jobs, "tactic")
     for state, count in counts.items():
         stats[state].tactic_tries += count
 
@@ -245,6 +275,7 @@ def test_budget_partial_execution_counts_only_inserted_actions():
     assert len(graph.get_actions(root)) + len(graph.get_actions(other)) == 2
     assert stats[root].tactic_tries + stats[other].tactic_tries == 2
     assert max(stats[root].tactic_tries, stats[other].tactic_tries) <= 2
+    assert action_stats["budget_used"] == 2
 
 
 def test_invalid_skeleton_failed_and_parent_open_if_retry_budget_remains():
@@ -270,6 +301,28 @@ def test_invalid_skeleton_failed_and_parent_open_if_retry_budget_remains():
     assert graph.status(invalid) == "FAILED"
     assert graph.status(root) == "OPEN"
     assert rollout.can_requeue_state(root, graph, stats)
+
+
+def test_valid_zero_children_excludes_raw_failed_skeletons():
+    root = ProofState("", "root")
+    graph = ANDORGraph(root)
+    raw_failed = Action("skeleton", "raw failed", children=())
+    raw_valid_zero = Action("skeleton", "raw valid zero", children=())
+    graph.expand(root, raw_failed, r_env=0.0)
+    graph.mark_failed(raw_failed)
+    graph.expand(root, raw_valid_zero, r_env=1.0)
+    graph.mark_solved(raw_valid_zero)
+    rollout = make_rollout()
+
+    zero_children = sum(
+        1 for action in [raw_failed, raw_valid_zero]
+        if action.action_type == "skeleton"
+        and not rollout.is_sorrified_action(action)
+        and graph.status(action) != "FAILED"
+        and len(action.children) == 0
+    )
+
+    assert zero_children == 1
 
 
 def test_parent_requeues_after_failed_attempts_when_budget_remains():
@@ -360,3 +413,59 @@ def test_propagate_solves_root_through_multiple_skeleton_layers():
     assert graph.status(child) == "SOLVED"
     assert graph.status(skel1) == "SOLVED"
     assert graph.status(root) == "SOLVED"
+
+
+def test_failed_skeleton_does_not_backup_r_env_to_parent_value():
+    root = ProofState("", "root")
+    child = ProofState("", "child")
+    graph = ANDORGraph(root)
+    skeleton = Action("skeleton", "split", children=(child,))
+    graph.expand(root, skeleton, r_env=1.0)
+    graph.mark_failed(child)
+    rollout = make_rollout()
+    stats = {root: StateStats(depth=0), child: StateStats(depth=1, exhausted=True)}
+
+    rollout.propagate(graph, stats)
+    q_values = graph.backup()
+
+    assert graph.status(skeleton) == "FAILED"
+    assert q_values[skeleton] == 0.0
+    assert max((q_values.get(a, 0.0) for a in graph.get_actions(root)), default=0.0) == 0.0
+
+
+def test_search_metadata_logs_core_runtime_counters():
+    root = ProofState("", "root")
+    child = ProofState("", "child")
+    executor = ScriptedExecutor(
+        tactic_status=lambda state: "SOLVED" if state == child else "FAILED",
+        skeleton_children=lambda state: (child, child) if state == root else (),
+    )
+    rollout = make_rollout(
+        executor=executor,
+        max_depth=2,
+        max_nodes=10,
+        initial_tactic_k=1,
+        initial_skeleton_k=1,
+    )
+
+    _, graph, _ = rollout.rollout(root)
+    meta = graph.search_metadata
+
+    assert set(meta) == {
+        "budget",
+        "skeleton_pipeline",
+        "final_status",
+        "depth_distribution",
+        "beam",
+    }
+    assert meta["budget"]["used_total"] <= meta["budget"]["max_nodes"]
+    assert meta["budget"]["used_tactic"] >= 2
+    assert meta["budget"]["used_skeleton_raw"] == 1
+    assert meta["skeleton_pipeline"]["requested"] == 1
+    assert meta["skeleton_pipeline"]["inserted_raw"] == 1
+    assert meta["skeleton_pipeline"]["selected_by_beam"] == 1
+    assert meta["skeleton_pipeline"]["children_new"] == 1
+    assert meta["skeleton_pipeline"]["children_duplicate"] == 1
+    assert meta["final_status"]["states"]["SOLVED"] >= 2
+    assert meta["final_status"]["actions"]["skeleton_SOLVED"] == 1
+    assert meta["depth_distribution"]["states_seen_by_depth"]["0"] == 1
