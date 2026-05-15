@@ -42,29 +42,111 @@ theorem my_theorem proposition := by
 
 
 _SKELETON_INSTRUCTION = textwrap.dedent("""
-You are a Subgoal Generator for a Search Tree in Lean 4. 
-Your task is to propose potential intermediate milestones to expand the search space, NOT to solve the problem.
+You are a Dependency Skeleton Generator for a Lean 4 proof search tree.
+
+Your task is to decompose the final goal into useful intermediate leaf obligations.
+You are NOT solving the mathematical proof. You are producing a proof scaffold whose
+only unsolved parts are explicitly named `have ... := sorry` leaf obligations.
 
 CRITICAL CONSTRAINTS:
-1. DEFER VERIFICATION: You are explicitly forbidden from proving the subgoals. EVERY `have` statement MUST end with `:= sorry`. Even if a step is trivially true, you must delegate it to the search tree using `:= sorry`.
-2. NO TERMINAL STATES: Do not attempt to close the final goal directly. You MUST wrap the final target in a `have` statement named `h_final` with `:= sorry`, and then close the block strictly with `exact h_final`.
-3. FLAT TOPOLOGY ONLY: Branching tactics are incompatible with this search phase. NEVER use `cases`, `rcases`, `induction`, `obtain`, or `by_cases`. 
 
-Remember: You are generating an exploratory search node, not a finished proof. Incompleteness (using `sorry`) is the strict requirement for success.
+1. LEAF OBLIGATIONS ONLY:
+   Every `sorry` must appear only in a named intermediate `have` statement.
+   These `have` statements are the new subgoals for the search tree.
 
-OUTPUT FORMAT EXAMPLE:
-<think>
-[Your thinking process goes here. Be concise and direct.]
-</think>
+2. NO FINAL-GOAL SORRY:
+   You are strictly forbidden from writing:
+     `have h_final : <original final goal> := sorry`
+   or any `have` whose proposition is syntactically identical or trivially equivalent
+   to the original final goal with `:= sorry`.
+
+3. FINAL ASSEMBLY MUST BE SORRY-FREE:
+   The final goal must be closed by combining previously introduced hypotheses.
+   The final assembly may use simple Lean proof terms/tactics such as:
+     `exact ...`
+     `apply ...`
+     `constructor`
+     `And.intro`
+     `Or.inl`, `Or.inr`
+     `Exists.intro`
+     tuple notation `⟨..., ...⟩`
+     `simpa using ...`
+   But the final assembly itself must not contain `sorry`.
+
+4. ALL IMPORTANT LEAVES MUST BE CONSUMED:
+   Each generated leaf obligation should be useful for closing the final goal.
+   Avoid producing decorative or unused facts.
+   Prefer leaf obligations that correspond directly to missing proof pieces.
+
+5. PROGRESS REQUIREMENT:
+   Each `sorry` obligation must be a strict decomposition of the original goal.
+   It should be simpler, narrower, or more local than the original goal.
+   Do not restate the original goal under another name.
+
+6. FLAT TOPOLOGY:
+   Avoid branching search tactics such as `cases`, `rcases`, `induction`,
+   `obtain`, or `by_cases` in the skeleton.
+   If case analysis is mathematically needed, create a named leaf obligation
+   that packages the needed result instead.
+
+7. IF NO USEFUL DECOMPOSITION EXISTS:
+   Output a minimal skeleton with one genuinely useful intermediate lemma if possible.
+   If the goal is already atomic and cannot be decomposed, output `sorry`.
+
+GOOD EXAMPLE:
 ```lean4
 theorem my_theorem proposition := by
-  have h1 prop1 := sorry
-  have h2 prop2 := sorry
-  have h_final final_prop := sorry
+  have h1 : intermediate_prop_1 := sorry
+  have h2 : intermediate_prop_2 := sorry
+  exact final_assembly_using h1 h2
+````
+
+BAD EXAMPLE:
+
+```lean4
+theorem my_theorem proposition := by
+  have h_final : proposition := sorry
   exact h_final
 ```
 
+BAD EXAMPLE:
+
+```lean4
+theorem my_theorem proposition := by
+  have h1 : intermediate_prop_1 := sorry
+  have h_final : proposition := sorry
+  exact h_final
+```
+
+Remember: the search tree solves the `sorry` leaf obligations. Your job is to make sure
+that once those leaves are solved, the original goal closes automatically.
 """).strip()
+
+
+# _SKELETON_INSTRUCTION = textwrap.dedent("""
+# You are a Subgoal Generator for a Search Tree in Lean 4. 
+# Your task is to propose potential intermediate milestones to expand the search space, NOT to solve the problem.
+
+# CRITICAL CONSTRAINTS:
+# 1. DEFER VERIFICATION: You are explicitly forbidden from proving the subgoals. EVERY `have` statement MUST end with `:= sorry`. Even if a step is trivially true, you must delegate it to the search tree using `:= sorry`.
+# 2. NO TERMINAL STATES: Do not attempt to close the final goal directly. You MUST wrap the final target in a `have` statement named `h_final` with `:= sorry`, and then close the block strictly with `exact h_final`.
+# 3. FLAT TOPOLOGY ONLY: Branching tactics are incompatible with this search phase. NEVER use `cases`, `rcases`, `induction`, `obtain`, or `by_cases`. 
+
+# Remember: You are generating an exploratory search node, not a finished proof. Incompleteness (using `sorry`) is the strict requirement for success.
+
+# OUTPUT FORMAT EXAMPLE:
+# <think>
+# [Your thinking process goes here. Be concise and direct.]
+# </think>
+# ```lean4
+# theorem my_theorem proposition := by
+#   have h1 prop1 := sorry
+#   have h2 prop2 := sorry
+#   have h_final final_prop := sorry
+#   exact h_final
+# ```
+
+# """).strip()
 
 def _format_chatml_from_messages(messages: list[dict[str, str]]) -> str:
     parts = []

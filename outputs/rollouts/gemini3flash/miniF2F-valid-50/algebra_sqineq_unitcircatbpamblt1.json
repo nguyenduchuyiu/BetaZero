@@ -1,0 +1,263 @@
+{
+  "theorem_goal": "a * b + (a - b) ≤ 1",
+  "root_id": "state_0",
+  "total_nodes": 13,
+  "nodes": [
+    {
+      "id": "state_0",
+      "type": "OR",
+      "status": "SOLVED",
+      "depth": 0,
+      "content": {
+        "context": "a b : ℝ\nh₀ : a ^ 2 + b ^ 2 = 1",
+        "goal": "a * b + (a - b) ≤ 1",
+        "proof_body": "\n  have h₁ : 2 * (1 - (a * b + a - b)) = (a - b - 1) ^ 2 := by\n    calc 2 * (1 - (a * b + a - b))\n      _ = 2 - 2 * a * b - 2 * a + 2 * b := by ring\n      _ = (a^2 + b^2) + 1 - 2 * a * b - 2 * a + 2 * b := by rw [h₀]; ring\n      _ = (a - b)^2 - 2 * (a - b) + 1 := by ring\n      _ = (a - b - 1) ^ 2 := by ring\n  have h₂ : 0 ≤ 2 * (1 - (a * b + a - b)) := by\n    rw [h₁]\n    apply pow_two_nonneg\n  linarith"
+      },
+      "metrics": {
+        "V_value": 2.0
+      }
+    },
+    {
+      "id": "action_0",
+      "internal_id": "A_ca909b",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n1.  **Hypotheses**: `a^2 + b^2 = 1`.\n2.  **Goal**: `a * b + (a - b) ≤ 1`.\n3.  **Substitution**: Since $a^2 + b^2 = 1$, we can let $a = \\cos \\theta$ and $b = \\sin \\theta$ for some $\\theta \\in [0, 2\\pi)$.\n4.  **Expression**: $f(\\theta) = \\cos \\theta \\sin \\theta + \\cos \\theta - \\sin \\theta$.\n5.  **Let** $x = \\cos \\theta - \\sin \\theta$.\n    Then $x^2 = (\\cos \\theta - \\sin \\theta)^2 = \\cos^2 \\theta + \\sin^2 \\theta - 2\\sin \\theta \\cos \\theta = 1 - 2\\sin \\theta \\cos \\theta$.\n    So $2\\sin \\theta \\cos \\theta = 1 - x^2 \\Rightarrow \\sin \\theta \\cos \\theta = \\frac{1 - x^2}{2}$.\n6.  **Rewrite Goal**: $f(x) = \\frac{1 - x^2}{2} + x$. We want to show $f(x) \\le 1$.\n    $f(x) = \\frac{1 - x^2 + 2x}{2}$.\n    Maximize $g(x) = -x^2 + 2x + 1$ for $x \\in [-\\sqrt{2}, \\sqrt{2}]$.\n    The vertex of the parabola is at $x = -b/2a = -2/(-2) = 1$.\n    $g(1) = -1^2 + 2(1) + 1 = 2$.\n    Thus $f(x) \\le \\frac{2}{2} = 1$.\n7.  **Proof Strategy**: $2(ab + a - b) = 2ab + 2a - 2b$.\n    Since $a^2 + b^2 = 1$, we have $2ab = 1 - (a - b)^2$.\n    $2(ab + a - b) = 1 - (a - b)^2 + 2(a - b) = 1 - ((a - b)^2 - 2(a - b) + 1) + 1 = 2 - (a - b - 1)^2$.\n    Since $(a - b - 1)^2 \\ge 0$, $2(ab + a - b) \\le 2$, so $ab + a - b \\le 1$.\n</think>\n```lean4\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  have h : 2 * (a * b + (a - b)) = 1 - (a - b - 1) ^ 2 + 1 := by\n    ring_nf\n    rw [h₀]\n    ring\n  have h_le : 2 * (a * b + (a - b)) ≤ 2 := by\n    rw [h]\n    linarith [pow_two_nonneg (a - b - 1)]\n  linarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT FORMAT EXAMPLE:\n<think>\n[Your thinking process goes here. Be concise and direct.]\n</think>\n```lean4\ntheorem my_theorem proposition := by\n  [Your tactic sequence goes here. Be concise and direct.]\n```\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h : 2 * (a * b + (a - b)) = 1 - (a - b - 1) ^ 2 + 1 := by\n    ring_nf\n    rw [h₀]\n    ring\n  have h_le : 2 * (a * b + (a - b)) ≤ 2 := by\n    rw [h]\n    linarith [pow_two_nonneg (a - b - 1)]\n  linarith",
+      "metrics": {
+        "r_env": 0.75,
+        "r_dep": 0.0,
+        "Q_value": 0.75
+      }
+    },
+    {
+      "id": "action_1",
+      "internal_id": "A_748a52",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n- Goal: $ab + a - b \\leq 1$ given $a^2 + b^2 = 1$.\n- Rearrange the goal: $ab + a - b - 1 \\leq 0$.\n- Factorization: $ab + a - b - 1 = a(b + 1) - (b + 1) = (a - 1)(b + 1)$.\n- We need to show $(a - 1)(b + 1) \\leq 0$ given $a^2 + b^2 = 1$.\n- From $a^2 + b^2 = 1$, we know $a^2 \\leq 1$ and $b^2 \\leq 1$, which implies $-1 \\leq a \\leq 1$ and $-1 \\leq b \\leq 1$.\n- Since $a \\leq 1$, we have $a - 1 \\leq 0$.\n- Since $b \\geq -1$, we have $b + 1 \\geq 0$.\n- The product of a non-positive and a non-negative number is non-positive: $(a - 1)(b + 1) \\leq 0$.\n- Tactic: Use `have` to establish bounds on $a$ and $b$, then `nlinarith`.\n</think>\n```lean4\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  have ha : a ≤ 1 := by\n    have : a^2 ≤ 1 := by linarith [sq_nonneg b]\n    exact abs_le_one_iff_sq_le_one.mpr this |>.1\n  have hb : -1 ≤ b := by\n    have : b^2 ≤ 1 := by linarith [sq_nonneg a]\n    exact abs_le_one_iff_sq_le_one.mpr this |>.2\n  have : (a - 1) * (b + 1) ≤ 0 := by\n    apply mul_nonpos_of_nonpos_of_nonneg\n    · linarith\n    · linarith\n  linarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT FORMAT EXAMPLE:\n<think>\n[Your thinking process goes here. Be concise and direct.]\n</think>\n```lean4\ntheorem my_theorem proposition := by\n  [Your tactic sequence goes here. Be concise and direct.]\n```\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have ha : a ≤ 1 := by\n    have : a^2 ≤ 1 := by linarith [sq_nonneg b]\n    exact abs_le_one_iff_sq_le_one.mpr this |>.1\n  have hb : -1 ≤ b := by\n    have : b^2 ≤ 1 := by linarith [sq_nonneg a]\n    exact abs_le_one_iff_sq_le_one.mpr this |>.2\n  have : (a - 1) * (b + 1) ≤ 0 := by\n    apply mul_nonpos_of_nonpos_of_nonneg\n    · linarith\n    · linarith\n  linarith",
+      "metrics": {
+        "r_env": 0.8181818181818182,
+        "r_dep": 0.0,
+        "Q_value": 0.8181818181818182
+      }
+    },
+    {
+      "id": "action_2",
+      "internal_id": "A_5b6e12",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n- Goal: $ab + a - b \\leq 1$.\n- Constraint: $a^2 + b^2 = 1$.\n- Let $a = \\sin \\theta$, $b = \\cos \\theta$.\n- Expression: $\\sin \\theta \\cos \\theta + \\sin \\theta - \\cos \\theta$.\n- Let $x = \\sin \\theta - \\cos \\theta$.\n- Then $x^2 = (\\sin \\theta - \\cos \\theta)^2 = \\sin^2 \\theta + \\cos^2 \\theta - 2 \\sin \\theta \\cos \\theta = 1 - 2 \\sin \\theta \\cos \\theta$.\n- So $ab = \\sin \\theta \\cos \\theta = \\frac{1 - x^2}{2}$.\n- The expression becomes $\\frac{1 - x^2}{2} + x$.\n- We want to maximize $f(x) = -\\frac{1}{2}x^2 + x + \\frac{1}{2}$.\n- This is a downward parabola. Max occurs at $x = -b/(2a) = -1 / (2 \\cdot -1/2) = 1$.\n- Since $a^2 + b^2 = 1$, $x = a - b$ ranges in $[-\\sqrt{2}, \\sqrt{2}]$.\n- $x = 1$ is in the range.\n- $f(1) = -1/2 + 1 + 1/2 = 1$.\n- Thus $f(x) \\leq 1$ for all $x$.\n- Equality when $a-b = 1$, which implies $ab = 0$. E.g., $a=1, b=0$.\n\nTactic plan:\n1. Rearrange $a \\cdot b + a - b \\leq 1$ to $2ab + 2a - 2b \\leq 2$.\n2. Use $1 = a^2 + b^2$ to write $2ab = 1 - (a-b)^2$.\n3. Substitute: $1 - (a-b)^2 + 2(a-b) \\leq 2$.\n4. This is $2(a-b) - (a-b)^2 \\leq 1$, which is $0 \\leq (a-b)^2 - 2(a-b) + 1$.\n5. This is $0 \\leq ((a-b) - 1)^2$.\n</think>\n```lean4\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  have h₁ : 2 * (a * b + (a - b)) = 2 * a * b + 2 * a - 2 * b := by ring\n  suffices 2 * a * b + 2 * a - 2 * b ≤ 2 from linarith\n  have h₂ : 2 * a * b = 1 - (a - b) ^ 2 := by\n    rw [h₀.symm]\n    ring\n  rw [h₂]\n  have h₃ : 1 - (a - b) ^ 2 + 2 * a - 2 * b = 1 - (a - b) ^ 2 + 2 * (a - b) := by ring\n  rw [h₃]\n  have h₄ : 1 - (a - b) ^ 2 + 2 * (a - b) = 2 - ((a - b) - 1) ^ 2 := by ring\n  rw [h₄]\n  nlinarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT FORMAT EXAMPLE:\n<think>\n[Your thinking process goes here. Be concise and direct.]\n</think>\n```lean4\ntheorem my_theorem proposition := by\n  [Your tactic sequence goes here. Be concise and direct.]\n```\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h₁ : 2 * (a * b + (a - b)) = 2 * a * b + 2 * a - 2 * b := by ring\n  suffices 2 * a * b + 2 * a - 2 * b ≤ 2 from linarith\n  have h₂ : 2 * a * b = 1 - (a - b) ^ 2 := by\n    rw [h₀.symm]\n    ring\n  rw [h₂]\n  have h₃ : 1 - (a - b) ^ 2 + 2 * a - 2 * b = 1 - (a - b) ^ 2 + 2 * (a - b) := by ring\n  rw [h₃]\n  have h₄ : 1 - (a - b) ^ 2 + 2 * (a - b) = 2 - ((a - b) - 1) ^ 2 := by ring\n  rw [h₄]\n  nlinarith",
+      "metrics": {
+        "r_env": 0.09090909090909091,
+        "r_dep": 0.0,
+        "Q_value": 0.09090909090909091
+      }
+    },
+    {
+      "id": "action_3",
+      "internal_id": "A_ba91c9",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n- Goal: $ab + (a - b) \\le 1$ given $a^2 + b^2 = 1$.\n- Let $x = a$ and $y = -b$. Then $x^2 + y^2 = 1$.\n- The expression is $a(-(-y)) + a + y = -xy + x + y$.\n- Rearranging the inequality: $ab + a - b - 1 \\le 0$.\n- Note: $(a - 1)(b + 1) = ab + a - b - 1$.\n- We want to show $(a-1)(b+1) \\le 0$ under $a^2 + b^2 = 1$.\n- Since $a^2 + b^2 = 1$, we have $|a| \\le 1$ and $|b| \\le 1$.\n- This implies $a \\le 1 \\implies a - 1 \\le 0$.\n- This implies $b \\ge -1 \\implies b + 1 \\ge 0$.\n- Therefore, the product of a non-positive and a non-negative number is non-positive: $(a-1)(b+1) \\le 0$.\n- QED.\n</think>\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  have ha : a ≤ 1 := by\n    apply abs_le_one_iff.mp\n    rw [← sqrt_one, ← h₀, ← sqrt_sq_eq_abs]\n    apply sqrt_le_sqrt\n    exact le_add_of_nonneg_right (sq_nonneg b)\n  have hb : -1 ≤ b := by\n    apply neg_le_of_abs_le\n    apply abs_le_one_iff.mp\n    rw [← sqrt_one, ← h₀, ← sqrt_sq_eq_abs]\n    apply sqrt_le_sqrt\n    exact le_add_of_nonneg_left (sq_nonneg a)\n  have h1 : a - 1 ≤ 0 := sub_nonpos.mpr ha\n  have h2 : b + 1 ≥ 0 := neg_le_iff_add_nonneg.mp hb\n  have h3 : (a - 1) * (b + 1) ≤ 0 := mul_nonpos_of_nonpos_of_nonneg h1 h2\n  linarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT FORMAT EXAMPLE:\n<think>\n[Your thinking process goes here. Be concise and direct.]\n</think>\n```lean4\ntheorem my_theorem proposition := by\n  [Your tactic sequence goes here. Be concise and direct.]\n```\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have ha : a ≤ 1 := by\n    apply abs_le_one_iff.mp\n    rw [← sqrt_one, ← h₀, ← sqrt_sq_eq_abs]\n    apply sqrt_le_sqrt\n    exact le_add_of_nonneg_right (sq_nonneg b)\n  have hb : -1 ≤ b := by\n    apply neg_le_of_abs_le\n    apply abs_le_one_iff.mp\n    rw [← sqrt_one, ← h₀, ← sqrt_sq_eq_abs]\n    apply sqrt_le_sqrt\n    exact le_add_of_nonneg_left (sq_nonneg a)\n  have h1 : a - 1 ≤ 0 := sub_nonpos.mpr ha\n  have h2 : b + 1 ≥ 0 := neg_le_iff_add_nonneg.mp hb\n  have h3 : (a - 1) * (b + 1) ≤ 0 := mul_nonpos_of_nonpos_of_nonneg h1 h2\n  linarith",
+      "metrics": {
+        "r_env": 0.4666666666666667,
+        "r_dep": 0.0,
+        "Q_value": 0.4666666666666667
+      }
+    },
+    {
+      "id": "action_4",
+      "internal_id": "A_28ced8",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n- Goal: $ab + a - b \\leq 1$ given $a^2 + b^2 = 1$.\n- Let $b = \\sin \\theta$, $a = \\cos \\theta$.\n- Expression $E = \\cos \\theta \\sin \\theta + \\cos \\theta - \\sin \\theta$.\n- Let $x = a - b = \\cos \\theta - \\sin \\theta$.\n- Then $x^2 = (a-b)^2 = a^2 + b^2 - 2ab = 1 - 2ab$.\n- Thus $ab = \\frac{1 - x^2}{2}$.\n- $E = \\frac{1 - x^2}{2} + x$.\n- $E = \\frac{1}{2} - \\frac{1}{2}x^2 + x = -\\frac{1}{2}(x^2 - 2x) + \\frac{1}{2} = -\\frac{1}{2}(x-1)^2 + 1$.\n- Since $(x-1)^2 \\geq 0$, $E \\leq 1$.\n- Necessary hypotheses: `h₀`.\n- Tactics: use `nlinarith` or algebraic manipulation.\n</think>\n```lean4\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  have h : 2 * (a * b + (a - b)) = 1 - (a - b)^2 + 2 * (a - b) := by\n    linear_combination h₀\n  have h_bound : 1 - (a - b)^2 + 2 * (a - b) = 2 - (a - b - 1)^2 := by\n    ring\n  rw [← h, h_bound]\n  nlinarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT FORMAT EXAMPLE:\n<think>\n[Your thinking process goes here. Be concise and direct.]\n</think>\n```lean4\ntheorem my_theorem proposition := by\n  [Your tactic sequence goes here. Be concise and direct.]\n```\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h : 2 * (a * b + (a - b)) = 1 - (a - b)^2 + 2 * (a - b) := by\n    linear_combination h₀\n  have h_bound : 1 - (a - b)^2 + 2 * (a - b) = 2 - (a - b - 1)^2 := by\n    ring\n  rw [← h, h_bound]\n  nlinarith",
+      "metrics": {
+        "r_env": 0.6666666666666666,
+        "r_dep": 0.0,
+        "Q_value": 0.6666666666666666
+      }
+    },
+    {
+      "id": "action_5",
+      "internal_id": "A_c2d934",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n- Goal: $ab + a - b \\leq 1$ given $a^2 + b^2 = 1$.\n- Let $b = \\sin \\theta, a = \\cos \\theta$.\n- Inequality: $\\cos \\theta \\sin \\theta + \\cos \\theta - \\sin \\theta \\leq 1$.\n- Let $x = a - b = \\cos \\theta - \\sin \\theta$.\n- Then $x^2 = (a-b)^2 = a^2 + b^2 - 2ab = 1 - 2ab$.\n- So $ab = \\frac{1 - x^2}{2}$.\n- Substitute: $\\frac{1 - x^2}{2} + x \\leq 1$.\n- Multiply by 2: $1 - x^2 + 2x \\leq 2$.\n- Rearrange: $0 \\leq x^2 - 2x + 1$.\n- This is $0 \\leq (x - 1)^2$, which is always true.\n</think>\n```lean4\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  have h : 1 - (a * b + (a - b)) = (1 / 2) * (a - b - 1) ^ 2 + (1 / 2) * (a^2 + b^2 - 1) := by\n    ring\n  rw [h₀] at h\n  simp at h\n  linarith [pow_two_nonneg (a - b - 1)]\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT FORMAT EXAMPLE:\n<think>\n[Your thinking process goes here. Be concise and direct.]\n</think>\n```lean4\ntheorem my_theorem proposition := by\n  [Your tactic sequence goes here. Be concise and direct.]\n```\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h : 1 - (a * b + (a - b)) = (1 / 2) * (a - b - 1) ^ 2 + (1 / 2) * (a^2 + b^2 - 1) := by\n    ring\n  rw [h₀] at h\n  simp at h\n  linarith [pow_two_nonneg (a - b - 1)]",
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 0.0,
+        "Q_value": 1.0
+      }
+    },
+    {
+      "id": "action_6",
+      "internal_id": "A_be8204",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "<think>\n- Goal: $ab + a - b \\leq 1$ given $a^2 + b^2 = 1$.\n- Let $b = \\sin \\theta, a = \\cos \\theta$.\n- The expression is $\\cos \\theta \\sin \\theta + \\cos \\theta - \\sin \\theta$.\n- Let $x = a - b = \\cos \\theta - \\sin \\theta$.\n- Then $x^2 = (a - b)^2 = a^2 + b^2 - 2ab = 1 - 2ab$.\n- Thus $ab = \\frac{1 - x^2}{2}$.\n- We want to maximize $f(x) = \\frac{1 - x^2}{2} + x$ for $x \\in [-\\sqrt{2}, \\sqrt{2}]$.\n- $f(x) = -\\frac{1}{2}x^2 + x + \\frac{1}{2}$.\n- This is a parabola opening downwards. Vertex is at $x = -1 / (2 \\cdot -1/2) = 1$.\n- Max value is $f(1) = -\\frac{1}{2}(1)^2 + 1 + \\frac{1}{2} = 1$.\n- Since $x = a - b = 1$ is possible (e.g., $a=1, b=0$), the maximum is 1.\n- Proof strategy: $1 - (ab + a - b) = 1 - \\frac{1 - (a-b)^2}{2} - (a-b) = \\frac{2 - 1 + (a-b)^2 - 2(a-b)}{2} = \\frac{(a-b)^2 - 2(a-b) + 1}{2} = \\frac{(a-b-1)^2}{2} \\ge 0$.\n</think>\n\n```lean4\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  have h₁ : 2 * (1 - (a * b + a - b)) = (a - b - 1) ^ 2 := by\n    calc 2 * (1 - (a * b + a - b))\n      _ = 2 - 2 * a * b - 2 * a + 2 * b := by ring\n      _ = (a^2 + b^2) + 1 - 2 * a * b - 2 * a + 2 * b := by rw [h₀]; ring\n      _ = (a - b)^2 - 2 * (a - b) + 1 := by ring\n      _ = (a - b - 1) ^ 2 := by ring\n  have h₂ : 0 ≤ 2 * (1 - (a * b + a - b)) := by\n    rw [h₁]\n    apply pow_two_nonneg\n  linarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT FORMAT EXAMPLE:\n<think>\n[Your thinking process goes here. Be concise and direct.]\n</think>\n```lean4\ntheorem my_theorem proposition := by\n  [Your tactic sequence goes here. Be concise and direct.]\n```\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h₁ : 2 * (1 - (a * b + a - b)) = (a - b - 1) ^ 2 := by\n    calc 2 * (1 - (a * b + a - b))\n      _ = 2 - 2 * a * b - 2 * a + 2 * b := by ring\n      _ = (a^2 + b^2) + 1 - 2 * a * b - 2 * a + 2 * b := by rw [h₀]; ring\n      _ = (a - b)^2 - 2 * (a - b) + 1 := by ring\n      _ = (a - b - 1) ^ 2 := by ring\n  have h₂ : 0 ≤ 2 * (1 - (a * b + a - b)) := by\n    rw [h₁]\n    apply pow_two_nonneg\n  linarith",
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 0.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_7",
+      "internal_id": "A_9f2fe9",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n- Goal: $ab + a - b \\leq 1$.\n- Constraint: $a^2 + b^2 = 1$.\n- Let $a = \\cos \\theta, b = \\sin \\theta$.\n- Expression: $\\cos \\theta \\sin \\theta + \\cos \\theta - \\sin \\theta$.\n- Let $x = \\cos \\theta - \\sin \\theta$.\n- Then $x^2 = (\\cos \\theta - \\sin \\theta)^2 = 1 - 2\\cos \\theta \\sin \\theta$, so $ab = \\cos \\theta \\sin \\theta = \\frac{1-x^2}{2}$.\n- Expression in $x$: $f(x) = \\frac{1-x^2}{2} + x = -\\frac{1}{2}x^2 + x + \\frac{1}{2}$.\n- Since $x = \\sqrt{2} \\cos(\\theta + \\pi/4)$, the range of $x$ is $[-\\sqrt{2}, \\sqrt{2}]$.\n- $f(x)$ is a downward parabola with vertex at $x = - (1) / (2 * -1/2) = 1$.\n- $f(1) = -1/2(1)^2 + 1 + 1/2 = 1$.\n- Since $x=1$ is within the range $[-\\sqrt{2}, \\sqrt{2}]$, the maximum value is 1.\n- Thus $ab + a - b \\leq 1$.\n\nTactics:\n- Rearrange $a b + a - b \\le 1$ to $2ab + 2a - 2b \\le 2$.\n- Use $a^2 + b^2 = 1$ to rewrite 2 as $1 + a^2 + b^2$.\n- $2ab + 2a - 2b \\le 1 + a^2 + b^2$.\n- $0 \\le a^2 - 2ab + b^2 - 2a + 2b + 1$.\n- Observe $a^2 - 2ab + b^2 - 2a + 2b + 1 = (a - b)^2 - 2(a - b) + 1 = (a - b - 1)^2$.\n- $(a - b - 1)^2 \\ge 0$ is always true.\n</think>\n```lean4\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  have h₁ : (a - b - 1) ^ 2 ≥ 0 := sq_nonneg (a - b - 1)\n  calc\n    a * b + (a - b) = (2 * a * b + 2 * a - 2 * b) / 2 := by ring\n    _ = (1 + 2 * a * b + 2 * a - 2 * b - 1) / 2 := by ring\n    _ = (a ^ 2 + b ^ 2 + 2 * a * b + 2 * a - 2 * b - 1) / 2 := by rw [h₀]\n    _ = (1 - (a ^ 2 - 2 * a * b + b ^ 2 - 2 * a + 2 * b + 1) + 1) / 2 := by ring\n    _ = (2 - (a - b - 1) ^ 2) / 2 := by ring\n    _ ≤ 2 / 2 := by rel [h₁]\n    _ = 1 := by norm_num\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT FORMAT EXAMPLE:\n<think>\n[Your thinking process goes here. Be concise and direct.]\n</think>\n```lean4\ntheorem my_theorem proposition := by\n  [Your tactic sequence goes here. Be concise and direct.]\n```\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h₁ : (a - b - 1) ^ 2 ≥ 0 := sq_nonneg (a - b - 1)\n  calc\n    a * b + (a - b) = (2 * a * b + 2 * a - 2 * b) / 2 := by ring\n    _ = (1 + 2 * a * b + 2 * a - 2 * b - 1) / 2 := by ring\n    _ = (a ^ 2 + b ^ 2 + 2 * a * b + 2 * a - 2 * b - 1) / 2 := by rw [h₀]\n    _ = (1 - (a ^ 2 - 2 * a * b + b ^ 2 - 2 * a + 2 * b + 1) + 1) / 2 := by ring\n    _ = (2 - (a - b - 1) ^ 2) / 2 := by ring\n    _ ≤ 2 / 2 := by rel [h₁]\n    _ = 1 := by norm_num",
+      "metrics": {
+        "r_env": 0.5555555555555556,
+        "r_dep": 0.0,
+        "Q_value": 0.5555555555555556
+      }
+    },
+    {
+      "id": "action_8",
+      "internal_id": "A_faf782",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n- Goal: $ab + a - b \\le 1$.\n- Constraint: $a^2 + b^2 = 1$.\n- Let $a = \\sin \\theta, b = \\cos \\theta$.\n- Expression: $\\sin \\theta \\cos \\theta + \\sin \\theta - \\cos \\theta$.\n- Alternative approach: Rearrange the inequality to $ab + a - b - 1 \\le 0$, which is $(a-1)(b+1) \\le 0$? No.\n- Rearrange: $ab + a - b \\le 1 \\iff ab + a - b - 1 \\le 0$.\n- Note: $(a-1)(b+1) = ab + a - b - 1$.\n- So we need to prove $(a-1)(b+1) \\le 0$ given $a^2 + b^2 = 1$.\n- Since $a^2 + b^2 = 1$, we have $|a| \\le 1$ and $|b| \\le 1$.\n- This implies $a - 1 \\le 0$ and $b + 1 \\ge 0$.\n- The product of a non-positive and a non-negative number is non-positive.\n- Therefore, $(a-1)(b+1) \\le 0$ is true.\n</think>\n```lean4\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  have ha : a ≤ 1 := abs_le_one_iff_mul_self_le_one.mpr (by linarith [h₀, pow_two_nonneg b])\n  have hb : -1 ≤ b := (abs_le_one_iff_mul_self_le_one.mpr (by linarith [h₀, pow_two_nonneg a])).left\n  have h1 : a - 1 ≤ 0 := by linarith\n  have h2 : b + 1 ≥ 0 := by linarith\n  have h_prod : (a - 1) * (b + 1) ≤ 0 := mul_nonpos_of_nonpos_of_nonneg h1 h2\n  linarith [h_prod]\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT FORMAT EXAMPLE:\n<think>\n[Your thinking process goes here. Be concise and direct.]\n</think>\n```lean4\ntheorem my_theorem proposition := by\n  [Your tactic sequence goes here. Be concise and direct.]\n```\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have ha : a ≤ 1 := abs_le_one_iff_mul_self_le_one.mpr (by linarith [h₀, pow_two_nonneg b])\n  have hb : -1 ≤ b := (abs_le_one_iff_mul_self_le_one.mpr (by linarith [h₀, pow_two_nonneg a])).left\n  have h1 : a - 1 ≤ 0 := by linarith\n  have h2 : b + 1 ≥ 0 := by linarith\n  have h_prod : (a - 1) * (b + 1) ≤ 0 := mul_nonpos_of_nonpos_of_nonneg h1 h2\n  linarith [h_prod]",
+      "metrics": {
+        "r_env": 0.6666666666666666,
+        "r_dep": 0.0,
+        "Q_value": 0.6666666666666666
+      }
+    },
+    {
+      "id": "action_9",
+      "internal_id": "A_1bc6ad",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n- Goal: $ab + (a - b) \\leq 1$ given $a^2 + b^2 = 1$.\n- Let $a = \\sin \\theta$ and $b = \\cos \\theta$.\n- Then $ab + a - b = \\sin\\theta\\cos\\theta + \\sin\\theta - \\cos\\theta$.\n- Let $x = \\sin\\theta - \\cos\\theta$. Then $x^2 = (\\sin\\theta - \\cos\\theta)^2 = 1 - 2\\sin\\theta\\cos\\theta$.\n- Thus $ab = \\sin\\theta\\cos\\theta = \\frac{1 - x^2}{2}$.\n- The expression is $f(x) = \\frac{1-x^2}{2} + x = -\\frac{1}{2}x^2 + x + \\frac{1}{2}$.\n- Since $x = \\sin\\theta - \\cos\\theta = \\sqrt{2}\\sin(\\theta - \\pi/4)$, we have $x \\in [-\\sqrt{2}, \\sqrt{2}]$.\n- The vertex of the parabola $f(x)$ is at $x = - (1) / (2 \\cdot -1/2) = 1$.\n- Since $1 \\in [-\\sqrt{2}, \\sqrt{2}]$, the maximum is $f(1) = -1/2(1)^2 + 1 + 1/2 = 1$.\n- Thus $ab + a - b \\leq 1$.\n- To prove this in Lean:\n  $1 - (ab + a - b) = 1 - ab - a + b$.\n  Since $a^2 + b^2 = 1$, we can write $2 - 2ab - 2a + 2b = (a^2 + b^2 + 1 - 2ab - 2a + 2b) = (a - b - 1)^2$.\n  $(a - b - 1)^2 \\geq 0$ implies $a^2 + b^2 + 1 - 2ab - 2a + 2b \\geq 0 \\implies 2 - 2ab - 2a + 2b \\geq 0 \\implies 1 \\geq ab + a - b$.\n</think>\n```lean4\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  have h : 1 - (a * b + a - b) = (a - b - 1)^2 / 2 := by\n    field_simp\n    linear_combination (1/2) * h₀\n  rw [show a * b + (a - b) ≤ 1 ↔ 0 ≤ 1 - (a * b + a - b) by lratt]\n  rw [h]\n  positivity\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT FORMAT EXAMPLE:\n<think>\n[Your thinking process goes here. Be concise and direct.]\n</think>\n```lean4\ntheorem my_theorem proposition := by\n  [Your tactic sequence goes here. Be concise and direct.]\n```\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h : 1 - (a * b + a - b) = (a - b - 1)^2 / 2 := by\n    field_simp\n    linear_combination (1/2) * h₀\n  rw [show a * b + (a - b) ≤ 1 ↔ 0 ≤ 1 - (a * b + a - b) by lratt]\n  rw [h]\n  positivity",
+      "metrics": {
+        "r_env": 0.3333333333333333,
+        "r_dep": 0.0,
+        "Q_value": 0.3333333333333333
+      }
+    },
+    {
+      "id": "action_10",
+      "internal_id": "A_1717b0",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n- Goal: $ab + a - b \\leq 1$ given $a^2 + b^2 = 1$.\n- Let $b = \\sin \\theta, a = \\cos \\theta$.\n- Expression: $\\cos \\theta \\sin \\theta + \\cos \\theta - \\sin \\theta \\leq 1$.\n- Let $x = a - b = \\cos \\theta - \\sin \\theta$.\n- Then $x^2 = (a-b)^2 = a^2 + b^2 - 2ab = 1 - 2ab$.\n- So $ab = \\frac{1 - x^2}{2}$.\n- Goal becomes: $\\frac{1 - x^2}{2} + x \\leq 1$.\n- Multiply by 2: $1 - x^2 + 2x \\leq 2$.\n- Rearrange: $0 \\leq x^2 - 2x + 1$, which is $0 \\leq (x-1)^2$.\n- This inequality is always true for real $x$.\n- Necessary hypotheses: $h_0: a^2 + b^2 = 1$.\n</think>\n```lean4\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  have h : 1 - (a * b + (a - b)) = (1 / 2) * ((a - b - 1) ^ 2 + (a ^ 2 + b ^ 2 - 1)) := by\n    ring\n  rw [h₀] at h\n  simp only [sub_self, add_zero, mul_zero] at h\n  linarith [sq_nonneg (a - b - 1)]\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT FORMAT EXAMPLE:\n<think>\n[Your thinking process goes here. Be concise and direct.]\n</think>\n```lean4\ntheorem my_theorem proposition := by\n  [Your tactic sequence goes here. Be concise and direct.]\n```\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h : 1 - (a * b + (a - b)) = (1 / 2) * ((a - b - 1) ^ 2 + (a ^ 2 + b ^ 2 - 1)) := by\n    ring\n  rw [h₀] at h\n  simp only [sub_self, add_zero, mul_zero] at h\n  linarith [sq_nonneg (a - b - 1)]",
+      "metrics": {
+        "r_env": 0.8,
+        "r_dep": 0.0,
+        "Q_value": 0.8
+      }
+    },
+    {
+      "id": "action_11",
+      "internal_id": "A_36268e",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "<think>\n- Goal: $ab + a - b \\leq 1$ given $a^2 + b^2 = 1$.\n- Let $b = \\sin \\theta$, $a = \\cos \\theta$.\n- Expression: $\\cos\\theta\\sin\\theta + \\cos\\theta - \\sin\\theta \\leq 1$.\n- Let $x = a - b = \\cos\\theta - \\sin\\theta$.\n- Then $x^2 = (a-b)^2 = a^2 + b^2 - 2ab = 1 - 2ab$.\n- So $ab = \\frac{1 - x^2}{2}$.\n- The inequality becomes $\\frac{1-x^2}{2} + x \\leq 1$.\n- $1 - x^2 + 2x \\leq 2 \\implies -x^2 + 2x - 1 \\leq 0 \\implies -(x-1)^2 \\leq 0$.\n- This is always true for any real $x$.\n- Necessary hypotheses: $h_0$.\n- Tactic: Use the identity $(a-b-1)^2 \\geq 0$ expanded.\n- $(a-b-1)^2 = (a-b)^2 - 2(a-b) + 1 = a^2 + b^2 - 2ab - 2a + 2b + 1$.\n- Given $a^2 + b^2 = 1$, this is $1 - 2ab - 2a + 2b + 1 = 2 - 2ab - 2a + 2b$.\n- So $2 - 2ab - 2a + 2b \\geq 0 \\implies 1 \\geq ab + a - b$.\n</think>\n```lean4\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  have h : 0 ≤ (a - b - 1) ^ 2 := sq_nonneg (a - b - 1)\n  have h₁ : (a - b - 1) ^ 2 = (a ^ 2 + b ^ 2) - 2 * a * b - 2 * a + 2 * b + 1 := by ring\n  rw [h₀] at h₁\n  linarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.\n\nOUTPUT FORMAT EXAMPLE:\n<think>\n[Your thinking process goes here. Be concise and direct.]\n</think>\n```lean4\ntheorem my_theorem proposition := by\n  [Your tactic sequence goes here. Be concise and direct.]\n```\n\nOUTPUT INSTRUCTIONS\n1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].\n2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.\n3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nopen BigOperators Nat Real Topology\ntheorem my_theorem (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) : a * b + (a - b) ≤ 1 := by\n  sorry\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h : 0 ≤ (a - b - 1) ^ 2 := sq_nonneg (a - b - 1)\n  have h₁ : (a - b - 1) ^ 2 = (a ^ 2 + b ^ 2) - 2 * a * b - 2 * a + 2 * b + 1 := by ring\n  rw [h₀] at h₁\n  linarith",
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 0.0,
+        "Q_value": 2.0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "state_0",
+      "target": "action_0",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_1",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_2",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_3",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_4",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_5",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_6",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_7",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_8",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_9",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_10",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_11",
+      "relation": "expanded_to"
+    }
+  ]
+}
