@@ -1,9 +1,9 @@
 import os
 import random
 
-from betazero.core.nodes import ProofState
-from betazero.utils.lean_parse import parse_proof_state
-from betazero.utils.lean_cmd import DEFAULT_OPEN
+from gammazero.core.nodes import ProofState
+from gammazero.utils.lean_parse import parse_proof_state
+from gammazero.utils.lean_cmd import DEFAULT_OPEN
 
 
 class TheoremDataset:

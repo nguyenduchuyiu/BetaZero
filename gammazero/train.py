@@ -12,18 +12,18 @@ from tqdm import tqdm
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from betazero.utils.config import Config
-from betazero.utils.dataloader import TheoremDataset
-from betazero.utils.graph_logger import GraphLogger
-from betazero.utils.logger import setup as setup_logger
-from betazero.policy.vllm_server import VLLMServer
-from betazero.policy.trainable_policy import TrainablePolicy
-from betazero.env.lean_env import LeanEnv
-from betazero.env.lean_verifier import Lean4ServerScheduler
-from betazero.search import Sorrifier
-from betazero.search import RewardCalculator
-from betazero.search import LevelwiseRollout
-from betazero.search import GRPOTrainer
+from gammazero.utils.config import Config
+from gammazero.utils.dataloader import TheoremDataset
+from gammazero.utils.graph_logger import GraphLogger
+from gammazero.utils.logger import setup as setup_logger
+from gammazero.policy.vllm_server import VLLMServer
+from gammazero.policy.trainable_policy import TrainablePolicy
+from gammazero.env.lean_env import LeanEnv
+from gammazero.env.lean_verifier import Lean4ServerScheduler
+from gammazero.search import Sorrifier
+from gammazero.search import RewardCalculator
+from gammazero.search import BestFirstRollout
+from gammazero.search import GRPOTrainer
 
 
 def train(cfg: Config = Config()):
@@ -61,9 +61,20 @@ def train(cfg: Config = Config()):
                 # ── Phase 1: Rollout with vLLM subprocess ─────────────────────
                 vllm.start(adapter_path)
                 for j, thm in enumerate(theorems):
-                    rollout = LevelwiseRollout(
+                    rollout = BestFirstRollout(
                         vllm, lean, sorrifier, reward,
-                        K=cfg.K, max_depth=cfg.max_depth, max_nodes=cfg.max_nodes,
+                        max_depth=cfg.max_depth,
+                        max_nodes=cfg.max_nodes,
+                        search_batch_size=cfg.search_batch_size,
+                        initial_tactic_k=cfg.initial_tactic_k,
+                        retry_tactic_k=cfg.retry_tactic_k,
+                        max_tactic_per_state=cfg.max_tactic_per_state,
+                        initial_skeleton_k=cfg.initial_skeleton_k,
+                        retry_skeleton_k=cfg.retry_skeleton_k,
+                        max_skeleton_per_state=cfg.max_skeleton_per_state,
+                        state_beam_width=cfg.state_beam_width,
+                        state_beam_per_depth=cfg.state_beam_per_depth,
+                        skeleton_beam_per_state=cfg.skeleton_beam_per_state,
                     )
                     batch, g, qv = rollout.rollout(thm)
                     samples.extend(batch)

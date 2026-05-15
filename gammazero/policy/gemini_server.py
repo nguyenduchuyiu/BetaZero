@@ -4,9 +4,9 @@ from concurrent.futures import ThreadPoolExecutor
 from google import genai
 from google.genai import types
 
-from betazero.core import ProofState
-from betazero.policy.prompt import build_prompt
-from betazero.utils import Config
+from gammazero.core import ProofState
+from gammazero.policy.prompt import build_prompt
+from gammazero.utils import Config
 
 from dotenv import load_dotenv
 load_dotenv()

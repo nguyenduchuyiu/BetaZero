@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from betazero.core import ProofState, Action
-from betazero.env.lean_env import LeanEnv
-from betazero.policy.prompt import build_prompt
-from betazero.search.graph import ANDORGraph
-from betazero.search.reward import DependencyRewardAssigner, RewardCalculator
-from betazero.search.sorrifier import Sorrifier
+from gammazero.core import ProofState, Action
+from gammazero.env.lean_env import LeanEnv
+from gammazero.policy.prompt import build_prompt
+from gammazero.search.graph import ANDORGraph
+from gammazero.search.reward import DependencyRewardAssigner, RewardCalculator
+from gammazero.search.sorrifier import Sorrifier
 
 from .batch_executor import BatchExecutor, RolloutBudget
 from .failure_handler import FailureHandler

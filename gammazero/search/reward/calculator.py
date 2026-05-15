@@ -1,7 +1,7 @@
 import difflib
-from betazero.search.graph import ANDORGraph
-from betazero.core import Action
-from betazero.utils.lean_parse import extract_proof_body
+from gammazero.search.graph import ANDORGraph
+from gammazero.core import Action
+from gammazero.utils.lean_parse import extract_proof_body
 
 
 class RewardCalculator:

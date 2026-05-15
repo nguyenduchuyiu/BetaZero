@@ -6,8 +6,8 @@ from contextlib import nullcontext
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from peft import get_peft_model, PeftModel, LoraConfig, TaskType
 
-from betazero.core import ProofState
-from betazero.utils import Config
+from gammazero.core import ProofState
+from gammazero.utils import Config
 
 
 class TrainablePolicy:

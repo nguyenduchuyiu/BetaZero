@@ -17,8 +17,8 @@ from typing import Tuple, List, Dict, Optional, TextIO
 from tqdm import tqdm
 
 # Đã cập nhật import theo môi trường hiện tại của bạn
-from betazero.env import Lean4ServerScheduler
-from betazero.env.ast_parser import get_lean_ast
+from gammazero.env import Lean4ServerScheduler
+from gammazero.env.ast_parser import get_lean_ast
 
 BLOCK_STARTERS = (
     "have", "·", ".", "cases ", "cases' ", "induction ", 

@@ -6,7 +6,7 @@ from torch.utils.tensorboard import SummaryWriter
 def setup(log_dir: str) -> tuple[logging.Logger, SummaryWriter]:
     os.makedirs(log_dir, exist_ok=True)
 
-    logger = logging.getLogger("betazero")
+    logger = logging.getLogger("gammazero")
     logger.setLevel(logging.INFO)
     if not logger.handlers:
         fmt = logging.Formatter("%(asctime)s  %(message)s", datefmt="%H:%M:%S")

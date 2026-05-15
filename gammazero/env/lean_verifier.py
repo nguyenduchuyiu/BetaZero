@@ -9,7 +9,7 @@ import threading
 from pathlib import Path
 from queue import Queue
 from concurrent.futures import ThreadPoolExecutor
-from betazero.utils.lean_cmd import sanitize_header
+from gammazero.utils.lean_cmd import sanitize_header
 
 DEFAULT_LAKE_PATH = shutil.which("lake") or "lake"
 # Đường dẫn tuyệt đối tới thư mục repl ở gốc project

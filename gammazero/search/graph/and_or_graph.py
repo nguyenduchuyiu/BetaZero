@@ -4,9 +4,9 @@ import threading
 from typing import Any, Literal
 import re
 
-from betazero.core.nodes import Action, NodeStatus, ProofState
-from betazero.policy.output_parser import get_lean_code
-from betazero.search.sorrifier.stitcher import ProofStitcher
+from gammazero.core.nodes import Action, NodeStatus, ProofState
+from gammazero.policy.output_parser import get_lean_code
+from gammazero.search.sorrifier.stitcher import ProofStitcher
 
 
 
@@ -23,6 +23,7 @@ class ANDORGraph:
         self._depth: dict[ProofState, int] = {root: 0}
         self._solved_cache: dict[Any, bool] = {}
         self._skeleton_override: dict[Action, bool] = {} 
+        self._status_override: dict[ProofState | Action, NodeStatus] = {}
         self._garbage_vars: dict[Action, list[str]] = {}
 
     def expand(
@@ -57,6 +58,13 @@ class ANDORGraph:
             return memo[node]
         visiting.add(node)
         try:
+            override = self._status_override.get(node)
+            if override == "SOLVED":
+                memo[node] = True
+                return True
+            if override == "FAILED":
+                memo[node] = False
+                return False
             if isinstance(node, ProofState):
                 res = any(self._node_solved(a, visiting, memo) for a in self._actions.get(node, []))
             elif node.action_type == "tactic":
@@ -81,6 +89,9 @@ class ANDORGraph:
 
     def status(self, node: ProofState | Action) -> NodeStatus:
         with self._lock:
+            override = self._status_override.get(node)
+            if override is not None:
+                return override
             if isinstance(node, ProofState):
                 return "SOLVED" if self.is_solved(node) else "OPEN"
             if node.action_type == "tactic":
@@ -95,6 +106,42 @@ class ANDORGraph:
             if not node.children:
                 return "FAILED"
             return "OPEN"
+
+    def add_state(self, state: ProofState, depth: int | None = None) -> None:
+        with self._lock:
+            self._actions.setdefault(state, [])
+            if depth is not None and state not in self._depth:
+                self._depth[state] = depth
+
+    def all_states(self) -> list[ProofState]:
+        with self._lock:
+            return list(self._actions.keys())
+
+    def all_actions(self) -> list[Action]:
+        with self._lock:
+            return list(self._parent.keys())
+
+    def mark_open(self, node: ProofState | Action) -> bool:
+        with self._lock:
+            old = self._status_override.pop(node, None)
+            self._solved_cache.clear()
+            return old is not None
+
+    def mark_solved(self, node: ProofState | Action) -> bool:
+        with self._lock:
+            old = self._status_override.get(node)
+            self._status_override[node] = "SOLVED"
+            self._solved_cache.clear()
+            return old != "SOLVED"
+
+    def mark_failed(self, node: ProofState | Action) -> bool:
+        with self._lock:
+            old = self._status_override.get(node)
+            self._status_override[node] = "FAILED"
+            if isinstance(node, Action) and node.action_type == "tactic":
+                self._tactic_status[node] = "FAILED"
+            self._solved_cache.clear()
+            return old != "FAILED"
 
     def unsolved_states(self) -> list[ProofState]:
         with self._lock:

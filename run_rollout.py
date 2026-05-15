@@ -5,20 +5,20 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "."))
 
-from betazero.core.nodes import ProofState, Action
-from betazero.env.lean_env import LeanEnv
-from betazero.env.lean_verifier import Lean4ServerScheduler
-from betazero.search.graph.and_or_graph import ANDORGraph
-from betazero.search.rollout.levelwise_rollout import LevelwiseRollout
-from betazero.search.sorrifier import Sorrifier
-from betazero.search.reward import RewardCalculator
-from betazero.utils.config import Config
-from betazero.policy.vllm_server import VLLMServer
-from betazero.policy.deepseek_server import DeepSeekAPIServer
-from betazero.policy.gemini_server import GeminiAPIServer
-from betazero.utils.lean_parse import parse_proof_state
-from betazero.utils.lean_cmd import DEFAULT_OPEN
-from betazero.utils.graph_logger import GraphLogger
+from gammazero.core.nodes import ProofState, Action
+from gammazero.env.lean_env import LeanEnv
+from gammazero.env.lean_verifier import Lean4ServerScheduler
+from gammazero.search.graph.and_or_graph import ANDORGraph
+from gammazero.search.rollout.best_first_rollout import BestFirstRollout
+from gammazero.search.sorrifier import Sorrifier
+from gammazero.search.reward import RewardCalculator
+from gammazero.utils.config import Config
+from gammazero.policy.vllm_server import VLLMServer
+from gammazero.policy.deepseek_server import DeepSeekAPIServer
+from gammazero.policy.gemini_server import GeminiAPIServer
+from gammazero.utils.lean_parse import parse_proof_state
+from gammazero.utils.lean_cmd import DEFAULT_OPEN
+from gammazero.utils.graph_logger import GraphLogger
 
 
 def main():
@@ -38,8 +38,6 @@ def main():
     if args.config:
         cfg = Config.from_yaml(args.config)
 
-    K = cfg.K
-    tactic_ratio = cfg.tactic_ratio
     max_depth = cfg.max_depth
     max_nodes = cfg.max_nodes
     lean_timeout = cfg.lean_timeout
@@ -87,15 +85,23 @@ def main():
         policy_server.start(args.adapter)
         policy = policy_server
 
-        rollout_engine = LevelwiseRollout(
+        rollout_engine = BestFirstRollout(
             policy=policy,
             lean=lean,
             sorrifier=sorrifier,
             reward=reward,
-            K=K,
             max_depth=max_depth,
             max_nodes=max_nodes,
-            tactic_ratio=tactic_ratio
+            search_batch_size=cfg.search_batch_size,
+            initial_tactic_k=cfg.initial_tactic_k,
+            retry_tactic_k=cfg.retry_tactic_k,
+            max_tactic_per_state=cfg.max_tactic_per_state,
+            initial_skeleton_k=cfg.initial_skeleton_k,
+            retry_skeleton_k=cfg.retry_skeleton_k,
+            max_skeleton_per_state=cfg.max_skeleton_per_state,
+            state_beam_width=cfg.state_beam_width,
+            state_beam_per_depth=cfg.state_beam_per_depth,
+            skeleton_beam_per_state=cfg.skeleton_beam_per_state,
         )
 
         for i, lean_path in enumerate(lean_files):

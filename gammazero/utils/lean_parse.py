@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from betazero.core.nodes import ProofState
+from gammazero.core.nodes import ProofState
 
 
 def extract_proof_body(state_code: str) -> str:

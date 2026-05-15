@@ -1,9 +1,9 @@
 """Assigns structural dependencies reward (r_dep) to skeleton actions."""
 
-from betazero.env.lean_env import LeanEnv
-from betazero.search.graph import ANDORGraph
-from betazero.search.sorrifier.stitcher import ProofStitcher
-from betazero.utils.lean_cmd import build_theorem
+from gammazero.env.lean_env import LeanEnv
+from gammazero.search.graph import ANDORGraph
+from gammazero.search.sorrifier.stitcher import ProofStitcher
+from gammazero.utils.lean_cmd import build_theorem
 from .calculator import RewardCalculator
 import re
 

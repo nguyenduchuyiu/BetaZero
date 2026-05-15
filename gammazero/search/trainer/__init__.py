@@ -1,5 +1,11 @@
 """Policy optimization routines over collected search samples."""
 
-from .grpo_trainer import GRPOTrainer
-
 __all__ = ["GRPOTrainer"]
+
+
+def __getattr__(name):
+    if name == "GRPOTrainer":
+        from .grpo_trainer import GRPOTrainer
+
+        return GRPOTrainer
+    raise AttributeError(name)

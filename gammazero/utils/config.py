@@ -14,13 +14,23 @@ class Config:
     device: str = "cuda"
 
     # Rollout
-    K: int = 32
-    tactic_ratio: float = 0.8
     max_depth: int = 5
     max_nodes: int = 128
     lean_workers: int = 4
     lean_timeout: int = 60
     sorrifier_max_cycles: int = 50
+
+    # Best-first search
+    search_batch_size: int = 4
+    initial_tactic_k: int = 4
+    retry_tactic_k: int = 4
+    max_tactic_per_state: int = 16
+    initial_skeleton_k: int = 4
+    retry_skeleton_k: int = 2
+    max_skeleton_per_state: int = 8
+    state_beam_width: int = 32
+    state_beam_per_depth: int = 8
+    skeleton_beam_per_state: int = 2
 
     # GRPO
     lr: float = 1e-5

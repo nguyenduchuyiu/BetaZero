@@ -2,8 +2,8 @@ import json
 import os
 from typing import Any, Dict
 
-from betazero.core import ProofState, Action
-from betazero.search.graph import ANDORGraph
+from gammazero.core import ProofState, Action
+from gammazero.search.graph import ANDORGraph
 
 class GraphLogger:
     """Crawler đồ thị AND/OR để export ra JSON dùng cho visualization."""

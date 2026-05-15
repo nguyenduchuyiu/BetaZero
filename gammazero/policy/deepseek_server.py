@@ -4,9 +4,9 @@ import time
 import requests
 from concurrent.futures import ThreadPoolExecutor
 
-from betazero.core import ProofState
-from betazero.policy.prompt import build_prompt
-from betazero.utils import Config
+from gammazero.core import ProofState
+from gammazero.policy.prompt import build_prompt
+from gammazero.utils import Config
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -77,7 +77,7 @@ class DeepSeekAPIServer:
         if not states or n <= 0:
             return [[] for _ in states]
         if prompts is None:
-            from betazero.policy.prompt import build_prompt
+            from gammazero.policy.prompt import build_prompt
             prompts = [build_prompt(s, action_type) for s in states]
         elif len(prompts) != len(states):
             raise ValueError("prompts length must match states")

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from betazero.core.nodes import ProofState
+from gammazero.core.nodes import ProofState
 
 
 DEFAULT_OPEN = "open BigOperators Nat Real Topology"

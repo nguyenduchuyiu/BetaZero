@@ -5,8 +5,8 @@ from collections import defaultdict
 import torch
 from tqdm import tqdm
 
-from betazero.core import ProofState, Action
-from betazero.policy import TrainablePolicy
+from gammazero.core import ProofState, Action
+from gammazero.policy import TrainablePolicy
 
 _EMPTY = {"loss": 0.0, "kl": 0.0, "n_samples": 0, "n_groups": 0,
           "r_env_mean": 0.0, "Q_mean": 0.0, "solve_rate": 0.0}
