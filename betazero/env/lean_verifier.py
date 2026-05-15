@@ -87,7 +87,7 @@ class PersistentLeanWorker:
             bufsize=1,
             preexec_fn=os.setsid
         )
-        warmup_cmd = json.dumps({"cmd": "import Mathlib"})
+        warmup_cmd = json.dumps({"cmd": "import Mathlib\nset_option linter.unusedVariables false"})
         
         self.proc.stdin.write(warmup_cmd + "\n\n")
         self.proc.stdin.flush()

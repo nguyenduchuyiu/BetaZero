@@ -1,4 +1,5 @@
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 import re
 from pathlib import Path
@@ -8,6 +9,7 @@ from betazero.core.nodes import ProofState
 from betazero.env.lean_env import LeanEnv
 from betazero.search.reward.calculator import RewardCalculator
 from betazero.search.reward.reward_assigner import DependencyRewardAssigner
+from betazero.search.sorrifier.sorrifier import Sorrifier
 from betazero.search.sorrifier.stitcher import ProofStitcher
 from betazero.env.lean_env import Lean4ServerScheduler
 
@@ -78,7 +80,16 @@ def expand_verifiable_garbage(
     return ordered_garbage, cleaned_code
 
 
-def process_file(filepath: Path, lean: LeanEnv, reward_calc: RewardCalculator, assigner: DependencyRewardAssigner):
+def process_file(
+    filepath: Path,
+    lean: LeanEnv,
+    reward_calc: RewardCalculator,
+    assigner: DependencyRewardAssigner,
+    *,
+    workers: int = 1,
+    sorrifier_cycles: int = 50,
+    failed_r_env_mode: str = "all",
+):
     try:
         with open(filepath, 'r') as f:
             data = json.load(f)
@@ -160,6 +171,66 @@ def process_file(filepath: Path, lean: LeanEnv, reward_calc: RewardCalculator, a
         if old != value:
             metrics[key] = value
             updated_count += 1
+
+    def recalculate_action_r_env(a_id: str) -> tuple[str, float, str | None]:
+        a_node = nodes[a_id]
+        parent_id = action_to_parent.get(a_id)
+        proof_code = a_node.get('extracted_lean_code') or ""
+        if not parent_id or not proof_code:
+            return a_id, 0.0, "missing_parent_or_code"
+
+        try:
+            parent_state_data = nodes[parent_id]
+            full_code = build_full_code(parent_state_data, a_node, proof_code)
+            vr = lean.verify(full_code)
+            if vr.get("pass"):
+                return a_id, reward_calc.r_env(full_code, full_code, vr), None
+
+            old_r_env = a_node.get('metrics', {}).get('r_env', 0.0)
+            should_sorrify = (
+                failed_r_env_mode == "all"
+                or (
+                    failed_r_env_mode == "suspicious"
+                    and old_r_env >= 1.0
+                )
+            )
+            if not should_sorrify:
+                return a_id, old_r_env, None
+
+            patched_code = Sorrifier(
+                lean.scheduler,
+                max_cycles=sorrifier_cycles,
+            ).fix_code(full_code)
+            patched_vr = lean.verify(patched_code)
+            return a_id, reward_calc.r_env(full_code, patched_code, patched_vr), None
+        except Exception as e:
+            return a_id, 0.0, str(e)
+
+    action_ids = [
+        node_id for node_id, node in nodes.items()
+        if node.get('type') == "AND"
+    ]
+    if action_ids:
+        max_workers = max(1, min(workers, len(action_ids)))
+        if max_workers == 1:
+            r_env_results = [recalculate_action_r_env(a_id) for a_id in action_ids]
+        else:
+            r_env_results = []
+            with ThreadPoolExecutor(max_workers=max_workers) as pool:
+                futures = {
+                    pool.submit(recalculate_action_r_env, a_id): a_id
+                    for a_id in action_ids
+                }
+                for future in as_completed(futures):
+                    r_env_results.append(future.result())
+
+        failed_r_env = 0
+        for a_id, r_env_score, error in r_env_results:
+            set_metric(a_id, 'r_env', r_env_score)
+            if error:
+                failed_r_env += 1
+        if failed_r_env:
+            print(f"{filepath}: failed to recalculate r_env for {failed_r_env} actions")
 
     def evaluate_action(a_id):
         if a_id in action_eval_cache:
@@ -388,8 +459,17 @@ def process_file(filepath: Path, lean: LeanEnv, reward_calc: RewardCalculator, a
         # print(f"Updated {updated_count} nodes and recalculated Q/V in {filepath}")
 
 def main():
-    parser = argparse.ArgumentParser(description="Recalculate offline r_dep for rollout JSON files")
+    parser = argparse.ArgumentParser(description="Recalculate offline r_env/r_dep for rollout JSON files")
     parser.add_argument("--json-dir", type=str, required=True, help="Directory containing rollout JSON files or path to a single JSON")
+    parser.add_argument("--workers", type=int, default=4, help="Parallel Lean workers for independent action r_env recalculation")
+    parser.add_argument("--timeout", type=int, default=60, help="Lean verifier timeout per request")
+    parser.add_argument("--sorrifier-cycles", type=int, default=50, help="Max sorrifier cycles when recalculating failed action r_env")
+    parser.add_argument(
+        "--failed-r-env-mode",
+        choices=("suspicious", "all", "none"),
+        default="all",
+        help="Which failed actions to sorrify for r_env: suspicious only stale r_env>=1, all for exact but slow, none to keep old failed scores",
+    )
     args = parser.parse_args()
     
     path = Path(args.json_dir)
@@ -407,17 +487,29 @@ def main():
         print(f"No JSON files found in {path}")
         return
         
-    print(f"Found {len(json_files)} JSON files. Initializing LeanEnv...")
-    scheduler = Lean4ServerScheduler()
+    workers = max(1, args.workers)
+    print(f"Found {len(json_files)} JSON files. Initializing LeanEnv with {workers} worker(s)...")
+    scheduler = Lean4ServerScheduler(max_concurrent_requests=workers, timeout=args.timeout)
     lean = LeanEnv(scheduler)
     reward_calc = RewardCalculator()
     assigner = DependencyRewardAssigner(lean, reward_calc)
     
-    print("Starting recalculation...")
-    for jf in tqdm(json_files):
-        process_file(jf, lean, reward_calc, assigner)
-        
-    print("Recalculation complete.")
+    try:
+        print("Starting recalculation...")
+        for jf in tqdm(json_files):
+            process_file(
+                jf,
+                lean,
+                reward_calc,
+                assigner,
+                workers=workers,
+                sorrifier_cycles=args.sorrifier_cycles,
+                failed_r_env_mode=args.failed_r_env_mode,
+            )
+            
+        print("Recalculation complete.")
+    finally:
+        scheduler.close()
 
 if __name__ == "__main__":
     main()

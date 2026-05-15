@@ -1,13 +1,15 @@
 from betazero.core import ProofState, Action
 from betazero.env.lean_env import LeanEnv
 from betazero.utils.lean_cmd import build_theorem
+from betazero.utils.lean_parse import extract_proof_body
+
 
 from betazero.search.graph import ANDORGraph
 from betazero.search.reward import RewardCalculator
 from betazero.search.sorrifier import Sorrifier
 
 from .execution_result import LeanExecutionResult
-from .utils import extract_action_body, inject_patched_code_to_raw
+from .utils import inject_patched_code_to_raw
 from betazero.utils.lean_parse import parse_proof_state
 
 class FailureHandler:
@@ -57,7 +59,7 @@ class FailureHandler:
         # 1. Gọi thợ vá lỗi Sorrifier
         patched = self.sorrifier.fix_code(state_code)
         patched_vr = self.lean.verify(patched)
-        patched_action_code = extract_action_body(patched)
+        patched_action_code = extract_proof_body(patched)
         
         full_orig = build_theorem(state, lean_code)
         full_patched = build_theorem(state, patched_action_code)
