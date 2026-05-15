@@ -206,5 +206,57 @@ def build_prompt(state: ProofState, action_type: str, extra_rules: str = "") -> 
     return _format_chatml_from_messages(messages)
 
 
+def format_skeleton_feedback_block(lean_code: str, lean_feedback: str) -> str:
+    return (
+        "FAILED SKELETON CODE:\n"
+        "```lean4\n"
+        f"{lean_code.strip()}\n"
+        "```\n\n"
+        "LEAN ERROR FEEDBACK:\n"
+        f"{lean_feedback.strip()}"
+    )
+
+
+def build_skeleton_retry_prompt(
+    state: ProofState,
+    feedback_blocks: list[str],
+    *,
+    max_feedbacks: int = 3,
+) -> str:
+    if not feedback_blocks:
+        return build_prompt(state, "skeleton")
+
+    feedback_block = (
+        "PREVIOUS SKELETON ATTEMPTS FAILED.\n"
+        "Use the Lean feedback below to produce a NEW skeleton for the same theorem. "
+        "Do not repeat the failed skeleton. Preserve the exact theorem signature.\n\n"
+        + "\n\n".join(feedback_blocks[-max_feedbacks:])
+    )
+    return build_prompt(state, "skeleton", extra_rules=feedback_block)
+
+
+class SearchPromptBuilder:
+    def __init__(self, *, max_skeleton_feedbacks: int = 3):
+        self.max_skeleton_feedbacks = max_skeleton_feedbacks
+
+    def build(
+        self,
+        state: ProofState,
+        action_type: str,
+        *,
+        skeleton_feedbacks: list[str] | None = None,
+    ) -> str:
+        if action_type == "skeleton":
+            return build_skeleton_retry_prompt(
+                state,
+                skeleton_feedbacks or [],
+                max_feedbacks=self.max_skeleton_feedbacks,
+            )
+        return build_prompt(state, action_type)
+
+    def format_skeleton_feedback(self, lean_code: str, lean_feedback: str) -> str:
+        return format_skeleton_feedback_block(lean_code, lean_feedback)
+
+
 def clean_prompt(text: str) -> str:
     return text.replace('\u00a0', ' ')

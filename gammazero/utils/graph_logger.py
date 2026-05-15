@@ -53,7 +53,13 @@ class GraphLogger:
                     "proof_body": proof_body
                 },
                 "metrics": {
-                    "V_value": max((q_values.get(a, 0.0) for a in graph.get_actions(state)), default=0.0)
+                    "V_value": max(
+                        (
+                            graph.backup_value_for_action(a, q_values.get(a, 0.0))
+                            for a in graph.get_actions(state)
+                        ),
+                        default=0.0,
+                    )
                 }
             })
 

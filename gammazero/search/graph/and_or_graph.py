@@ -184,13 +184,18 @@ class ANDORGraph:
             visiting_v: set[ProofState] = set()
             solve_memo: dict[Any, bool] = {}
 
+            def backup_value(action: Action) -> float:
+                if action.action_type == "skeleton" and self.status(action) == "FAILED":
+                    return 0.0
+                return Q(action)
+
             def V(state: ProofState) -> float:
                 if state in v_cache:
                     return v_cache[state]
                 if state in visiting_v:
                     return 0.0
                 visiting_v.add(state)
-                val = max((Q(a) for a in self._actions.get(state, [])), default=0.0)
+                val = max((backup_value(a) for a in self._actions.get(state, [])), default=0.0)
                 visiting_v.remove(state)
                 v_cache[state] = val
                 return val
@@ -203,13 +208,13 @@ class ANDORGraph:
                 if action.action_type == "tactic":
                     val = r_e + W_solve * float(solved)
                 else:
+                    r_d = self._r_dep.get(action, 0.0)
                     if solved:
-                        r_d = self._r_dep.get(action, 0.0)
                         live_children = self._live_children_for_action(action)
                         future = gamma * min((V(c) for c in live_children), default=0.0)
                         val = r_e + r_d + future
                     else:
-                        val = 0.0
+                        val = r_e + r_d
                 q_cache[action] = val
                 return val
 
@@ -218,6 +223,13 @@ class ANDORGraph:
             for state in self._actions:
                 V(state)
             return q_cache
+
+    def backup_value_for_action(self, action: Action, q_value: float) -> float:
+        """Value an action contributes upward to its parent OR-node."""
+        with self._lock:
+            if action.action_type == "skeleton" and self.status(action) == "FAILED":
+                return 0.0
+            return q_value
 
     def get_successful_actions(self, state: ProofState) -> list[Action]:
         """Retrieve all actions that successfully solved this state."""

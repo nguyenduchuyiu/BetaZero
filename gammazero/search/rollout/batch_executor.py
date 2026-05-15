@@ -190,7 +190,6 @@ class BatchExecutor:
             for i, j, lean_code, state_vr, future in patch_futures:
                 patch = future.result()
                 sorr_body = self.failure.apply_failed_action_patch(graph, patch)
-                if action_type == "tactic":
-                    feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), sorr_body)
+                feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), sorr_body)
 
         return feedbacks

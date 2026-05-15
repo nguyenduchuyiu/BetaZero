@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from gammazero.core import Action, ProofState
+from gammazero.policy.prompt import build_skeleton_retry_prompt
 from gammazero.search.graph import ANDORGraph
 from gammazero.search.rollout.best_first_rollout import BestFirstRollout
 from gammazero.search.rollout.search_queue import StatePriorityQueue
@@ -65,6 +66,11 @@ class ScriptedExecutor:
 class NoopExecutor:
     def execute(self, graph, states, batches, action_type, budget, prompts=None):
         return []
+
+
+class FeedbackExecutor:
+    def execute(self, graph, states, batches, action_type, budget, prompts=None):
+        return [[("have h : False := by exact bad", "unknown identifier 'bad'", "")]]
 
 
 class FixedScoreScorer:
@@ -278,6 +284,23 @@ def test_budget_partial_execution_counts_only_inserted_actions():
     assert action_stats["budget_used"] == 2
 
 
+def test_tactic_r_env_updates_state_score_signal():
+    root = ProofState("", "root")
+    graph = ANDORGraph(root)
+    weak = Action("tactic", "weak", extracted_code="weak")
+    strong = Action("tactic", "strong", extracted_code="strong")
+    graph.expand(root, weak, r_env=0.25, tactic_status="FAILED")
+    graph.expand(root, strong, r_env=0.75, tactic_status="FAILED")
+    stats = {root: StateStats(depth=0)}
+    rollout = make_rollout()
+
+    rollout.update_best_tactic_r_env(graph, [weak, strong], stats)
+    score = rollout.scorer.score_state(root, graph, stats)
+
+    assert stats[root].best_tactic_r_env == 0.75
+    assert score == 1.5 * 0.75
+
+
 def test_invalid_skeleton_failed_and_parent_open_if_retry_budget_remains():
     root = ProofState("", "root")
     graph = ANDORGraph(root)
@@ -325,6 +348,20 @@ def test_valid_zero_children_excludes_raw_failed_skeletons():
     assert zero_children == 1
 
 
+def test_skeleton_feedback_is_cached_and_added_to_retry_prompt():
+    root = ProofState("", "root")
+    graph = ANDORGraph(root)
+    rollout = make_rollout(executor=FeedbackExecutor())
+
+    rollout.run_jobs(graph, [(root, 1)], "skeleton")
+    prompt = build_skeleton_retry_prompt(root, rollout._skeleton_feedback_by_state[root])
+
+    assert "PREVIOUS SKELETON ATTEMPTS FAILED" in prompt
+    assert "FAILED SKELETON CODE" in prompt
+    assert "unknown identifier 'bad'" in prompt
+    assert "Do not repeat the failed skeleton" in prompt
+
+
 def test_parent_requeues_after_failed_attempts_when_budget_remains():
     root = ProofState("", "root")
     graph = ANDORGraph(root)
@@ -346,7 +383,7 @@ def test_parent_requeues_after_failed_attempts_when_budget_remains():
     rollout = make_rollout(max_tactic_per_state=2, max_skeleton_per_state=2)
 
     if rollout.can_requeue_state(root, graph, stats):
-        score = rollout.H_state(root, graph, stats)
+        score = rollout.scorer.score_state(root, graph, stats)
         stats[root].last_score = score
         queue.push(root, score)
 
@@ -388,6 +425,30 @@ def test_unselected_skeletons_are_failed_and_only_selected_children_activate():
     assert {state.goal for _, state in queue.items()} == {"chosen", "chosen2"}
 
 
+def test_activated_child_inherits_skeleton_score_and_r_env():
+    root = ProofState("", "root")
+    child = ProofState("", "child")
+    graph = ANDORGraph(root)
+    action = Action("skeleton", "split", children=(child,))
+    graph.expand(root, action, r_env=0.5)
+    stats = {root: StateStats(depth=0, last_score=1.0)}
+    queue = StatePriorityQueue()
+    rollout = make_rollout()
+    expected_skeleton_score = rollout.scorer.score_skeleton(action, root, graph, stats)
+
+    rollout.activate_skeleton_children(
+        [(root, action, expected_skeleton_score)],
+        graph,
+        stats,
+        queue,
+        {rollout.state_key(root)},
+    )
+
+    assert stats[child].incoming_skeleton_score == expected_skeleton_score
+    assert stats[child].incoming_skeleton_r_env == 0.5
+    assert stats[child].last_score == rollout.scorer.score_state(child, graph, stats)
+
+
 def test_propagate_solves_root_through_multiple_skeleton_layers():
     root = ProofState("", "root")
     child = ProofState("", "child")
@@ -415,7 +476,7 @@ def test_propagate_solves_root_through_multiple_skeleton_layers():
     assert graph.status(root) == "SOLVED"
 
 
-def test_failed_skeleton_does_not_backup_r_env_to_parent_value():
+def test_failed_skeleton_keeps_own_score_but_does_not_backup_to_parent_value():
     root = ProofState("", "root")
     child = ProofState("", "child")
     graph = ANDORGraph(root)
@@ -429,8 +490,12 @@ def test_failed_skeleton_does_not_backup_r_env_to_parent_value():
     q_values = graph.backup()
 
     assert graph.status(skeleton) == "FAILED"
-    assert q_values[skeleton] == 0.0
-    assert max((q_values.get(a, 0.0) for a in graph.get_actions(root)), default=0.0) == 0.0
+    assert q_values[skeleton] == 1.0
+    assert graph.backup_value_for_action(skeleton, q_values[skeleton]) == 0.0
+    assert max(
+        (graph.backup_value_for_action(a, q_values.get(a, 0.0)) for a in graph.get_actions(root)),
+        default=0.0,
+    ) == 0.0
 
 
 def test_search_metadata_logs_core_runtime_counters():

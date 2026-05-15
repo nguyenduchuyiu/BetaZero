@@ -5,14 +5,14 @@ from typing import Protocol
 
 from gammazero.core import Action, ProofState
 from gammazero.env.lean_env import LeanEnv
-from gammazero.policy.prompt import build_prompt
+from gammazero.policy.prompt import SearchPromptBuilder
 from gammazero.search.graph import ANDORGraph
 from gammazero.search.reward import DependencyRewardAssigner, RewardCalculator
 from gammazero.search.sorrifier import Sorrifier
 
 from .batch_executor import BatchExecutor, RolloutBudget
 from .failure_handler import FailureHandler
-from .heuristic import DefaultScorer, HeuristicScorer
+from .heuristic import SearchScorer, SimpleHeuristicScorer
 from .search_queue import StatePriorityQueue
 from .search_stats import StateStats
 
@@ -45,7 +45,8 @@ class BestFirstRollout:
         state_beam_width: int = 32,
         state_beam_per_depth: int = 8,
         skeleton_beam_per_state: int = 2,
-        scorer: HeuristicScorer | None = None,
+        scorer: SearchScorer | None = None,
+        prompt_builder: SearchPromptBuilder | None = None,
         executor: BatchExecutor | None = None,
         failure_handler: FailureHandler | None = None,
         reward_assigner: DependencyRewardAssigner | None = None,
@@ -68,7 +69,8 @@ class BestFirstRollout:
         self.state_beam_width = state_beam_width
         self.state_beam_per_depth = state_beam_per_depth
         self.skeleton_beam_per_state = skeleton_beam_per_state
-        self.scorer = scorer or DefaultScorer()
+        self.scorer = scorer or SimpleHeuristicScorer()
+        self.prompt_builder = prompt_builder or SearchPromptBuilder()
 
         if executor is None:
             self.failure_handler = failure_handler or FailureHandler(lean, sorrifier, reward)
@@ -78,6 +80,7 @@ class BestFirstRollout:
             self.failure_handler = failure_handler
         self.reward_assigner = reward_assigner or DependencyRewardAssigner(lean, reward)
         self.last_search_metadata: dict = {}
+        self._skeleton_feedback_by_state: dict[ProofState, list[str]] = {}
 
     @property
     def max_nodes(self) -> int:
@@ -87,18 +90,6 @@ class BestFirstRollout:
     def total_expanded(self) -> int:
         return self._budget.used
 
-    def H_state(self, state: ProofState, graph: ANDORGraph, stats: dict[ProofState, StateStats]) -> float:
-        return self.scorer.score_state(state, graph, stats)
-
-    def H_skeleton(
-        self,
-        action: Action,
-        parent_state: ProofState,
-        graph: ANDORGraph,
-        stats: dict[ProofState, StateStats],
-    ) -> float:
-        return self.scorer.score_skeleton(action, parent_state, graph, stats)
-
     def _empty_search_metadata(self) -> dict:
         return {
             "budget": {
@@ -106,19 +97,18 @@ class BestFirstRollout:
                 "used_total": 0,
                 "used_tactic": 0,
                 "used_skeleton_raw": 0,
-                "used_skeleton_sorrified": 0,
                 "lean_verify_calls": 0,
-                "sorrifier_verify_calls": 0,
+                "patch_verify_calls": 0,
             },
             "skeleton_pipeline": {
                 "requested": 0,
                 "raw_verify_success": 0,
                 "raw_verify_failed": 0,
-                "sorrifier_attempted": 0,
-                "sorrifier_success": 0,
-                "sorrifier_failed": 0,
+                "patch_attempted": 0,
+                "patch_scored": 0,
+                "patch_failed": 0,
+                "feedback_generated": 0,
                 "inserted_raw": 0,
-                "inserted_sorrified": 0,
                 "selected_by_beam": 0,
                 "rejected_by_beam": 0,
                 "valid_zero_children": 0,
@@ -192,6 +182,7 @@ class BestFirstRollout:
         self, theorem: ProofState
     ) -> tuple[list[tuple[ProofState, Action, float, float]], ANDORGraph, dict[Action, float]]:
         self._budget.reset()
+        self._skeleton_feedback_by_state = {}
         graph = ANDORGraph(theorem)
         stats: dict[ProofState, StateStats] = {theorem: StateStats(depth=0)}
         queue = StatePriorityQueue()
@@ -199,7 +190,7 @@ class BestFirstRollout:
         metadata = self._empty_search_metadata()
         stop_reason = "unknown"
 
-        root_score = self.H_state(theorem, graph, stats)
+        root_score = self.scorer.score_state(theorem, graph, stats)
         stats[theorem].last_score = root_score
         queue.push(theorem, root_score)
 
@@ -218,9 +209,10 @@ class BestFirstRollout:
                 actual_counts, action_stats = self.run_jobs(graph, tactic_jobs, "tactic")
                 metadata["budget"]["used_tactic"] += action_stats["budget_used"]
                 metadata["budget"]["lean_verify_calls"] += action_stats["budget_used"]
-                metadata["budget"]["sorrifier_verify_calls"] += action_stats["raw_failed"]
+                metadata["budget"]["patch_verify_calls"] += action_stats["feedback_generated"]
                 for state, count in actual_counts.items():
                     stats[state].tactic_tries += count
+                self.update_best_tactic_r_env(graph, action_stats["new_actions"], stats)
                 self.propagate(graph, stats)
                 if graph.status(theorem) == "SOLVED":
                     stop_reason = "root_solved"
@@ -233,18 +225,16 @@ class BestFirstRollout:
                 actual_counts, action_stats = self.run_jobs(graph, skeleton_jobs, "skeleton")
                 metadata["budget"]["used_skeleton_raw"] += action_stats["budget_used"]
                 metadata["budget"]["lean_verify_calls"] += action_stats["budget_used"]
-                metadata["budget"]["sorrifier_verify_calls"] += action_stats["raw_failed"]
-                metadata["budget"]["used_skeleton_sorrified"] += action_stats["inserted_sorrified"]
+                metadata["budget"]["patch_verify_calls"] += action_stats["feedback_generated"]
                 metadata["skeleton_pipeline"]["raw_verify_success"] += action_stats["raw_success"]
                 metadata["skeleton_pipeline"]["raw_verify_failed"] += action_stats["raw_failed"]
-                metadata["skeleton_pipeline"]["sorrifier_attempted"] += action_stats["raw_failed"]
-                metadata["skeleton_pipeline"]["sorrifier_success"] += action_stats["inserted_sorrified"]
-                metadata["skeleton_pipeline"]["sorrifier_failed"] += max(
-                    0,
-                    action_stats["raw_failed"] - action_stats["inserted_sorrified"],
+                metadata["skeleton_pipeline"]["patch_attempted"] += action_stats["raw_failed"]
+                metadata["skeleton_pipeline"]["patch_scored"] += action_stats["feedback_generated"]
+                metadata["skeleton_pipeline"]["patch_failed"] += max(
+                    0, action_stats["raw_failed"] - action_stats["feedback_generated"]
                 )
+                metadata["skeleton_pipeline"]["feedback_generated"] += action_stats["feedback_generated"]
                 metadata["skeleton_pipeline"]["inserted_raw"] += action_stats["inserted_raw"]
-                metadata["skeleton_pipeline"]["inserted_sorrified"] += action_stats["inserted_sorrified"]
                 for state, count in actual_counts.items():
                     stats[state].skeleton_tries += count
                 new_actions = [a for a in graph.all_actions() if a not in before]
@@ -272,7 +262,7 @@ class BestFirstRollout:
 
             for state in states:
                 if self.can_requeue_state(state, graph, stats):
-                    score = self.H_state(state, graph, stats)
+                    score = self.scorer.score_state(state, graph, stats)
                     stats[state].last_score = score
                     queue.push(state, score)
                 else:
@@ -411,24 +401,32 @@ class BestFirstRollout:
         for k, states in groups.items():
             if self.total_expanded >= self.max_nodes:
                 break
-            prompts = [build_prompt(state, action_type) for state in states]
+            prompts = [
+                self.prompt_builder.build(
+                    state,
+                    action_type,
+                    skeleton_feedbacks=self._skeleton_feedback_by_state.get(state, []),
+                )
+                for state in states
+            ]
             batches = self.policy.sample(states, action_type, k, prompts=prompts)
-            self.executor.execute(graph, states, batches, action_type, self._budget, prompts=prompts)
+            feedbacks = self.executor.execute(graph, states, batches, action_type, self._budget, prompts=prompts)
+            if action_type == "skeleton":
+                self.record_skeleton_feedback(states, feedbacks)
         counts: dict[ProofState, int] = defaultdict(int)
         action_stats = {
             "budget_used": self._budget.used - budget_before,
             "inserted_raw": 0,
-            "inserted_sorrified": 0,
             "raw_success": 0,
             "raw_failed": 0,
+            "feedback_generated": sum(1 for rows in feedbacks for row in rows if row is not None),
+            "new_actions": [],
         }
         for action in graph.all_actions():
             if action in before or action.action_type != action_type:
                 continue
+            action_stats["new_actions"].append(action)
             parent = graph.get_parent(action)
-            if self.is_sorrified_action(action):
-                action_stats["inserted_sorrified"] += 1
-                continue
             if parent is not None:
                 counts[parent] += 1
             action_stats["inserted_raw"] += 1
@@ -440,6 +438,38 @@ class BestFirstRollout:
 
     def is_sorrified_action(self, action: Action) -> bool:
         return (action.prompt or "").startswith("[SYNTHETIC_PATCH]")
+
+    def record_skeleton_feedback(
+        self,
+        states: list[ProofState],
+        feedbacks: list[list[tuple[str, str, str] | None]],
+    ) -> None:
+        for state, rows in zip(states, feedbacks):
+            for row in rows:
+                if row is None:
+                    continue
+                lean_code, lean_feedback, _ = row
+                if not lean_feedback:
+                    continue
+                block = self.prompt_builder.format_skeleton_feedback(lean_code, lean_feedback)
+                self._skeleton_feedback_by_state.setdefault(state, []).append(block)
+
+    def update_best_tactic_r_env(
+        self,
+        graph: ANDORGraph,
+        actions: list[Action],
+        stats: dict[ProofState, StateStats],
+    ) -> None:
+        for action in actions:
+            if action.action_type != "tactic":
+                continue
+            parent = graph.get_parent(action)
+            if parent is None or parent not in stats:
+                continue
+            stats[parent].best_tactic_r_env = max(
+                stats[parent].best_tactic_r_env,
+                graph.get_r_env(action),
+            )
 
     def valid_skeletons_from_actions(
         self, graph: ANDORGraph, actions: list[Action]
@@ -465,7 +495,7 @@ class BestFirstRollout:
     ) -> list[tuple[ProofState, Action, float]]:
         by_parent: dict[ProofState, list[tuple[float, ProofState, Action]]] = defaultdict(list)
         for parent_state, action in valid_skeletons:
-            score = self.H_skeleton(action, parent_state, graph, stats)
+            score = self.scorer.score_skeleton(action, parent_state, graph, stats)
             by_parent[parent_state].append((score, parent_state, action))
 
         selected = []
@@ -497,9 +527,15 @@ class BestFirstRollout:
                     continue
                 seen_states.add(key)
                 depth = parent_depth + 1
-                stats[child] = StateStats(depth=depth)
+                skeleton_score = self.scorer.score_skeleton(action, parent_state, graph, stats)
+                skeleton_r_env = graph.get_r_env(action)
+                stats[child] = StateStats(
+                    depth=depth,
+                    incoming_skeleton_score=skeleton_score,
+                    incoming_skeleton_r_env=skeleton_r_env,
+                )
                 graph.add_state(child, depth=depth)
-                score = self.H_state(child, graph, stats)
+                score = self.scorer.score_state(child, graph, stats)
                 stats[child].last_score = score
                 queue.push(child, score)
                 generated += 1
@@ -567,11 +603,13 @@ class BestFirstRollout:
     ) -> dict[str, int]:
         rows = []
         while len(queue) > 0:
-            state, score = queue.pop()
-            if state is None or score is None:
+            state, _ = queue.pop()
+            if state is None:
                 break
             if graph.status(state) != "OPEN" or stats[state].exhausted:
                 continue
+            score = self.scorer.score_state(state, graph, stats)
+            stats[state].last_score = score
             rows.append((state, score))
 
         rows.sort(key=lambda x: x[1], reverse=True)

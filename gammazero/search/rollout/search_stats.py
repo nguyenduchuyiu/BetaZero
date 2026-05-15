@@ -19,3 +19,7 @@ class StateStats:
 
     last_score: float = 0.0
     active: bool = True
+
+    best_tactic_r_env: float = 0.0
+    incoming_skeleton_score: float = 0.0
+    incoming_skeleton_r_env: float = 0.0

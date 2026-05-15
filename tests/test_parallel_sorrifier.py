@@ -1,13 +1,13 @@
 import pytest
 
-from betazero.core.nodes import ProofState
-from betazero.env.lean_env import LeanEnv
-from betazero.env.lean_verifier import Lean4ServerScheduler
-from betazero.search.graph import ANDORGraph
-from betazero.search.reward.calculator import RewardCalculator
-from betazero.search.rollout.batch_executor import BatchExecutor, RolloutBudget
-from betazero.search.rollout.failure_handler import FailureHandler
-from betazero.search.sorrifier.sorrifier import Sorrifier
+from gammazero.core.nodes import ProofState
+from gammazero.env.lean_env import LeanEnv
+from gammazero.env.lean_verifier import Lean4ServerScheduler
+from gammazero.search.graph import ANDORGraph
+from gammazero.search.reward.calculator import RewardCalculator
+from gammazero.search.rollout.batch_executor import BatchExecutor, RolloutBudget
+from gammazero.search.rollout.failure_handler import FailureHandler
+from gammazero.search.sorrifier.sorrifier import Sorrifier
 
 
 def _raw_theorem(body: str) -> str:
@@ -62,12 +62,12 @@ def test_real_batch_executor_sorrifies_failed_tactics_and_updates_graph(real_rol
     assert all("sorry" in cell[2] for cell in feedbacks[0])
 
 
-def test_real_batch_executor_sorrifies_failed_skeleton_into_synthetic_branch(real_rollout_parts):
+def test_real_batch_executor_scores_failed_skeleton_without_synthetic_branch(real_rollout_parts):
     _, executor = real_rollout_parts
     root = ProofState(context="", goal="True", header="")
     graph = ANDORGraph(root)
 
-    executor.execute(
+    feedbacks = executor.execute(
         graph,
         [root],
         [
@@ -87,13 +87,10 @@ def test_real_batch_executor_sorrifies_failed_skeleton_into_synthetic_branch(rea
     )
 
     actions = graph.get_actions(root)
-    failed_originals = [a for a in actions if not a.children]
-    synthetic_patches = [a for a in actions if a.children]
 
-    assert len(failed_originals) == 1
-    assert graph.status(failed_originals[0]) == "FAILED"
-    assert len(synthetic_patches) == 1
-    assert synthetic_patches[0].action_type == "skeleton"
-    assert "[SYNTHETIC_PATCH]" in synthetic_patches[0].prompt
-    assert "sorry" in synthetic_patches[0].extracted_code
-    assert graph.status(synthetic_patches[0]) == "OPEN"
+    assert len(actions) == 1
+    assert actions[0].action_type == "skeleton"
+    assert actions[0].children == ()
+    assert graph.status(actions[0]) == "FAILED"
+    assert graph.get_r_env(actions[0]) >= 0.0
+    assert feedbacks[0][0] is not None

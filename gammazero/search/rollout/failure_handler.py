@@ -12,8 +12,6 @@ from gammazero.search.graph import ANDORGraph
 from gammazero.search.reward import RewardCalculator
 
 from .execution_result import LeanExecutionResult
-from .utils import inject_patched_code_to_raw
-
 if TYPE_CHECKING:
     from gammazero.env.lean_env import LeanEnv
     from gammazero.search.sorrifier import Sorrifier
@@ -134,17 +132,5 @@ class FailureHandler:
             r_env=patch.r_fail,
             tactic_status="FAILED" if patch.action_kind == "tactic" else None,
         )
-
-        if patch.action_kind == "skeleton" and patch.new_subgoals:
-            patched_raw_content = inject_patched_code_to_raw(patch.action_content, patch.patched)
-            synthetic_action = Action(
-                action_type="skeleton",
-                content=patched_raw_content,
-                extracted_code=patch.patched_action_code,
-                children=patch.new_subgoals,
-                prompt=f"[SYNTHETIC_PATCH] from {failed_action.id}",
-            )
-            # obviously r_env=1.0, just for visualization in the graph, not the reward
-            graph.expand(patch.state, synthetic_action, r_env=1.0)
 
         return patch.patched_action_code
