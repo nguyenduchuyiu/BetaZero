@@ -3,6 +3,9 @@
 ```bash
 git clone https://github.com/nguyenduchuyiu/BetaZero.git
 cd BetaZero
+cd repl
+lake update 
+lake build
 git lfs install
 git lfs pull
 pip install -r requirements.txt
