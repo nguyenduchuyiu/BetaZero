@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import concurrent.futures
 import threading
+from typing import TYPE_CHECKING
 
 from betazero.core import ProofState, Action
-from betazero.env.lean_env import LeanEnv
 from betazero.policy.output_parser import get_lean_code
 from betazero.policy.prompt import build_prompt
 from betazero.search.graph import ANDORGraph
@@ -12,8 +12,11 @@ from betazero.search.reward import RewardCalculator
 from betazero.utils.lean_cmd import build_theorem
 
 from .execution_result import LeanExecutionResult
-from .failure_handler import FailureHandler
+from .failure_handler import FailedActionPatch, FailureHandler
 from .utils import format_lean_feedback
+
+if TYPE_CHECKING:
+    from betazero.env.lean_env import LeanEnv
 
 
 class RolloutBudget:
@@ -84,6 +87,9 @@ class BatchExecutor:
         feedbacks: list[list[tuple[str, str, str] | None]] = [
             [None] * len(actions) for actions in action_batches
         ]
+        patch_futures: list[
+            tuple[int, int, str, dict, concurrent.futures.Future[FailedActionPatch]]
+        ] = []
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=self._max_workers) as pool:
             for i, (state, actions) in enumerate(zip(states, action_batches)):
@@ -139,11 +145,17 @@ class BatchExecutor:
                     if action_type == "skeleton":
                         graph.set_skeleton_override(act, True)
                 elif action_type == "tactic":
-                    # Truyền thêm action_type vào vị trí thứ 3
-                    sorr_body = self.failure.handle_failed_action(
-                        graph, state, action_type, raw_output, lean_code, state_code, state_vr, prompt
+                    fut = pool.submit(
+                        self.failure.compute_failed_action_patch,
+                        state,
+                        action_type,
+                        raw_output,
+                        lean_code,
+                        state_code,
+                        state_vr,
+                        prompt,
                     )
-                    feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), sorr_body)
+                    patch_futures.append((i, j, lean_code, state_vr, fut))
                     
                 elif action_type == "skeleton":
                     if state_vr.get("pass"):
@@ -161,18 +173,24 @@ class BatchExecutor:
                             r_env=r_env_score,
                         )
                     else:
-                        # Tương tự, truyền thêm action_type vào vị trí thứ 3
-                        self.failure.handle_failed_action(
-                            graph,
+                        fut = pool.submit(
+                            self.failure.compute_failed_action_patch,
                             state,
-                            action_type, # <-- BỔ SUNG Ở ĐÂY
+                            action_type,
                             raw_output,
                             lean_code,
                             state_code,
                             state_vr,
                             prompt,
                         )
+                        patch_futures.append((i, j, lean_code, state_vr, fut))
                 else:
                     raise ValueError(f"Invalid action type: {action_type}")
+
+            for i, j, lean_code, state_vr, future in patch_futures:
+                patch = future.result()
+                sorr_body = self.failure.apply_failed_action_patch(graph, patch)
+                if action_type == "tactic":
+                    feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), sorr_body)
 
         return feedbacks

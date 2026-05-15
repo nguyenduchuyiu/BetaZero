@@ -1,5 +1,11 @@
 """Sorrifier for patching failed tactics/skeletons."""
 
-from .sorrifier import Sorrifier
-
 __all__ = ["Sorrifier"]
+
+
+def __getattr__(name):
+    if name == "Sorrifier":
+        from .sorrifier import Sorrifier
+
+        return Sorrifier
+    raise AttributeError(name)

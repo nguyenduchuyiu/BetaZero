@@ -1,16 +1,37 @@
+from __future__ import annotations
+
+import os
+import uuid
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
 from betazero.core import ProofState, Action
-from betazero.env.lean_env import LeanEnv
 from betazero.utils.lean_cmd import build_theorem
-from betazero.utils.lean_parse import extract_proof_body
-
-
+from betazero.utils.lean_parse import extract_proof_body, parse_proof_state
 from betazero.search.graph import ANDORGraph
 from betazero.search.reward import RewardCalculator
-from betazero.search.sorrifier import Sorrifier
 
 from .execution_result import LeanExecutionResult
 from .utils import inject_patched_code_to_raw
-from betazero.utils.lean_parse import parse_proof_state
+
+if TYPE_CHECKING:
+    from betazero.env.lean_env import LeanEnv
+    from betazero.search.sorrifier import Sorrifier
+
+
+@dataclass(frozen=True)
+class FailedActionPatch:
+    state: ProofState
+    action_kind: str
+    action_content: str
+    lean_code: str
+    prompt: str
+    patched: str
+    patched_vr: dict
+    patched_action_code: str
+    r_fail: float
+    new_subgoals: tuple[ProofState, ...]
+
 
 class FailureHandler:
     """Sorrify failed tactics/skeletons and register penalized / patched graph edges."""
@@ -44,9 +65,21 @@ class FailureHandler:
             tactic_status="FAILED" if action_kind == "tactic" else None,
         )
 
-    def handle_failed_action(
+    def _new_sorrifier(self) -> Sorrifier:
+        from betazero.search.sorrifier import Sorrifier
+
+        log_path = self.sorrifier.log_path
+        if log_path:
+            root, ext = os.path.splitext(log_path)
+            log_path = f"{root}.{uuid.uuid4().hex}{ext or '.log'}"
+        return Sorrifier(
+            self.sorrifier.repl_verifier,
+            max_cycles=self.sorrifier.max_cycles,
+            log_path=log_path,
+        )
+
+    def compute_failed_action_patch(
         self,
-        graph: ANDORGraph,
         state: ProofState,
         action_kind: str,
         action_content: str,
@@ -54,54 +87,64 @@ class FailureHandler:
         state_code: str,
         state_vr: dict,
         prompt: str = "",
-    ) -> str:
-        """Vá lỗi: Node gốc bị phong ấn (FAILED), sinh thêm Node phụ (OPEN) để đi tiếp nếu là Skeleton."""
-        # 1. Gọi thợ vá lỗi Sorrifier
-        patched = self.sorrifier.fix_code(state_code)
+    ) -> FailedActionPatch:
+        """Run the expensive, side-effect-free patching work for a failed action."""
+        sorrifier = self._new_sorrifier()
+        patched = sorrifier.fix_code(state_code)
         patched_vr = self.lean.verify(patched)
         patched_action_code = extract_proof_body(patched)
-        
+
         full_orig = build_theorem(state, lean_code)
         full_patched = build_theorem(state, patched_action_code)
         r_fail = self.reward.r_env(full_orig, full_patched, patched_vr)
 
-        # ---------------------------------------------------------
-        # NHÁNH 1: BẢN GỐC (Dành cho RL GRPO học từ sai lầm)
-        # ---------------------------------------------------------
-        failed_action = Action(
-            action_type=action_kind,
-            content=action_content,
-            extracted_code=lean_code,
-            children=(),  
+        new_subgoals: tuple[ProofState, ...] = ()
+        if action_kind == "skeleton":
+            new_subgoals = tuple(
+                parse_proof_state(s.get("goal", ""), header=state.header)
+                for s in patched_vr.get("sorries", [])
+            )
+
+        return FailedActionPatch(
+            state=state,
+            action_kind=action_kind,
+            action_content=action_content,
+            lean_code=lean_code,
             prompt=prompt,
+            patched=patched,
+            patched_vr=patched_vr,
+            patched_action_code=patched_action_code,
+            r_fail=r_fail,
+            new_subgoals=new_subgoals,
+        )
+
+    def apply_failed_action_patch(self, graph: ANDORGraph, patch: FailedActionPatch) -> str:
+        """Mutate the graph for a precomputed failed-action patch."""
+        failed_action = Action(
+            action_type=patch.action_kind,
+            content=patch.action_content,
+            extracted_code=patch.lean_code,
+            children=(),
+            prompt=patch.prompt,
         )
 
         graph.expand(
-            state,
+            patch.state,
             failed_action,
-            r_env=r_fail,
-            tactic_status="FAILED" if action_kind == "tactic" else None, 
+            r_env=patch.r_fail,
+            tactic_status="FAILED" if patch.action_kind == "tactic" else None,
         )
 
-        # 2. Tạo bản vá (Mọc nhánh mới)
-        if action_kind == "skeleton":
-            new_subgoals = [
-                parse_proof_state(s.get("goal", ""), header=state.header)
-                for s in patched_vr.get("sorries", [])
-            ]
-            
-            if new_subgoals:
-                patched_raw_content = inject_patched_code_to_raw(action_content, patched)
-                
-                synthetic_action = Action(
-                    action_type="skeleton",
-                    content=patched_raw_content,
-                    extracted_code=patched_action_code,
-                    children=tuple(new_subgoals),
-                    # ---> DÁN ID CỦA BẢN GỐC VÀO ĐÂY <---
-                    prompt=f"[SYNTHETIC_PATCH] from {failed_action.id}", 
-                )
-                # obviously r_env=1.0, just for visualization in the graph, not the reward
-                graph.expand(state, synthetic_action, r_env=1.0) 
-                
-        return patched_action_code
+        if patch.action_kind == "skeleton" and patch.new_subgoals:
+            patched_raw_content = inject_patched_code_to_raw(patch.action_content, patch.patched)
+            synthetic_action = Action(
+                action_type="skeleton",
+                content=patched_raw_content,
+                extracted_code=patch.patched_action_code,
+                children=patch.new_subgoals,
+                prompt=f"[SYNTHETIC_PATCH] from {failed_action.id}",
+            )
+            # obviously r_env=1.0, just for visualization in the graph, not the reward
+            graph.expand(patch.state, synthetic_action, r_env=1.0)
+
+        return patch.patched_action_code

@@ -48,11 +48,18 @@ def main():
     if args.lean_dir:
         if not os.path.exists(args.lean_dir):
             raise FileNotFoundError(args.lean_dir)
+        if not os.path.isdir(args.lean_dir):
+            raise NotADirectoryError(
+                f"--lean-dir expects a directory, got file: {args.lean_dir}. "
+                "Use --lean-file for a single Lean file."
+            )
         for root, _, files in os.walk(args.lean_dir):
             for f in files:
                 if f.endswith(".lean"):
                     lean_files.append(os.path.abspath(os.path.join(root, f)))
         lean_files.sort()
+        if not lean_files:
+            raise FileNotFoundError(f"No .lean files found under --lean-dir: {args.lean_dir}")
     else:
         lean_path = os.path.abspath(args.lean_file)
         if not os.path.exists(lean_path):
