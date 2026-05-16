@@ -24,6 +24,7 @@ from gammazero.env.lean_verifier import Lean4ServerScheduler
 from gammazero.search import Sorrifier
 from gammazero.search import RewardCalculator
 from gammazero.search import BestFirstRollout
+from gammazero.search.rollout.heuristic import SimpleHeuristicScorer
 from gammazero.search import GRPOTrainer
 
 
@@ -76,6 +77,7 @@ def train(cfg: Config = Config()):
                         state_beam_width=cfg.state_beam_width,
                         state_beam_per_depth=cfg.state_beam_per_depth,
                         skeleton_beam_per_state=cfg.skeleton_beam_per_state,
+                        scorer=SimpleHeuristicScorer(**cfg.heuristic),
                         prompt_builder=SearchPromptBuilder(max_skeleton_feedbacks=cfg.max_skeleton_feedbacks),
                     )
                     batch, g, qv = rollout.rollout(thm)

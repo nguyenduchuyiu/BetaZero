@@ -32,6 +32,7 @@ class Config:
     state_beam_per_depth: int = 8
     skeleton_beam_per_state: int = 2
     max_skeleton_feedbacks: int = 3
+    heuristic: dict = field(default_factory=dict)
 
     # GRPO
     lr: float = 1e-5

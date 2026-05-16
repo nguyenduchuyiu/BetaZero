@@ -533,6 +533,7 @@ class BestFirstRollout:
                     depth=depth,
                     incoming_skeleton_score=skeleton_score,
                     incoming_skeleton_r_env=skeleton_r_env,
+                    parent_skeletons=[(parent_state, action)],
                 )
                 graph.add_state(child, depth=depth)
                 score = self.scorer.score_state(child, graph, stats)

@@ -3,6 +3,7 @@ from __future__ import annotations
 from gammazero.core import Action, ProofState
 from gammazero.policy.prompt import build_skeleton_retry_prompt
 from gammazero.search.graph import ANDORGraph
+from gammazero.search.rollout.heuristic import SimpleHeuristicScorer
 from gammazero.search.rollout.best_first_rollout import BestFirstRollout
 from gammazero.search.rollout.search_queue import StatePriorityQueue
 from gammazero.search.rollout.search_stats import StateStats
@@ -510,6 +511,36 @@ def test_failed_skeleton_keeps_own_score_but_does_not_backup_to_parent_value():
         (graph.backup_value_for_action(a, q_values.get(a, 0.0)) for a in graph.get_actions(root)),
         default=0.0,
     ) == 0.0
+
+
+def test_state_score_prioritizes_last_open_child_of_parent_skeleton():
+    root = ProofState("", "root")
+    solved_child_1 = ProofState("", "solved1")
+    solved_child_2 = ProofState("", "solved2")
+    target = ProofState("", "target")
+    unrelated = ProofState("", "unrelated")
+    graph = ANDORGraph(root)
+    skeleton = Action("skeleton", "split", children=(solved_child_1, solved_child_2, target))
+    graph.expand(root, skeleton, r_env=1.0)
+    graph.add_state(solved_child_1, depth=1)
+    graph.add_state(solved_child_2, depth=1)
+    graph.add_state(target, depth=1)
+    graph.add_state(unrelated, depth=1)
+    graph.mark_solved(solved_child_1)
+    graph.mark_solved(solved_child_2)
+    stats = {
+        root: StateStats(depth=0),
+        solved_child_1: StateStats(depth=1),
+        solved_child_2: StateStats(depth=1),
+        target: StateStats(depth=1, parent_skeletons=[(root, skeleton)]),
+        unrelated: StateStats(depth=1),
+    }
+    scorer = SimpleHeuristicScorer()
+
+    target_score = scorer.score_state(target, graph, stats)
+    unrelated_score = scorer.score_state(unrelated, graph, stats)
+
+    assert target_score > unrelated_score + 7.0
 
 
 def test_search_metadata_logs_core_runtime_counters():

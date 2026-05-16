@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from gammazero.core import Action, ProofState
 
 
 @dataclass
@@ -23,3 +27,4 @@ class StateStats:
     best_tactic_r_env: float = 0.0
     incoming_skeleton_score: float = 0.0
     incoming_skeleton_r_env: float = 0.0
+    parent_skeletons: list[tuple["ProofState", "Action"]] = field(default_factory=list)
