@@ -92,7 +92,7 @@ class LevelwiseRollout:
             if skel_frontier and self.K_skel > 0:
                 self._run_skeleton_phase(graph, skel_frontier)
 
-        self.reward_assigner.assign(graph)
+        self.reward_assigner.stitch_and_score_skeletons(graph)
         q_values = self.reward.compute_returns(graph)
         samples: list[tuple[ProofState, Action, float, float]] = []
         for a, q in q_values.items():

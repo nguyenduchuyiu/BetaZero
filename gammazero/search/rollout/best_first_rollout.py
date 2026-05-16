@@ -278,7 +278,7 @@ class BestFirstRollout:
         queue_at_stop = queue.items()
         self.finalize_unresolved(graph, stats)
         self.propagate(graph, stats)
-        self.reward_assigner.assign(graph)
+        self.reward_assigner.stitch_and_score_skeletons(graph)
         self.propagate(graph, stats)
         self._finalize_search_metadata(metadata, graph, stats, queue_at_stop)
         self.last_search_metadata = metadata

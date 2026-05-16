@@ -205,10 +205,10 @@ class ANDORGraph:
                     return q_cache[action]
                 r_e = self._r_env.get(action, 0.0)
                 solved = self._node_solved(action, set(), solve_memo)
+                r_d = self._r_dep.get(action, 0.0)
                 if action.action_type == "tactic":
-                    val = r_e + W_solve * float(solved)
+                    val = r_e + r_d
                 else:
-                    r_d = self._r_dep.get(action, 0.0)
                     if solved:
                         live_children = self._live_children_for_action(action)
                         future = gamma * min((V(c) for c in live_children), default=0.0)

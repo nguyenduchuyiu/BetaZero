@@ -9,7 +9,7 @@ from gammazero.core import ProofState, Action
 from gammazero.utils.lean_cmd import build_theorem
 from gammazero.utils.lean_parse import extract_proof_body, parse_proof_state
 from gammazero.search.graph import ANDORGraph
-from gammazero.search.reward import RewardCalculator
+from gammazero.search.reward import DependencyRewardAssigner, RewardCalculator
 
 from .execution_result import LeanExecutionResult
 if TYPE_CHECKING:
@@ -28,6 +28,7 @@ class FailedActionPatch:
     patched_vr: dict
     patched_action_code: str
     r_fail: float
+    r_dep: float
     new_subgoals: tuple[ProofState, ...]
 
 
@@ -38,6 +39,7 @@ class FailureHandler:
         self.lean = lean
         self.sorrifier = sorrifier
         self.reward = reward
+        self.reward_assigner = DependencyRewardAssigner(lean, reward)
 
     def handle_system_execute_failure(
         self,
@@ -95,6 +97,12 @@ class FailureHandler:
         full_orig = build_theorem(state, lean_code)
         full_patched = build_theorem(state, patched_action_code)
         r_fail = self.reward.r_env(full_orig, full_patched, patched_vr)
+        r_dep = 0.0
+        if action_kind == "tactic" and patched_vr.get("pass"):
+            r_dep = self.reward_assigner.calculate_patched_tactic_r_dep(
+                full_patched,
+                patched_action_code,
+            )
 
         new_subgoals: tuple[ProofState, ...] = ()
         if action_kind == "skeleton":
@@ -113,6 +121,7 @@ class FailureHandler:
             patched_vr=patched_vr,
             patched_action_code=patched_action_code,
             r_fail=r_fail,
+            r_dep=r_dep,
             new_subgoals=new_subgoals,
         )
 
@@ -130,6 +139,7 @@ class FailureHandler:
             patch.state,
             failed_action,
             r_env=patch.r_fail,
+            r_dep=patch.r_dep,
             tactic_status="FAILED" if patch.action_kind == "tactic" else None,
         )
 

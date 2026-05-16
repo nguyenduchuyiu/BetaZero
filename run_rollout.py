@@ -16,6 +16,7 @@ from gammazero.utils.config import Config
 from gammazero.policy.vllm_server import VLLMServer
 from gammazero.policy.deepseek_server import DeepSeekAPIServer
 from gammazero.policy.gemini_server import GeminiAPIServer
+from gammazero.policy.prompt import SearchPromptBuilder
 from gammazero.utils.lean_parse import parse_proof_state
 from gammazero.utils.lean_cmd import DEFAULT_OPEN
 from gammazero.utils.graph_logger import GraphLogger
@@ -102,6 +103,7 @@ def main():
             state_beam_width=cfg.state_beam_width,
             state_beam_per_depth=cfg.state_beam_per_depth,
             skeleton_beam_per_state=cfg.skeleton_beam_per_state,
+            prompt_builder=SearchPromptBuilder(max_skeleton_feedbacks=cfg.max_skeleton_feedbacks),
         )
 
         for i, lean_path in enumerate(lean_files):

@@ -32,6 +32,9 @@ class NoopAssigner:
     def assign(self, graph):
         pass
 
+    def stitch_and_score_skeletons(self, graph):
+        pass
+
 
 class ScriptedExecutor:
     def __init__(self, tactic_status, skeleton_children):
@@ -128,6 +131,17 @@ def test_case_1_root_tactic_solve_stops_before_skeleton():
     assert actions[0].action_type == "tactic"
     assert graph.status(actions[0]) == "SOLVED"
     assert [call[0] for call in policy.calls] == ["tactic"]
+
+
+def test_solved_tactic_backup_uses_r_dep_instead_of_w_solve():
+    root = ProofState("", "root")
+    graph = ANDORGraph(root)
+    tactic = Action("tactic", "solve", extracted_code="trivial")
+    graph.expand(root, tactic, r_env=1.0, r_dep=0.25, tactic_status="SOLVED")
+
+    q_values = graph.backup(W_solve=99.0)
+
+    assert q_values[tactic] == 1.25
 
 
 def test_case_2_skeleton_children_both_tactic_solve_root_solved():

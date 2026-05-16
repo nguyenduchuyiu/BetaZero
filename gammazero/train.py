@@ -17,6 +17,7 @@ from gammazero.utils.dataloader import TheoremDataset
 from gammazero.utils.graph_logger import GraphLogger
 from gammazero.utils.logger import setup as setup_logger
 from gammazero.policy.vllm_server import VLLMServer
+from gammazero.policy.prompt import SearchPromptBuilder
 from gammazero.policy.trainable_policy import TrainablePolicy
 from gammazero.env.lean_env import LeanEnv
 from gammazero.env.lean_verifier import Lean4ServerScheduler
@@ -75,6 +76,7 @@ def train(cfg: Config = Config()):
                         state_beam_width=cfg.state_beam_width,
                         state_beam_per_depth=cfg.state_beam_per_depth,
                         skeleton_beam_per_state=cfg.skeleton_beam_per_state,
+                        prompt_builder=SearchPromptBuilder(max_skeleton_feedbacks=cfg.max_skeleton_feedbacks),
                     )
                     batch, g, qv = rollout.rollout(thm)
                     samples.extend(batch)

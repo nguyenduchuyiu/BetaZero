@@ -8,7 +8,7 @@ from gammazero.core import ProofState, Action
 from gammazero.policy.output_parser import get_lean_code
 from gammazero.policy.prompt import build_prompt
 from gammazero.search.graph import ANDORGraph
-from gammazero.search.reward import RewardCalculator
+from gammazero.search.reward import DependencyRewardAssigner, RewardCalculator
 from gammazero.utils.lean_cmd import build_theorem
 
 from .execution_result import LeanExecutionResult
@@ -52,6 +52,7 @@ class BatchExecutor:
         self.lean = lean
         self.failure = failure_handler
         self.reward = reward
+        self.reward_assigner = DependencyRewardAssigner(lean, reward)
         # Get max workers from the executor to synchronize, avoid context switching.
         ex = getattr(lean.scheduler, "executor", None)
         self._max_workers = max_workers if max_workers is not None else (
@@ -129,6 +130,11 @@ class BatchExecutor:
                 if state_vr.get("complete"):
                     if action_type not in ("tactic", "skeleton"):
                         raise ValueError(f"Invalid action type: {action_type}")
+                    r_dep = (
+                        self.reward_assigner.calculate_r_dep(state_code, lean_code)
+                        if action_type == "tactic"
+                        else 0.0
+                    )
                     act = Action(
                         action_type=action_type,
                         content=raw_output,
@@ -140,6 +146,7 @@ class BatchExecutor:
                         state,
                         act,
                         r_env=r_env,
+                        r_dep=r_dep,
                         tactic_status="SOLVED" if action_type == "tactic" else None,
                     )
                     if action_type == "skeleton":
