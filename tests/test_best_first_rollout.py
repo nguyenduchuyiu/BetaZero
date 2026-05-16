@@ -543,6 +543,29 @@ def test_state_score_prioritizes_last_open_child_of_parent_skeleton():
     assert target_score > unrelated_score + 7.0
 
 
+def test_finalize_unresolved_keeps_open_states_and_actions_open():
+    root = ProofState("", "root")
+    child = ProofState("", "child")
+    graph = ANDORGraph(root)
+    skeleton = Action("skeleton", "split", children=(child,))
+    graph.expand(root, skeleton, r_env=1.0)
+    graph.add_state(child, depth=1)
+    stats = {
+        root: StateStats(depth=0),
+        child: StateStats(depth=1),
+    }
+    rollout = make_rollout()
+
+    rollout.finalize_unresolved(graph, stats)
+    rollout.propagate(graph, stats)
+
+    assert stats[root].exhausted
+    assert stats[child].exhausted
+    assert graph.status(root) == "OPEN"
+    assert graph.status(skeleton) == "OPEN"
+    assert graph.status(child) == "OPEN"
+
+
 def test_search_metadata_logs_core_runtime_counters():
     root = ProofState("", "root")
     child = ProofState("", "child")

@@ -3,6 +3,7 @@ import textwrap
 
 _LEAN_HEADER = re.compile(r"(?is)\b(theorem|lemma|example|def)\b")
 _PROOF_DIVIDER = re.compile(r"(?is):=\s*by|(?<=\s)by(?=\s)")
+_LEAN_FENCE = re.compile(r"```lean4\s+(.*?)\s+```", re.DOTALL | re.IGNORECASE)
 
 def get_lean_code(raw: str) -> str:
     """
@@ -15,19 +16,14 @@ def get_lean_code(raw: str) -> str:
     if "<|im_" in t:
         return ""
 
-    # Capture last ```lean4 ... ``` code block.
-    # Reject if there is an unclosed block at the end (indicates truncation).
-    last_open = t.rfind("```lean4")
-    if last_open != -1:
-        last_close = t.rfind("```", last_open + 7)
-        if last_close == -1:
-            return ""
-
-    fences = re.findall(r"```lean4\s+(.*?)\s+```", t, re.DOTALL | re.IGNORECASE)
-    if not fences:
+    # Require the final Lean code block to be the end of the response. The
+    # thinking section may contain draft Lean fences; only the final block is
+    # treated as the answer.
+    fences = list(_LEAN_FENCE.finditer(t))
+    if not fences or fences[-1].end() != len(t):
         return ""
-    
-    code_block = fences[-1]
+
+    code_block = fences[-1].group(1)
 
     # Remove comments before checking for placeholders like '...'
     code_no_comments = re.sub(r"/-(?:.|\n)*?-/|--.*", "", code_block)

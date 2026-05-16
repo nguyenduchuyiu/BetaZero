@@ -77,12 +77,37 @@ class SimpleHeuristicScorer(SearchScorer):
             solved_ratio = solved / total
 
             if open_count == 1 and graph.status(state) == "OPEN":
-                bonus += self.final_child_bonus
+                parent_stats = stats.get(parent_state)
+                parent_depth = parent_stats.depth if parent_stats is not None else graph.get_depth(parent_state)
+                if parent_depth <= 1:
+                    bonus += 12.0
+                else:
+                    bonus += self.final_child_bonus
             bonus += self.solved_ratio_bonus * solved_ratio
 
             parent_stats = stats.get(parent_state)
             parent_depth = parent_stats.depth if parent_stats is not None else graph.get_depth(parent_state)
             bonus += self.parent_depth_bonus / (1.0 + max(parent_depth, 0))
+        return bonus
+
+    def root_critical_bonus(
+        self,
+        state: ProofState,
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+    ) -> float:
+        bonus = 0.0
+
+        for parent_state, _skeleton in getattr(stats[state], "parent_skeletons", []):
+            d = stats[parent_state].depth
+
+            if d == 0:
+                bonus += 8.0
+            elif d == 1:
+                bonus += 4.0
+            elif d == 2:
+                bonus += 2.0
+
         return bonus
 
     def score_state(
@@ -97,6 +122,7 @@ class SimpleHeuristicScorer(SearchScorer):
         score += self.incoming_skeleton_weight * getattr(st, "incoming_skeleton_score", 0.0)
         score += self.best_tactic_weight * getattr(st, "best_tactic_r_env", 0.0)
         score += self.parent_completion_bonus(state, graph, stats)
+        score += self.root_critical_bonus(state, graph, stats)
         score -= self.depth_penalty * st.depth
         score -= self.tactic_retry_penalty * st.tactic_tries
         score -= self.skeleton_retry_penalty * st.skeleton_tries

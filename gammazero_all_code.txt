@@ -1,0 +1,5090 @@
+
+================================================================================
+FILE: __init__.py
+================================================================================
+
+
+
+================================================================================
+FILE: core/__init__.py
+================================================================================
+
+from .nodes import Action, NodeStatus, ProofState
+
+__all__ = [
+    "Action",
+    "NodeStatus",
+    "ProofState",
+]
+
+================================================================================
+FILE: core/nodes.py
+================================================================================
+
+import uuid
+from dataclasses import dataclass, field
+from typing import Literal
+
+NodeStatus = Literal["OPEN", "SOLVED", "FAILED"]
+
+
+@dataclass(frozen=True)
+class ProofState:
+    """OR-node: a proof state (context, goal) in the AND/OR search graph."""
+    context: str
+    goal: str
+    header: str = ""  # import lines from the source .lean file
+
+    def __str__(self) -> str:
+        return f"{self.context}\n⊢ {self.goal}" if self.context else f"⊢ {self.goal}"
+
+
+@dataclass(frozen=True)
+class Action:
+    """AND-node: tactic or skeleton. `content` is raw LLM output; Lean execution uses extracted ```lean4``` body."""
+    action_type: Literal["tactic", "skeleton"]
+    content: str
+    extracted_code: str = ""  # parsed Lean code/body used for execution/stitching/logging
+    children: tuple[ProofState, ...] = field(default_factory=tuple)
+    prompt: str = ""  # exact prompt shown to the LLM for this content
+    # THÊM ID DÙNG ĐỂ TRACE (KHÔNG THAM GIA VÀO HASH/EQ)
+    id: str = field(
+        default_factory=lambda: "A_" + uuid.uuid4().hex[:6], 
+        compare=False, 
+        hash=False
+    )
+
+    def __post_init__(self):
+        object.__setattr__(self, "children", tuple(self.children))
+
+
+================================================================================
+FILE: utils/dataloader.py
+================================================================================
+
+import os
+import random
+
+from gammazero.core.nodes import ProofState
+from gammazero.utils.lean_parse import parse_proof_state
+from gammazero.utils.lean_cmd import DEFAULT_OPEN
+
+
+class TheoremDataset:
+    def __init__(self, directory: str, *, scheduler):
+        paths = sorted(f for f in os.listdir(directory) if f.endswith(".lean"))
+        self.theorems: list[ProofState] = []
+        for name in paths:
+            p = os.path.join(directory, name)
+            with open(p, encoding="utf-8") as f:
+                content = f.read()
+            vr = scheduler.verify(content)
+            sorries = vr.get("sorries") or []
+            goal_str = (sorries[0] or {}).get("goal", "") if sorries else ""
+            ps = parse_proof_state(goal_str or "", header=DEFAULT_OPEN)
+            if ps:
+                self.theorems.append(ps)
+        print(f"Loaded {len(self.theorems)} theorems from {directory}")
+
+    def sample(self, n: int) -> list[ProofState]:
+        return random.choices(self.theorems, k=n)
+
+
+================================================================================
+FILE: utils/lean_parse.py
+================================================================================
+
+from __future__ import annotations
+
+from gammazero.core.nodes import ProofState
+
+
+def extract_proof_body(state_code: str) -> str:
+    """Strip the `example/theorem ... := by` wrapper from compiled Lean code."""
+    if ":= by\n" in state_code:
+        body = state_code.split(":= by\n", 1)[1]
+        return "\n".join(line[2:] if line.startswith("  ") else line for line in body.splitlines())
+    return state_code
+
+
+def parse_proof_state(goal_str: str, *, header: str = "") -> ProofState:
+    """Parse Lean Infoview goal string (with `⊢`) into a ProofState."""
+    s = (goal_str or "").strip()
+    if not s or "Goals accomplished" in s or "no goals" in s:
+        return ProofState(context="", goal="SOLVED_OR_EMPTY", header=header)
+
+    parts = s.split("⊢")
+    if len(parts) > 1:
+        ctx_raw = parts[0].strip()
+        main_goal_raw = parts[1].strip()
+
+        goal_lines: list[str] = []
+        for line in main_goal_raw.splitlines():
+            if line.startswith("case ") or "Goals accomplished" in line:
+                break
+            goal_lines.append(line)
+        goal = "\n".join(goal_lines).strip()
+    else:
+        ctx_raw, goal = "", s
+
+    if goal.lower() == "sorry":
+        goal = "ELABORATION_FAULT"
+
+    ctx_lines: list[str] = []
+    current_line = ""
+
+    for line in ctx_raw.splitlines():
+        if not line:
+            continue
+        
+        # In Lean goal output, hypotheses usually start at the beginning of the line (or 1-2 spaces).
+        # Continuation lines for the same hypothesis are typically further indented.
+        # Heuristic: if a line starts with substantial whitespace and doesn't look like a new hyp, join it.
+        if (line.startswith("  ") or not (":" in line)) and ctx_lines:
+            ctx_lines[-1] = f"{ctx_lines[-1]} {line.strip()}"
+        else:
+            line_strip = line.strip()
+            if ":" in line_strip and not line_strip.startswith("case"):
+                ctx_lines.append(line_strip)
+
+    ctx = "\n".join(ctx_lines)
+    return ProofState(context=ctx, goal=goal, header=header)
+
+
+================================================================================
+FILE: utils/config.py
+================================================================================
+
+from __future__ import annotations
+import os
+from dataclasses import dataclass, asdict, field
+from typing import Optional
+import yaml
+
+
+@dataclass
+class Config:
+    run_name: str = "baseline"
+
+    # Model
+    model_name: str = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
+    device: str = "cuda"
+
+    # Rollout
+    max_depth: int = 5
+    max_nodes: int = 128
+    lean_workers: int = 4
+    lean_timeout: int = 60
+    sorrifier_max_cycles: int = 50
+
+    # Best-first search
+    search_batch_size: int = 4
+    initial_tactic_k: int = 4
+    retry_tactic_k: int = 4
+    max_tactic_per_state: int = 16
+    initial_skeleton_k: int = 4
+    retry_skeleton_k: int = 2
+    max_skeleton_per_state: int = 8
+    state_beam_width: int = 32
+    state_beam_per_depth: int = 8
+    skeleton_beam_per_state: int = 2
+    max_skeleton_feedbacks: int = 3
+    heuristic: dict = field(default_factory=dict)
+
+    # GRPO
+    lr: float = 1e-5
+    eps_clip: float = 0.2
+    beta_kl: float = 0.01
+    grpo_epochs: int = 1
+    mini_batch_size: int = 8
+    # Micro-batches per optimizer.step (1 = disabled). Effective batch ≈ mini_batch_size * this.
+    grpo_accumulation_steps: int = 1
+
+    # Training loop
+    total_iterations: int = 1000
+    theorems_per_iter: int = 16
+    checkpoint_every: int = 50
+    checkpoint_dir: str = "outputs/checkpoints"
+    # 0 = train on this iter only (no cross-iter buffer). >0 = accumulate rollout samples until >= this count before GRPO.
+    min_samples_for_grpo: int = 0
+
+    # Dataset
+    dataset_dir: str = "problems/miniF2F-Valid"
+
+    # LoRA (PEFT)
+    lora_r: int = 16
+    lora_alpha: int = 32
+    lora_dropout: float = 0.05
+    lora_target_modules: Optional[list] = None  # None → use model default
+    
+    base_lora_tactic: str = "qwen_lora_tactic"
+    base_lora_skeleton: str = "qwen_lora_skeleton"
+
+    # Training efficiency
+    gradient_checkpointing: bool = True
+    logprob_chunk_size: int = 128
+    max_new_tokens: int = 4096
+    temperature: float = 0.7
+
+    # vLLM subprocess (rollout phase)
+    vllm_port: int = 8000
+    vllm_gpu_memory_utilization: float = 0.5
+    max_model_len: int = 2048
+    vllm_ready_timeout: int = 300  # first HF download + load often exceeds 180s
+
+    # Logging
+    log_dir: str = "outputs/runs"
+    rollout_graph_log_dir: Optional[str] = None  # e.g. outputs/rollouts → JSON per theorem/iter
+
+    @classmethod
+    def from_yaml(cls, path: str) -> Config:
+        with open(path, encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+        return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
+
+    def save(self, directory: str):
+        os.makedirs(directory, exist_ok=True)
+        with open(os.path.join(directory, "config.yaml"), "w", encoding="utf-8") as f:
+            yaml.dump(asdict(self), f, default_flow_style=False, sort_keys=False)
+
+    @property
+    def run_log_dir(self) -> str:
+        return os.path.join(self.log_dir, self.run_name)
+
+    @property
+    def run_checkpoint_dir(self) -> str:
+        return os.path.join(self.checkpoint_dir, self.run_name)
+
+
+================================================================================
+FILE: utils/graph_logger.py
+================================================================================
+
+import json
+import os
+from typing import Any, Dict
+
+from gammazero.core import ProofState, Action
+from gammazero.search.graph import ANDORGraph
+
+class GraphLogger:
+    """Crawler đồ thị AND/OR để export ra JSON dùng cho visualization."""
+
+    def __init__(self):
+        self.obj_to_id: Dict[Any, str] = {}
+        self.state_counter = 0
+        self.action_counter = 0
+
+    def _get_state_id(self, state: ProofState) -> str:
+        if state not in self.obj_to_id:
+            self.obj_to_id[state] = f"state_{self.state_counter}"
+            self.state_counter += 1
+        return self.obj_to_id[state]
+
+    def _get_action_id(self, action: Action) -> str:
+        if action not in self.obj_to_id:
+            self.obj_to_id[action] = f"action_{self.action_counter}"
+            self.action_counter += 1
+        return self.obj_to_id[action]
+
+    def export_to_dict(self, graph: ANDORGraph, root: ProofState, q_values: Dict[Action, float]) -> Dict[str, Any]:
+        """Duyệt đồ thị và build cấu trúc Flat (nodes, edges)."""
+        nodes = []
+        edges = []
+        
+        visited_states = set()
+        visited_actions = set()
+
+        def traverse_state(state: ProofState):
+            if state in visited_states:
+                return
+            visited_states.add(state)
+            
+            s_id = self._get_state_id(state)
+            # Trích xuất proof body nếu trạng thái đã SOLVED
+            proof_body = graph.extract_proof_code(state) if graph.status(state) == "SOLVED" else "  sorry"
+
+            nodes.append({
+                "id": s_id,
+                "type": "OR",
+                "status": graph.status(state),
+                "depth": graph.get_depth(state),
+                "content": {
+                    "context": state.context,
+                    "goal": state.goal,
+                    "proof_body": proof_body
+                },
+                "metrics": {
+                    "V_value": max(
+                        (
+                            graph.backup_value_for_action(a, q_values.get(a, 0.0))
+                            for a in graph.get_actions(state)
+                        ),
+                        default=0.0,
+                    )
+                }
+            })
+
+            for action in graph.get_actions(state):
+                a_id = self._get_action_id(action)
+                edges.append({"source": s_id, "target": a_id, "relation": "expanded_to"})
+                traverse_action(action)
+
+        def traverse_action(action: Action):
+            if action in visited_actions:
+                return
+            visited_actions.add(action)
+
+            a_id = self._get_action_id(action)
+            # Truy cập internal _r_dep (nếu ông chưa viết hàm get_r_dep trong ANDORGraph)
+            r_d = graph._r_dep.get(action, 0.0) 
+            prompt = action.prompt or ""
+            extracted_lean_code = action.extracted_code
+
+            nodes.append({
+                "id": a_id,
+                "internal_id": action.id,  # THÊM ID GỐC ĐỂ TRACE
+                "type": "AND",
+                "action_type": action.action_type,
+                "status": graph.status(action),
+                "content": action.content,
+                "prompt": action.prompt,
+                "extracted_lean_code": extracted_lean_code,
+                "metrics": {
+                    "r_env": graph.get_r_env(action),
+                    "r_dep": r_d,
+                    "Q_value": q_values.get(action, 0.0)
+                }
+            })
+
+            for child_state in action.children:
+                c_id = self._get_state_id(child_state)
+                edges.append({"source": a_id, "target": c_id, "relation": "subgoal"})
+                traverse_state(child_state)
+
+        # Bắt đầu duyệt từ root
+        traverse_state(root)
+
+        return {
+            "theorem_goal": root.goal,
+            "root_id": self._get_state_id(root),
+            "total_nodes": len(nodes),
+            "search_metadata": getattr(graph, "search_metadata", None),
+            "nodes": nodes,
+            "edges": edges
+        }
+
+    def save_json(self, graph: ANDORGraph, root: ProofState, q_values: Dict[Action, float], filepath: str):
+        """Export và lưu thành file JSON."""
+        parent = os.path.dirname(filepath)
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+        data = self.export_to_dict(graph, root, q_values)
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+================================================================================
+FILE: utils/lean_cmd.py
+================================================================================
+
+from __future__ import annotations
+
+import re
+
+from gammazero.core.nodes import ProofState
+
+
+DEFAULT_OPEN = "open BigOperators Nat Real Topology"
+
+
+def sanitize_header(code: str) -> str:
+    lines = code.splitlines()
+    out = []
+    in_header = True
+
+    for line in lines:
+        if in_header and line.strip().startswith("theorem"):
+            in_header = False
+
+        if in_header:
+            # Catch ALL imports, not just Mathlib
+            if re.match(r"^\s*import\s+", line):
+                out.append("")
+                continue
+            if re.match(r"^\s*set_option\s+maxHeartbeats\s+0\s*$", line):
+                out.append("set_option maxHeartbeats 100000")
+                continue
+
+        out.append(line)
+
+    return "\n".join(out)
+
+
+def build_theorem(state: ProofState, code: str, *, name: str = "my_theorem") -> str:
+    params = [
+        f"({line.strip()})"
+        for line in (state.context or "").splitlines()
+        if line.strip() and ":" in line and not line.strip().startswith("case ")
+    ]
+    param_str = (" ".join(params) + " ") if params else ""
+
+    import textwrap
+    lines = (code or "").splitlines()
+    # Remove leading/trailing empty lines
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    code_clean = textwrap.dedent("\n".join(lines))
+    indented = "\n".join(f"  {l}" for l in code_clean.splitlines())
+
+    header = state.header if state.header else DEFAULT_OPEN
+
+    full_code = f"""{header}
+theorem {name} {param_str}: {state.goal} := by
+{indented}
+"""
+    return full_code
+
+
+
+================================================================================
+FILE: utils/__init__.py
+================================================================================
+
+__all__ = [
+    "Config",
+    "TheoremDataset",
+    "setup_logger",
+]
+
+
+def __getattr__(name):
+    if name == "Config":
+        from .config import Config
+
+        return Config
+    if name == "TheoremDataset":
+        from .dataloader import TheoremDataset
+
+        return TheoremDataset
+    if name == "setup_logger":
+        from .logger import setup as setup_logger
+
+        return setup_logger
+    raise AttributeError(name)
+
+
+================================================================================
+FILE: utils/logger.py
+================================================================================
+
+import logging
+import os
+from torch.utils.tensorboard import SummaryWriter
+
+
+def setup(log_dir: str) -> tuple[logging.Logger, SummaryWriter]:
+    os.makedirs(log_dir, exist_ok=True)
+
+    logger = logging.getLogger("gammazero")
+    logger.setLevel(logging.INFO)
+    if not logger.handlers:
+        fmt = logging.Formatter("%(asctime)s  %(message)s", datefmt="%H:%M:%S")
+        sh = logging.StreamHandler()
+        sh.setFormatter(fmt)
+        fh = logging.FileHandler(os.path.join(log_dir, "train.log"))
+        fh.setFormatter(fmt)
+        logger.addHandler(sh)
+        logger.addHandler(fh)
+
+    writer = SummaryWriter(log_dir=log_dir)
+    return logger, writer
+
+
+================================================================================
+FILE: policy/trainable_policy.py
+================================================================================
+
+import os
+import gc
+import torch
+from collections import defaultdict
+from contextlib import nullcontext
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from peft import get_peft_model, PeftModel, LoraConfig, TaskType
+
+from gammazero.core import ProofState
+from gammazero.utils import Config
+
+
+class TrainablePolicy:
+    """PEFT model for log_probs + gradient update. Explicitly load/unload to free VRAM."""
+
+    def __init__(self, cfg: Config, adapter_path: str | None = None):
+        self.device = cfg.device
+        self.logprob_chunk_size = max(1, cfg.logprob_chunk_size)
+        self.tokenizer = AutoTokenizer.from_pretrained(cfg.model_name)
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_use_double_quant=True,
+        )
+
+        base = AutoModelForCausalLM.from_pretrained(
+            cfg.model_name, 
+            quantization_config=bnb_config, 
+            device_map=cfg.device
+        )
+        if cfg.gradient_checkpointing:
+            base.gradient_checkpointing_enable()
+
+        base_tactic = os.path.abspath(cfg.base_lora_tactic)
+        base_skeleton = os.path.abspath(cfg.base_lora_skeleton)
+
+        # Load reference adapters
+        self.model = PeftModel.from_pretrained(base, base_tactic, adapter_name="ref_tactic")
+        if os.path.exists(base_skeleton):
+            self.model.load_adapter(base_skeleton, adapter_name="ref_skeleton")
+
+        # Load or initialize Active RL adapters
+        if adapter_path and os.path.exists(adapter_path):
+            tactic_path = os.path.join(adapter_path, "tactic")
+            skeleton_path = os.path.join(adapter_path, "skeleton")
+            if os.path.exists(tactic_path):
+                self.model.load_adapter(tactic_path, adapter_name="active_tactic", is_trainable=True)
+            if os.path.exists(skeleton_path):
+                self.model.load_adapter(skeleton_path, adapter_name="active_skeleton", is_trainable=True)
+        else:
+            # At iteration 1, duplicate the SFT base but make them trainable for RL
+            self.model.load_adapter(base_tactic, adapter_name="active_tactic", is_trainable=True)
+            if os.path.exists(base_skeleton):
+                self.model.load_adapter(base_skeleton, adapter_name="active_skeleton", is_trainable=True)
+                
+        self.model.print_trainable_parameters()
+
+    def parameters(self):
+        return self.model.parameters()
+
+    def save(self, path: str):
+        os.makedirs(path, exist_ok=True)
+        tactic_path = os.path.join(path, "tactic")
+        skeleton_path = os.path.join(path, "skeleton")
+        
+        self.model.set_adapter("active_tactic")
+        self.model.save_pretrained(tactic_path)
+        
+        try:
+            self.model.set_adapter("active_skeleton")
+            self.model.save_pretrained(skeleton_path)
+        except ValueError:
+            pass
+
+    def unload(self):
+        del self.model
+        gc.collect()
+        torch.cuda.empty_cache()
+
+    def _score_chunk(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        chosen = torch.gather(logits, dim=2, index=targets.unsqueeze(-1)).squeeze(-1).float()
+        norm = torch.logsumexp(logits.float(), dim=-1)
+        return chosen - norm
+
+    def log_probs(self, states: list[ProofState], actions: list[str],
+                  prompts: list[str], action_types: list[str], disable_adapter: bool = False) -> torch.Tensor:
+        """
+        Tính log_probs bằng cách nối thẳng Prompt + Action.
+        Bỏ Shared Prefill, tận dụng FlashAttention-2 để PyTorch tự cấp phát và backprop chuẩn xác.
+        """
+        if not prompts:
+            return torch.empty(0, dtype=torch.float32, device=self.device)
+
+        # Gom nhóm index theo prompt và action_type để switch adapter
+        group_to_idxs = defaultdict(list)
+        for i, (p, t) in enumerate(zip(prompts, action_types)):
+            group_to_idxs[(p, t)].append(i)
+
+        scores = torch.zeros(len(prompts), dtype=torch.float32, device=self.device)
+        
+        # Bắt buộc lưu lại padding_side cũ và set right padding để tính toán index chính xác
+        orig_padding = self.tokenizer.padding_side
+        self.tokenizer.padding_side = "right"
+
+        try:
+            for (p_text, a_type), idxs in group_to_idxs.items():
+                group_actions = [actions[i] for i in idxs]
+                
+                # Chuyển đổi Multi-Adapter
+                target_adapter = f"ref_{a_type}" if disable_adapter else f"active_{a_type}"
+                self.model.set_adapter(target_adapter)
+                
+                # Gọi hàm tính Logprob đơn giản
+                group_scores = self._score_direct(p_text, group_actions)
+                
+                for i, score in zip(idxs, group_scores):
+                    scores[i] = score
+        finally:
+            self.tokenizer.padding_side = orig_padding
+
+        return scores
+
+    def _score_direct(self, prompt: str, actions: list[str]) -> list[torch.Tensor]:
+        """Tính Log Prob của các đoạn Action bằng cách tự nối ID (An toàn 100% không bị BPE merge)."""
+        prompt_ids = self.tokenizer(prompt, add_special_tokens=False).input_ids
+        prompt_len = len(prompt_ids)
+
+        # Tokenize các râu (actions) riêng biệt
+        encoded_actions = self.tokenizer(actions, add_special_tokens=False)
+
+        # Nối ID thủ công và đệm (Right Padding)
+        batch_ids = []
+        max_len = 0
+        for act_ids in encoded_actions.input_ids:
+            full_ids = prompt_ids + act_ids
+            batch_ids.append(full_ids)
+            if len(full_ids) > max_len:
+                max_len = len(full_ids)
+
+        B = len(actions)
+        pad_token_id = self.tokenizer.pad_token_id
+        input_ids = torch.full((B, max_len), pad_token_id, dtype=torch.long, device=self.device)
+        attention_mask = torch.zeros((B, max_len), dtype=torch.long, device=self.device)
+
+        for i, b_ids in enumerate(batch_ids):
+            L = len(b_ids)
+            input_ids[i, :L] = torch.tensor(b_ids, dtype=torch.long)
+            attention_mask[i, :L] = 1
+
+        target_mask = torch.zeros_like(attention_mask)
+        
+        # Mask chỉ trùm lên đúng token đầu tiên của Action trở thành Target
+        start_idx = prompt_len - 1  # Logit t dự đoán t+1
+        for i in range(B):
+            end_idx = attention_mask[i].sum() - 1
+            if end_idx > start_idx:
+                target_mask[i, start_idx:end_idx] = 1
+
+        action_logprobs = []
+        # Chunking để tránh OOM
+        chunk_size = self.logprob_chunk_size
+        for i in range(0, B, chunk_size):
+            chunk_input_ids = input_ids[i:i+chunk_size]
+            chunk_attention_mask = attention_mask[i:i+chunk_size]
+            chunk_target_mask = target_mask[i:i+chunk_size]
+            
+            # Forward một cách an toàn
+            out = self.model(input_ids=chunk_input_ids, attention_mask=chunk_attention_mask, use_cache=False)
+            logits = out.logits[:, :-1, :]  # (B_chunk, T-1, V)
+            teacher_targets = chunk_input_ids[:, 1:]
+            
+            # Dùng Fused C++ Kernel siêu tốc của Pytorch
+            loss = torch.nn.functional.cross_entropy(
+                logits.float().reshape(-1, logits.size(-1)), 
+                teacher_targets.reshape(-1), 
+                reduction="none"
+            ).view(chunk_input_ids.size(0), max_len - 1)
+            
+            # Chỉ giữ lại phần log_prob của action
+            chunk_logprobs = -(loss * chunk_target_mask[:, :max_len-1]).sum(dim=1)
+            action_logprobs.extend([s for s in chunk_logprobs])
+            
+        return action_logprobs
+
+
+
+================================================================================
+FILE: policy/output_parser.py
+================================================================================
+
+import re
+import textwrap
+
+_LEAN_HEADER = re.compile(r"(?is)\b(theorem|lemma|example|def)\b")
+_PROOF_DIVIDER = re.compile(r"(?is):=\s*by|(?<=\s)by(?=\s)")
+
+def get_lean_code(raw: str) -> str:
+    """
+    Only passes through fully valid Lean actions.
+    Giữ nguyên 100% khoảng trắng và lề gốc của proof body.
+    """
+    t = raw.strip()
+
+    # Reject if ChatML tokens are present.
+    if "<|im_" in t:
+        return ""
+
+    # Capture last ```lean4 ... ``` code block.
+    # Reject if there is an unclosed block at the end (indicates truncation).
+    last_open = t.rfind("```lean4")
+    if last_open != -1:
+        last_close = t.rfind("```", last_open + 7)
+        if last_close == -1:
+            return ""
+
+    fences = re.findall(r"```lean4\s+(.*?)\s+```", t, re.DOTALL | re.IGNORECASE)
+    if not fences:
+        return ""
+    
+    code_block = fences[-1]
+
+    # Remove comments before checking for placeholders like '...'
+    code_no_comments = re.sub(r"/-(?:.|\n)*?-/|--.*", "", code_block)
+    
+    # Only reject if '...' is used as a standalone placeholder (lazy model behavior)
+    # Allows '...' in math comments or within valid Lean syntax if any.
+    if re.search(r"^\s*\.\.\.\s*$", code_no_comments, re.MULTILINE):
+        return ""
+
+    # Require header and proof divider.
+    if not _LEAN_HEADER.search(code_block) or not _PROOF_DIVIDER.search(code_block):
+        return ""
+
+    divider_match = _PROOF_DIVIDER.search(code_block)
+    
+    # Lấy từ vị trí ngay sau chữ 'by' trở đi, giữ nguyên mọi dấu \n và space
+    proof_body = code_block[divider_match.end():]
+
+    # Inductive bias: Chỉ cho phép code có nội dung thực sự (không chỉ toàn comment/sorry).
+    body_clean = re.sub(r"/-(?:.|\n)*?-/|--.*", "", proof_body).strip()
+    if not body_clean or body_clean == "sorry" or "<|im_" in proof_body:
+        return ""
+
+    return proof_body
+    
+
+================================================================================
+FILE: policy/deepseek_server.py
+================================================================================
+
+import os
+import json
+import time
+import requests
+from concurrent.futures import ThreadPoolExecutor
+
+from gammazero.core import ProofState
+from gammazero.policy.prompt import build_prompt
+from gammazero.utils import Config
+
+from dotenv import load_dotenv
+load_dotenv()
+
+class DeepSeekAPIServer:
+    """API server policy for parallel generation using official DeepSeek API."""
+
+    def __init__(self, cfg: Config):
+        self.cfg = cfg
+        self.api_key = os.getenv("DEEPSEEK_API_KEY", "")
+        self.base_url = "https://api.deepseek.com/beta"
+        self.model = "deepseek-v4-flash"
+        self.batch_size = 16  # Parallel requests
+        self.max_tokens = cfg.max_new_tokens
+        self.temperature = cfg.temperature
+        self.max_retries = 3
+        self.retry_delay = 2.0
+
+        self.session = requests.Session()
+        self.session.headers.update({
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        })
+
+    def start(self, adapter_path: str | None = None):
+        """No background process to start for API, just placeholder."""
+        print(f"\n[API] Initialized parallel API mode (batch_size={self.batch_size}).")
+
+    def kill(self):
+        """No process to kill."""
+        pass
+
+    def _get_official_api_response(self, prompt: str) -> str | None:
+        if not self.api_key:
+            print("Warning: DEEPSEEK_API_KEY environment variable is not set!")
+            
+        payload = {
+            "model": self.model,
+            "extra_body": {"thinking": {"type": "disabled"}},
+            "prompt": prompt,
+            "max_tokens": self.max_tokens,
+            "temperature": self.temperature,
+            "stop": ["<|end|>", "<|endoftext|>", "<|im_end|>"]
+        }
+
+        try:
+            resp = self.session.post(
+                f"{self.base_url}/completions",
+                json=payload,
+                timeout=120
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            return data["choices"][0]["text"]
+        except Exception as e:
+            print(f"Lỗi gọi Official API: {e}")
+            return None
+
+    def sample(
+        self,
+        states: list[ProofState],
+        action_type: str,
+        n: int,
+        *,
+        prompts: list[str] | None = None,
+    ) -> list[list[dict]]:
+        """Sample `n` completions per state using ThreadPoolExecutor."""
+        if not states or n <= 0:
+            return [[] for _ in states]
+        if prompts is None:
+            from gammazero.policy.prompt import build_prompt
+            prompts = [build_prompt(s, action_type) for s in states]
+        elif len(prompts) != len(states):
+            raise ValueError("prompts length must match states")
+
+        results = [[] for _ in states]
+        
+        requests_args = []
+        for i, prompt in enumerate(prompts):
+            for _ in range(n):
+                requests_args.append((i, prompt))
+                
+        def _one_request(args):
+            i, prompt = args
+            for attempt in range(1, self.max_retries + 1):
+                resp = self._get_official_api_response(prompt)
+                if resp is not None:
+                    return i, {"text": resp}
+                time.sleep(self.retry_delay)
+            return i, {"text": ""}
+
+        print(f"[API] Generating {len(requests_args)} completions in parallel (batch_size={self.batch_size})...")
+        with ThreadPoolExecutor(max_workers=self.batch_size) as executor:
+            outcomes = list(executor.map(_one_request, requests_args))
+            
+        for i, res in outcomes:
+            if res["text"]:
+                results[i].append(res)
+            else:
+                results[i].append({"text": ""})
+                
+        return results
+
+
+================================================================================
+FILE: policy/prompt.py
+================================================================================
+
+from __future__ import annotations
+import textwrap
+from gammazero.core.nodes import ProofState
+from gammazero.utils.lean_cmd import build_theorem
+
+_OUTPUT_FORMAT_INSTRUCTION = textwrap.dedent(
+"""
+OUTPUT INSTRUCTIONS
+1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].
+2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.
+3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.
+"""
+).strip()
+
+_USER_BASE_INSTRUCTION = textwrap.dedent(
+"""
+This is the current state of the proof.
+You may only use the information in the problem statement below.
+"""
+).strip()
+
+
+_TACTIC_INSTRUCTION = textwrap.dedent("""
+You are an elite Lean 4 Tactic Agent. Your objective is to close a goal.
+You will be provided the [PROBLEM].
+
+CRITICAL INSTRUCTIONS:
+1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. 
+2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.
+3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.
+
+OUTPUT FORMAT EXAMPLE:
+<think>
+[Your thinking process goes here. Be concise and direct.]
+</think>
+```lean4
+theorem my_theorem proposition := by
+  [Your tactic sequence goes here. Be concise and direct.]
+```
+"""
+).strip()
+
+
+_SKELETON_INSTRUCTION = textwrap.dedent("""
+You are a Dependency Skeleton Generator for a Lean 4 proof search tree.
+
+Your task is to decompose the final goal into useful intermediate leaf obligations.
+You are NOT solving the mathematical proof. You are producing a proof scaffold whose
+only unsolved parts are explicitly named `have ... := sorry` leaf obligations.
+
+CRITICAL CONSTRAINTS:
+
+1. LEAF OBLIGATIONS ONLY:
+   Every `sorry` must appear only in a named intermediate `have` statement.
+   These `have` statements are the new subgoals for the search tree.
+
+2. NO FINAL-GOAL SORRY:
+   You are strictly forbidden from writing:
+     `have h_final : <original final goal> := sorry`
+   or any `have` whose proposition is syntactically identical or trivially equivalent
+   to the original final goal with `:= sorry`.
+
+3. FINAL ASSEMBLY MUST BE SORRY-FREE:
+   The final goal must be closed by combining previously introduced hypotheses.
+   The final assembly may use simple Lean proof terms/tactics such as:
+     `exact ...`
+     `apply ...`
+     `constructor`
+     `And.intro`
+     `Or.inl`, `Or.inr`
+     `Exists.intro`
+     tuple notation `⟨..., ...⟩`
+     `simpa using ...`
+   But the final assembly itself must not contain `sorry`.
+
+4. ALL IMPORTANT LEAVES MUST BE CONSUMED:
+   Each generated leaf obligation should be useful for closing the final goal.
+   Avoid producing decorative or unused facts.
+   Prefer leaf obligations that correspond directly to missing proof pieces.
+
+5. PROGRESS REQUIREMENT:
+   Each `sorry` obligation must be a strict decomposition of the original goal.
+   It should be simpler, narrower, or more local than the original goal.
+   Do not restate the original goal under another name.
+
+6. FLAT TOPOLOGY:
+   Avoid branching search tactics such as `cases`, `rcases`, `induction`,
+   `obtain`, or `by_cases` in the skeleton.
+   If case analysis is mathematically needed, create a named leaf obligation
+   that packages the needed result instead.
+
+7. IF NO USEFUL DECOMPOSITION EXISTS:
+   Output a minimal skeleton with one genuinely useful intermediate lemma if possible.
+   If the goal is already atomic and cannot be decomposed, output `sorry`.
+
+GOOD EXAMPLE:
+```lean4
+theorem my_theorem proposition := by
+  have h1 : intermediate_prop_1 := sorry
+  have h2 : intermediate_prop_2 := sorry
+  exact final_assembly_using h1 h2
+````
+
+BAD EXAMPLE:
+
+```lean4
+theorem my_theorem proposition := by
+  have h_final : proposition := sorry
+  exact h_final
+```
+
+BAD EXAMPLE:
+
+```lean4
+theorem my_theorem proposition := by
+  have h1 : intermediate_prop_1 := sorry
+  have h_final : proposition := sorry
+  exact h_final
+```
+
+Remember: the search tree solves the `sorry` leaf obligations. Your job is to make sure
+that once those leaves are solved, the original goal closes automatically.
+
+OUTPUT FORMAT EXAMPLE:
+<think>
+[Briefly explain the decomposition plan. Name the intermediate obligations and
+why they are strictly simpler/useful for closing the final goal.]
+</think>
+```lean4
+theorem my_theorem proposition := by
+  have h1 : intermediate_prop_1 := sorry
+  have h2 : intermediate_prop_2 := sorry
+  exact final_assembly_using h1 h2
+```
+""").strip()
+
+
+# _SKELETON_INSTRUCTION = textwrap.dedent("""
+# You are a Subgoal Generator for a Search Tree in Lean 4. 
+# Your task is to propose potential intermediate milestones to expand the search space, NOT to solve the problem.
+
+# CRITICAL CONSTRAINTS:
+# 1. DEFER VERIFICATION: You are explicitly forbidden from proving the subgoals. EVERY `have` statement MUST end with `:= sorry`. Even if a step is trivially true, you must delegate it to the search tree using `:= sorry`.
+# 2. NO TERMINAL STATES: Do not attempt to close the final goal directly. You MUST wrap the final target in a `have` statement named `h_final` with `:= sorry`, and then close the block strictly with `exact h_final`.
+# 3. FLAT TOPOLOGY ONLY: Branching tactics are incompatible with this search phase. NEVER use `cases`, `rcases`, `induction`, `obtain`, or `by_cases`. 
+
+# Remember: You are generating an exploratory search node, not a finished proof. Incompleteness (using `sorry`) is the strict requirement for success.
+
+# OUTPUT FORMAT EXAMPLE:
+# <think>
+# [Your thinking process goes here. Be concise and direct.]
+# </think>
+# ```lean4
+# theorem my_theorem proposition := by
+#   have h1 prop1 := sorry
+#   have h2 prop2 := sorry
+#   have h_final final_prop := sorry
+#   exact h_final
+# ```
+
+# """).strip()
+
+def _format_chatml_from_messages(messages: list[dict[str, str]]) -> str:
+    parts = []
+    for msg in messages:
+        role = msg["role"]
+        content = msg["content"]
+        parts.append(f"<|im_start|>{role}\n{content}\n<|im_end|>")
+    
+    res = "\n".join(parts)
+    if messages[-1]["role"] == "assistant":
+        res = res.rsplit("\n<|im_end|>", 1)[0]
+    return clean_prompt(res)
+
+def _format_problem(state: ProofState) -> str:
+    code = build_theorem(state, "sorry", name="my_theorem").rstrip()
+    return (
+        "[PROBLEM]\n"
+        "```lean4\n"
+        f"{code}\n"
+        "```"
+    )
+
+def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -> list[dict[str, str]]:
+    if action_type == "tactic":
+        instruction = _TACTIC_INSTRUCTION
+    elif action_type == "skeleton":
+        instruction = _SKELETON_INSTRUCTION
+    else:
+        raise ValueError(action_type)
+    
+    full_system = instruction + '\n\n' + _OUTPUT_FORMAT_INSTRUCTION
+    
+    user_msg_content = _USER_BASE_INSTRUCTION + "\n" + _format_problem(state)
+    if extra_rules:
+        user_msg_content = extra_rules.strip() + "\n" + user_msg_content
+        
+    return [
+        {"role": "system", "content": full_system},
+        {"role": "user", "content": user_msg_content},
+        {"role": "assistant", "content": "<think>\n"}
+    ]
+
+def build_prompt(state: ProofState, action_type: str, extra_rules: str = "") -> str:
+    messages = build_messages(state, action_type, extra_rules)
+    return _format_chatml_from_messages(messages)
+
+
+def format_skeleton_feedback_block(lean_code: str, lean_feedback: str) -> str:
+    return (
+        "FAILED SKELETON CODE:\n"
+        "```lean4\n"
+        f"{lean_code.strip()}\n"
+        "```\n\n"
+        "LEAN ERROR FEEDBACK:\n"
+        f"{lean_feedback.strip()}"
+    )
+
+
+def build_skeleton_retry_prompt(
+    state: ProofState,
+    feedback_blocks: list[str],
+    *,
+    max_feedbacks: int = 3,
+) -> str:
+    if not feedback_blocks:
+        return build_prompt(state, "skeleton")
+
+    feedback_block = (
+        "PREVIOUS SKELETON ATTEMPTS FAILED.\n"
+        "Use the Lean feedback below to produce a NEW skeleton for the same theorem. "
+        "Do not repeat the failed skeleton. Preserve the exact theorem signature.\n\n"
+        + "\n\n".join(feedback_blocks[-max_feedbacks:])
+    )
+    return build_prompt(state, "skeleton", extra_rules=feedback_block)
+
+
+class SearchPromptBuilder:
+    def __init__(self, *, max_skeleton_feedbacks: int = 3):
+        self.max_skeleton_feedbacks = max_skeleton_feedbacks
+
+    def build(
+        self,
+        state: ProofState,
+        action_type: str,
+        *,
+        skeleton_feedbacks: list[str] | None = None,
+    ) -> str:
+        if action_type == "skeleton":
+            return build_skeleton_retry_prompt(
+                state,
+                skeleton_feedbacks or [],
+                max_feedbacks=self.max_skeleton_feedbacks,
+            )
+        return build_prompt(state, action_type)
+
+    def format_skeleton_feedback(self, lean_code: str, lean_feedback: str) -> str:
+        return format_skeleton_feedback_block(lean_code, lean_feedback)
+
+
+def clean_prompt(text: str) -> str:
+    return text.replace('\u00a0', ' ')
+
+
+================================================================================
+FILE: policy/__init__.py
+================================================================================
+
+__all__ = [
+    "TrainablePolicy",
+    "DeepSeekAPIServer",
+    "VLLMServer",
+    "GeminiAPIServer",
+]
+
+
+def __getattr__(name):
+    if name == "TrainablePolicy":
+        from .trainable_policy import TrainablePolicy
+
+        return TrainablePolicy
+    if name == "DeepSeekAPIServer":
+        from .deepseek_server import DeepSeekAPIServer
+
+        return DeepSeekAPIServer
+    if name == "VLLMServer":
+        from .vllm_server import VLLMServer
+
+        return VLLMServer
+    if name == "GeminiAPIServer":
+        from .gemini_server import GeminiAPIServer
+
+        return GeminiAPIServer
+    raise AttributeError(name)
+
+
+================================================================================
+FILE: policy/gemini_server.py
+================================================================================
+
+import os
+import time
+from concurrent.futures import ThreadPoolExecutor
+from google import genai
+from google.genai import types
+
+from gammazero.core import ProofState
+from gammazero.policy.prompt import build_prompt
+from gammazero.utils import Config
+
+from dotenv import load_dotenv
+load_dotenv()
+
+class GeminiAPIServer:
+    """API server policy for parallel generation using Google Gemini API."""
+
+    def __init__(self, cfg: Config):
+        self.cfg = cfg
+        self.api_key = os.getenv("GOOGLE_API_KEY", "")
+        self.model = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview") 
+        self.batch_size = getattr(cfg, "api_batch_size", 16)
+        self.max_tokens = cfg.max_new_tokens
+        self.temperature = cfg.temperature
+        self.max_retries = 3
+        self.retry_delay = 2.0
+
+        if not self.api_key:
+            print("Warning: GOOGLE_API_KEY environment variable is not set!")
+        
+        self.client = genai.Client(api_key=self.api_key)
+
+    def start(self, adapter_path: str | None = None):
+        """No background process to start for API, just placeholder."""
+        print(f"\n[Gemini API] Initialized parallel API mode (batch_size={self.batch_size}, model={self.model}).")
+
+    def kill(self):
+        """No process to kill."""
+        pass
+
+    def _get_gemini_response(self, prompt: str) -> str | None:
+        try:
+            # Disable thinking as requested: 'không thinking'            
+            if os.getenv("DEBUG_GEMINI"):
+                print(f"DEBUG: Calling Gemini with max_output_tokens={self.max_tokens}")
+            
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    max_output_tokens=self.max_tokens,
+                    temperature=self.temperature,
+                    thinking_config=types.ThinkingConfig(thinking_budget=0)
+                )
+                
+            )
+            
+            if response.candidates and response.candidates[0].finish_reason != "STOP":
+                print(f"Warning: Gemini stopped with reason: {response.candidates[0].finish_reason}")
+                if response.candidates[0].finish_message:
+                    print(f"Finish message: {response.candidates[0].finish_message}")
+
+            if response.text:
+                return response.text
+            elif response.candidates and response.candidates[0].content.parts:
+                return "".join(p.text for p in response.candidates[0].content.parts if p.text)
+            return ""
+        except Exception as e:
+            print(f"Lỗi gọi Gemini API: {e}")
+            return None
+
+    def sample(
+        self,
+        states: list[ProofState],
+        action_type: str,
+        n: int,
+        *,
+        prompts: list[str] | None = None,
+    ) -> list[list[dict]]:
+        """Sample `n` completions per state using ThreadPoolExecutor."""
+        if not states or n <= 0:
+            return [[] for _ in states]
+        
+        if prompts is None:
+            prompts = [build_prompt(s, action_type) for s in states]
+        elif len(prompts) != len(states):
+            raise ValueError("prompts length must match states")
+
+        results = [[] for _ in states]
+        
+        requests_args = []
+        for i, prompt in enumerate(prompts):
+            for _ in range(n):
+                requests_args.append((i, prompt))
+                
+        def _one_request(args):
+            i, prompt = args
+            for attempt in range(1, self.max_retries + 1):
+                resp = self._get_gemini_response(prompt)
+                if resp is not None:
+                    return i, {"text": resp}
+                time.sleep(self.retry_delay)
+            return i, {"text": ""}
+
+        print(f"[Gemini API] Generating {len(requests_args)} completions in parallel (batch_size={self.batch_size})...")
+        with ThreadPoolExecutor(max_workers=self.batch_size) as executor:
+            outcomes = list(executor.map(_one_request, requests_args))
+            
+        for i, res in outcomes:
+            results[i].append(res)
+                
+        return results
+
+
+================================================================================
+FILE: policy/vllm_server.py
+================================================================================
+
+import os
+import signal
+import subprocess
+import time
+import requests
+import socket
+
+from gammazero.core import ProofState
+from gammazero.policy.prompt import build_prompt
+from gammazero.utils import Config
+
+
+class VLLMServer:
+    """vLLM server as a subprocess. kill() → OS reclaims 100% VRAM."""
+
+    def __init__(self, cfg: Config):
+        self.cfg              = cfg
+        self.model_name       = cfg.model_name
+        self.base_port        = cfg.vllm_port
+        self.port             = self.base_port
+        self.gpu_util         = cfg.vllm_gpu_memory_utilization
+        self.max_tokens       = cfg.max_new_tokens
+        self.temperature      = cfg.temperature
+        self.max_model_len    = cfg.max_model_len
+        self.ready_timeout    = cfg.vllm_ready_timeout
+        self.proc: subprocess.Popen | None = None
+        self.log_file = None
+        self._adapter_flag: bool | None = None  # Cache for whether adapter is loaded
+
+    def _get_free_port(self, start_port: int) -> int:
+        """Scan from start_port, find the first empty port and return it."""
+        port = start_port
+        while port < start_port + 1000: # Scan up to 1000 ports
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                try:
+                    # Try to bind to the port. If OS allows -> Port is empty!
+                    s.bind(('127.0.0.1', port))
+                    return port
+                except OSError:
+                    # Error (Already in use) -> OS rejects -> Try next port
+                    port += 1
+        raise RuntimeError(f"Scan 1000 ports from {start_port} but no empty port found!")
+
+    def start(self, adapter_path: str | None = None):
+        """Spawn vLLM subprocess; block until /health is up."""
+        self.active_adapter_path = adapter_path
+        
+        self.port = self._get_free_port(self.base_port)
+        env = {**os.environ, "VLLM_ALLOW_RUNTIME_LORA_UPDATING": "True"}
+        cmd = [
+            "python", "-m", "vllm.entrypoints.openai.api_server",
+            "--model", self.model_name,
+            "--port", str(self.port),
+            "--gpu-memory-utilization", str(self.gpu_util),
+            "--max-model-len", str(self.max_model_len),
+            "--enable-lora"
+        ]
+        
+        self._loaded_loras = set()
+        lora_modules = []
+            
+        if not adapter_path:
+            raise ValueError("BetaZero requires an adapter_path.")
+
+        tactic_path = os.path.join(adapter_path, "tactic")
+        skeleton_path = os.path.join(adapter_path, "skeleton")
+
+        for name, path in {
+            "tactic": tactic_path,
+            "skeleton": skeleton_path,
+        }.items():
+            if os.path.isdir(path):
+                lora_modules.append(f"{name}={path}")
+                self._loaded_loras.add(name)
+
+        if not self._loaded_loras:
+            raise FileNotFoundError(
+                f"No adapter found in {adapter_path} "
+                "(expected: tactic/ or skeleton/)"
+            )
+    
+        if lora_modules:
+            cmd += ["--enable-lora", "--max-loras", str(max(2, len(lora_modules))), "--lora-modules"] + lora_modules
+        print(f"\n[vLLM] Starting on port {self.port}...")
+
+        os.makedirs("outputs", exist_ok=True)
+        self.log_file = open(f"outputs/vllm_port_{self.port}.log", "w")
+
+        self.proc = subprocess.Popen(
+            cmd, 
+            env=env,
+            stdout=self.log_file, 
+            stderr=subprocess.STDOUT, 
+            preexec_fn=os.setsid     
+        )
+        self._adapter_flag = None  # Reset adapter cached state at startup
+        self._wait_ready(self.ready_timeout)
+
+    def kill(self):
+        """Kill subprocess AND ALL ITS CHILDREN; VRAM is fully reclaimed by the OS."""
+        if self.proc:
+            try:
+                if self.proc.poll() is None:
+                    print(f"[vLLM] Killing Process Group {self.proc.pid}...")
+                    try:
+                        os.killpg(os.getpgid(self.proc.pid), signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                    self.proc.wait()
+            finally:
+                self.proc = None
+
+        if self.log_file and not self.log_file.closed:
+            self.log_file.close()
+        
+        self._adapter_flag = None  # Clear adapter cached state at shutdown
+        
+        time.sleep(2)
+
+    def sample(
+        self,
+        states: list[ProofState],
+        action_type: str,
+        n: int,
+        *,
+        prompts: list[str] | None = None,
+    ) -> list[list[dict]]:
+        """Sample `n` completions per state row. Returns len(states) lists, each of length `n`."""
+        if not states or n <= 0:
+            return [[] for _ in states]
+        if prompts is None:
+            prompts = [build_prompt(s, action_type) for s in states]
+        elif len(prompts) != len(states):
+            raise ValueError("prompts length must match states")
+        
+        lora_name = action_type
+        model = self.model_name
+
+        if hasattr(self, "_loaded_loras") and lora_name in self._loaded_loras:
+            model = lora_name
+        else:
+            lora_path = ""
+            if hasattr(self, "active_adapter_path") and self.active_adapter_path:
+                active_path = os.path.join(self.active_adapter_path, action_type)
+                if os.path.exists(active_path):
+                    lora_path = active_path
+            
+            if not lora_path:
+                fallback = getattr(self.cfg, f"base_lora_{action_type}", f"qwen_lora_{action_type}")
+                lora_path = os.path.abspath(fallback)
+                
+            if os.path.exists(lora_path):
+                try:
+                    res = requests.post(f"http://localhost:{self.port}/v1/load_lora_adapter", json={
+                        "lora_name": lora_name,
+                        "lora_path": lora_path,
+                        "load_inplace": True
+                    }, timeout=10)
+                    if res.ok:
+                        if not hasattr(self, "_loaded_loras"): 
+                            self._loaded_loras = set()
+                        self._loaded_loras.add(lora_name)
+                        model = lora_name
+                    else:
+                        print(f"[vLLM] failed dynamically loading {lora_name}: {res.text}")
+                except requests.exceptions.RequestException as e:
+                    print(f"[vLLM] load_lora_adapter error: {e}")
+            else:
+                if self._adapter_flag is None:
+                    self._adapter_flag = self._adapter_loaded()
+                if self._adapter_flag:
+                    model = "adapter"
+
+        try:
+            r = requests.post(
+                f"http://localhost:{self.port}/v1/completions",
+                json={
+                      "model": model, 
+                      "prompt": prompts, 
+                      "n": n,
+                      "max_tokens": self.max_tokens, 
+                      "temperature": self.temperature,
+                      "stop": ["<|end|>", "<|endoftext|>", "<|im_end|>"]
+                    },
+                timeout=(10, 1800),
+            )
+            r.raise_for_status()
+            choices = r.json().get("choices", [])
+        except requests.exceptions.RequestException as e:
+            print(f"[vLLM] sample error: {e}")
+            return [[] for _ in states]
+        
+        def get_choice(c):
+            return {"text": c["text"].strip()}
+
+        return [[get_choice(choices[i * n + j]) for j in range(n)]
+                for i in range(len(states))]
+
+    def _adapter_loaded(self) -> bool:
+        try:
+            r = requests.get(f"http://localhost:{self.port}/v1/models", timeout=2)
+            return any(m["id"] == "adapter" for m in r.json().get("data", []))
+        except Exception:
+            return False
+
+    def _wait_ready(self, timeout: int):
+        for _ in range(timeout):
+            try:
+                if requests.get(f"http://localhost:{self.port}/health", timeout=1).ok:
+                    return
+            except Exception:
+                pass
+            time.sleep(1)
+        self.kill()
+        raise RuntimeError(f"vLLM did not start within {timeout}s")
+
+
+================================================================================
+FILE: search/__init__.py
+================================================================================
+
+__all__ = [
+    "ANDORGraph",
+    "BatchExecutor",
+    "BestFirstRollout",
+    "DependencyRewardAssigner",
+    "FailureHandler",
+    "GRPOTrainer",
+    "LevelwiseRollout",
+    "RewardCalculator",
+    "RolloutBudget",
+    "SamplePolicy",
+    "Sorrifier",
+]
+
+
+def __getattr__(name):
+    if name == "ANDORGraph":
+        from .graph import ANDORGraph
+
+        return ANDORGraph
+    if name in {"DependencyRewardAssigner", "RewardCalculator"}:
+        from .reward import DependencyRewardAssigner, RewardCalculator
+
+        return {"DependencyRewardAssigner": DependencyRewardAssigner, "RewardCalculator": RewardCalculator}[name]
+    if name in {"BatchExecutor", "BestFirstRollout", "FailureHandler", "LevelwiseRollout", "RolloutBudget", "SamplePolicy"}:
+        from .rollout import BatchExecutor, BestFirstRollout, FailureHandler, LevelwiseRollout, RolloutBudget, SamplePolicy
+
+        return {
+            "BatchExecutor": BatchExecutor,
+            "BestFirstRollout": BestFirstRollout,
+            "FailureHandler": FailureHandler,
+            "LevelwiseRollout": LevelwiseRollout,
+            "RolloutBudget": RolloutBudget,
+            "SamplePolicy": SamplePolicy,
+        }[name]
+    if name == "Sorrifier":
+        from .sorrifier import Sorrifier
+
+        return Sorrifier
+    if name == "GRPOTrainer":
+        from .trainer import GRPOTrainer
+
+        return GRPOTrainer
+    raise AttributeError(name)
+
+
+================================================================================
+FILE: search/sorrifier/sorrifier.py
+================================================================================
+
+"""
+AST-Based Automated Proof Patcher for Lean 4 (Bulldozer Edition)
+--------------------------------------------
+This module automates the process of fixing broken Lean 4 proofs by ruthlessly
+replacing faulty tactics with the `sorry` axiom and deleting orphaned code.
+
+Architecture:
+1. AST-Guided Truncation: Uses Lean's AST to precisely locate tactic boundaries.
+2. Boss-Hunting Fallback: Searches upward for parent blocks and clears all children.
+3. Deadlock Breaker: Force-deletes lines that cause infinite loops.
+"""
+
+from __future__ import annotations
+import sys
+import datetime
+from typing import Tuple, List, Dict, Optional, TextIO
+from tqdm import tqdm
+
+# Đã cập nhật import theo môi trường hiện tại của bạn
+from gammazero.env import Lean4ServerScheduler
+from gammazero.env.ast_parser import get_lean_ast
+
+BLOCK_STARTERS = (
+    "have", "·", ".", "cases ", "cases' ", "induction ", 
+    "induction' ", "rintro ", "intro ", "calc", "match", 
+    "lemma", "theorem", "def", "example"
+)
+
+TRIVIAL_TACTICS = frozenset({"skip", "done", "trivial", "decide", "rfl"})
+
+
+class Sorrifier:
+    def __init__(
+        self, 
+        repl_verifier: Lean4ServerScheduler, 
+        max_cycles: int = 50,
+        log_path: Optional[str] = None
+    ):
+        self.repl_verifier = repl_verifier
+        self.max_cycles = max_cycles
+        self.log_path = log_path
+        self.current_content = ""
+        self._last_action_msg = ""
+        self._log_fp: Optional[TextIO] = None
+
+    # ==========================================
+    # LOGGING UTILS (Tích hợp từ bản mới để chạy batch)
+    # ==========================================
+    def _log_open(self):
+        if self.log_path and self._log_fp is None:
+            self._log_fp = open(self.log_path, "w", encoding="utf-8")
+
+    def _log_close(self):
+        if self._log_fp:
+            self._log_fp.close()
+            self._log_fp = None
+
+    def _log(self, text: str) -> None:
+        if self._log_fp:
+            self._log_fp.write(text)
+            if not text.endswith("\n"):
+                self._log_fp.write("\n")
+            self._log_fp.flush()
+
+    # ==========================================
+    # MAIN LOOP
+    # ==========================================
+    def fix_code(self, code: str) -> str:
+        """Iteratively patch Lean 4 errors until the code compiles or max_cycles is reached."""
+        self._log_open()
+        try:
+            self.current_content = self._strip_noop_tactics(code)
+            self._last_action_msg = ""
+            seen_states = set()
+
+            with tqdm(total=self.max_cycles, desc="Processing", unit="cycle") as pbar:
+                for cycle in range(1, self.max_cycles + 1):
+                    try:
+                        fatal_errors, unsolved_goals = self._get_lean_errors()
+                    except RuntimeError as e:
+                        return self._force_full_sorrify()
+
+                    if not fatal_errors and not unsolved_goals:
+                        return self.current_content
+
+                    is_fatal = bool(fatal_errors)
+                    err_line, err_msg = fatal_errors[0] if is_fatal else unsolved_goals[0]
+                    
+                    if not self._is_valid_line_number(err_line):
+                        try:
+                            fatal_errors, unsolved_goals = self._get_lean_errors()
+                            is_fatal = bool(fatal_errors)
+                            err_line, err_msg = fatal_errors[0] if is_fatal else unsolved_goals[0]
+                        except RuntimeError:
+                            pass
+                    err_line = self._normalize_line_number(err_line)
+
+                    # Kích hoạt Boss-Hunting nếu code không suy suyển (Oscillation)
+                    if self.current_content in seen_states:
+                        pbar.set_description(f"Loop detected @ L{err_line}")
+                        try:
+                            self._resolve_infinite_loop(err_line)
+                        except IndexError as e:
+                            return self._force_full_sorrify()
+                        pbar.update(1)
+                        continue
+
+                    seen_states.add(self.current_content)
+                    pbar.set_postfix_str(f"{'Fatal' if is_fatal else 'Unsolved'} @ L{err_line}")
+
+                    try:
+                        success = self._apply_normal_fix(err_line, is_fatal, err_msg)
+                    except IndexError as e:
+                        return self._force_full_sorrify()
+                        
+                    if not success:
+                        return self.current_content
+                        break
+
+                    pbar.update(1)
+
+        finally:
+            self._log_close()
+
+        return self.current_content
+
+    # ==========================================
+    # CORE FIXING LOGIC (Trùng khớp 100% bản cũ)
+    # ==========================================
+    def _resolve_infinite_loop(self, err_line: int):
+        """
+        Fallback resolution for correction oscillations (The Boss-Hunter).
+        """
+        lines = self.current_content.splitlines()
+        err_line = self._normalize_line_number(err_line, total_lines=len(lines))
+        original_content = self.current_content 
+        
+        # 1. Search backward for nearest parent block by string match
+        boss_idx = -1
+        for i in range(err_line - 1, -1, -1):
+            line_str = lines[i].strip()
+            # Keywords that start a block
+            if any(line_str.startswith(kw) for kw in ["have ", "lemma ", "theorem ", "def ", "example", "·", "cases ", "match ", "induction "]):
+                boss_idx = i
+                break
+        
+        if boss_idx != -1:
+            boss_line = lines[boss_idx]
+            boss_indent = len(boss_line) - len(boss_line.lstrip())
+            
+            # 2. Replace parent block body with sorry, retain declaration
+            # Handle multi-line headers: search forward for ':=' if not on this line
+            found_assign = False
+            if ":=" in boss_line:
+                lines[boss_idx] = boss_line.split(":=")[0] + ":= by sorry"
+                found_assign = True
+            elif boss_line.strip().startswith("·"):
+                lines[boss_idx] = " " * boss_indent + "· sorry"
+                found_assign = True
+            elif "=>" in boss_line:
+                lines[boss_idx] = boss_line.split("=>")[0] + "=> sorry"
+                found_assign = True
+            else:
+                # Search forward for ':='
+                for j in range(boss_idx + 1, min(boss_idx + 20, len(lines))):
+                    if ":=" in lines[j]:
+                        lines[j] = lines[j].split(":=")[0] + ":= by sorry"
+                        found_assign = True
+                        # Delete lines between boss_idx and j? No, keep the header.
+                        # But we should stop the child deletion from after j.
+                        boss_idx = j 
+                        break
+            
+            if not found_assign:
+                # Fallback: just sorry the line where the error is
+                if err_line - 1 < len(lines):
+                    lines[err_line - 1] = " " * boss_indent + "sorry"
+            
+            # 3. Remove all child lines (greater indent) following parent
+            i = boss_idx + 1
+            while i < len(lines):
+                if not lines[i].strip():
+                    i += 1
+                    continue
+                curr_indent = len(lines[i]) - len(lines[i].lstrip())
+                if curr_indent > boss_indent:
+                    lines[i] = ""
+                    i += 1
+                else:
+                    break
+        else:
+            if err_line - 1 < len(lines):
+                # Try to just sorry it instead of deleting
+                indent = len(lines[err_line-1]) - len(lines[err_line-1].lstrip())
+                lines[err_line - 1] = " " * indent + "sorry"
+            
+        self.current_content = self._clean_redundant_sorries(lines)
+        
+        # 4. Deadlock Breaker: FORCE DELETE
+        if self.current_content == original_content:
+            # tqdm.write(f"Fallback didn't mutate code! Force deleting error line {err_line}.")
+            if err_line - 1 < len(lines):
+                lines[err_line - 1] = ""
+            self.current_content = self._clean_redundant_sorries(lines)
+
+    def _apply_normal_fix(self, error_line: int, is_fatal: bool, err_msg: str) -> bool:
+        lines = self.current_content.splitlines()
+        error_line = self._normalize_line_number(error_line, total_lines=len(lines))
+
+        # 1. Xử lý Trivial Tactics (Spam rác)
+        line_content = lines[error_line - 1].strip()
+        if line_content in TRIVIAL_TACTICS:
+            lines[error_line - 1] = ""
+            self._last_action_msg = f"Removed failing trivial tactic '{line_content}' at L{error_line}"
+            # tqdm.write(self._last_action_msg)
+            self.current_content = self._clean_redundant_sorries(lines)
+            return True
+
+        blocks = self._get_ast_lines()
+        enclosing = [b for b in blocks if b["start_line"] <= error_line <= b["end_line"]]
+
+        def emergency_fallback():
+            msg = f"AST parsing failed/No valid node at L{error_line}. Applying basic single-line replacement."
+            # tqdm.write(msg)
+            indent = len(lines[error_line - 1]) - len(lines[error_line - 1].lstrip())
+            lines[error_line - 1] = " " * indent + "sorry"
+            self.current_content = "\n".join(lines) + "\n"
+            return True
+
+        # 2. Xử lý Lỗi Cú pháp / Logic sai (Fatal Error)
+        if is_fatal:
+            valid_nodes = [b for b in enclosing if "tactic" in b["kind"].lower() or "seq" in b["kind"].lower()]
+            if not valid_nodes: return emergency_fallback()
+            
+            target = min(valid_nodes, key=lambda x: x["end_line"] - x["start_line"])
+            L_start, L_end = target["start_line"], target["end_line"]
+            start_line_str = lines[L_start - 1]
+            
+            is_orphan_error = "no goals" in err_msg.lower() or "goals accomplished" in err_msg.lower()
+            
+            # --- Tách mảng và xóa (Thay vì comment) ---
+            new_lines = lines[:L_start - 1]
+            indent = len(start_line_str) - len(start_line_str.lstrip())
+            
+            if is_orphan_error:
+                # XÓA SẠCH
+                self._last_action_msg = f"Removed orphaned tactic [{target['kind']}] L{L_start}..L{L_end}"
+                new_lines.extend(lines[L_end:])
+                
+            elif self._is_block_starter(start_line_str) and ":=" in start_line_str:
+                # XÓA BODY (Hollow out)
+                self._last_action_msg = f"Hollowed out block [{target['kind']}] starting at L{L_start}"
+                clean_header = start_line_str.split(":=")[0] + ":= by sorry"
+                new_lines.append(clean_header)
+                new_lines.extend(lines[L_end:])
+                
+            else:
+                # THAY BẰNG SORRY
+                self._last_action_msg = f"Replaced leaf tactic [{target['kind']}] L{L_start}..L{L_end}"
+                new_lines.append(" " * indent + "sorry")
+                new_lines.extend(lines[L_end:])
+                
+            # tqdm.write(self._last_action_msg)
+            self.current_content = "\n".join(new_lines) + "\n"
+                
+        # 3. Xử lý Chưa chứng minh xong (Unsolved Goals)
+        else: 
+            scopes = ["declaration", "tactichave", "tacticcases", "tacticmatch", "tacticlet"]
+            valid_nodes = [b for b in enclosing if any(s in b["kind"].lower() for s in scopes)]
+            
+            if not valid_nodes:
+                valid_nodes = [b for b in enclosing if "seq" in b["kind"].lower() or "bytactic" in b["kind"].lower()]
+                if not valid_nodes: return emergency_fallback()
+                target = max(valid_nodes, key=lambda x: x["end_line"] - x["start_line"])
+            else:
+                target = min(valid_nodes, key=lambda x: x["end_line"] - x["start_line"])
+
+            L_start, L_end = target["start_line"], target["end_line"]
+            
+            # Default fallback indent
+            parent_indent = len(lines[L_start - 1]) - len(lines[L_start - 1].lstrip())
+            indent = parent_indent + 2 
+            
+            for i in range(L_start, L_end): 
+                line = lines[i]
+                if line.strip() and not line.strip().startswith("--"):
+                    indent = len(line) - len(line.lstrip())
+                    break
+
+            self._last_action_msg = f"Closed scope [{target['kind']}] at L{L_end} (Indent: {indent})"
+            
+            new_lines = lines[:L_end]
+            new_lines.append(" " * indent + "sorry")
+            new_lines.extend(lines[L_end:])
+            
+            self.current_content = "\n".join(new_lines) + "\n"
+
+        self.current_content = self._clean_redundant_sorries(self.current_content.splitlines())
+        return True
+
+    # ==========================================
+    # HELPERS
+    # ==========================================
+    def _get_lean_errors(self) -> Tuple[List[Tuple[int, str]], List[Tuple[int, str]]]:
+        """Sử dụng API bất đồng bộ để không block luồng chạy song song."""
+        req_ids = self.repl_verifier.submit_all_request(
+            [dict(code=self.current_content)]
+        )
+        result = self.repl_verifier.get_all_request_outputs(req_ids)[0]
+
+        # print(f"[REPL] verify_lean_code executed in {result.get('verify_time', 0):.4f} seconds")
+
+        if result.get("system_errors"):
+            raise RuntimeError(f"Lean verification timed out or crashed: {result['system_errors'][:200]}")
+
+        fatal_errors: List[Tuple[int, str]] = []
+        unsolved_goals: List[Tuple[int, str]] = []
+
+        for msg in result.get("errors", []):
+            ln = msg.get("pos", {}).get("line", 1)
+            txt = msg.get("data", "")
+            if "unsolved goals" in txt:
+                unsolved_goals.append((ln, txt))
+            else:
+                fatal_errors.append((ln, txt))
+
+        return sorted(fatal_errors), sorted(unsolved_goals)
+
+    def _get_ast_lines(self) -> List[Dict]:
+        blocks = get_lean_ast(self.current_content)
+        raw_bytes = self.current_content.encode('utf-8')
+        for b in blocks:
+            b["start_line"] = self._byte_to_line(raw_bytes, b["start_byte"])
+            b["end_line"] = self._byte_to_line(raw_bytes, b["end_byte"])
+        return blocks
+
+    def _clean_redundant_sorries(self, lines: List[str]) -> str:
+        """Collapses multiple consecutive empty lines and removes trailing ones."""
+        cleaned = []
+        for line in lines:
+            # Keep line if it has content, or if it's the first empty line after a non-empty line
+            if line.strip() or (cleaned and cleaned[-1].strip()):
+                cleaned.append(line)
+        
+        # Remove any remaining trailing whitespace-only lines
+        while cleaned and not cleaned[-1].strip():
+            cleaned.pop()
+            
+        return "\n".join(cleaned) + ("\n" if cleaned else "")
+
+    def _force_full_sorrify(self) -> str:
+        marker = ":= by"
+        idx = self.current_content.find(marker)
+        if idx != -1:
+            prefix = self.current_content[: idx + len(marker)]
+            return prefix + "\n  sorry\n"
+        return self.current_content
+
+    def _is_valid_line_number(self, line_no: int) -> bool:
+        total = len(self.current_content.splitlines())
+        return total > 0 and 1 <= line_no <= total
+
+    def _normalize_line_number(self, line_no: int, total_lines: int | None = None) -> int:
+        if total_lines is None:
+            total_lines = len(self.current_content.splitlines())
+        return max(1, min(line_no, total_lines)) if total_lines > 0 else 1
+
+    @staticmethod
+    def _byte_to_line(raw_bytes: bytes, byte_offset: int) -> int:
+        return raw_bytes[:byte_offset].count(b"\n") + 1
+
+    @staticmethod
+    def _strip_noop_tactics(code: str) -> str:
+        lines = [l for l in code.splitlines() if l.strip() not in ("skip", "done")]
+        return "\n".join(lines) + "\n"
+
+    @staticmethod
+    def _is_block_starter(line: str) -> bool:
+        stripped = line.strip()
+        if stripped.startswith("_") and ":=" in stripped: return True
+        if not any(stripped.startswith(cmd) for cmd in BLOCK_STARTERS): return False
+        if stripped.startswith("have") and ":=" not in stripped: return False
+        return True
+
+
+
+
+================================================================================
+FILE: search/sorrifier/dependency_analyzer.py
+================================================================================
+
+from __future__ import annotations
+from typing import Dict, List, Any
+
+class ExprDependencyAnalyzer:
+    def _contains_sorry(self, node: Any) -> bool:
+        stack = [node]
+        while stack:
+            curr = stack.pop()
+            if not isinstance(curr, dict): continue
+            if curr.get("expr") == "const" and curr.get("name") in ("sorryAx", "sorry"):
+                return True
+            for k, v in curr.items():
+                if k != "expr": stack.append(v)
+        return False
+
+    def _is_bvar_used(self, node: Any, target_idx: int) -> bool:
+        stack = [(node, target_idx)]
+        while stack:
+            curr, idx = stack.pop()
+            if not isinstance(curr, dict): continue
+            expr_type = curr.get("expr")
+            if expr_type == "bvar":
+                if curr.get("idx") == idx: return True
+                continue
+            if expr_type in ("lam", "forallE", "letE"):
+                stack.append((curr.get("var_type"), idx))
+                stack.append((curr.get("val"), idx))
+                stack.append((curr.get("body"), idx + 1))
+            else:
+                for k, v in curr.items():
+                    if k != "expr": stack.append((v, idx))
+        return False
+
+    def classify_skeleton_subgoals(self, root_expr: Dict[str, Any], allowed_vars: set[str] | None = None) -> Dict[str, List[str]]:
+        results = {"core_solved": [], "core_failed": [], "malignant": [], "benign": []}
+
+        def traverse(root_node: Any):
+            stack = [root_node]
+            while stack:
+                node = stack.pop()
+                if not isinstance(node, dict): continue
+                
+                # CASE 1: Node là letE (Dạng have tường minh)
+                if node.get("expr") == "letE":
+                    self._classify(node, node.get("val"), results, allowed_vars)
+                
+                # CASE 2: Node là App(Lam, Val) - Dạng have bị convert
+                elif node.get("expr") == "app" and isinstance(node.get("fn"), dict) and node["fn"].get("expr") == "lam":
+                    lam_node = node["fn"]
+                    val_node = node.get("arg") # Giá trị truyền vào chính là proof của subgoal
+                    self._classify(lam_node, val_node, results, allowed_vars)
+
+                for k, v in node.items():
+                    if k != "expr" and isinstance(v, dict): stack.append(v)
+
+        # Check if the main goal itself is closed by a naked 'sorry'
+        # We traverse the root to find the innermost body
+        current = root_expr
+        while isinstance(current, dict):
+            if current.get("expr") in ("lam", "forallE", "letE"):
+                current = current.get("body")
+            elif current.get("expr") == "mdata":
+                current = current.get("inner")
+            elif current.get("expr") == "app":
+                # For app, if it's a let-binding equivalent, we follow the body.
+                # If not, the main goal is just an application.
+                fn = current.get("fn")
+                if isinstance(fn, dict) and fn.get("expr") == "lam":
+                    current = fn.get("body")
+                else:
+                    break
+            else:
+                break
+        
+        # If the final unpacked body contains sorry, the main goal is failed!
+        if self._contains_sorry(current):
+            results["core_failed"].append("MAIN_GOAL")
+        else:
+            results["core_solved"].append("MAIN_GOAL")
+
+        traverse(root_expr)
+        return {k: list(set(v)) for k, v in results.items()}
+
+    def _classify(self, binder_node: dict, val_node: Any, results: dict, allowed_vars: set[str] | None = None):
+        var_name = binder_node.get("var_name", "")
+        if var_name and not var_name.startswith("_"):
+            # Nếu có danh sách biến hợp lệ, bỏ qua các biến cục bộ không nằm trong danh sách
+            if allowed_vars is not None and var_name not in allowed_vars:
+                return
+                
+            # Biến là bvar 0 bên trong body của chính nó
+            is_used = self._is_bvar_used(binder_node.get("body"), 0)
+            is_failed = self._contains_sorry(val_node)
+            
+            if is_used:
+                results["core_failed" if is_failed else "core_solved"].append(var_name)
+            else:
+                results["malignant" if is_failed else "benign"].append(var_name)
+
+    def get_unused_context_variables(self, root_expr: Dict[str, Any]) -> List[str]:
+        unused_vars = []
+        current_node = root_expr
+
+        # Unroll the top-level parameters of the theorem sequentially
+        while isinstance(current_node, dict):
+            expr_type = current_node.get("expr")
+            
+            if expr_type in ("forallE", "lam"):
+                var_name = current_node.get("var_name", "")
+                body = current_node.get("body", {})
+                
+                # We usually ignore internal compiler-generated variables
+                if var_name and not var_name.startswith("_"):
+                    # If the parameter is not used anywhere in the rest of the theorem
+                    if not self._is_bvar_used(body, target_idx=0):
+                        unused_vars.append(var_name)
+                
+                current_node = body # Tiếp tục đi sâu vào chuỗi tham số
+            
+            elif expr_type == "mdata":
+                current_node = current_node.get("inner", {})
+                
+            else:
+                # Đã thoát khỏi chuỗi tham số đầu vào (ví dụ gặp body chính, letE, app, ...)
+                # Dừng lại, không quét tiếp vào sâu bên trong nữa để tránh bắt nhầm biến nội bộ.
+                break
+
+        return unused_vars
+    
+SHARED_EXPR_ANALYZER = ExprDependencyAnalyzer()
+
+================================================================================
+FILE: search/sorrifier/__init__.py
+================================================================================
+
+"""Sorrifier for patching failed tactics/skeletons."""
+
+__all__ = ["Sorrifier"]
+
+
+def __getattr__(name):
+    if name == "Sorrifier":
+        from .sorrifier import Sorrifier
+
+        return Sorrifier
+    raise AttributeError(name)
+
+
+================================================================================
+FILE: search/sorrifier/stitcher.py
+================================================================================
+
+"""Safe textual proof stitcher for filling skeleton subgoals."""
+
+from __future__ import annotations
+import re
+
+class ProofStitcher:
+    """Stitches child proof blocks into skeleton sorry placeholders."""
+
+    @staticmethod
+    def stitch(skeleton_code: str, child_proofs: list[str | None]) -> str:
+        """
+        Replaces each `sorry` in the skeleton with the corresponding child proof.
+        If a child proof is None (FAILED), `sorry` remains.
+        """
+        # Split strictly by the word 'sorry'
+        parts = re.split(r'\bsorry\b', skeleton_code)
+        
+        if len(parts) - 1 != len(child_proofs):
+            # Fallback for LLM hallucination: mismatch between sorry count and children
+            return skeleton_code
+
+        stitched = parts[0]
+        for i, proof in enumerate(child_proofs):
+            if proof is not None:
+                import textwrap
+                
+                lines = stitched.splitlines()
+                last_line = lines[-1] if lines else ""
+                
+                # Normalize child proof indentation (remove common leading whitespace)
+                clean_proof = textwrap.dedent(proof).strip("\n")
+                
+                # Check if we are filling an assignment ':='
+                prefix = parts[i].rstrip()
+                is_assignment = prefix.endswith(":=")
+                
+                if is_assignment:
+                    base_indent = " " * (len(last_line) - len(last_line.lstrip()))
+                    child_indent = base_indent + "  "
+                    
+                    if clean_proof.startswith("by ") or clean_proof.startswith("by\n"):
+                        clean_proof = clean_proof[2:].lstrip()
+                        
+                    proof_lines = clean_proof.splitlines()
+                    indented_body = "\n".join(child_indent + l for l in proof_lines)
+                    
+                    if parts[i].endswith(" "):
+                        indented_proof = "by\n" + indented_body
+                    else:
+                        indented_proof = " by\n" + indented_body
+                else:
+                    anchor_indent = " " * len(last_line)
+                    proof_lines = clean_proof.splitlines()
+                    indented_proof = "\n".join(
+                        (anchor_indent + l if idx > 0 else l) for idx, l in enumerate(proof_lines)
+                    )
+                
+                stitched += indented_proof
+            else:
+                stitched += "sorry"
+                
+            stitched += parts[i + 1]
+
+        return stitched
+
+    @staticmethod
+    def prune_garbage(stitched_code: str, garbage_vars: list[str]) -> str:
+        """
+        Quét và comment lại toàn bộ các dòng khai báo biến rác.
+        Hỗ trợ dọn dẹp các khối proof nhiều dòng dựa trên Indentation.
+        """
+        if not garbage_vars:
+            return stitched_code
+
+        lines = stitched_code.splitlines()
+        out_lines = []
+        
+        # Regex tìm chính xác biến rác
+        garbage_patterns = [re.compile(rf"^\s*(?:have|let)\s+{re.escape(var)}\b") for var in garbage_vars]
+
+        skip_mode = False
+        base_indent = 0 # Lưu lại độ thụt lề của chữ 'have'
+        
+        for line in lines:
+            # 1. Phát hiện dòng khởi đầu của rác
+            if any(p.search(line) for p in garbage_patterns):
+                out_lines.append("-- [PRUNED] " + line)
+                base_indent = len(line) - len(line.lstrip())
+                skip_mode = True
+                continue
+            
+            # 2. Xử lý các dòng con (body) của rác
+            if skip_mode:
+                if not line.strip():
+                    out_lines.append("-- [PRUNED] " + line)
+                    continue
+                
+                curr_indent = len(line) - len(line.lstrip())
+                # Trong Lean, body của 'have' BẮT BUỘC phải thụt lề sâu hơn base_indent
+                if curr_indent > base_indent:
+                    out_lines.append("-- [PRUNED] " + line)
+                    continue
+                else:
+                    # Thoát khỏi block rác vì đã gặp một lệnh ngang hàng
+                    skip_mode = False
+                    
+            # 3. Code xịn thì cho qua
+            out_lines.append(line)
+
+        return "\n".join(out_lines)
+
+================================================================================
+FILE: search/rollout/execution_result.py
+================================================================================
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+from gammazero.core import ProofState
+
+
+@dataclass(frozen=True)
+class LeanExecutionResult:
+    """Outcome of one Lean verify run: either a normal verify dict or a wrapped transport error."""
+
+    state_code: str
+    verify: dict
+    subgoals: tuple[ProofState, ...] = field(default_factory=tuple)
+
+    @classmethod
+    def ok(cls, state_code: str, verify: dict, subgoals: list[ProofState]) -> LeanExecutionResult:
+        return cls(state_code=state_code, verify=dict(verify), subgoals=tuple(subgoals))
+
+    @classmethod
+    def from_transport_error(cls, message: str, state_code: str = "") -> LeanExecutionResult:
+        return cls(
+            state_code=state_code,
+            verify={
+                "complete": False,
+                "pass": False,
+                "errors": [],
+                "warnings": [],
+                "sorries": [],
+                "system_errors": message,
+            },
+            subgoals=(),
+        )
+
+    @property
+    def system_errors(self) -> str:
+        return str(self.verify.get("system_errors") or "").strip()
+
+    @property
+    def has_system_failure(self) -> bool:
+        return bool(self.system_errors)
+
+
+================================================================================
+FILE: search/rollout/search_queue.py
+================================================================================
+
+from __future__ import annotations
+
+import heapq
+import itertools
+
+from gammazero.core import ProofState
+
+
+class StatePriorityQueue:
+    def __init__(self):
+        self.heap: list[tuple[float, int, ProofState]] = []
+        self.counter = itertools.count()
+
+    def push(self, state: ProofState, score: float) -> None:
+        heapq.heappush(self.heap, (-score, next(self.counter), state))
+
+    def pop(self) -> tuple[ProofState | None, float | None]:
+        while self.heap:
+            neg_score, _, state = heapq.heappop(self.heap)
+            return state, -neg_score
+        return None, None
+
+    def __len__(self) -> int:
+        return len(self.heap)
+
+    def items(self) -> list[tuple[float, ProofState]]:
+        return [(-neg_score, state) for neg_score, _, state in self.heap]
+
+    def rebuild(self, scored_states: list[tuple[ProofState, float]]) -> None:
+        self.heap.clear()
+        for state, score in scored_states:
+            self.push(state, score)
+
+
+================================================================================
+FILE: search/rollout/search_stats.py
+================================================================================
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from gammazero.core import Action, ProofState
+
+
+@dataclass
+class StateStats:
+    tactic_tries: int = 0
+    skeleton_tries: int = 0
+
+    tactic_probe_done: bool = False
+    skeleton_probe_done: bool = False
+    last_skeleton_new_children: int = 0
+    bad_skeleton_rounds: int = 0
+    skeleton_exhausted: bool = False
+
+    exhausted: bool = False
+    depth: int = 0
+
+    last_score: float = 0.0
+    active: bool = True
+
+    best_tactic_r_env: float = 0.0
+    incoming_skeleton_score: float = 0.0
+    incoming_skeleton_r_env: float = 0.0
+    parent_skeletons: list[tuple["ProofState", "Action"]] = field(default_factory=list)
+
+
+================================================================================
+FILE: search/rollout/best_first_rollout.py
+================================================================================
+
+from __future__ import annotations
+
+from collections import defaultdict
+from typing import Protocol
+
+from gammazero.core import Action, ProofState
+from gammazero.env.lean_env import LeanEnv
+from gammazero.policy.prompt import SearchPromptBuilder
+from gammazero.search.graph import ANDORGraph
+from gammazero.search.reward import DependencyRewardAssigner, RewardCalculator
+from gammazero.search.sorrifier import Sorrifier
+
+from .batch_executor import BatchExecutor, RolloutBudget
+from .failure_handler import FailureHandler
+from .heuristic import SearchScorer, SimpleHeuristicScorer
+from .search_queue import StatePriorityQueue
+from .search_stats import StateStats
+
+
+class SamplePolicy(Protocol):
+    def sample(
+        self, states: list[ProofState], action_type: str, n: int, *, prompts: list[str] | None = None
+    ) -> list[list[dict]]: ...
+
+
+class BestFirstRollout:
+    """Best-first progressive rollout over the existing AND/OR proof graph."""
+
+    def __init__(
+        self,
+        policy: SamplePolicy,
+        lean: LeanEnv,
+        sorrifier: Sorrifier,
+        reward: RewardCalculator,
+        *,
+        max_depth: int,
+        max_nodes: int,
+        search_batch_size: int = 4,
+        initial_tactic_k: int = 4,
+        retry_tactic_k: int = 4,
+        max_tactic_per_state: int = 16,
+        initial_skeleton_k: int = 4,
+        retry_skeleton_k: int = 2,
+        max_skeleton_per_state: int = 8,
+        state_beam_width: int = 32,
+        state_beam_per_depth: int = 8,
+        skeleton_beam_per_state: int = 2,
+        scorer: SearchScorer | None = None,
+        prompt_builder: SearchPromptBuilder | None = None,
+        executor: BatchExecutor | None = None,
+        failure_handler: FailureHandler | None = None,
+        reward_assigner: DependencyRewardAssigner | None = None,
+    ):
+        self.policy = policy
+        self.lean = lean
+        self.sorrifier = sorrifier
+        self.reward = reward
+
+        self.max_depth = max_depth
+        self._budget = RolloutBudget(max_nodes)
+
+        self.search_batch_size = search_batch_size
+        self.initial_tactic_k = initial_tactic_k
+        self.retry_tactic_k = retry_tactic_k
+        self.max_tactic_per_state = max_tactic_per_state
+        self.initial_skeleton_k = initial_skeleton_k
+        self.retry_skeleton_k = retry_skeleton_k
+        self.max_skeleton_per_state = max_skeleton_per_state
+        self.state_beam_width = state_beam_width
+        self.state_beam_per_depth = state_beam_per_depth
+        self.skeleton_beam_per_state = skeleton_beam_per_state
+        self.scorer = scorer or SimpleHeuristicScorer()
+        self.prompt_builder = prompt_builder or SearchPromptBuilder()
+
+        if executor is None:
+            self.failure_handler = failure_handler or FailureHandler(lean, sorrifier, reward)
+            self.executor = BatchExecutor(lean, self.failure_handler, reward)
+        else:
+            self.executor = executor
+            self.failure_handler = failure_handler
+        self.reward_assigner = reward_assigner or DependencyRewardAssigner(lean, reward)
+        self.last_search_metadata: dict = {}
+        self._skeleton_feedback_by_state: dict[ProofState, list[str]] = {}
+
+    @property
+    def max_nodes(self) -> int:
+        return self._budget.max_nodes
+
+    @property
+    def total_expanded(self) -> int:
+        return self._budget.used
+
+    def _empty_search_metadata(self) -> dict:
+        return {
+            "budget": {
+                "max_nodes": self._budget.max_nodes,
+                "used_total": 0,
+                "used_tactic": 0,
+                "used_skeleton_raw": 0,
+                "lean_verify_calls": 0,
+                "patch_verify_calls": 0,
+            },
+            "skeleton_pipeline": {
+                "requested": 0,
+                "raw_verify_success": 0,
+                "raw_verify_failed": 0,
+                "patch_attempted": 0,
+                "patch_scored": 0,
+                "patch_failed": 0,
+                "feedback_generated": 0,
+                "patched_children_ignored": 0,
+                "inserted_raw": 0,
+                "selected_by_beam": 0,
+                "rejected_by_beam": 0,
+                "valid_zero_children": 0,
+                "children_new": 0,
+                "children_duplicate": 0,
+            },
+            "final_status": {
+                "states": {"OPEN": 0, "SOLVED": 0, "FAILED": 0},
+                "actions": {
+                    "tactic_SOLVED": 0,
+                    "tactic_FAILED": 0,
+                    "skeleton_OPEN": 0,
+                    "skeleton_SOLVED": 0,
+                    "skeleton_FAILED": 0,
+                },
+            },
+            "depth_distribution": {
+                "states_seen_by_depth": {},
+                "states_solved_by_depth": {},
+                "queue_at_stop_by_depth": {},
+                "max_depth_reached": 0,
+            },
+            "beam": {
+                "states_pruned_global": 0,
+                "states_pruned_per_depth": 0,
+                "skeletons_selected": 0,
+                "skeletons_rejected_by_beam": 0,
+            },
+        }
+
+    def _finalize_search_metadata(
+        self,
+        metadata: dict,
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+        queue_at_stop: list[tuple[float, ProofState]],
+    ) -> None:
+        metadata["budget"]["used_total"] = self._budget.used
+
+        for state in graph.all_states():
+            status = graph.status(state)
+            metadata["final_status"]["states"][status] += 1
+            depth = stats[state].depth if state in stats else graph.get_depth(state)
+            key = str(depth)
+            metadata["depth_distribution"]["states_seen_by_depth"][key] = (
+                metadata["depth_distribution"]["states_seen_by_depth"].get(key, 0) + 1
+            )
+            if status == "SOLVED":
+                metadata["depth_distribution"]["states_solved_by_depth"][key] = (
+                    metadata["depth_distribution"]["states_solved_by_depth"].get(key, 0) + 1
+                )
+            metadata["depth_distribution"]["max_depth_reached"] = max(
+                metadata["depth_distribution"]["max_depth_reached"],
+                depth,
+            )
+
+        for action in graph.all_actions():
+            status = graph.status(action)
+            key = f"{action.action_type}_{status}"
+            if key in metadata["final_status"]["actions"]:
+                metadata["final_status"]["actions"][key] += 1
+
+        for _, state in queue_at_stop:
+            depth = stats[state].depth if state in stats else graph.get_depth(state)
+            key = str(depth)
+            metadata["depth_distribution"]["queue_at_stop_by_depth"][key] = (
+                metadata["depth_distribution"]["queue_at_stop_by_depth"].get(key, 0) + 1
+            )
+
+    def rollout(
+        self, theorem: ProofState
+    ) -> tuple[list[tuple[ProofState, Action, float, float]], ANDORGraph, dict[Action, float]]:
+        self._budget.reset()
+        self._skeleton_feedback_by_state = {}
+        graph = ANDORGraph(theorem)
+        stats: dict[ProofState, StateStats] = {theorem: StateStats(depth=0)}
+        queue = StatePriorityQueue()
+        seen_states = {self.state_key(theorem): theorem}
+        metadata = self._empty_search_metadata()
+        stop_reason = "unknown"
+
+        root_score = self.scorer.score_state(theorem, graph, stats)
+        stats[theorem].last_score = root_score
+        queue.push(theorem, root_score)
+
+        while self._budget.used < self._budget.max_nodes:
+            if graph.status(theorem) == "SOLVED":
+                stop_reason = "root_solved"
+                break
+
+            states = self.pop_state_batch(queue, graph, stats)
+            if not states:
+                stop_reason = "queue_empty"
+                break
+
+            tactic_jobs = self.make_tactic_jobs(states, graph, stats)
+            if tactic_jobs:
+                actual_counts, action_stats = self.run_jobs(graph, tactic_jobs, "tactic")
+                metadata["budget"]["used_tactic"] += action_stats["budget_used"]
+                metadata["budget"]["lean_verify_calls"] += action_stats["budget_used"]
+                metadata["budget"]["patch_verify_calls"] += action_stats["feedback_generated"]
+                for state, count in actual_counts.items():
+                    stats[state].tactic_tries += count
+                self.update_best_tactic_r_env(graph, action_stats["new_actions"], stats)
+                self.propagate(graph, stats)
+                if graph.status(theorem) == "SOLVED":
+                    stop_reason = "root_solved"
+                    break
+
+            skeleton_jobs = self.make_skeleton_jobs(states, graph, stats)
+            if skeleton_jobs:
+                metadata["skeleton_pipeline"]["requested"] += sum(k for _, k in skeleton_jobs)
+                before = set(graph.all_actions())
+                actual_counts, action_stats = self.run_jobs(graph, skeleton_jobs, "skeleton")
+                metadata["budget"]["used_skeleton_raw"] += action_stats["budget_used"]
+                metadata["budget"]["lean_verify_calls"] += action_stats["budget_used"]
+                metadata["budget"]["patch_verify_calls"] += action_stats["feedback_generated"]
+                metadata["skeleton_pipeline"]["raw_verify_success"] += action_stats["raw_success"]
+                metadata["skeleton_pipeline"]["raw_verify_failed"] += action_stats["raw_failed"]
+                metadata["skeleton_pipeline"]["patch_attempted"] += action_stats["raw_failed"]
+                metadata["skeleton_pipeline"]["patch_scored"] += action_stats["feedback_generated"]
+                metadata["skeleton_pipeline"]["patch_failed"] += max(
+                    0, action_stats["raw_failed"] - action_stats["feedback_generated"]
+                )
+                metadata["skeleton_pipeline"]["feedback_generated"] += action_stats["feedback_generated"]
+                metadata["skeleton_pipeline"]["inserted_raw"] += action_stats["inserted_raw"]
+                for state, count in actual_counts.items():
+                    stats[state].skeleton_tries += count
+                new_actions = [a for a in graph.all_actions() if a not in before]
+                valid_skeletons = self.valid_skeletons_from_actions(graph, new_actions)
+                metadata["skeleton_pipeline"]["valid_zero_children"] += sum(
+                    1 for action in new_actions
+                    if action.action_type == "skeleton"
+                    and not self.is_sorrified_action(action)
+                    and graph.status(action) != "FAILED"
+                    and len(action.children) == 0
+                )
+                selected = self.select_skeletons(valid_skeletons, graph, stats)
+                metadata["skeleton_pipeline"]["selected_by_beam"] += len(selected)
+                metadata["skeleton_pipeline"]["rejected_by_beam"] += max(0, len(valid_skeletons) - len(selected))
+                metadata["beam"]["skeletons_selected"] += len(selected)
+                metadata["beam"]["skeletons_rejected_by_beam"] += max(0, len(valid_skeletons) - len(selected))
+                child_stats = self.activate_skeleton_children(selected, graph, stats, queue, seen_states)
+                self.update_skeleton_progress(selected, child_stats["generated_by_parent"], stats)
+                metadata["skeleton_pipeline"]["children_new"] += child_stats["generated"]
+                metadata["skeleton_pipeline"]["children_duplicate"] += child_stats["duplicates"]
+                self.propagate(graph, stats)
+                if graph.status(theorem) == "SOLVED":
+                    stop_reason = "root_solved"
+                    break
+
+            for state in states:
+                if self.can_requeue_state(state, graph, stats):
+                    score = self.scorer.score_state(state, graph, stats)
+                    stats[state].last_score = score
+                    queue.push(state, score)
+                else:
+                    self.maybe_exhaust_state(state, graph, stats)
+
+            prune_stats = self.prune_queue(queue, graph, stats)
+            metadata["beam"]["states_pruned_global"] += prune_stats["global"]
+            metadata["beam"]["states_pruned_per_depth"] += prune_stats["per_depth"]
+
+        else:
+            stop_reason = "budget_exhausted"
+
+        queue_at_stop = queue.items()
+        self.finalize_unresolved(graph, stats)
+        self.propagate(graph, stats)
+        self.reward_assigner.stitch_and_score_skeletons(graph)
+        self.propagate(graph, stats)
+        self._finalize_search_metadata(metadata, graph, stats, queue_at_stop)
+        self.last_search_metadata = metadata
+        graph.search_metadata = metadata
+
+        q_values = self.reward.compute_returns(graph)
+        samples: list[tuple[ProofState, Action, float, float]] = []
+        for action, q in q_values.items():
+            parent = graph.get_parent(action, theorem)
+            samples.append((parent, action, graph.get_r_env(action), q))
+        return samples, graph, q_values
+
+    def pop_state_batch(
+        self,
+        queue: StatePriorityQueue,
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+    ) -> list[ProofState]:
+        out: list[ProofState] = []
+        while len(out) < self.search_batch_size and len(queue) > 0:
+            state, _ = queue.pop()
+            if state is None:
+                break
+            if graph.status(state) != "OPEN":
+                continue
+            if stats[state].exhausted:
+                continue
+            if stats[state].depth > self.max_depth:
+                continue
+            out.append(state)
+        return out
+
+    def should_try_tactic(
+        self, state: ProofState, graph: ANDORGraph, stats: dict[ProofState, StateStats]
+    ) -> bool:
+        if graph.status(state) != "OPEN":
+            return False
+        st = stats[state]
+        if st.exhausted or st.depth > self.max_depth:
+            return False
+        if st.tactic_tries >= self.max_tactic_per_state:
+            return False
+        if not st.tactic_probe_done:
+            return True
+        progress = self.parent_progress_features(state, graph, stats)
+        if progress["is_last_open_child"]:
+            return True
+        if progress["best_solved_ratio"] >= 0.5:
+            return True
+        if st.best_tactic_r_env >= 0.5:
+            return True
+        return False
+
+    def tactic_width(self, state: ProofState, stats: dict[ProofState, StateStats]) -> int:
+        st = stats[state]
+        k = self.initial_tactic_k if st.tactic_tries == 0 else self.retry_tactic_k
+        remaining = self.max_tactic_per_state - st.tactic_tries
+        remaining_budget = self.max_nodes - self.total_expanded
+        return max(0, min(k, remaining, remaining_budget))
+
+    def make_tactic_jobs(
+        self,
+        states: list[ProofState],
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+    ) -> list[tuple[ProofState, int]]:
+        jobs = []
+        for state in states:
+            if not self.should_try_tactic(state, graph, stats):
+                continue
+            k = self.tactic_width(state, stats)
+            if k <= 0:
+                continue
+            jobs.append((state, k))
+            stats[state].tactic_probe_done = True
+        return jobs
+
+    def should_expand_skeleton(
+        self, state: ProofState, graph: ANDORGraph, stats: dict[ProofState, StateStats]
+    ) -> bool:
+        if graph.status(state) != "OPEN":
+            return False
+        st = stats[state]
+        if st.exhausted or st.depth >= self.max_depth:
+            return False
+        if st.skeleton_exhausted:
+            return False
+        if st.skeleton_tries >= self.max_skeleton_per_state:
+            return False
+        if not st.tactic_probe_done:
+            return False
+        progress = self.parent_progress_features(state, graph, stats)
+        if progress["is_last_open_child"]:
+            return False
+        if not st.skeleton_probe_done:
+            return True
+        if progress["best_solved_ratio"] >= 0.5:
+            return True
+        if st.best_tactic_r_env < 0.2:
+            return True
+        return False
+
+    def skeleton_width(self, state: ProofState, stats: dict[ProofState, StateStats]) -> int:
+        st = stats[state]
+        k = self.initial_skeleton_k if st.skeleton_tries == 0 else self.retry_skeleton_k
+        remaining = self.max_skeleton_per_state - st.skeleton_tries
+        remaining_budget = self.max_nodes - self.total_expanded
+        return max(0, min(k, remaining, remaining_budget))
+
+    def parent_progress_features(
+        self,
+        state: ProofState,
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+    ) -> dict[str, float | bool | int]:
+        if hasattr(self.scorer, "parent_progress_features"):
+            return self.scorer.parent_progress_features(state, graph, stats)
+        return SimpleHeuristicScorer().parent_progress_features(state, graph, stats)
+
+    def make_skeleton_jobs(
+        self,
+        states: list[ProofState],
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+    ) -> list[tuple[ProofState, int]]:
+        jobs = []
+        for state in states:
+            if not self.should_expand_skeleton(state, graph, stats):
+                continue
+            k = self.skeleton_width(state, stats)
+            if k <= 0:
+                continue
+            jobs.append((state, k))
+            stats[state].skeleton_probe_done = True
+        return jobs
+
+    def run_jobs(
+        self,
+        graph: ANDORGraph,
+        jobs: list[tuple[ProofState, int]],
+        action_type: str,
+    ) -> tuple[dict[ProofState, int], dict[str, int]]:
+        before = set(graph.all_actions())
+        budget_before = self._budget.used
+        groups: dict[int, list[ProofState]] = defaultdict(list)
+        for state, k in jobs:
+            groups[k].append(state)
+        total_feedback_generated = 0
+        for k, states in groups.items():
+            if self.total_expanded >= self.max_nodes:
+                break
+            prompts = [
+                self.prompt_builder.build(
+                    state,
+                    action_type,
+                    skeleton_feedbacks=self._skeleton_feedback_by_state.get(state, []),
+                )
+                for state in states
+            ]
+            batches = self.policy.sample(states, action_type, k, prompts=prompts)
+            feedbacks = self.executor.execute(graph, states, batches, action_type, self._budget, prompts=prompts)
+            if action_type == "skeleton":
+                self.record_skeleton_feedback(states, feedbacks)
+            total_feedback_generated += sum(1 for rows in feedbacks for row in rows if row is not None)
+        counts: dict[ProofState, int] = defaultdict(int)
+        action_stats = {
+            "budget_used": self._budget.used - budget_before,
+            "inserted_raw": 0,
+            "raw_success": 0,
+            "raw_failed": 0,
+            "feedback_generated": total_feedback_generated,
+            "new_actions": [],
+        }
+        for action in graph.all_actions():
+            if action in before or action.action_type != action_type:
+                continue
+            action_stats["new_actions"].append(action)
+            parent = graph.get_parent(action)
+            if parent is not None:
+                counts[parent] += 1
+            action_stats["inserted_raw"] += 1
+            if graph.status(action) == "FAILED":
+                action_stats["raw_failed"] += 1
+            else:
+                action_stats["raw_success"] += 1
+        return dict(counts), action_stats
+
+    def is_sorrified_action(self, action: Action) -> bool:
+        return (action.prompt or "").startswith("[SYNTHETIC_PATCH]")
+
+    def record_skeleton_feedback(
+        self,
+        states: list[ProofState],
+        feedbacks: list[list[tuple[str, str, str] | None]],
+    ) -> None:
+        for state, rows in zip(states, feedbacks):
+            for row in rows:
+                if row is None:
+                    continue
+                lean_code, lean_feedback, _ = row
+                if not lean_feedback:
+                    continue
+                block = self.prompt_builder.format_skeleton_feedback(lean_code, lean_feedback)
+                self._skeleton_feedback_by_state.setdefault(state, []).append(block)
+
+    def update_best_tactic_r_env(
+        self,
+        graph: ANDORGraph,
+        actions: list[Action],
+        stats: dict[ProofState, StateStats],
+    ) -> None:
+        for action in actions:
+            if action.action_type != "tactic":
+                continue
+            parent = graph.get_parent(action)
+            if parent is None or parent not in stats:
+                continue
+            stats[parent].best_tactic_r_env = max(
+                stats[parent].best_tactic_r_env,
+                graph.get_r_env(action),
+            )
+
+    def valid_skeletons_from_actions(
+        self, graph: ANDORGraph, actions: list[Action]
+    ) -> list[tuple[ProofState, Action]]:
+        valid = []
+        for action in actions:
+            if action.action_type != "skeleton":
+                continue
+            parent = graph.get_parent(action)
+            if parent is None:
+                continue
+            if graph.status(action) == "OPEN" and len(action.children) > 0:
+                valid.append((parent, action))
+            elif graph.status(action) != "SOLVED":
+                graph.mark_failed(action)
+        return valid
+
+    def select_skeletons(
+        self,
+        valid_skeletons: list[tuple[ProofState, Action]],
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+    ) -> list[tuple[ProofState, Action, float]]:
+        by_parent: dict[ProofState, list[tuple[float, ProofState, Action]]] = defaultdict(list)
+        for parent_state, action in valid_skeletons:
+            score = self.scorer.score_skeleton(action, parent_state, graph, stats)
+            by_parent[parent_state].append((score, parent_state, action))
+
+        selected = []
+        for rows in by_parent.values():
+            rows.sort(key=lambda x: x[0], reverse=True)
+            for score, parent_state, action in rows[: self.skeleton_beam_per_state]:
+                selected.append((parent_state, action, score))
+            for _, _, action in rows[self.skeleton_beam_per_state :]:
+                graph.mark_failed(action)
+        return selected
+
+    def activate_skeleton_children(
+        self,
+        selected_skeletons: list[tuple[ProofState, Action, float]],
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+        queue: StatePriorityQueue,
+        seen_states: dict[str, ProofState],
+    ) -> dict[str, int]:
+        generated = 0
+        duplicates = 0
+        generated_by_parent: dict[ProofState, int] = defaultdict(int)
+        for parent_state, action, _ in selected_skeletons:
+            parent_depth = stats[parent_state].depth
+            for child in action.children:
+                key = self.state_key(child)
+                if key in seen_states:
+                    canonical_child = seen_states[key]
+                    duplicates += 1
+                    if canonical_child in stats:
+                        stats[canonical_child].parent_skeletons.append((parent_state, action))
+                    continue
+                seen_states[key] = child
+                depth = parent_depth + 1
+                skeleton_score = self.scorer.score_skeleton(action, parent_state, graph, stats)
+                skeleton_r_env = graph.get_r_env(action)
+                stats[child] = StateStats(
+                    depth=depth,
+                    incoming_skeleton_score=skeleton_score,
+                    incoming_skeleton_r_env=skeleton_r_env,
+                    parent_skeletons=[(parent_state, action)],
+                )
+                graph.add_state(child, depth=depth)
+                score = self.scorer.score_state(child, graph, stats)
+                stats[child].last_score = score
+                queue.push(child, score)
+                generated += 1
+                generated_by_parent[parent_state] += 1
+        return {
+            "generated": generated,
+            "duplicates": duplicates,
+            "generated_by_parent": dict(generated_by_parent),
+        }
+
+    def update_skeleton_progress(
+        self,
+        selected_skeletons: list[tuple[ProofState, Action, float]],
+        generated_by_parent: dict[ProofState, int],
+        stats: dict[ProofState, StateStats],
+    ) -> None:
+        touched_parents = {parent_state for parent_state, _, _ in selected_skeletons}
+        for parent_state in touched_parents:
+            st = stats[parent_state]
+            new_children = generated_by_parent.get(parent_state, 0)
+            st.last_skeleton_new_children = new_children
+            if new_children == 0:
+                st.bad_skeleton_rounds += 1
+            else:
+                st.bad_skeleton_rounds = 0
+            if st.bad_skeleton_rounds >= 2:
+                st.skeleton_exhausted = True
+
+    def state_key(self, state: ProofState) -> str:
+        ctx = " ".join((state.context or "").split())
+        goal = " ".join((state.goal or "").split())
+        return ctx + "\n⊢ " + goal
+
+    def can_requeue_state(
+        self, state: ProofState, graph: ANDORGraph, stats: dict[ProofState, StateStats]
+    ) -> bool:
+        if graph.status(state) != "OPEN":
+            return False
+        st = stats[state]
+        if st.exhausted:
+            return False
+        can_more_tactic = st.tactic_tries < self.max_tactic_per_state
+        can_more_skeleton = (
+            st.depth < self.max_depth
+            and st.skeleton_tries < self.max_skeleton_per_state
+            and not st.skeleton_exhausted
+        )
+        return can_more_tactic or can_more_skeleton
+
+    def maybe_exhaust_state(
+        self, state: ProofState, graph: ANDORGraph, stats: dict[ProofState, StateStats]
+    ) -> None:
+        if graph.status(state) != "OPEN":
+            return
+        st = stats[state]
+        no_tactic = st.tactic_tries >= self.max_tactic_per_state
+        no_skeleton = (
+            st.depth >= self.max_depth
+            or st.skeleton_tries >= self.max_skeleton_per_state
+            or st.skeleton_exhausted
+        )
+        if no_tactic and no_skeleton:
+            st.exhausted = True
+        else:
+            return
+        actions = graph.get_actions(state)
+        if actions and all(graph.status(action) == "FAILED" for action in actions):
+            graph.mark_failed(state)
+
+    def prune_queue(
+        self,
+        queue: StatePriorityQueue,
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+    ) -> dict[str, int]:
+        rows = []
+        while len(queue) > 0:
+            state, _ = queue.pop()
+            if state is None:
+                break
+            if graph.status(state) != "OPEN" or stats[state].exhausted:
+                continue
+            score = self.scorer.score_state(state, graph, stats)
+            stats[state].last_score = score
+            rows.append((state, score))
+
+        rows.sort(key=lambda x: x[1], reverse=True)
+        before_global = len(rows)
+        rows = rows[: self.state_beam_width]
+        global_pruned = before_global - len(rows)
+
+        per_depth: dict[int, list[tuple[ProofState, float]]] = defaultdict(list)
+        for state, score in rows:
+            per_depth[stats[state].depth].append((state, score))
+
+        kept = []
+        per_depth_pruned = 0
+        for xs in per_depth.values():
+            xs.sort(key=lambda x: x[1], reverse=True)
+            kept_xs = xs[: self.state_beam_per_depth]
+            per_depth_pruned += len(xs) - len(kept_xs)
+            kept.extend(kept_xs)
+        queue.rebuild(kept)
+        return {"global": global_pruned, "per_depth": per_depth_pruned}
+
+    def propagate(self, graph: ANDORGraph, stats: dict[ProofState, StateStats]) -> None:
+        changed = True
+        while changed:
+            changed = False
+            for action in graph.all_actions():
+                if graph.status(action) != "OPEN" or action.action_type != "skeleton":
+                    continue
+                if not action.children:
+                    changed |= graph.mark_failed(action)
+                elif all(graph.status(child) == "SOLVED" for child in action.children):
+                    changed |= graph.mark_solved(action)
+                elif any(graph.status(child) == "FAILED" for child in action.children):
+                    changed |= graph.mark_failed(action)
+
+            for state in graph.all_states():
+                if graph.status(state) != "OPEN":
+                    continue
+                actions = graph.get_actions(state)
+                if any(graph.status(action) == "SOLVED" for action in actions):
+                    changed |= graph.mark_solved(state)
+                elif stats.get(state) and stats[state].exhausted:
+                    if actions and all(graph.status(action) == "FAILED" for action in actions):
+                        changed |= graph.mark_failed(state)
+
+    def finalize_unresolved(self, graph: ANDORGraph, stats: dict[ProofState, StateStats]) -> None:
+        for state in graph.all_states():
+            if graph.status(state) != "OPEN":
+                continue
+            if state in stats:
+                stats[state].exhausted = True
+            graph.mark_failed(state)
+
+        for action in graph.all_actions():
+            if graph.status(action) == "OPEN":
+                graph.mark_failed(action)
+
+
+================================================================================
+FILE: search/rollout/heuristic.py
+================================================================================
+
+from __future__ import annotations
+
+from gammazero.core import Action, ProofState
+from gammazero.search.graph import ANDORGraph
+
+from .search_stats import StateStats
+
+
+class SearchScorer:
+    def parent_progress_features(
+        self,
+        state: ProofState,
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+    ) -> dict[str, float | bool | int]:
+        best_ratio = 0.0
+        is_last = False
+        min_parent_depth = 10**9
+
+        for parent_state, skeleton in getattr(stats[state], "parent_skeletons", []):
+            children = skeleton.children
+            if not children:
+                continue
+            if any(graph.status(child) == "FAILED" for child in children):
+                continue
+
+            solved = sum(graph.status(child) == "SOLVED" for child in children)
+            open_count = sum(graph.status(child) == "OPEN" for child in children)
+            best_ratio = max(best_ratio, solved / len(children))
+
+            parent_stats = stats.get(parent_state)
+            parent_depth = parent_stats.depth if parent_stats is not None else graph.get_depth(parent_state)
+            min_parent_depth = min(min_parent_depth, parent_depth)
+
+            if open_count == 1 and graph.status(state) == "OPEN":
+                is_last = True
+
+        return {
+            "best_solved_ratio": best_ratio,
+            "is_last_open_child": is_last,
+            "min_parent_depth": min_parent_depth,
+        }
+
+    def score_state(
+        self,
+        state: ProofState,
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+    ) -> float:
+        raise NotImplementedError
+
+    def score_skeleton(
+        self,
+        action: Action,
+        parent_state: ProofState,
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+    ) -> float:
+        raise NotImplementedError
+
+
+class SimpleHeuristicScorer(SearchScorer):
+    def __init__(
+        self,
+        *,
+        incoming_skeleton_weight: float = 2.0,
+        best_tactic_weight: float = 1.5,
+        final_child_bonus: float = 6.0,
+        solved_ratio_bonus: float = 2.0,
+        parent_depth_bonus: float = 1.0,
+        depth_penalty: float = 0.10,
+        tactic_retry_penalty: float = 0.10,
+        skeleton_retry_penalty: float = 0.12,
+        bad_skeleton_round_penalty: float = 0.8,
+        skeleton_r_env_weight: float = 2.0,
+        skeleton_parent_score_weight: float = 0.6,
+        skeleton_depth_penalty: float = 0.25,
+        skeleton_sorrified_penalty: float = 0.25,
+    ):
+        self.incoming_skeleton_weight = incoming_skeleton_weight
+        self.best_tactic_weight = best_tactic_weight
+        self.final_child_bonus = final_child_bonus
+        self.solved_ratio_bonus = solved_ratio_bonus
+        self.parent_depth_bonus = parent_depth_bonus
+        self.depth_penalty = depth_penalty
+        self.tactic_retry_penalty = tactic_retry_penalty
+        self.skeleton_retry_penalty = skeleton_retry_penalty
+        self.bad_skeleton_round_penalty = bad_skeleton_round_penalty
+        self.skeleton_r_env_weight = skeleton_r_env_weight
+        self.skeleton_parent_score_weight = skeleton_parent_score_weight
+        self.skeleton_depth_penalty = skeleton_depth_penalty
+        self.skeleton_sorrified_penalty = skeleton_sorrified_penalty
+
+    def parent_completion_bonus(
+        self,
+        state: ProofState,
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+    ) -> float:
+        bonus = 0.0
+        for parent_state, skeleton in getattr(stats[state], "parent_skeletons", []):
+            children = skeleton.children
+            if not children:
+                continue
+            if any(graph.status(child) == "FAILED" for child in children):
+                continue
+
+            total = len(children)
+            solved = sum(graph.status(child) == "SOLVED" for child in children)
+            open_count = sum(graph.status(child) == "OPEN" for child in children)
+            solved_ratio = solved / total
+
+            if open_count == 1 and graph.status(state) == "OPEN":
+                bonus += self.final_child_bonus
+            bonus += self.solved_ratio_bonus * solved_ratio
+
+            parent_stats = stats.get(parent_state)
+            parent_depth = parent_stats.depth if parent_stats is not None else graph.get_depth(parent_state)
+            bonus += self.parent_depth_bonus / (1.0 + max(parent_depth, 0))
+        return bonus
+
+    def score_state(
+        self,
+        state: ProofState,
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+    ) -> float:
+        st = stats[state]
+
+        score = 0.0
+        score += self.incoming_skeleton_weight * getattr(st, "incoming_skeleton_score", 0.0)
+        score += self.best_tactic_weight * getattr(st, "best_tactic_r_env", 0.0)
+        score += self.parent_completion_bonus(state, graph, stats)
+        score -= self.depth_penalty * st.depth
+        score -= self.tactic_retry_penalty * st.tactic_tries
+        score -= self.skeleton_retry_penalty * st.skeleton_tries
+        score -= self.bad_skeleton_round_penalty * getattr(st, "bad_skeleton_rounds", 0)
+        return score
+
+    def local_parent_value(
+        self,
+        parent_state: ProofState,
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+    ) -> float:
+        st = stats[parent_state]
+        return (
+            self.best_tactic_weight * getattr(st, "best_tactic_r_env", 0.0)
+            + self.parent_completion_bonus(parent_state, graph, stats)
+            - self.depth_penalty * st.depth
+        )
+
+    def score_skeleton(
+        self,
+        action: Action,
+        parent_state: ProofState,
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+    ) -> float:
+        parent_stats = stats[parent_state]
+
+        n_children = len(action.children)
+        r_env = graph.get_r_env(action)
+
+        score = 0.0
+        score += self.skeleton_r_env_weight * r_env
+        score += self.skeleton_parent_score_weight * self.local_parent_value(parent_state, graph, stats)
+        score += self.child_count_score(n_children)
+        score -= self.skeleton_depth_penalty * parent_stats.depth
+
+        if getattr(action, "was_sorrified", False):
+            score -= self.skeleton_sorrified_penalty
+
+        return score
+
+    def child_count_score(self, n: int) -> float:
+        if n == 0:
+            return -2.0
+        if n == 1:
+            return 0.2
+        if n in (2, 3):
+            return 1.0
+        if n == 4:
+            return 0.5
+        return -0.3 * (n - 4)
+
+
+================================================================================
+FILE: search/rollout/batch_executor.py
+================================================================================
+
+from __future__ import annotations
+
+import concurrent.futures
+import threading
+from typing import TYPE_CHECKING
+
+from gammazero.core import ProofState, Action
+from gammazero.policy.output_parser import get_lean_code
+from gammazero.policy.prompt import build_prompt
+from gammazero.search.graph import ANDORGraph
+from gammazero.search.reward import DependencyRewardAssigner, RewardCalculator
+from gammazero.utils.lean_cmd import build_theorem
+
+from .execution_result import LeanExecutionResult
+from .failure_handler import FailedActionPatch, FailureHandler
+from .utils import format_lean_feedback
+
+if TYPE_CHECKING:
+    from gammazero.env.lean_env import LeanEnv
+
+
+class RolloutBudget:
+    __slots__ = ("max_nodes", "used", "_lock")
+
+    def __init__(self, max_nodes: int):
+        self.max_nodes = max_nodes
+        self.used = 0
+        self._lock = threading.Lock()
+
+    def reset(self):
+        with self._lock:
+            self.used = 0
+
+    def try_consume(self) -> bool:
+        with self._lock:
+            if self.used >= self.max_nodes:
+                return False
+            self.used += 1
+            return True
+
+
+class BatchExecutor:
+    """Parallel Lean execute + expand graph; tactic feedbacks align with action_batches[i][j]."""
+
+    def __init__(
+        self,
+        lean: LeanEnv,
+        failure_handler: FailureHandler,
+        reward: RewardCalculator,
+        max_workers: int | None = None,
+    ):
+        self.lean = lean
+        self.failure = failure_handler
+        self.reward = reward
+        self.reward_assigner = DependencyRewardAssigner(lean, reward)
+        # Get max workers from the executor to synchronize, avoid context switching.
+        ex = getattr(lean.scheduler, "executor", None)
+        self._max_workers = max_workers if max_workers is not None else (
+            getattr(ex, "_max_workers", 4) if ex is not None else 4
+        )
+
+    @staticmethod
+    def safe_execute(lean: LeanEnv, state: ProofState, action_code: str) -> LeanExecutionResult:
+        """Run Lean; never raises — transport/executor errors become `system_errors` on the result."""
+        try:
+            sc, vr, sg = lean.execute(state, action_code)
+            return LeanExecutionResult.ok(sc, vr, sg)
+        except Exception as e:
+            try:
+                sc = build_theorem(state, action_code)
+            except Exception:
+                sc = ""
+            return LeanExecutionResult.from_transport_error(f"{type(e).__name__}: {e}", sc)
+
+    def execute(
+        self,
+        graph: ANDORGraph,
+        states: list[ProofState],
+        action_batches: list[list[dict]],
+        action_type: str,
+        budget: RolloutBudget,
+        prompts: list[str] | None = None,
+    ) -> list[list[tuple[str, str, str] | None]]:
+        if prompts is None:
+            prompts = [build_prompt(s, action_type) for s in states]
+
+        tasks: list[tuple[int, int, ProofState, str, str, concurrent.futures.Future]] = []
+        feedbacks: list[list[tuple[str, str, str] | None]] = [
+            [None] * len(actions) for actions in action_batches
+        ]
+        patch_futures: list[
+            tuple[int, int, str, dict, concurrent.futures.Future[FailedActionPatch]]
+        ] = []
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self._max_workers) as pool:
+            for i, (state, actions) in enumerate(zip(states, action_batches)):
+                for j, action_dict in enumerate(actions):
+                    if not budget.try_consume():
+                        break
+                    raw_output = action_dict["text"]
+                    lean_code = get_lean_code(raw_output)
+                    if not lean_code:
+                        self.failure.handle_system_execute_failure(
+                            graph,
+                            state,
+                            action_type,
+                            raw_output,
+                            LeanExecutionResult.from_transport_error("empty_lean_code"),
+                            prompts[i],
+                        )
+                        continue
+                    fut = pool.submit(BatchExecutor.safe_execute, self.lean, state, lean_code)
+                    tasks.append((i, j, state, raw_output, lean_code, fut))
+                if budget.used >= budget.max_nodes:
+                    break
+
+            for i, j, state, raw_output, lean_code, future in tasks:
+                res: LeanExecutionResult = future.result()
+                prompt = prompts[i]
+                if res.has_system_failure:
+                    self.failure.handle_system_execute_failure(
+                        graph, state, action_type, raw_output, res, prompt
+                    )
+                    continue
+                state_code, state_vr, subgoals = res.state_code, res.verify, list(res.subgoals)
+                full_code = build_theorem(state, lean_code)
+                # For a complete tactic, code passed Lean with 0 sorries → r_env = 1.0
+                r_env = 1.0
+
+                if state_vr.get("complete"):
+                    if action_type not in ("tactic", "skeleton"):
+                        raise ValueError(f"Invalid action type: {action_type}")
+                    r_dep = (
+                        self.reward_assigner.calculate_r_dep(state_code, lean_code)
+                        if action_type == "tactic"
+                        else 0.0
+                    )
+                    act = Action(
+                        action_type=action_type,
+                        content=raw_output,
+                        extracted_code=lean_code,
+                        children=(),
+                        prompt=prompt,
+                    )
+                    graph.expand(
+                        state,
+                        act,
+                        r_env=r_env,
+                        r_dep=r_dep,
+                        tactic_status="SOLVED" if action_type == "tactic" else None,
+                    )
+                    if action_type == "skeleton":
+                        graph.set_skeleton_override(act, True)
+                elif action_type == "tactic":
+                    fut = pool.submit(
+                        self.failure.compute_failed_action_patch,
+                        state,
+                        action_type,
+                        raw_output,
+                        lean_code,
+                        state_code,
+                        state_vr,
+                        prompt,
+                    )
+                    patch_futures.append((i, j, lean_code, state_vr, fut))
+                    
+                elif action_type == "skeleton":
+                    if state_vr.get("pass"):
+                        # Calculate r_env even for passing skeletons to catch semantic/AST issues
+                        r_env_score = self.reward.r_env(full_code, full_code, state_vr)
+                        graph.expand(
+                            state,
+                            Action(
+                                action_type="skeleton",
+                                content=raw_output,
+                                extracted_code=lean_code,
+                                children=tuple(subgoals),
+                                prompt=prompt,
+                            ),
+                            r_env=r_env_score,
+                        )
+                    else:
+                        fut = pool.submit(
+                            self.failure.compute_failed_action_patch,
+                            state,
+                            action_type,
+                            raw_output,
+                            lean_code,
+                            state_code,
+                            state_vr,
+                            prompt,
+                        )
+                        patch_futures.append((i, j, lean_code, state_vr, fut))
+                else:
+                    raise ValueError(f"Invalid action type: {action_type}")
+
+            for i, j, lean_code, state_vr, future in patch_futures:
+                patch = future.result()
+                sorr_body = self.failure.apply_failed_action_patch(graph, patch)
+                if patch.action_kind == "skeleton":
+                    sorr_body = ""
+                feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), sorr_body)
+
+        return feedbacks
+
+
+================================================================================
+FILE: search/rollout/__init__.py
+================================================================================
+
+"""Rollout pipeline for sampling, execution, repair, and graph expansion."""
+
+__all__ = [
+    "BatchExecutor",
+    "DependencyRewardAssigner",
+    "FailureHandler",
+    "LeanExecutionResult",
+    "BestFirstRollout",
+    "LevelwiseRollout",
+    "RolloutBudget",
+    "SamplePolicy",
+]
+
+
+def __getattr__(name):
+    if name == "LeanExecutionResult":
+        from .execution_result import LeanExecutionResult
+
+        return LeanExecutionResult
+    if name in {"BatchExecutor", "RolloutBudget"}:
+        from .batch_executor import BatchExecutor, RolloutBudget
+
+        return {"BatchExecutor": BatchExecutor, "RolloutBudget": RolloutBudget}[name]
+    if name == "FailureHandler":
+        from .failure_handler import FailureHandler
+
+        return FailureHandler
+    if name in {"BestFirstRollout", "SamplePolicy"}:
+        from .best_first_rollout import BestFirstRollout, SamplePolicy
+
+        return {"BestFirstRollout": BestFirstRollout, "SamplePolicy": SamplePolicy}[name]
+    if name == "LevelwiseRollout":
+        from .levelwise_rollout import LevelwiseRollout
+
+        return LevelwiseRollout
+    if name == "DependencyRewardAssigner":
+        from gammazero.search.reward import DependencyRewardAssigner
+
+        return DependencyRewardAssigner
+    raise AttributeError(name)
+
+
+================================================================================
+FILE: search/rollout/utils.py
+================================================================================
+
+"""Lean example-wrapper helpers and verify message formatting."""
+
+def format_lean_feedback(vr: dict) -> str:
+    lines = [e.get("data", "") for e in vr.get("errors", [])[:12] if e.get("data", "")]
+    if vr.get("system_errors"):
+        lines.append(str(vr["system_errors"])[:800])
+    return "\n".join(lines)
+
+import re
+
+def inject_patched_code_to_raw(raw_output: str, patched_full_code: str) -> str:
+    """
+    Tìm block ```lean4 ... ``` cuối cùng trong raw_output (giữ nguyên <think>) 
+    và tráo ruột của nó bằng patched_full_code.
+    """
+    fallback_note = (
+        "\nWait, my intended proof will be failed. I will fall back to using 'sorry' for the failed tactic.\n"
+    )
+    # Regex y hệt hàm get_lean_code của ông
+    pattern = re.compile(r"(```lean4\s+)(.*?)(\s+```)", re.DOTALL | re.IGNORECASE)
+    matches = list(pattern.finditer(raw_output))
+    
+    # Rủi ro: Model sinh thiếu tag ```lean4 (halucination nặng)
+    if not matches:
+        return raw_output.rstrip() + f"\n{fallback_note}\n```lean4\n{patched_full_code.strip()}\n```"
+        
+    last_match = matches[-1]
+    fence_start = last_match.start(1)
+    
+    # Vị trí (start, end) của Group 2 - chính là phần ruột code Lean bị sai
+    start_idx = last_match.start(2)
+    end_idx = last_match.end(2)
+    
+    # Phẫu thuật thay ruột: Giữ phần đầu + Code mới + Giữ phần đuôi
+    new_raw = (
+        raw_output[:fence_start] + fallback_note + raw_output[fence_start:start_idx] +
+        "\n" + patched_full_code.strip() + "\n" + 
+        raw_output[end_idx:]
+    )
+    
+    return new_raw
+
+
+================================================================================
+FILE: search/rollout/failure_handler.py
+================================================================================
+
+from __future__ import annotations
+
+import os
+import uuid
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+from gammazero.core import ProofState, Action
+from gammazero.utils.lean_cmd import build_theorem
+from gammazero.utils.lean_parse import extract_proof_body, parse_proof_state
+from gammazero.search.graph import ANDORGraph
+from gammazero.search.reward import DependencyRewardAssigner, RewardCalculator
+
+from .execution_result import LeanExecutionResult
+if TYPE_CHECKING:
+    from gammazero.env.lean_env import LeanEnv
+    from gammazero.search.sorrifier import Sorrifier
+
+
+@dataclass(frozen=True)
+class FailedActionPatch:
+    state: ProofState
+    action_kind: str
+    action_content: str
+    lean_code: str
+    prompt: str
+    patched: str
+    patched_vr: dict
+    patched_action_code: str
+    r_fail: float
+    r_dep: float
+    new_subgoals: tuple[ProofState, ...]
+
+
+class FailureHandler:
+    """Sorrify failed tactics/skeletons and register penalized / patched graph edges."""
+
+    def __init__(self, lean: LeanEnv, sorrifier: Sorrifier, reward: RewardCalculator):
+        self.lean = lean
+        self.sorrifier = sorrifier
+        self.reward = reward
+        self.reward_assigner = DependencyRewardAssigner(lean, reward)
+
+    def handle_system_execute_failure(
+        self,
+        graph: ANDORGraph,
+        state: ProofState,
+        action_kind: str,
+        action_content: str,
+        result: LeanExecutionResult,
+        prompt: str = "",
+    ) -> None:
+        """Timeout / crash / transport errors: penalize graph edge; do not run sorrifier."""
+        r = 0.0
+        graph.expand(
+            state,
+            Action(
+                action_type=action_kind,
+                content=action_content,
+                extracted_code="",
+                children=(),
+                prompt=prompt,
+            ),
+            r_env=r,
+            tactic_status="FAILED" if action_kind == "tactic" else None,
+        )
+
+    def _new_sorrifier(self) -> Sorrifier:
+        from gammazero.search.sorrifier import Sorrifier
+
+        log_path = self.sorrifier.log_path
+        if log_path:
+            root, ext = os.path.splitext(log_path)
+            log_path = f"{root}.{uuid.uuid4().hex}{ext or '.log'}"
+        return Sorrifier(
+            self.sorrifier.repl_verifier,
+            max_cycles=self.sorrifier.max_cycles,
+            log_path=log_path,
+        )
+
+    def compute_failed_action_patch(
+        self,
+        state: ProofState,
+        action_kind: str,
+        action_content: str,
+        lean_code: str,
+        state_code: str,
+        state_vr: dict,
+        prompt: str = "",
+    ) -> FailedActionPatch:
+        """Run the expensive, side-effect-free patching work for a failed action."""
+        sorrifier = self._new_sorrifier()
+        patched = sorrifier.fix_code(state_code)
+        patched_vr = self.lean.verify(patched)
+        patched_action_code = extract_proof_body(patched)
+
+        full_orig = build_theorem(state, lean_code)
+        full_patched = build_theorem(state, patched_action_code)
+        r_fail = self.reward.r_env(full_orig, full_patched, patched_vr)
+        r_dep = 0.0
+        if action_kind == "tactic" and patched_vr.get("pass"):
+            r_dep = self.reward_assigner.calculate_patched_tactic_r_dep(
+                full_patched,
+                patched_action_code,
+            )
+
+        new_subgoals: tuple[ProofState, ...] = ()
+        if action_kind == "skeleton":
+            new_subgoals = tuple(
+                parse_proof_state(s.get("goal", ""), header=state.header)
+                for s in patched_vr.get("sorries", [])
+            )
+
+        return FailedActionPatch(
+            state=state,
+            action_kind=action_kind,
+            action_content=action_content,
+            lean_code=lean_code,
+            prompt=prompt,
+            patched=patched,
+            patched_vr=patched_vr,
+            patched_action_code=patched_action_code,
+            r_fail=r_fail,
+            r_dep=r_dep,
+            new_subgoals=new_subgoals,
+        )
+
+    def apply_failed_action_patch(self, graph: ANDORGraph, patch: FailedActionPatch) -> str:
+        """Mutate the graph for a precomputed failed-action patch."""
+        failed_action = Action(
+            action_type=patch.action_kind,
+            content=patch.action_content,
+            extracted_code=patch.lean_code,
+            children=(),
+            prompt=patch.prompt,
+        )
+
+        graph.expand(
+            patch.state,
+            failed_action,
+            r_env=patch.r_fail,
+            r_dep=patch.r_dep,
+            tactic_status="FAILED" if patch.action_kind == "tactic" else None,
+        )
+        if patch.action_kind == "skeleton":
+            graph.mark_failed(failed_action)
+
+        return patch.patched_action_code
+
+
+================================================================================
+FILE: search/graph/__init__.py
+================================================================================
+
+"""Graph primitives for proof-state expansion and value backup."""
+
+from .and_or_graph import ANDORGraph
+
+__all__ = ["ANDORGraph"]
+
+
+================================================================================
+FILE: search/graph/and_or_graph.py
+================================================================================
+
+from __future__ import annotations
+
+import threading
+from typing import Any, Literal
+import re
+
+from gammazero.core.nodes import Action, NodeStatus, ProofState
+from gammazero.policy.output_parser import get_lean_code
+from gammazero.search.sorrifier.stitcher import ProofStitcher
+
+
+
+class ANDORGraph:
+    """Thread-safe AND/OR proof graph with solved-state checks and return backup."""
+
+    def __init__(self, root: ProofState):
+        self._lock = threading.RLock()
+        self._actions: dict[ProofState, list[Action]] = {root: []}
+        self._parent: dict[Action, ProofState] = {}
+        self._r_env: dict[Action, float] = {}
+        self._r_dep: dict[Action, float] = {}
+        self._tactic_status: dict[Action, Literal["SOLVED", "FAILED"]] = {}
+        self._depth: dict[ProofState, int] = {root: 0}
+        self._solved_cache: dict[Any, bool] = {}
+        self._skeleton_override: dict[Action, bool] = {} 
+        self._status_override: dict[ProofState | Action, NodeStatus] = {}
+        self._garbage_vars: dict[Action, list[str]] = {}
+
+    def expand(
+        self,
+        state: ProofState,
+        action: Action,
+        r_env: float = 0.0,
+        r_dep: float = 0.0,
+        tactic_status: Literal["SOLVED", "FAILED"] | None = None,
+    ) -> None:
+        with self._lock:
+            if action in self._parent:
+                return
+            self._solved_cache.clear()
+            self._actions.setdefault(state, []).append(action)
+            self._parent[action] = state
+            self._r_env[action] = r_env
+            self._r_dep[action] = r_dep
+            if tactic_status is not None and action.action_type == "tactic":
+                self._tactic_status[action] = tactic_status
+            for child in action.children:
+                self._actions.setdefault(child, [])
+                if child not in self._depth:
+                    self._depth[child] = self._depth[state] + 1
+
+    def _node_solved(
+        self, node: ProofState | Action, visiting: set, memo: dict[Any, bool]
+    ) -> bool:
+        if node in visiting:
+            return False
+        if node in memo:
+            return memo[node]
+        visiting.add(node)
+        try:
+            override = self._status_override.get(node)
+            if override == "SOLVED":
+                memo[node] = True
+                return True
+            if override == "FAILED":
+                memo[node] = False
+                return False
+            if isinstance(node, ProofState):
+                res = any(self._node_solved(a, visiting, memo) for a in self._actions.get(node, []))
+            elif node.action_type == "tactic":
+                res = self._tactic_status.get(node) == "SOLVED"
+            else:
+                if node in self._skeleton_override:
+                    res = self._skeleton_override[node]
+                else:
+                    res = bool(node.children) and all(
+                        self._node_solved(c, visiting, memo) for c in node.children
+                    )
+            memo[node] = res
+            return res
+        finally:
+            visiting.remove(node)
+
+    def is_solved(self, node: ProofState | Action, visiting: set | None = None) -> bool:
+        with self._lock:
+            if visiting is None:
+                visiting = set()
+            return self._node_solved(node, visiting, self._solved_cache)
+
+    def status(self, node: ProofState | Action) -> NodeStatus:
+        with self._lock:
+            override = self._status_override.get(node)
+            if override is not None:
+                return override
+            if isinstance(node, ProofState):
+                return "SOLVED" if self.is_solved(node) else "OPEN"
+            if node.action_type == "tactic":
+                t = self._tactic_status.get(node)
+                if t == "SOLVED":
+                    return "SOLVED"
+                if t == "FAILED":
+                    return "FAILED"
+                return "OPEN"
+            if self.is_solved(node):
+                return "SOLVED"
+            if not node.children:
+                return "FAILED"
+            return "OPEN"
+
+    def add_state(self, state: ProofState, depth: int | None = None) -> None:
+        with self._lock:
+            self._actions.setdefault(state, [])
+            if depth is not None and state not in self._depth:
+                self._depth[state] = depth
+
+    def all_states(self) -> list[ProofState]:
+        with self._lock:
+            return list(self._actions.keys())
+
+    def all_actions(self) -> list[Action]:
+        with self._lock:
+            return list(self._parent.keys())
+
+    def mark_open(self, node: ProofState | Action) -> bool:
+        with self._lock:
+            old = self._status_override.pop(node, None)
+            self._solved_cache.clear()
+            return old is not None
+
+    def mark_solved(self, node: ProofState | Action) -> bool:
+        with self._lock:
+            old = self._status_override.get(node)
+            self._status_override[node] = "SOLVED"
+            self._solved_cache.clear()
+            return old != "SOLVED"
+
+    def mark_failed(self, node: ProofState | Action) -> bool:
+        with self._lock:
+            old = self._status_override.get(node)
+            self._status_override[node] = "FAILED"
+            if isinstance(node, Action) and node.action_type == "tactic":
+                self._tactic_status[node] = "FAILED"
+            self._solved_cache.clear()
+            return old != "FAILED"
+
+    def unsolved_states(self) -> list[ProofState]:
+        with self._lock:
+            keys = list(self._actions.keys())
+        return [s for s in keys if not self.is_solved(s)]
+
+    def get_actions(self, state: ProofState) -> list[Action]:
+        with self._lock:
+            return list(self._actions.get(state, []))
+
+    def get_r_env(self, action: Action) -> float:
+        with self._lock:
+            return self._r_env.get(action, 0.0)
+
+    def get_parent(self, action: Action, default: ProofState | None = None) -> ProofState | None:
+        with self._lock:
+            return self._parent.get(action, default)
+
+    def parent_items(self) -> list[tuple[Action, ProofState]]:
+        with self._lock:
+            return list(self._parent.items())
+
+    def set_r_dep(self, action: Action, r_dep: float) -> None:
+        with self._lock:
+            self._r_dep[action] = r_dep
+
+    def set_skeleton_override(self, action: Action, is_solved: bool):
+        with self._lock:
+            self._skeleton_override[action] = is_solved
+            self._solved_cache.clear() # Nhớ xóa cache để graph tính lại từ đầu
+
+    def get_depth(self, state: ProofState) -> int:
+        with self._lock:
+            return self._depth.get(state, -1)
+
+    def backup(self, gamma: float = 1.0, W_solve: float = 1.0) -> dict[Action, float]:
+        with self._lock:
+            q_cache: dict[Action, float] = {}
+            v_cache: dict[ProofState, float] = {}
+            visiting_v: set[ProofState] = set()
+            solve_memo: dict[Any, bool] = {}
+
+            def backup_value(action: Action) -> float:
+                if action.action_type == "skeleton" and self.status(action) == "FAILED":
+                    return 0.0
+                return Q(action)
+
+            def V(state: ProofState) -> float:
+                if state in v_cache:
+                    return v_cache[state]
+                if state in visiting_v:
+                    return 0.0
+                visiting_v.add(state)
+                val = max((backup_value(a) for a in self._actions.get(state, [])), default=0.0)
+                visiting_v.remove(state)
+                v_cache[state] = val
+                return val
+
+            def Q(action: Action) -> float:
+                if action in q_cache:
+                    return q_cache[action]
+                r_e = self._r_env.get(action, 0.0)
+                solved = self._node_solved(action, set(), solve_memo)
+                r_d = self._r_dep.get(action, 0.0)
+                if action.action_type == "tactic":
+                    val = r_e + r_d
+                else:
+                    if solved:
+                        live_children = self._live_children_for_action(action)
+                        future = gamma * min((V(c) for c in live_children), default=0.0)
+                        val = r_e + r_d + future
+                    else:
+                        val = r_e + r_d
+                q_cache[action] = val
+                return val
+
+            for action in self._parent:
+                Q(action)
+            for state in self._actions:
+                V(state)
+            return q_cache
+
+    def backup_value_for_action(self, action: Action, q_value: float) -> float:
+        """Value an action contributes upward to its parent OR-node."""
+        with self._lock:
+            if action.action_type == "skeleton" and self.status(action) == "FAILED":
+                return 0.0
+            return q_value
+
+    def get_successful_actions(self, state: ProofState) -> list[Action]:
+        """Retrieve all actions that successfully solved this state."""
+        with self._lock:
+            return [a for a in self.get_actions(state) if self.status(a) == "SOLVED"]
+
+    def get_successful_action(self, state: ProofState) -> Action | None:
+        """Retrieve the first action that successfully solved this state."""
+        actions = self.get_successful_actions(state)
+        return actions[0] if actions else None
+
+    def set_garbage_vars(self, action: Action, garbage_vars: list[str]):
+        with self._lock:
+            self._garbage_vars[action] = garbage_vars
+
+    def get_garbage_vars(self, action: Action) -> list[str]:
+        with self._lock:
+            return self._garbage_vars.get(action, [])
+
+    @staticmethod
+    def _extract_sorry_var_order(code: str) -> list[str]:
+        vars_in_order = []
+        seen = set()
+        stack = []
+
+        for line in code.splitlines():
+            stripped = line.lstrip()
+            if not stripped:
+                continue
+            indent = len(line) - len(stripped)
+
+            while stack and indent <= stack[-1][0]:
+                stack.pop()
+
+            match = re.match(r"(?:have|let)\s+([a-zA-Z0-9_]+)\s*[:=]", stripped)
+            if match:
+                stack.append((indent, match.group(1)))
+
+            if re.search(r"\bsorry\b", stripped) and stack:
+                var_name = stack[-1][1]
+                if var_name not in seen:
+                    vars_in_order.append(var_name)
+                    seen.add(var_name)
+
+        return vars_in_order
+
+    def _live_children_for_action(self, action: Action) -> tuple[ProofState, ...]:
+        garbage_vars = set(self._garbage_vars.get(action, []))
+        if not garbage_vars:
+            return action.children
+
+        child_vars = self._extract_sorry_var_order(action.extracted_code)
+        if len(child_vars) != len(action.children):
+            return action.children
+
+        return tuple(
+            child for var_name, child in zip(child_vars, action.children)
+            if var_name not in garbage_vars
+        )
+
+    def _extract_for_action(self, action: Action, visiting: set[ProofState]) -> str | None:
+        """Extract proof code for a single action (tactic or skeleton)."""
+        if action.action_type == "tactic":
+            return action.extracted_code
+
+        # Skeleton: recurse down to children
+        child_proofs = [self._extract_proof_code(child, visiting) for child in action.children]
+        
+        stitched = ProofStitcher.stitch(action.extracted_code, child_proofs)
+        
+        # Dùng máy xén tỉa dựa trên list rác lưu trong graph
+        garbage_vars = self.get_garbage_vars(action)
+        if garbage_vars:
+            stitched = ProofStitcher.prune_garbage(stitched, garbage_vars)
+            
+        return stitched
+
+    def _extract_proof_code(self, state: ProofState, visiting: set[ProofState]) -> str | None:
+        """Internal recursive extraction with cycle detection."""
+        if state in visiting:
+            return None  # Cycle detected — treat as unsolved
+        visiting.add(state)
+        try:
+            solved_actions = self.get_successful_actions(state)
+            if not solved_actions:
+                return None
+
+            fallback: str | None = None
+            for action in solved_actions:
+                proof = self._extract_for_action(action, visiting)
+                if proof is None:
+                    continue
+                
+                # Check if clean: strip comments before searching for 'sorry'
+                clean_check = re.sub(r"/\-(?:.|\n)*?\-/|--.*", "", proof)
+                if not re.search(r'\bsorry\b', clean_check):
+                    return proof  # Clean proof found
+                if fallback is None:
+                    fallback = proof  # Keep first sorry-containing as fallback
+
+            return fallback
+        finally:
+            visiting.discard(state)
+
+    def extract_proof_code(self, state: ProofState) -> str | None:
+        """Recursively extract and stitch the successful proof code for a state.
+        
+        Tries all SOLVED actions and prefers the first one producing a sorry-free proof.
+        Falls back to the first sorry-containing proof if no clean proof exists.
+        """
+        return self._extract_proof_code(state, set())
+
+
+================================================================================
+FILE: search/reward/reward_assigner.py
+================================================================================
+
+"""Score dependency rewards for skeleton and tactic actions."""
+
+from gammazero.env.lean_env import LeanEnv
+from gammazero.search.graph import ANDORGraph
+from gammazero.search.sorrifier.stitcher import ProofStitcher
+from gammazero.utils.lean_cmd import build_theorem
+from .calculator import RewardCalculator
+import re
+
+
+class DependencyRewardAssigner:
+    """Orchestrates stitching and kernel analysis for skeleton rewards."""
+
+    def __init__(self, lean: LeanEnv, reward: RewardCalculator):
+        self.lean = lean
+        self.reward = reward
+
+    def _extract_sorry_vars(self, code: str) -> set[str]:
+        """Parses Lean code indentation to accurately attribute 'sorry' to its declaring variable."""
+        lines = code.splitlines()
+        sorry_vars = set()
+        stack = []
+        
+        for line in lines:
+            stripped = line.lstrip()
+            if not stripped:
+                continue
+            indent = len(line) - len(stripped)
+            
+            while stack and indent <= stack[-1][0]:
+                stack.pop()
+                
+            match = re.match(r"(?:have|let)\s+([a-zA-Z0-9_]+)\s*[:=]", stripped)
+            if match:
+                var_name = match.group(1)
+                stack.append((indent, var_name))
+                
+            if re.search(r"\bsorry\b", stripped):
+                if stack:
+                    sorry_vars.add(stack[-1][1])
+                    
+        return sorry_vars
+
+    @staticmethod
+    def _has_real_sorry(code: str) -> bool:
+        """Return true if `sorry` appears outside Lean comments."""
+        clean = re.sub(r"/\-(?:.|\n)*?\-/|--.*", "", code or "")
+        return bool(re.search(r"\bsorry\b", clean))
+
+    def _expand_verifiable_garbage(
+        self,
+        parent_state,
+        stitched_code: str,
+        candidates: set[str],
+        garbage_vars: list[str],
+    ) -> tuple[list[str], str | None]:
+        """
+        Greedily remove candidate skeleton variables when Lean confirms the
+        stitched proof still compiles. This catches tactic-generated proof terms
+        that mention an otherwise redundant local hypothesis.
+        """
+        ordered_garbage = list(dict.fromkeys(garbage_vars))
+        unresolved_sorry_vars = self._extract_sorry_vars(stitched_code)
+        cleaned_code = (
+            ProofStitcher.prune_garbage(stitched_code, ordered_garbage)
+            if ordered_garbage
+            else stitched_code
+        )
+
+        trial_candidates = candidates - set(ordered_garbage) - unresolved_sorry_vars
+        for var in sorted(trial_candidates):
+            trial_code = ProofStitcher.prune_garbage(cleaned_code, [var])
+            if self._has_real_sorry(trial_code):
+                continue
+
+            trial_full_code = build_theorem(parent_state, trial_code)
+            trial_vr = self.lean.verify(trial_full_code)
+            if trial_vr.get("complete"):
+                ordered_garbage.append(var)
+                cleaned_code = trial_code
+
+        return ordered_garbage, cleaned_code
+
+    def stitch_and_score_skeletons(self, graph: ANDORGraph) -> None:
+        """Fill skeleton sorries with child proofs, then score dependency quality."""
+        for action, parent_state in graph.parent_items():
+            if not self._should_score_skeleton(action):
+                continue
+
+            stitched_code = self._stitch_child_proofs(graph, action)
+            r_dep_score, garbage_vars, solved_by_stitched_proof = self._score_stitched_skeleton(
+                parent_state,
+                action.extracted_code,
+                stitched_code,
+                graph.get_r_env(action),
+            )
+
+            if solved_by_stitched_proof:
+                if garbage_vars:
+                    graph.set_garbage_vars(action, garbage_vars)
+                graph.set_skeleton_override(action, True)
+            graph.set_r_dep(action, r_dep_score)
+
+    @staticmethod
+    def _should_score_skeleton(action) -> bool:
+        return action.action_type == "skeleton" and bool(action.children)
+
+    @staticmethod
+    def _stitch_child_proofs(graph: ANDORGraph, action) -> str:
+        child_proofs = [graph.extract_proof_code(child) for child in action.children]
+        return ProofStitcher.stitch(action.extracted_code, child_proofs)
+
+    def _score_stitched_skeleton(
+        self,
+        parent_state,
+        skeleton_code: str,
+        stitched_code: str,
+        r_env: float,
+    ) -> tuple[float, list[str], bool]:
+        if not skeleton_code or r_env != 1.0:
+            return 0.0, [], False
+
+        skeleton_subgoal_vars = self._extract_sorry_vars(skeleton_code)
+        initial_analysis = self._analyze_stitched_dependencies(
+            parent_state,
+            stitched_code,
+            skeleton_subgoal_vars,
+        )
+        base_malignant = initial_analysis.get("malignant", [])
+        base_benign = initial_analysis.get("benign", [])
+        initial_garbage_vars = base_malignant + base_benign
+        garbage_vars, cleaned_code = self._expand_verifiable_garbage(
+            parent_state,
+            stitched_code,
+            skeleton_subgoal_vars,
+            initial_garbage_vars,
+        )
+
+        if self._has_real_sorry(cleaned_code):
+            return 0.0, garbage_vars, False
+
+        r_dep_score, cleaned_complete = self._score_cleaned_stitched_proof(
+            parent_state,
+            cleaned_code,
+            skeleton_subgoal_vars,
+            base_benign,
+            base_malignant,
+            garbage_vars,
+        )
+        solved_by_stitched_proof = cleaned_complete and r_dep_score > 0
+        return (r_dep_score if solved_by_stitched_proof else 0.0), garbage_vars, solved_by_stitched_proof
+
+    def _analyze_stitched_dependencies(
+        self,
+        parent_state,
+        stitched_code: str,
+        target_vars: set[str],
+    ) -> dict:
+        full_code = build_theorem(parent_state, stitched_code)
+        return self.lean.analyze_dependencies(full_code, allowed_vars=target_vars)
+
+    def _score_cleaned_stitched_proof(
+        self,
+        parent_state,
+        cleaned_code: str,
+        target_vars: set[str],
+        base_benign: list[str],
+        base_malignant: list[str],
+        garbage_vars: list[str],
+    ) -> tuple[float, bool]:
+        # Dependency analysis proposes garbage pruning; Lean remains the source
+        # of truth before a skeleton can be marked solved.
+        cleaned_full_code = build_theorem(parent_state, cleaned_code)
+        cleaned_vr = self.lean.verify(cleaned_full_code)
+        if not cleaned_vr.get("complete"):
+            return 0.0, False
+
+        cleaned_dep_analysis = self.lean.analyze_dependencies(
+            cleaned_full_code,
+            allowed_vars=target_vars,
+        )
+        if cleaned_dep_analysis.get("core_failed"):
+            return 0.0, True
+
+        base_garbage = set(base_malignant) | set(base_benign)
+        extra_benign = sorted(set(garbage_vars) - base_garbage)
+        return self.reward.r_dep({
+            "core": cleaned_dep_analysis.get("core_solved", []),
+            "benign": cleaned_dep_analysis.get("benign", []) + base_benign + extra_benign,
+            "malignant": cleaned_dep_analysis.get("malignant", []) + base_malignant,
+        }), True
+
+    def calculate_r_dep(
+        self,
+        full_code: str,
+        action_code: str,
+    ) -> float:
+        """Score whether a tactic consumes the local `have/let`s it introduced."""
+        action_local_vars = self._extract_action_local_vars(action_code)
+
+        if not action_local_vars and not self._has_real_sorry(full_code):
+            return 1.0
+
+        dep_analysis = self.lean.analyze_dependencies(full_code, allowed_vars=action_local_vars)
+        garbage_vars = dep_analysis.get("benign", []) + dep_analysis.get("malignant", [])
+        cleaned_action_code = self._prune_verifiable_tactic_garbage(
+            full_code,
+            action_code,
+            action_local_vars,
+            garbage_vars,
+        )
+        if cleaned_action_code == action_code:
+            return self._score_dependency_analysis(dep_analysis)
+
+        cleaned_full_code = self._replace_full_code_body(full_code, cleaned_action_code)
+        cleaned_dep_analysis = self.lean.analyze_dependencies(
+            cleaned_full_code,
+            allowed_vars=action_local_vars,
+        )
+        return self._score_dependency_analysis(cleaned_dep_analysis)
+
+    def calculate_patched_tactic_r_dep(self, full_code: str, action_code: str) -> float:
+        """
+        Score a patched tactic that may contain local `have ... := sorry`
+        scaffolding. Naked/exact sorry remains fatal, but a sorry-backed local
+        fact can receive credit when the final proof depends on it.
+        """
+        action_local_vars = self._extract_action_local_vars(action_code)
+        if self._has_unsafe_tactic_sorry(action_code):
+            return 0.0
+        if not action_local_vars and not self._has_real_sorry(full_code):
+            return 1.0
+
+        dep_analysis = self.lean.analyze_dependencies(full_code, allowed_vars=action_local_vars)
+        return self._score_patched_dependency_analysis(dep_analysis)
+
+    def _prune_verifiable_tactic_garbage(
+        self,
+        full_code: str,
+        action_code: str,
+        action_local_vars: set[str],
+        garbage_vars: list[str],
+    ) -> str:
+        cleaned_code = ProofStitcher.prune_garbage(action_code, list(dict.fromkeys(garbage_vars)))
+        if not self._verify_full_code_body(full_code, cleaned_code):
+            cleaned_code = action_code
+
+        pruned_vars = set(garbage_vars) if cleaned_code != action_code else set()
+        for var in sorted(action_local_vars - pruned_vars):
+            trial_code = ProofStitcher.prune_garbage(cleaned_code, [var])
+            if trial_code == cleaned_code or self._has_real_sorry(trial_code):
+                continue
+            if self._verify_full_code_body(full_code, trial_code):
+                cleaned_code = trial_code
+                pruned_vars.add(var)
+
+        return cleaned_code
+
+    def _verify_full_code_body(self, full_code: str, action_code: str) -> bool:
+        try:
+            return bool(self.lean.verify(self._replace_full_code_body(full_code, action_code)).get("complete"))
+        except Exception:
+            return False
+
+    @staticmethod
+    def _replace_full_code_body(full_code: str, action_code: str) -> str:
+        prefix, sep, _ = full_code.partition(":= by")
+        if not sep:
+            return full_code
+
+        lines = action_code.splitlines()
+        while lines and not lines[0].strip():
+            lines.pop(0)
+        while lines and not lines[-1].strip():
+            lines.pop()
+
+        indented = "\n".join(f"  {line}" for line in lines)
+        return f"{prefix}{sep}\n{indented}\n"
+
+    def _extract_action_local_vars(self, code: str) -> set[str]:
+        """Extract named local `have`/`let` binders introduced by an action."""
+        clean = re.sub(r"/\-(?:.|\n)*?\-/|--.*", "", code or "")
+        local_vars = set()
+        for line in clean.splitlines():
+            match = re.match(r"\s*(?:have|let)\s+([a-zA-Z_][a-zA-Z0-9_']*)\b", line)
+            if match:
+                local_vars.add(match.group(1))
+        return local_vars
+
+    def _has_unsafe_tactic_sorry(self, code: str) -> bool:
+        """Return true when `sorry` is not inside a local have/let proof."""
+        clean = re.sub(r"/\-(?:.|\n)*?\-/|--.*", "", code or "")
+        stack = []
+        for line in clean.splitlines():
+            stripped = line.lstrip()
+            if not stripped:
+                continue
+
+            indent = len(line) - len(stripped)
+            while stack and indent <= stack[-1][0]:
+                stack.pop()
+
+            match = re.match(r"(?:have|let)\s+([a-zA-Z_][a-zA-Z0-9_']*)\b", stripped)
+            if match:
+                stack.append((indent, match.group(1)))
+
+            if re.search(r"\bsorry\b", stripped) and not stack:
+                return True
+        return False
+
+    def _score_dependency_analysis(self, dep_analysis: dict) -> float:
+        if dep_analysis.get("core_failed"):
+            return 0.0
+
+        return self.reward.r_dep({
+            "core": dep_analysis.get("core_solved", []),
+            "benign": dep_analysis.get("benign", []),
+            "malignant": dep_analysis.get("malignant", []),
+        })
+
+    def _score_patched_dependency_analysis(self, dep_analysis: dict) -> float:
+        failed_core = [x for x in dep_analysis.get("core_failed", []) if x != "MAIN_GOAL"]
+        if "MAIN_GOAL" in dep_analysis.get("core_failed", []):
+            return 0.0
+
+        return self.reward.r_dep({
+            "core": dep_analysis.get("core_solved", []) + failed_core,
+            "benign": dep_analysis.get("benign", []),
+            "malignant": dep_analysis.get("malignant", []),
+        })
+
+
+================================================================================
+FILE: search/reward/calculator.py
+================================================================================
+
+import difflib
+from gammazero.search.graph import ANDORGraph
+from gammazero.core import Action
+from gammazero.utils.lean_parse import extract_proof_body
+
+
+class RewardCalculator:
+    """Computes environment and dependency rewards, then backs them up through the graph."""
+
+    def __init__(self, W_c: float = 1.0, W_b: float = 0.0, W_m: float = -1.0,
+                 W_solve: float = 1.0, gamma: float = 1.0):
+        assert W_c > W_b and W_b <= 0 and W_m < W_b, "Required: W_m < W_b <= 0 < W_c"
+        self.W_c, self.W_b, self.W_m = W_c, W_b, W_m
+        self.W_solve = W_solve
+        self.gamma = gamma
+
+    def _get_clean_proof_lines(self, code: str) -> list[str]:
+        """Extract proof body, then drop blank/comment lines for survival scoring."""
+        proof_body = extract_proof_body(code)
+        lines = []
+        for line in proof_body.splitlines():
+            l = line.strip()
+            # Bỏ qua dòng trống và comment
+            if not l or l.startswith('--') or l.startswith('/-'):
+                continue
+            lines.append(l)
+        return lines
+
+    def r_env(self, original_code: str, patched_code: str, verify_result: dict) -> float:
+        """Đánh giá chất lượng dựa trên Tỷ lệ Code Gốc Sống Sót (Survival Rate)."""
+        
+        orig_lines = self._get_clean_proof_lines(original_code)
+        patch_lines = self._get_clean_proof_lines(patched_code)
+        
+        if not orig_lines:
+            return 0.0
+
+        # 1. Tìm Longest Common Subsequence (LCS) giữa code gốc và code vá
+        # difflib sẽ tìm chính xác những block code nào không bị đụng tới.
+        matcher = difflib.SequenceMatcher(None, orig_lines, patch_lines)
+        
+        # Tổng số dòng gốc CÒN NGUYÊN VẸN trong bản vá
+        surviving_lines = sum(match.size for match in matcher.get_matching_blocks())
+
+        # 2. Xử lý "Dead lines" (Cảnh báo unused/does nothing từ verifier)
+        # Lưu ý: Cảnh báo thường trỏ vào line number của bản vá, 
+        # ta cần đếm số lượng cảnh báo để phạt trừ lùi.
+        warnings = verify_result.get("warnings", [])
+        dead_count = len([w for w in warnings if "unused" in w.get("data", "").lower() or "does nothing" in w.get("data", "").lower()])
+
+        # 3. TÍNH BASE SCORE: Điểm chỉ đến từ phần code gốc được giữ lại
+        # Tử số bị giới hạn tối đa = len(orig_lines). Không thể lạm phát.
+        # Black Hole bị phạt tự nhiên vì phần bị xóa sẽ không được tính vào surviving_lines.
+        valid_survivors = max(0, surviving_lines - dead_count)
+        base_score = valid_survivors / len(orig_lines)
+
+        return base_score
+
+    def r_dep(self, dep_graph: dict) -> float:
+        """Weighted dependency reward (Section 6.2)."""
+        n_c = len(dep_graph.get("core", []))
+        n_b = len(dep_graph.get("benign", []))
+        n_m = len(dep_graph.get("malignant", []))
+        
+        if n_c == 0:
+            return 0.0
+            
+        # Thay vì trừ điểm trực tiếp, ta dùng hệ số phạt ở mẫu số.
+        # - Mỗi benign subgoal làm tăng mẫu số thêm 0.5 (phạt nhẹ vì dù sao cũng giải được)
+        # - Mỗi malignant subgoal làm tăng mẫu số thêm 2.0 (phạt nặng vì rác và để lại sorry)
+        penalty_b = 0.5
+        penalty_m = 2.0
+        
+        return n_c / (n_c + penalty_b * n_b + penalty_m * n_m)
+
+    def compute_returns(self, graph: ANDORGraph) -> dict[Action, float]:
+        return graph.backup(gamma=self.gamma, W_solve=self.W_solve)
+
+
+================================================================================
+FILE: search/reward/__init__.py
+================================================================================
+
+"""Reward computation for local execution quality and dependency structure."""
+
+__all__ = ["DependencyRewardAssigner", "RewardCalculator"]
+
+
+def __getattr__(name):
+    if name == "RewardCalculator":
+        from .calculator import RewardCalculator
+
+        return RewardCalculator
+    if name == "DependencyRewardAssigner":
+        from .reward_assigner import DependencyRewardAssigner
+
+        return DependencyRewardAssigner
+    raise AttributeError(name)
+
+
+================================================================================
+FILE: env/expr_parser.py
+================================================================================
+
+"""Persistent Lean EXPR Tree daemon. Single shared process across all imports."""
+
+import atexit
+import json
+import os
+import signal
+import subprocess
+import tempfile
+import threading
+
+REPL_DIR = os.environ.get("LEAN_WORKSPACE", os.path.join(os.getcwd(), "repl/"))
+
+
+class EXPRTreeDaemon:
+    def __init__(self, repl_dir: str = REPL_DIR, max_requests: int = 500):
+        self.repl_dir = repl_dir
+        self.max_requests = max_requests
+        self.request_count = 0
+        self.lock = threading.Lock()
+        self.proc = None
+        self._start_process()
+        atexit.register(self.close)
+
+    def _kill_proc(self):
+        proc_to_kill = self.proc
+        self.proc = None
+        if proc_to_kill:
+            try:
+                if proc_to_kill.poll() is None:
+                    os.killpg(os.getpgid(proc_to_kill.pid), signal.SIGKILL)
+                    proc_to_kill.wait(timeout=2)
+            except Exception:
+                pass
+
+    def _start_process(self):
+        self._kill_proc()
+        self.request_count = 0
+        self.proc = subprocess.Popen(
+            ["lake", "exe", "dump_expr_server"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            cwd=self.repl_dir,
+            bufsize=1,
+            preexec_fn=os.setsid,
+        )
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".lean", dir=self.repl_dir, delete=False, encoding="utf-8"
+        ) as tf:
+            tf.write('import Mathlib')
+            tmp = tf.name
+        try:
+            print("[EXPR] Loading Mathlib environment...")
+            self._get_expr_raw(tmp)
+            print("[EXPR] Ready.")
+        finally:
+            os.remove(tmp)
+
+    def _get_expr_raw(self, file_path: str) -> list:
+        if not self.proc or not self.proc.stdin:
+            return []
+        self.proc.stdin.write(file_path + "\n")
+        self.proc.stdin.flush()
+        blocks = []
+        while True:
+            line = self.proc.stdout.readline()
+            if not line:
+                break
+            line = line.strip()
+            if line == "===EOF===":
+                break
+            if line.startswith("{"):
+                try:
+                    blocks.append(json.loads(line))
+                except json.JSONDecodeError:
+                    pass
+        return blocks
+
+    def get_expr_tree(self, file_path: str) -> list:
+        with self.lock:
+            self.request_count += 1
+            if (
+                self.proc is None
+                or self.proc.poll() is not None
+                or self.request_count >= self.max_requests
+            ):
+                if self.request_count >= self.max_requests:
+                    print(
+                        f"[EXPR] Reached {self.max_requests} requests. Respawning to flush RAM..."
+                    )
+                else:
+                    print("[EXPR] Daemon crashed or missing. Restarting...")
+                self._start_process()
+            return self._get_expr_raw(file_path)
+
+    def close(self):
+        self._kill_proc()
+
+_SHARED_TREE_DAEMON = EXPRTreeDaemon(REPL_DIR)
+
+def get_lean_expr_tree(code: str) -> list:
+    prefix = "import Mathlib\n"
+    full_code = code if "import " in code else prefix + code
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".lean", dir=REPL_DIR, delete=False, encoding="utf-8"
+    ) as f:
+        f.write(full_code)
+        path = f.name
+        
+    try:
+        return _SHARED_TREE_DAEMON.get_expr_tree(path)
+    finally:
+        os.remove(path)
+
+================================================================================
+FILE: env/__init__.py
+================================================================================
+
+__all__ = [
+    "Lean4ServerScheduler",
+]
+
+
+def __getattr__(name):
+    if name == "Lean4ServerScheduler":
+        from .lean_verifier import Lean4ServerScheduler
+
+        return Lean4ServerScheduler
+    raise AttributeError(name)
+
+
+================================================================================
+FILE: env/ast_parser.py
+================================================================================
+
+"""Persistent Lean AST daemon. Single shared process across all imports."""
+
+import atexit
+import json
+import os
+import signal
+import subprocess
+import tempfile
+import threading
+
+REPL_DIR = os.environ.get("LEAN_WORKSPACE", os.path.join(os.getcwd(), "repl/"))
+
+
+class ASTDaemon:
+    def __init__(self, repl_dir: str = REPL_DIR, max_requests: int = 2000):
+        self.repl_dir = repl_dir
+        self.max_requests = max_requests
+        self.lock = threading.Lock()
+        self.proc = None
+        self._start_process()
+        atexit.register(self.close)
+
+    def _kill_proc(self):
+        proc_to_kill = self.proc
+        self.proc = None
+        if proc_to_kill:
+            try:
+                if proc_to_kill.poll() is None:
+                    os.killpg(os.getpgid(proc_to_kill.pid), signal.SIGKILL)
+                    proc_to_kill.wait(timeout=2)
+            except Exception:
+                pass
+
+    def _start_process(self):
+        self._kill_proc()
+        self.request_count = 0
+        
+        self.proc = subprocess.Popen(
+            ["lake", "exe", "dump_ast_server"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            cwd=self.repl_dir,
+            bufsize=1,
+            preexec_fn=os.setsid  
+        )
+        
+        # Warmup: cache Mathlib environment so the first real call is fast
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".lean", dir=self.repl_dir, delete=False, encoding="utf-8"
+        ) as tf:
+            tf.write('import Mathlib')
+            tmp = tf.name
+        try:
+            print("[AST] Loading Mathlib environment...")
+            self._get_ast_raw(tmp)
+            print("[AST] Ready.")
+        finally:
+            os.remove(tmp)
+
+    def _get_ast_raw(self, file_path: str) -> list:
+        self.proc.stdin.write(file_path + "\n")
+        self.proc.stdin.flush()
+        blocks = []
+        while True:
+            line = self.proc.stdout.readline()
+            if not line:
+                break
+            line = line.strip()
+            if line == "===EOF===":
+                break
+            if line.startswith("{"):
+                try:
+                    blocks.append(json.loads(line))
+                except json.JSONDecodeError:
+                    pass
+        return blocks
+
+    def get_ast(self, file_path: str) -> list:
+        with self.lock:
+            self.request_count += 1
+            
+            if self.proc is None or self.proc.poll() is not None or self.request_count >= self.max_requests:
+                if self.request_count >= self.max_requests:
+                    print(f"\n[AST Server] Reached {self.max_requests} requests. Respawning to flush RAM leak =))...")
+                self._start_process()
+
+            try:
+                return self._get_ast_raw(file_path)
+            except Exception as e:
+                print(f"[AST Server] Error during AST dump: {e}. Respawning...")
+                self._start_process()  
+                return []
+
+    def close(self):
+        self._kill_proc()
+
+
+_SHARED_DAEMON = ASTDaemon()
+
+
+def get_lean_ast(code: str) -> list:
+    """Return AST block dicts for a Lean code string. Thread-safe with auto-import injection and offset correction."""
+    
+    prefix = "import Mathlib\n"
+    has_import = "import " in code
+    
+    if not has_import:
+        full_code = prefix + code
+        offset_bytes = len(prefix.encode('utf-8')) # Chính xác là 15 bytes
+    else:
+        full_code = code
+        offset_bytes = 0
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".lean", dir=REPL_DIR, delete=False, encoding="utf-8"
+    ) as f:
+        f.write(full_code)
+        path = f.name
+        
+    try:
+        blocks = _SHARED_DAEMON.get_ast(path)
+        
+        if offset_bytes > 0:
+            valid_blocks = []
+            for b in blocks:
+                b["start_byte"] -= offset_bytes
+                b["end_byte"] -= offset_bytes
+                
+                # Chỉ lấy những node thuộc về code thật (>= 0), vứt bỏ cái node của dòng import giả mạo
+                if b["start_byte"] >= 0:
+                    valid_blocks.append(b)
+            return valid_blocks
+            
+        return blocks
+    finally:
+        os.remove(path)
+
+
+================================================================================
+FILE: env/lean_env.py
+================================================================================
+
+from gammazero.core import ProofState
+from gammazero.env.ast_parser import get_lean_ast
+from gammazero.env import Lean4ServerScheduler
+from gammazero.env.expr_parser import get_lean_expr_tree
+from gammazero.utils.lean_parse import parse_proof_state
+from gammazero.utils.lean_cmd import build_theorem
+
+
+class LeanEnv:
+    """Interface between proof search and the Lean verifier."""
+
+    def __init__(self, scheduler: Lean4ServerScheduler):
+        self.scheduler = scheduler
+
+    def verify(self, code: str) -> dict:
+        return self.scheduler.verify(code)
+
+    def execute(self, state: ProofState, code: str) -> tuple[str, dict, list[ProofState]]:
+        """Build, verify, and parse subgoals for a tactic applied to state."""
+        candidate_code = build_theorem(state, code)
+        vr = self.scheduler.verify(candidate_code)
+        
+        subgoals = []
+        if vr.get("pass"):
+            for s in vr.get("sorries", []):
+                ps = parse_proof_state(s.get("goal", ""), header=state.header)
+                if ps.goal not in ["SOLVED_OR_EMPTY", "ELABORATION_FAULT"]:
+                    subgoals.append(ps)
+
+        return candidate_code, vr, subgoals
+
+    def get_ast(self, code: str) -> list:
+        return get_lean_ast(code)
+
+    def analyze_dependencies(self, proof_code: str, allowed_vars: set[str] | None = None) -> dict:
+        """
+        Classify subgoals using Lean 4 Expr Tree deep analysis.
+        Returns classifications for: core_solved, core_failed, malignant, benign.
+        """
+        from gammazero.search.sorrifier.dependency_analyzer import SHARED_EXPR_ANALYZER
+        ast_expr_list = get_lean_expr_tree(proof_code)
+        
+        empty_classification = {
+            "core_solved": [], "core_failed": [], "malignant": [], "benign": []
+        }
+        
+        if not ast_expr_list:
+            return empty_classification
+            
+        # Tìm block có theorem_name là "my_theorem" (mặc định của build_theorem)
+        # Nếu không thấy, lấy block cuối cùng làm fallback.
+        root_expr = {}
+        for block in reversed(ast_expr_list):
+            if block.get("theorem") == "my_theorem":
+                root_expr = block.get("expr_value_tree", {})
+                break
+        
+        if not root_expr and ast_expr_list:
+            root_expr = ast_expr_list[-1].get("expr_value_tree", {})
+            
+        if not root_expr:
+            return empty_classification
+            
+        classification = SHARED_EXPR_ANALYZER.classify_skeleton_subgoals(root_expr, allowed_vars=allowed_vars)
+        
+        return classification
+
+
+================================================================================
+FILE: env/lean_verifier.py
+================================================================================
+
+import os
+import signal
+import time
+import json
+import subprocess
+import shutil
+import uuid
+import threading
+from pathlib import Path
+from queue import Queue
+from concurrent.futures import ThreadPoolExecutor
+from gammazero.utils.lean_cmd import sanitize_header
+
+DEFAULT_LAKE_PATH = shutil.which("lake") or "lake"
+# Đường dẫn tuyệt đối tới thư mục repl ở gốc project
+ROOT = Path(__file__).resolve().parent.parent.parent
+DEFAULT_LEAN_WORKSPACE = str(ROOT / "repl")
+
+class PersistentLeanWorker:
+    """A persistent Lean REPL process that caches Mathlib in its base environment."""
+    
+    def __init__(self, workspace=DEFAULT_LEAN_WORKSPACE, timeout=20, max_requests=500): 
+        self.workspace = workspace
+        self.timeout = timeout
+        self.max_requests = max_requests 
+        self.request_count = 0           
+        self.proc = None
+        self.base_env = None
+        self.lock = threading.Lock()
+        self._is_timed_out = False # Cờ báo hiệu bom nổ
+        self._start_repl()
+
+    def _kill_proc(self):
+        # Lấy proc ra và gán None ngay lập tức để tránh Race Condition với Thread bom
+        proc_to_kill = self.proc
+        self.proc = None
+        if proc_to_kill:
+            try:
+                if proc_to_kill.poll() is None:
+                    os.killpg(os.getpgid(proc_to_kill.pid), signal.SIGKILL)
+                    proc_to_kill.wait(timeout=2)
+            except Exception as e:
+                pass # Nuốt lỗi vì process có thể đã chết
+
+    def _timeout_handler(self):
+        """Hàm kích nổ: Gây án mạng khi hết giờ."""
+        self._is_timed_out = True
+        self._kill_proc()
+
+    def _read_json_response(self):
+        buffer = ""
+        while True:
+            # Nếu _kill_proc() được gọi từ Timer, proc sẽ bị None hoặc pipe bị đứt
+            if not self.proc or not self.proc.stdout:
+                raise RuntimeError("Process killed by timeout or died.")
+                
+            line = self.proc.stdout.readline()
+            
+            if not line:
+                if buffer:
+                    print(f"\n[CRITICAL FATAL] Lean REPL đột tử khi đang in JSON! Code dở dang:\n{buffer}")
+                raise RuntimeError("REPL closed unexpectedly (EOF). Lean Process died.")
+            
+            if not buffer and not line.strip().startswith("{"):
+                continue
+            
+            buffer += line
+            
+            try:
+                parsed_json = json.loads(buffer)
+                return parsed_json
+            except json.JSONDecodeError:
+                continue
+
+    def _start_repl(self):
+        self._kill_proc()
+        self.request_count = 0
+        self._is_timed_out = False
+        
+        self.proc = subprocess.Popen(
+            [DEFAULT_LAKE_PATH, "exe", "repl"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            cwd=self.workspace,
+            bufsize=1,
+            preexec_fn=os.setsid
+        )
+        warmup_cmd = json.dumps({"cmd": "import Mathlib\nset_option linter.unusedVariables false"})
+        
+        self.proc.stdin.write(warmup_cmd + "\n\n")
+        self.proc.stdin.flush()
+        
+        try:
+            res_json = self._read_json_response()
+            self.base_env = res_json.get("env")
+            print(f"[Worker PID {self.proc.pid}] Mathlib warmed up. Base env: {self.base_env}")
+        except Exception as e:
+            print(f"[Worker PID {self.proc.pid if self.proc else 'N/A'}] Warmup failed: {e}")
+            self.base_env = None
+
+    def verify(self, code: str) -> dict:
+        start_time = time.time()
+        
+        with self.lock:
+            self.request_count += 1 
+            
+            if self.proc is None or self.proc.poll() is not None or self.request_count >= self.max_requests:
+                if self.request_count >= self.max_requests:
+                    print(f"Worker reached {self.max_requests} requests. Respawning to flush RAM leak...")
+                else:
+                    print("Worker died or missing. Respawning...")
+                self._start_repl()
+
+            code = sanitize_header(code)
+            payload = {"cmd": code}
+            if self.base_env is not None:
+                payload["env"] = self.base_env
+
+            message_str = json.dumps(payload, ensure_ascii=False)
+            
+            # GÀI BOM HẸN GIỜ!
+            self._is_timed_out = False
+            timer = threading.Timer(self.timeout, self._timeout_handler)
+            timer.start()
+            
+            try:
+                self.proc.stdin.write(message_str + "\n\n")
+                self.proc.stdin.flush()
+                
+                result_json = self._read_json_response()
+                
+                messages = result_json.get("messages", [])
+                errors   = [m for m in messages if m.get("severity") == "error"]
+                warnings = [m for m in messages if m.get("severity") == "warning"]
+                sorries  = result_json.get("sorries", [])
+                
+                is_pass  = len(errors) == 0
+                has_sorry_warning = any(
+                    "declaration uses 'sorry'" in w.get("data", "") or "failed" in w.get("data", "")
+                    for w in warnings
+                )
+                
+                result = {
+                    "pass": is_pass,
+                    "complete": is_pass and not sorries and not has_sorry_warning,
+                    "errors": errors,
+                    "warnings": warnings,
+                    "infos": [m for m in messages if m.get("severity") == "info"],
+                    "sorries": sorries,
+                    "system_errors": "",
+                    "verified_code": code,
+                }
+            except Exception as e:
+                # Kiểm tra xem có phải do bom nổ không
+                if self._is_timed_out:
+                    sys_err = f"Lean verification TIMED OUT after {self.timeout} seconds!"
+                else:
+                    sys_err = str(e)
+                    
+                result = {"pass": False, "complete": False, "system_errors": sys_err, "errors": []}
+                print(f"[Worker] Failed/Timeout: {sys_err}. Respawning...")
+                self._start_repl() # Thay máu công nhân mới
+            finally:
+                timer.cancel() # Gỡ bom nếu Lean chạy xong sớm!
+
+        result["verify_time"] = time.time() - start_time
+        return result
+
+    def close(self):
+        self._kill_proc()
+
+
+class Lean4ServerScheduler:
+    """Thread pool managing persistent Stateful Lean Workers."""
+
+    def __init__(self, max_concurrent_requests=1, timeout=60, name="verifier", **kwargs):
+        self.timeout = timeout
+        self.worker_queue = Queue()
+        self.workers = []
+        
+        print(f"[{name}] Booting {max_concurrent_requests} persistent Lean worker(s)... (This takes ~5 seconds)")
+        for _ in range(max_concurrent_requests):
+            worker = PersistentLeanWorker(timeout=self.timeout)
+            self.workers.append(worker)
+            self.worker_queue.put(worker)
+            
+        # Dùng ThreadPool thay vì ProcessPool vì các Worker object có chứa Popen subprocess
+        self.executor = ThreadPoolExecutor(max_workers=max_concurrent_requests)
+        self.futures: dict = {}
+        print(f"[{name}] Scheduler Ready.")
+
+    def _verify_task(self, code: str):
+        worker = self.worker_queue.get()
+        try:
+            res = worker.verify(code)
+            return res
+        finally:
+            self.worker_queue.put(worker)
+
+    def submit_all_request(self, tasks) -> list[str]:
+        request_ids = []
+        for task in tasks:
+            req_id = str(uuid.uuid4())
+            self.futures[req_id] = self.executor.submit(
+                self._verify_task, task.get("code", "")
+            )
+            request_ids.append(req_id)
+        return request_ids
+
+    def get_all_request_outputs(self, request_ids) -> list[dict]:
+        return [self.futures.pop(req_id).result() for req_id in request_ids if req_id in self.futures]
+
+    def verify(self, code: str) -> dict:
+        req_id = self.submit_all_request([{"code": code}])[0]
+        return self.get_all_request_outputs([req_id])[0]
+
+    def close(self):
+        self.executor.shutdown(wait=True)
+        for worker in self.workers:
+            worker.close()
+        print("Lean4ServerScheduler closed and all REPLs terminated.")

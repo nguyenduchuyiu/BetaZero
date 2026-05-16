@@ -662,8 +662,8 @@ class BestFirstRollout:
                 continue
             if state in stats:
                 stats[state].exhausted = True
-            graph.mark_failed(state)
+            graph.mark_open(state)
 
         for action in graph.all_actions():
             if graph.status(action) == "OPEN":
-                graph.mark_failed(action)
+                graph.mark_open(action)
