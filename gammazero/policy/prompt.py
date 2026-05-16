@@ -206,6 +206,35 @@ def build_prompt(state: ProofState, action_type: str, extra_rules: str = "") -> 
     return _format_chatml_from_messages(messages)
 
 
+def format_tactic_feedback_block(lean_code: str, lean_feedback: str) -> str:
+    return (
+        "FAILED TACTIC CODE:\n"
+        "```lean4\n"
+        f"{lean_code.strip()}\n"
+        "```\n\n"
+        "LEAN ERROR FEEDBACK:\n"
+        f"{lean_feedback.strip()}"
+    )
+
+
+def build_tactic_retry_prompt(
+    state: ProofState,
+    feedback_blocks: list[str],
+    *,
+    max_feedbacks: int = 3,
+) -> str:
+    if not feedback_blocks:
+        return build_prompt(state, "tactic")
+
+    feedback_block = (
+        "PREVIOUS TACTIC ATTEMPTS FAILED.\n"
+        "Use the Lean feedback below to produce a NEW tactic proof for the same goal. "
+        "Do not repeat the failed tactic. Preserve the exact theorem signature.\n\n"
+        + "\n\n".join(feedback_blocks[-max_feedbacks:])
+    )
+    return build_prompt(state, "tactic", extra_rules=feedback_block)
+
+
 def format_skeleton_feedback_block(lean_code: str, lean_feedback: str) -> str:
     return (
         "FAILED SKELETON CODE:\n"
@@ -236,16 +265,24 @@ def build_skeleton_retry_prompt(
 
 
 class SearchPromptBuilder:
-    def __init__(self, *, max_skeleton_feedbacks: int = 3):
+    def __init__(self, *, max_skeleton_feedbacks: int = 3, max_tactic_feedbacks: int = 3):
         self.max_skeleton_feedbacks = max_skeleton_feedbacks
+        self.max_tactic_feedbacks = max_tactic_feedbacks
 
     def build(
         self,
         state: ProofState,
         action_type: str,
         *,
+        tactic_feedbacks: list[str] | None = None,
         skeleton_feedbacks: list[str] | None = None,
     ) -> str:
+        if action_type == "tactic":
+            return build_tactic_retry_prompt(
+                state,
+                tactic_feedbacks or [],
+                max_feedbacks=self.max_tactic_feedbacks,
+            )
         if action_type == "skeleton":
             return build_skeleton_retry_prompt(
                 state,
@@ -253,6 +290,9 @@ class SearchPromptBuilder:
                 max_feedbacks=self.max_skeleton_feedbacks,
             )
         return build_prompt(state, action_type)
+
+    def format_tactic_feedback(self, lean_code: str, lean_feedback: str) -> str:
+        return format_tactic_feedback_block(lean_code, lean_feedback)
 
     def format_skeleton_feedback(self, lean_code: str, lean_feedback: str) -> str:
         return format_skeleton_feedback_block(lean_code, lean_feedback)

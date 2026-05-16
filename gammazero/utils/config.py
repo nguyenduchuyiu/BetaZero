@@ -31,6 +31,10 @@ class Config:
     state_beam_width: int = 32
     state_beam_per_depth: int = 8
     skeleton_beam_per_state: int = 2
+    skeleton_commitment: bool = True
+    max_reserved_skeletons_per_state: int = 4
+    commit_stale_rounds_before_fallback: int = 2
+    max_tactic_feedbacks: int = 3
     max_skeleton_feedbacks: int = 3
     heuristic: dict = field(default_factory=dict)
 

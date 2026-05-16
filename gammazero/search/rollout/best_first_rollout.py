@@ -45,6 +45,9 @@ class BestFirstRollout:
         state_beam_width: int = 32,
         state_beam_per_depth: int = 8,
         skeleton_beam_per_state: int = 2,
+        skeleton_commitment: bool = True,
+        max_reserved_skeletons_per_state: int = 4,
+        commit_stale_rounds_before_fallback: int = 2,
         scorer: SearchScorer | None = None,
         prompt_builder: SearchPromptBuilder | None = None,
         executor: BatchExecutor | None = None,
@@ -69,6 +72,9 @@ class BestFirstRollout:
         self.state_beam_width = state_beam_width
         self.state_beam_per_depth = state_beam_per_depth
         self.skeleton_beam_per_state = skeleton_beam_per_state
+        self.skeleton_commitment = skeleton_commitment
+        self.max_reserved_skeletons_per_state = max_reserved_skeletons_per_state
+        self.commit_stale_rounds_before_fallback = commit_stale_rounds_before_fallback
         self.scorer = scorer or SimpleHeuristicScorer()
         self.prompt_builder = prompt_builder or SearchPromptBuilder()
 
@@ -80,7 +86,9 @@ class BestFirstRollout:
             self.failure_handler = failure_handler
         self.reward_assigner = reward_assigner or DependencyRewardAssigner(lean, reward)
         self.last_search_metadata: dict = {}
+        self._tactic_feedback_by_state: dict[ProofState, list[str]] = {}
         self._skeleton_feedback_by_state: dict[ProofState, list[str]] = {}
+        self._blocked_new_skeleton_due_to_active_commit = 0
 
     @property
     def max_nodes(self) -> int:
@@ -137,6 +145,15 @@ class BestFirstRollout:
                 "skeletons_selected": 0,
                 "skeletons_rejected_by_beam": 0,
             },
+            "skeleton_commitment": {
+                "committed": 0,
+                "reserved": 0,
+                "fallback_activated": 0,
+                "committed_solved": 0,
+                "committed_failed": 0,
+                "committed_stale": 0,
+                "blocked_new_skeleton_due_to_active_commit": 0,
+            },
         }
 
     def _finalize_search_metadata(
@@ -178,15 +195,30 @@ class BestFirstRollout:
                 metadata["depth_distribution"]["queue_at_stop_by_depth"].get(key, 0) + 1
             )
 
+        committed_solved = 0
+        committed_failed = 0
+        for st in stats.values():
+            if st.committed_skeleton is not None:
+                status = graph.status(st.committed_skeleton)
+                if status == "SOLVED":
+                    committed_solved += 1
+                elif status == "FAILED":
+                    committed_failed += 1
+            committed_failed += st.skeleton_commit_failed_count
+        metadata["skeleton_commitment"]["committed_solved"] = committed_solved
+        metadata["skeleton_commitment"]["committed_failed"] = committed_failed
+
     def rollout(
         self, theorem: ProofState
     ) -> tuple[list[tuple[ProofState, Action, float, float]], ANDORGraph, dict[Action, float]]:
         self._budget.reset()
+        self._tactic_feedback_by_state = {}
         self._skeleton_feedback_by_state = {}
+        self._blocked_new_skeleton_due_to_active_commit = 0
         graph = ANDORGraph(theorem)
         stats: dict[ProofState, StateStats] = {theorem: StateStats(depth=0)}
         queue = StatePriorityQueue()
-        seen_states = {self.state_key(theorem)}
+        seen_states = {self.state_key(theorem): theorem}
         metadata = self._empty_search_metadata()
         stop_reason = "unknown"
 
@@ -218,7 +250,20 @@ class BestFirstRollout:
                     stop_reason = "root_solved"
                     break
 
+            if self.skeleton_commitment:
+                refresh_stats = self.refresh_commitments(graph, stats, queue, seen_states)
+                self.record_commitment_refresh(metadata, refresh_stats)
+                if refresh_stats["fallback_activated"]:
+                    self.propagate(graph, stats)
+                    if graph.status(theorem) == "SOLVED":
+                        stop_reason = "root_solved"
+                        break
+
+            blocked_before = self._blocked_new_skeleton_due_to_active_commit
             skeleton_jobs = self.make_skeleton_jobs(states, graph, stats)
+            metadata["skeleton_commitment"]["blocked_new_skeleton_due_to_active_commit"] += (
+                self._blocked_new_skeleton_due_to_active_commit - blocked_before
+            )
             if skeleton_jobs:
                 metadata["skeleton_pipeline"]["requested"] += sum(k for _, k in skeleton_jobs)
                 before = set(graph.all_actions())
@@ -247,15 +292,31 @@ class BestFirstRollout:
                     and len(action.children) == 0
                 )
                 selected = self.select_skeletons(valid_skeletons, graph, stats)
+                if self.skeleton_commitment:
+                    metadata["skeleton_commitment"]["committed"] += len(selected)
+                    metadata["skeleton_commitment"]["reserved"] += max(
+                        0, len(valid_skeletons) - len(selected)
+                    )
                 metadata["skeleton_pipeline"]["selected_by_beam"] += len(selected)
-                metadata["skeleton_pipeline"]["rejected_by_beam"] += max(0, len(valid_skeletons) - len(selected))
+                rejected = 0 if self.skeleton_commitment else max(0, len(valid_skeletons) - len(selected))
+                metadata["skeleton_pipeline"]["rejected_by_beam"] += rejected
                 metadata["beam"]["skeletons_selected"] += len(selected)
-                metadata["beam"]["skeletons_rejected_by_beam"] += max(0, len(valid_skeletons) - len(selected))
+                metadata["beam"]["skeletons_rejected_by_beam"] += rejected
                 child_stats = self.activate_skeleton_children(selected, graph, stats, queue, seen_states)
-                self.update_skeleton_progress(selected, child_stats["generated_by_parent"], stats)
+                self.update_skeleton_progress(
+                    selected,
+                    child_stats["generated_by_parent"],
+                    stats,
+                    child_stats["active_by_parent"],
+                )
                 metadata["skeleton_pipeline"]["children_new"] += child_stats["generated"]
                 metadata["skeleton_pipeline"]["children_duplicate"] += child_stats["duplicates"]
                 self.propagate(graph, stats)
+                if self.skeleton_commitment:
+                    refresh_stats = self.refresh_commitments(graph, stats, queue, seen_states)
+                    self.record_commitment_refresh(metadata, refresh_stats)
+                    if refresh_stats["fallback_activated"]:
+                        self.propagate(graph, stats)
                 if graph.status(theorem) == "SOLVED":
                     stop_reason = "root_solved"
                     break
@@ -355,6 +416,12 @@ class BestFirstRollout:
         st = stats[state]
         if st.exhausted or st.depth >= self.max_depth:
             return False
+        if self.skeleton_commitment and st.committed_skeleton is not None:
+            status = graph.status(st.committed_skeleton)
+            if status in ("OPEN", "SOLVED"):
+                self._blocked_new_skeleton_due_to_active_commit += 1
+                return False
+            st.committed_skeleton = None
         if st.skeleton_exhausted:
             return False
         if st.skeleton_tries >= self.max_skeleton_per_state:
@@ -405,13 +472,16 @@ class BestFirstRollout:
                 self.prompt_builder.build(
                     state,
                     action_type,
+                    tactic_feedbacks=self._tactic_feedback_by_state.get(state, []),
                     skeleton_feedbacks=self._skeleton_feedback_by_state.get(state, []),
                 )
                 for state in states
             ]
             batches = self.policy.sample(states, action_type, k, prompts=prompts)
             feedbacks = self.executor.execute(graph, states, batches, action_type, self._budget, prompts=prompts)
-            if action_type == "skeleton":
+            if action_type == "tactic":
+                self.record_tactic_feedback(states, feedbacks)
+            elif action_type == "skeleton":
                 self.record_skeleton_feedback(states, feedbacks)
         counts: dict[ProofState, int] = defaultdict(int)
         action_stats = {
@@ -438,6 +508,21 @@ class BestFirstRollout:
 
     def is_sorrified_action(self, action: Action) -> bool:
         return (action.prompt or "").startswith("[SYNTHETIC_PATCH]")
+
+    def record_tactic_feedback(
+        self,
+        states: list[ProofState],
+        feedbacks: list[list[tuple[str, str, str] | None]],
+    ) -> None:
+        for state, rows in zip(states, feedbacks):
+            for row in rows:
+                if row is None:
+                    continue
+                lean_code, lean_feedback, _ = row
+                if not lean_feedback:
+                    continue
+                block = self.prompt_builder.format_tactic_feedback(lean_code, lean_feedback)
+                self._tactic_feedback_by_state.setdefault(state, []).append(block)
 
     def record_skeleton_feedback(
         self,
@@ -493,6 +578,54 @@ class BestFirstRollout:
         graph: ANDORGraph,
         stats: dict[ProofState, StateStats],
     ) -> list[tuple[ProofState, Action, float]]:
+        if not self.skeleton_commitment:
+            return self.select_skeletons_beam(valid_skeletons, graph, stats)
+
+        by_parent: dict[ProofState, list[tuple[float, Action]]] = defaultdict(list)
+        for parent_state, action in valid_skeletons:
+            if graph.status(parent_state) != "OPEN":
+                graph.mark_failed(action)
+                continue
+            score = self.scorer.score_skeleton(action, parent_state, graph, stats)
+            parent_stats = stats[parent_state]
+            committed = parent_stats.committed_skeleton
+            if committed is not None and graph.status(committed) in ("OPEN", "SOLVED"):
+                self.reserve_skeleton(graph, parent_stats, score, action)
+                continue
+            by_parent[parent_state].append((score, action))
+
+        selected = []
+        for parent_state, rows in by_parent.items():
+            rows.sort(key=lambda x: x[0], reverse=True)
+            if not rows:
+                continue
+
+            best_score, best_action = rows[0]
+            stats[parent_state].committed_skeleton = best_action
+            stats[parent_state].committed_skeleton_progress_last = self.count_solved_children(
+                best_action, graph
+            )
+            stats[parent_state].committed_skeleton_stale_rounds = 0
+            selected.append((parent_state, best_action, best_score))
+
+            for score, action in rows[1:]:
+                self.reserve_skeleton(graph, stats[parent_state], score, action)
+
+        return selected
+
+    def reserve_skeleton(self, graph: ANDORGraph, st: StateStats, score: float, action: Action) -> None:
+        graph.mark_failed(action)
+        st.reserved_skeletons.append((score, action))
+        st.reserved_skeletons.sort(key=lambda x: x[0], reverse=True)
+        if self.max_reserved_skeletons_per_state >= 0:
+            del st.reserved_skeletons[self.max_reserved_skeletons_per_state :]
+
+    def select_skeletons_beam(
+        self,
+        valid_skeletons: list[tuple[ProofState, Action]],
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+    ) -> list[tuple[ProofState, Action, float]]:
         by_parent: dict[ProofState, list[tuple[float, ProofState, Action]]] = defaultdict(list)
         for parent_state, action in valid_skeletons:
             score = self.scorer.score_skeleton(action, parent_state, graph, stats)
@@ -513,19 +646,36 @@ class BestFirstRollout:
         graph: ANDORGraph,
         stats: dict[ProofState, StateStats],
         queue: StatePriorityQueue,
-        seen_states: set[str],
+        seen_states: dict[str, ProofState] | set[str],
     ) -> dict[str, int]:
         generated = 0
         duplicates = 0
         generated_by_parent: dict[ProofState, int] = defaultdict(int)
+        active_by_parent: dict[ProofState, int] = defaultdict(int)
         for parent_state, action, _ in selected_skeletons:
             parent_depth = stats[parent_state].depth
+            parent_stats = stats[parent_state]
             for child in action.children:
                 key = self.state_key(child)
-                if key in seen_states:
+                if isinstance(seen_states, dict) and key in seen_states:
+                    canonical = seen_states[key]
                     duplicates += 1
+                    if canonical in stats:
+                        if (parent_state, action) not in stats[canonical].parent_skeletons:
+                            stats[canonical].parent_skeletons.append((parent_state, action))
+                    parent_stats.active_skeleton_children.add(canonical)
+                    active_by_parent[parent_state] += 1
                     continue
-                seen_states.add(key)
+                if not isinstance(seen_states, dict) and key in seen_states:
+                    duplicates += 1
+                    parent_stats.active_skeleton_children.add(child)
+                    active_by_parent[parent_state] += 1
+                    continue
+
+                if isinstance(seen_states, dict):
+                    seen_states[key] = child
+                else:
+                    seen_states.add(key)
                 depth = parent_depth + 1
                 skeleton_score = self.scorer.score_skeleton(action, parent_state, graph, stats)
                 skeleton_r_env = graph.get_r_env(action)
@@ -536,29 +686,199 @@ class BestFirstRollout:
                     parent_skeletons=[(parent_state, action)],
                 )
                 graph.add_state(child, depth=depth)
+                parent_stats.active_skeleton_children.add(child)
                 score = self.scorer.score_state(child, graph, stats)
                 stats[child].last_score = score
                 queue.push(child, score)
                 generated += 1
                 generated_by_parent[parent_state] += 1
+                active_by_parent[parent_state] += 1
         return {
             "generated": generated,
             "duplicates": duplicates,
             "generated_by_parent": dict(generated_by_parent),
+            "active_by_parent": dict(active_by_parent),
         }
+
+    def try_activate_reserved_skeleton(
+        self,
+        state: ProofState,
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+        queue: StatePriorityQueue,
+        seen_states: dict[str, ProofState],
+    ) -> dict[str, int] | None:
+        st = stats[state]
+        reserve = [
+            (score, action)
+            for score, action in st.reserved_skeletons
+            if graph.status(action) != "SOLVED"
+        ]
+        reserve.sort(key=lambda x: x[0], reverse=True)
+        st.reserved_skeletons = reserve
+
+        if not reserve:
+            return None
+
+        score, action = reserve.pop(0)
+        graph.mark_open(action)
+        st.committed_skeleton = action
+        st.committed_skeleton_progress_last = self.count_solved_children(action, graph)
+        st.committed_skeleton_stale_rounds = 0
+        child_stats = self.activate_skeleton_children(
+            [(state, action, score)],
+            graph,
+            stats,
+            queue,
+            seen_states,
+        )
+        self.update_skeleton_progress(
+            [(state, action, score)],
+            child_stats["generated_by_parent"],
+            stats,
+            child_stats["active_by_parent"],
+        )
+        return child_stats
+
+    def activate_reserved_skeletons_for_failed_commits(
+        self,
+        states: list[ProofState],
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+        queue: StatePriorityQueue,
+        seen_states: dict[str, ProofState],
+    ) -> dict[str, int]:
+        out = {
+            "fallback_activated": 0,
+            "generated": 0,
+            "duplicates": 0,
+        }
+
+        for state in states:
+            st = stats.get(state)
+            if st is None or st.committed_skeleton is None:
+                continue
+            if graph.status(st.committed_skeleton) != "FAILED":
+                continue
+
+            st.skeleton_commit_failed_count += 1
+            st.committed_skeleton = None
+            child_stats = self.try_activate_reserved_skeleton(state, graph, stats, queue, seen_states)
+            if child_stats is None:
+                continue
+
+            out["fallback_activated"] += 1
+            out["generated"] += child_stats["generated"]
+            out["duplicates"] += child_stats["duplicates"]
+
+        return out
+
+    def count_solved_children(self, action: Action, graph: ANDORGraph) -> int:
+        return sum(graph.status(child) == "SOLVED" for child in action.children)
+
+    def refresh_commitments(
+        self,
+        graph: ANDORGraph,
+        stats: dict[ProofState, StateStats],
+        queue: StatePriorityQueue,
+        seen_states: dict[str, ProofState],
+    ) -> dict[str, int]:
+        out = {
+            "fallback_activated": 0,
+            "generated": 0,
+            "duplicates": 0,
+            "committed_failed": 0,
+            "committed_stale": 0,
+        }
+
+        for state in graph.all_states():
+            st = stats.get(state)
+            if st is None or st.committed_skeleton is None:
+                continue
+
+            if graph.status(state) != "OPEN":
+                continue
+
+            skel = st.committed_skeleton
+            status = graph.status(skel)
+
+            if status == "SOLVED":
+                graph.mark_solved(state)
+                continue
+
+            if status == "OPEN" and skel.children:
+                if any(graph.status(child) == "FAILED" for child in skel.children):
+                    graph.mark_failed(skel)
+                    status = "FAILED"
+                elif all(graph.status(child) == "SOLVED" for child in skel.children):
+                    graph.mark_solved(skel)
+                    continue
+
+            if status == "OPEN" and skel.children:
+                solved_children = self.count_solved_children(skel, graph)
+                if solved_children > st.committed_skeleton_progress_last:
+                    st.committed_skeleton_progress_last = solved_children
+                    st.committed_skeleton_stale_rounds = 0
+                    continue
+
+                st.committed_skeleton_stale_rounds += 1
+                if st.committed_skeleton_stale_rounds < self.commit_stale_rounds_before_fallback:
+                    continue
+
+                out["committed_stale"] += 1
+                st.committed_skeleton = None
+                child_stats = self.try_activate_reserved_skeleton(state, graph, stats, queue, seen_states)
+                if child_stats is None:
+                    st.skeleton_exhausted = True
+                    continue
+
+                out["fallback_activated"] += 1
+                out["generated"] += child_stats["generated"]
+                out["duplicates"] += child_stats["duplicates"]
+                continue
+
+            if status != "FAILED":
+                continue
+
+            st.skeleton_commit_failed_count += 1
+            out["committed_failed"] += 1
+            st.committed_skeleton = None
+            child_stats = self.try_activate_reserved_skeleton(state, graph, stats, queue, seen_states)
+            if child_stats is None:
+                st.skeleton_exhausted = True
+                continue
+
+            out["fallback_activated"] += 1
+            out["generated"] += child_stats["generated"]
+            out["duplicates"] += child_stats["duplicates"]
+
+        return out
+
+    def record_commitment_refresh(self, metadata: dict, refresh_stats: dict[str, int]) -> None:
+        metadata["skeleton_commitment"]["fallback_activated"] += refresh_stats["fallback_activated"]
+        metadata["skeleton_commitment"]["committed_failed"] += refresh_stats["committed_failed"]
+        metadata["skeleton_commitment"]["committed_stale"] += refresh_stats["committed_stale"]
+        metadata["skeleton_pipeline"]["children_new"] += refresh_stats["generated"]
+        metadata["skeleton_pipeline"]["children_duplicate"] += refresh_stats["duplicates"]
 
     def update_skeleton_progress(
         self,
         selected_skeletons: list[tuple[ProofState, Action, float]],
         generated_by_parent: dict[ProofState, int],
         stats: dict[ProofState, StateStats],
+        active_by_parent: dict[ProofState, int] | None = None,
     ) -> None:
         touched_parents = {parent_state for parent_state, _, _ in selected_skeletons}
         for parent_state in touched_parents:
             st = stats[parent_state]
             new_children = generated_by_parent.get(parent_state, 0)
+            active_children = (
+                active_by_parent.get(parent_state, new_children)
+                if active_by_parent is not None
+                else new_children
+            )
             st.last_skeleton_new_children = new_children
-            if new_children == 0:
+            if active_children == 0:
                 st.bad_skeleton_rounds += 1
             else:
                 st.bad_skeleton_rounds = 0
@@ -578,6 +898,10 @@ class BestFirstRollout:
         st = stats[state]
         if st.exhausted or st.depth >= self.max_depth:
             return False
+        if self.skeleton_commitment and st.committed_skeleton is not None:
+            status = graph.status(st.committed_skeleton)
+            if status in ("OPEN", "SOLVED"):
+                return False
         return st.tactic_tries < self.max_tactic_per_state or st.skeleton_tries < self.max_skeleton_per_state
 
     def maybe_exhaust_state(
@@ -662,8 +986,8 @@ class BestFirstRollout:
                 continue
             if state in stats:
                 stats[state].exhausted = True
-            graph.mark_open(state)
+            graph.mark_failed(state)
 
         for action in graph.all_actions():
             if graph.status(action) == "OPEN":
-                graph.mark_open(action)
+                graph.mark_failed(action)

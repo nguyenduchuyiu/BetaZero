@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from gammazero.core import Action, ProofState
-from gammazero.policy.prompt import build_skeleton_retry_prompt
+from gammazero.policy.prompt import build_skeleton_retry_prompt, build_tactic_retry_prompt
 from gammazero.search.graph import ANDORGraph
 from gammazero.search.rollout.heuristic import SimpleHeuristicScorer
 from gammazero.search.rollout.best_first_rollout import BestFirstRollout
+from gammazero.search.rollout.batch_executor import BatchExecutor, RolloutBudget
 from gammazero.search.rollout.search_queue import StatePriorityQueue
 from gammazero.search.rollout.search_stats import StateStats
 
@@ -86,6 +87,28 @@ class FixedScoreScorer:
 
     def score_skeleton(self, action, parent_state, graph, stats):
         return self.skeleton_scores[action.content]
+
+
+class FakeLeanNoSubgoals:
+    scheduler = None
+
+    def execute(self, state, code):
+        return (
+            "theorem my_theorem : True := by\n  sorry",
+            {"pass": True, "complete": False, "sorries": [], "warnings": []},
+            [],
+        )
+
+
+class NoopFailureHandler:
+    def handle_system_execute_failure(self, *args, **kwargs):
+        pass
+
+    def compute_failed_action_patch(self, *args, **kwargs):
+        raise AssertionError("zero-subgoal pass should not enter patch path")
+
+    def apply_failed_action_patch(self, *args, **kwargs):
+        raise AssertionError("zero-subgoal pass should not enter patch path")
 
 
 def make_rollout(policy=None, executor=None, **kwargs):
@@ -240,7 +263,7 @@ def test_case_5_max_depth_allows_tactic_but_blocks_skeleton():
     assert not rollout.should_expand_skeleton(root, graph, stats)
 
 
-def test_duplicate_only_skeleton_round_exhausts_skeleton_lane_not_tactic_lane():
+def test_duplicate_only_skeleton_round_links_active_children_without_new_nodes():
     root = ProofState("", "root")
     duplicate = ProofState("", "same")
     action = Action("skeleton", "split", children=(duplicate, duplicate))
@@ -259,14 +282,20 @@ def test_duplicate_only_skeleton_round_exhausts_skeleton_lane_not_tactic_lane():
     seen = {rollout.state_key(root), rollout.state_key(duplicate)}
 
     child_stats = rollout.activate_skeleton_children([(root, action, 0.0)], graph, stats, queue, seen)
-    rollout.update_skeleton_progress([(root, action, 0.0)], child_stats["generated_by_parent"], stats)
+    rollout.update_skeleton_progress(
+        [(root, action, 0.0)],
+        child_stats["generated_by_parent"],
+        stats,
+        child_stats["active_by_parent"],
+    )
 
     assert child_stats["generated"] == 0
     assert child_stats["duplicates"] == 2
     assert stats[root].last_skeleton_new_children == 0
-    assert stats[root].bad_skeleton_rounds == 1
-    assert stats[root].skeleton_exhausted
-    assert not rollout.should_expand_skeleton(root, graph, stats)
+    assert stats[root].active_skeleton_children == {duplicate}
+    assert stats[root].bad_skeleton_rounds == 0
+    assert not stats[root].skeleton_exhausted
+    assert rollout.should_expand_skeleton(root, graph, stats)
     assert rollout.should_try_tactic(root, graph, stats)
 
 
@@ -377,6 +406,26 @@ def test_skeleton_feedback_is_cached_and_added_to_retry_prompt():
     assert "Do not repeat the failed skeleton" in prompt
 
 
+def test_tactic_feedback_is_cached_and_added_to_retry_prompt():
+    root = ProofState("", "root")
+    graph = ANDORGraph(root)
+    rollout = make_rollout(executor=FeedbackExecutor())
+
+    rollout.run_jobs(graph, [(root, 1)], "tactic")
+    prompt = build_tactic_retry_prompt(root, rollout._tactic_feedback_by_state[root])
+    built_prompt = rollout.prompt_builder.build(
+        root,
+        "tactic",
+        tactic_feedbacks=rollout._tactic_feedback_by_state[root],
+    )
+
+    assert "PREVIOUS TACTIC ATTEMPTS FAILED" in prompt
+    assert "FAILED TACTIC CODE" in prompt
+    assert "unknown identifier 'bad'" in prompt
+    assert "Do not repeat the failed tactic" in prompt
+    assert "FAILED TACTIC CODE" in built_prompt
+
+
 def test_parent_requeues_after_failed_attempts_when_budget_remains():
     root = ProofState("", "root")
     graph = ANDORGraph(root)
@@ -408,7 +457,7 @@ def test_parent_requeues_after_failed_attempts_when_budget_remains():
     assert queued_state == root
 
 
-def test_unselected_skeletons_are_failed_and_only_selected_children_activate():
+def test_unselected_skeletons_are_reserved_and_only_committed_children_activate():
     root = ProofState("", "root")
     chosen_child = ProofState("", "chosen")
     ignored_child_1 = ProofState("", "ignored1")
@@ -434,10 +483,138 @@ def test_unselected_skeletons_are_failed_and_only_selected_children_activate():
     rollout.activate_skeleton_children(selected, graph, stats, queue, {rollout.state_key(root)})
 
     assert selected == [(root, chosen, 10.0)]
+    assert stats[root].committed_skeleton == chosen
     assert graph.status(chosen) == "OPEN"
     assert graph.status(ignored_1) == "FAILED"
     assert graph.status(ignored_2) == "FAILED"
+    assert [action for _, action in stats[root].reserved_skeletons] == [ignored_1, ignored_2]
     assert {state.goal for _, state in queue.items()} == {"chosen", "chosen2"}
+
+
+def test_failed_committed_skeleton_activates_best_reserved_fallback():
+    root = ProofState("", "root")
+    failed_child = ProofState("", "failed_child")
+    fallback_child = ProofState("", "fallback_child")
+    graph = ANDORGraph(root)
+    committed = Action("skeleton", "committed", children=(failed_child,))
+    fallback = Action("skeleton", "fallback", children=(fallback_child,))
+    graph.expand(root, committed, r_env=1.0)
+    graph.expand(root, fallback, r_env=1.0)
+    graph.mark_failed(committed)
+    stats = {
+        root: StateStats(
+            depth=0,
+            committed_skeleton=committed,
+            reserved_skeletons=[(5.0, fallback)],
+        )
+    }
+    queue = StatePriorityQueue()
+    rollout = make_rollout()
+    seen = {rollout.state_key(root): root}
+
+    result = rollout.activate_reserved_skeletons_for_failed_commits(
+        [root],
+        graph,
+        stats,
+        queue,
+        seen,
+    )
+
+    assert result["fallback_activated"] == 1
+    assert stats[root].committed_skeleton == fallback
+    assert stats[root].skeleton_commit_failed_count == 1
+    assert {state.goal for _, state in queue.items()} == {"fallback_child"}
+
+
+def test_stale_committed_skeleton_falls_back_to_reserved():
+    root = ProofState("", "root")
+    hard_child = ProofState("", "hard_child")
+    fallback_child = ProofState("", "fallback_child")
+    graph = ANDORGraph(root)
+    stale = Action("skeleton", "stale", children=(hard_child,))
+    fallback = Action("skeleton", "fallback", children=(fallback_child,))
+    graph.expand(root, stale, r_env=1.0)
+    graph.expand(root, fallback, r_env=1.0)
+    graph.mark_failed(fallback)
+    stats = {
+        root: StateStats(
+            depth=0,
+            committed_skeleton=stale,
+            reserved_skeletons=[(5.0, fallback)],
+        )
+    }
+    queue = StatePriorityQueue()
+    rollout = make_rollout(commit_stale_rounds_before_fallback=1)
+    seen = {rollout.state_key(root): root}
+
+    result = rollout.refresh_commitments(graph, stats, queue, seen)
+
+    assert result["committed_stale"] == 1
+    assert result["fallback_activated"] == 1
+    assert graph.status(stale) == "OPEN"
+    assert graph.status(fallback) == "OPEN"
+    assert stats[root].committed_skeleton == fallback
+    assert {state.goal for _, state in queue.items()} == {"fallback_child"}
+
+
+def test_stale_skeleton_can_still_solve_after_abandonment():
+    root = ProofState("", "root")
+    child = ProofState("", "child")
+    fallback_child = ProofState("", "fallback_child")
+    graph = ANDORGraph(root)
+    stale = Action("skeleton", "stale", children=(child,))
+    fallback = Action("skeleton", "fallback", children=(fallback_child,))
+    graph.expand(root, stale, r_env=1.0)
+    graph.expand(root, fallback, r_env=1.0)
+    graph.mark_failed(fallback)
+    stats = {
+        root: StateStats(
+            depth=0,
+            committed_skeleton=stale,
+            reserved_skeletons=[(5.0, fallback)],
+        ),
+        child: StateStats(depth=1),
+    }
+    queue = StatePriorityQueue()
+    rollout = make_rollout(commit_stale_rounds_before_fallback=1)
+    seen = {rollout.state_key(root): root, rollout.state_key(child): child}
+
+    rollout.refresh_commitments(graph, stats, queue, seen)
+    graph.mark_solved(child)
+    rollout.propagate(graph, stats)
+
+    assert graph.status(stale) == "SOLVED"
+
+
+def test_solved_committed_skeleton_does_not_activate_reserved_fallback():
+    root = ProofState("", "root")
+    child = ProofState("", "child")
+    fallback_child = ProofState("", "fallback_child")
+    graph = ANDORGraph(root)
+    committed = Action("skeleton", "committed", children=(child,))
+    fallback = Action("skeleton", "fallback", children=(fallback_child,))
+    graph.expand(root, committed, r_env=1.0)
+    graph.expand(root, fallback, r_env=1.0)
+    graph.mark_solved(child)
+    graph.mark_solved(committed)
+    graph.mark_failed(fallback)
+    stats = {
+        root: StateStats(
+            depth=0,
+            committed_skeleton=committed,
+            reserved_skeletons=[(5.0, fallback)],
+        )
+    }
+    queue = StatePriorityQueue()
+    rollout = make_rollout(commit_stale_rounds_before_fallback=1)
+    seen = {rollout.state_key(root): root, rollout.state_key(child): child}
+
+    result = rollout.refresh_commitments(graph, stats, queue, seen)
+
+    assert result["fallback_activated"] == 0
+    assert graph.status(root) == "SOLVED"
+    assert graph.status(fallback) == "FAILED"
+    assert len(queue) == 0
 
 
 def test_activated_child_inherits_skeleton_score_and_r_env():
@@ -543,7 +720,7 @@ def test_state_score_prioritizes_last_open_child_of_parent_skeleton():
     assert target_score > unrelated_score + 7.0
 
 
-def test_finalize_unresolved_keeps_open_states_and_actions_open():
+def test_finalize_unresolved_marks_open_states_and_actions_failed():
     root = ProofState("", "root")
     child = ProofState("", "child")
     graph = ANDORGraph(root)
@@ -561,9 +738,9 @@ def test_finalize_unresolved_keeps_open_states_and_actions_open():
 
     assert stats[root].exhausted
     assert stats[child].exhausted
-    assert graph.status(root) == "OPEN"
-    assert graph.status(skeleton) == "OPEN"
-    assert graph.status(child) == "OPEN"
+    assert graph.status(root) == "FAILED"
+    assert graph.status(skeleton) == "FAILED"
+    assert graph.status(child) == "FAILED"
 
 
 def test_search_metadata_logs_core_runtime_counters():
@@ -590,6 +767,7 @@ def test_search_metadata_logs_core_runtime_counters():
         "final_status",
         "depth_distribution",
         "beam",
+        "skeleton_commitment",
     }
     assert meta["budget"]["used_total"] <= meta["budget"]["max_nodes"]
     assert meta["budget"]["used_tactic"] >= 2
@@ -599,6 +777,7 @@ def test_search_metadata_logs_core_runtime_counters():
     assert meta["skeleton_pipeline"]["selected_by_beam"] == 1
     assert meta["skeleton_pipeline"]["children_new"] == 1
     assert meta["skeleton_pipeline"]["children_duplicate"] == 1
+    assert meta["skeleton_commitment"]["committed"] == 1
     assert meta["final_status"]["states"]["SOLVED"] >= 2
     assert meta["final_status"]["actions"]["skeleton_SOLVED"] == 1
     assert meta["depth_distribution"]["states_seen_by_depth"]["0"] == 1

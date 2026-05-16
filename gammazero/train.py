@@ -77,8 +77,14 @@ def train(cfg: Config = Config()):
                         state_beam_width=cfg.state_beam_width,
                         state_beam_per_depth=cfg.state_beam_per_depth,
                         skeleton_beam_per_state=cfg.skeleton_beam_per_state,
+                        skeleton_commitment=cfg.skeleton_commitment,
+                        max_reserved_skeletons_per_state=cfg.max_reserved_skeletons_per_state,
+                        commit_stale_rounds_before_fallback=cfg.commit_stale_rounds_before_fallback,
                         scorer=SimpleHeuristicScorer(**cfg.heuristic),
-                        prompt_builder=SearchPromptBuilder(max_skeleton_feedbacks=cfg.max_skeleton_feedbacks),
+                        prompt_builder=SearchPromptBuilder(
+                            max_skeleton_feedbacks=cfg.max_skeleton_feedbacks,
+                            max_tactic_feedbacks=cfg.max_tactic_feedbacks,
+                        ),
                     )
                     batch, g, qv = rollout.rollout(thm)
                     samples.extend(batch)
