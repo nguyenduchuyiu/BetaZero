@@ -39,6 +39,9 @@ class BestFirstRollout:
         initial_tactic_k: int = 4,
         retry_tactic_k: int = 4,
         max_tactic_per_state: int = 16,
+        min_tactic_before_skeleton: int = 8,
+        promising_tactic_r_env: float = 0.4,
+        strong_tactic_r_env: float = 0.7,
         initial_skeleton_k: int = 4,
         retry_skeleton_k: int = 2,
         max_skeleton_per_state: int = 8,
@@ -46,7 +49,7 @@ class BestFirstRollout:
         state_beam_per_depth: int = 8,
         skeleton_beam_per_state: int = 2,
         skeleton_commitment: bool = True,
-        max_reserved_skeletons_per_state: int = 4,
+        max_reserved_skeletons_per_state: int = 2,
         commit_stale_rounds_before_fallback: int = 2,
         scorer: SearchScorer | None = None,
         prompt_builder: SearchPromptBuilder | None = None,
@@ -66,6 +69,9 @@ class BestFirstRollout:
         self.initial_tactic_k = initial_tactic_k
         self.retry_tactic_k = retry_tactic_k
         self.max_tactic_per_state = max_tactic_per_state
+        self.min_tactic_before_skeleton = min_tactic_before_skeleton
+        self.promising_tactic_r_env = promising_tactic_r_env
+        self.strong_tactic_r_env = strong_tactic_r_env
         self.initial_skeleton_k = initial_skeleton_k
         self.retry_skeleton_k = retry_skeleton_k
         self.max_skeleton_per_state = max_skeleton_per_state
@@ -89,6 +95,7 @@ class BestFirstRollout:
         self._tactic_feedback_by_state: dict[ProofState, list[str]] = {}
         self._skeleton_feedback_by_state: dict[ProofState, list[str]] = {}
         self._blocked_new_skeleton_due_to_active_commit = 0
+        self._duplicate_skeleton_actions = 0
 
     @property
     def max_nodes(self) -> int:
@@ -120,6 +127,7 @@ class BestFirstRollout:
                 "selected_by_beam": 0,
                 "rejected_by_beam": 0,
                 "valid_zero_children": 0,
+                "skeleton_duplicate_actions": 0,
                 "children_new": 0,
                 "children_duplicate": 0,
             },
@@ -283,7 +291,11 @@ class BestFirstRollout:
                 for state, count in actual_counts.items():
                     stats[state].skeleton_tries += count
                 new_actions = [a for a in graph.all_actions() if a not in before]
+                duplicate_skeletons_before = self._duplicate_skeleton_actions
                 valid_skeletons = self.valid_skeletons_from_actions(graph, new_actions)
+                metadata["skeleton_pipeline"]["skeleton_duplicate_actions"] += (
+                    self._duplicate_skeleton_actions - duplicate_skeletons_before
+                )
                 metadata["skeleton_pipeline"]["valid_zero_children"] += sum(
                     1 for action in new_actions
                     if action.action_type == "skeleton"
@@ -417,16 +429,21 @@ class BestFirstRollout:
         if st.exhausted or st.depth >= self.max_depth:
             return False
         if self.skeleton_commitment and st.committed_skeleton is not None:
-            status = graph.status(st.committed_skeleton)
-            if status in ("OPEN", "SOLVED"):
-                self._blocked_new_skeleton_due_to_active_commit += 1
-                return False
-            st.committed_skeleton = None
+            self._blocked_new_skeleton_due_to_active_commit += 1
+            return False
+        if self.skeleton_commitment and st.reserved_skeletons:
+            return False
         if st.skeleton_exhausted:
             return False
         if st.skeleton_tries >= self.max_skeleton_per_state:
             return False
         if not st.tactic_probe_done:
+            return False
+        if st.tactic_tries < self.min_tactic_before_skeleton:
+            return False
+        if st.best_tactic_r_env >= self.strong_tactic_r_env and st.tactic_tries < self.max_tactic_per_state:
+            return False
+        if st.best_tactic_r_env >= self.promising_tactic_r_env and st.tactic_tries < self.max_tactic_per_state:
             return False
         return True
 
@@ -560,6 +577,16 @@ class BestFirstRollout:
         self, graph: ANDORGraph, actions: list[Action]
     ) -> list[tuple[ProofState, Action]]:
         valid = []
+        action_set = set(actions)
+        seen_signatures = {
+            sig
+            for existing in graph.all_actions()
+            if existing not in action_set
+            and existing.action_type == "skeleton"
+            and len(existing.children) > 0
+            for sig in [self.skeleton_signature(graph, existing)]
+            if sig is not None
+        }
         for action in actions:
             if action.action_type != "skeleton":
                 continue
@@ -567,10 +594,29 @@ class BestFirstRollout:
             if parent is None:
                 continue
             if graph.status(action) == "OPEN" and len(action.children) > 0:
+                signature = self.skeleton_signature(graph, action)
+                if signature in seen_signatures:
+                    graph.mark_failed(action)
+                    self._duplicate_skeleton_actions += 1
+                    continue
+                seen_signatures.add(signature)
                 valid.append((parent, action))
             elif graph.status(action) != "SOLVED":
                 graph.mark_failed(action)
         return valid
+
+    def skeleton_signature(
+        self,
+        graph: ANDORGraph,
+        action: Action,
+    ) -> tuple[str, tuple[str, ...]] | None:
+        parent = graph.get_parent(action)
+        if parent is None:
+            return None
+        return (
+            self.state_key(parent),
+            tuple(self.state_key(child) for child in action.children),
+        )
 
     def select_skeletons(
         self,
@@ -826,15 +872,6 @@ class BestFirstRollout:
                     continue
 
                 out["committed_stale"] += 1
-                st.committed_skeleton = None
-                child_stats = self.try_activate_reserved_skeleton(state, graph, stats, queue, seen_states)
-                if child_stats is None:
-                    st.skeleton_exhausted = True
-                    continue
-
-                out["fallback_activated"] += 1
-                out["generated"] += child_stats["generated"]
-                out["duplicates"] += child_stats["duplicates"]
                 continue
 
             if status != "FAILED":
@@ -899,9 +936,7 @@ class BestFirstRollout:
         if st.exhausted or st.depth >= self.max_depth:
             return False
         if self.skeleton_commitment and st.committed_skeleton is not None:
-            status = graph.status(st.committed_skeleton)
-            if status in ("OPEN", "SOLVED"):
-                return False
+            return False
         return st.tactic_tries < self.max_tactic_per_state or st.skeleton_tries < self.max_skeleton_per_state
 
     def maybe_exhaust_state(

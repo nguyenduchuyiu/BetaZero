@@ -42,6 +42,15 @@ class RolloutBudget:
 class BatchExecutor:
     """Parallel Lean execute + expand graph; tactic feedbacks align with action_batches[i][j]."""
 
+    BAD_FINAL_GOAL_SKELETON_FEEDBACK = (
+        "SKELETON POLICY VIOLATION: this skeleton introduces a `sorry` leaf whose goal "
+        "is the original parent goal. This matches the BAD EXAMPLE pattern "
+        "`have h_final : <original final goal> := sorry; exact h_final`. "
+        "Do not restate the original goal as a leaf obligation. Decompose it into "
+        "strictly smaller intermediate obligations, and make the final assembly "
+        "sorry-free."
+    )
+
     def __init__(
         self,
         lean: LeanEnv,
@@ -71,6 +80,19 @@ class BatchExecutor:
             except Exception:
                 sc = ""
             return LeanExecutionResult.from_transport_error(f"{type(e).__name__}: {e}", sc)
+
+    @staticmethod
+    def _normalize_goal(goal: str) -> str:
+        return " ".join(goal.split())
+
+    @classmethod
+    def skeleton_restates_parent_goal(
+        cls,
+        state: ProofState,
+        subgoals: list[ProofState],
+    ) -> bool:
+        parent_goal = cls._normalize_goal(state.goal)
+        return any(cls._normalize_goal(subgoal.goal) == parent_goal for subgoal in subgoals)
 
     def execute(
         self,
@@ -166,6 +188,24 @@ class BatchExecutor:
                     
                 elif action_type == "skeleton":
                     if state_vr.get("pass"):
+                        if self.skeleton_restates_parent_goal(state, subgoals):
+                            graph.expand(
+                                state,
+                                Action(
+                                    action_type="skeleton",
+                                    content=raw_output,
+                                    extracted_code=lean_code,
+                                    children=(),
+                                    prompt=prompt,
+                                ),
+                                r_env=0.0,
+                            )
+                            feedbacks[i][j] = (
+                                lean_code,
+                                self.BAD_FINAL_GOAL_SKELETON_FEEDBACK,
+                                lean_code,
+                            )
+                            continue
                         # Calculate r_env even for passing skeletons to catch semantic/AST issues
                         r_env_score = self.reward.r_env(full_code, full_code, state_vr)
                         graph.expand(

@@ -193,7 +193,7 @@ def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -
     
     user_msg_content = _USER_BASE_INSTRUCTION + "\n" + _format_problem(state)
     if extra_rules:
-        user_msg_content = extra_rules.strip() + "\n" + user_msg_content
+        user_msg_content = user_msg_content + "\n\n" + extra_rules.strip()
         
     return [
         {"role": "system", "content": full_system},
