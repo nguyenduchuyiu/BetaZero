@@ -1,0 +1,1 @@
+# 1. Problem with subgoal in skeleton scaffold may not recieve dependency reward properly due to being polluted by global context, local variables may not contribute to the dependency reward like it did before.

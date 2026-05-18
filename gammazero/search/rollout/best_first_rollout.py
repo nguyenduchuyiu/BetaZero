@@ -485,15 +485,29 @@ class BestFirstRollout:
         for k, states in groups.items():
             if self.total_expanded >= self.max_nodes:
                 break
-            prompts = [
-                self.prompt_builder.build(
-                    state,
-                    action_type,
-                    tactic_feedbacks=self._tactic_feedback_by_state.get(state, []),
-                    skeleton_feedbacks=self._skeleton_feedback_by_state.get(state, []),
+            prompts = []
+            for state in states:
+                if action_type == "tactic":
+                    target = BatchExecutor._subgoal_tactic_target(graph, state)
+                    if target is not None:
+                        parent_state, skeleton, target_child_index = target
+                        prompts.append(
+                            self.prompt_builder.build_subgoal_tactic(
+                                parent_state,
+                                skeleton,
+                                target_child_index,
+                                tactic_feedbacks=self._tactic_feedback_by_state.get(state, []),
+                            )
+                        )
+                        continue
+                prompts.append(
+                    self.prompt_builder.build(
+                        state,
+                        action_type,
+                        tactic_feedbacks=self._tactic_feedback_by_state.get(state, []),
+                        skeleton_feedbacks=self._skeleton_feedback_by_state.get(state, []),
+                    )
                 )
-                for state in states
-            ]
             batches = self.policy.sample(states, action_type, k, prompts=prompts)
             feedbacks = self.executor.execute(graph, states, batches, action_type, self._budget, prompts=prompts)
             if action_type == "tactic":

@@ -164,6 +164,18 @@ class ANDORGraph:
         with self._lock:
             return list(self._parent.items())
 
+    def parent_skeleton_items_for_state(self, state: ProofState) -> list[tuple[ProofState, Action, int]]:
+        """Return skeleton parents whose child list contains `state`."""
+        out: list[tuple[ProofState, Action, int]] = []
+        with self._lock:
+            for action, parent in self._parent.items():
+                if action.action_type != "skeleton":
+                    continue
+                for idx, child in enumerate(action.children):
+                    if child == state:
+                        out.append((parent, action, idx))
+        return out
+
     def set_r_dep(self, action: Action, r_dep: float) -> None:
         with self._lock:
             self._r_dep[action] = r_dep

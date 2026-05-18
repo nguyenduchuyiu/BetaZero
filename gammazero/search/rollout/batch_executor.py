@@ -1,14 +1,21 @@
 from __future__ import annotations
 
 import concurrent.futures
+import re
+import textwrap
 import threading
 from typing import TYPE_CHECKING
 
 from gammazero.core import ProofState, Action
-from gammazero.policy.output_parser import get_lean_code
+from gammazero.policy.output_parser import (
+    get_lean_code,
+    get_subgoal_tactic_code,
+    strip_lean_comments,
+)
 from gammazero.policy.prompt import build_prompt
 from gammazero.search.graph import ANDORGraph
 from gammazero.search.reward import DependencyRewardAssigner, RewardCalculator
+from gammazero.search.sorrifier.stitcher import ProofStitcher
 from gammazero.utils.lean_cmd import build_theorem
 
 from .execution_result import LeanExecutionResult
@@ -50,6 +57,11 @@ class BatchExecutor:
         "strictly smaller intermediate obligations, and make the final assembly "
         "sorry-free."
     )
+    FORBIDDEN_TACTIC_FEEDBACK = (
+        "TACTIC POLICY VIOLATION: tactic proof bodies must not contain `sorry` "
+        "or `admit` outside comments. The subgoal verifier may contain sibling "
+        "`admit` placeholders, so the replacement code itself must be placeholder-free."
+    )
 
     def __init__(
         self,
@@ -82,6 +94,165 @@ class BatchExecutor:
             return LeanExecutionResult.from_transport_error(f"{type(e).__name__}: {e}", sc)
 
     @staticmethod
+    def _has_forbidden_tactic_token(action_code: str) -> bool:
+        clean = strip_lean_comments(action_code)
+        return bool(re.search(r"\b(?:sorry|admit)\b", clean))
+
+    @staticmethod
+    def _subgoal_tactic_target(
+        graph: ANDORGraph,
+        state: ProofState,
+    ) -> tuple[ProofState, Action, int] | None:
+        for parent_state, action, child_index in graph.parent_skeleton_items_for_state(state):
+            if graph.status(action) != "FAILED":
+                return parent_state, action, child_index
+        return None
+
+    @staticmethod
+    def _subgoal_skeleton_with_replacement(
+        skeleton: Action,
+        target_child_index: int,
+        action_code: str,
+    ) -> str:
+        child_proofs: list[str | None] = []
+        for idx, _ in enumerate(skeleton.children):
+            child_proofs.append(action_code if idx == target_child_index else "admit")
+        return ProofStitcher.stitch(skeleton.extracted_code, child_proofs)
+
+    @staticmethod
+    def _subgoal_target_decl_name(skeleton: Action, target_child_index: int) -> str | None:
+        matches = list(re.finditer(r"\bsorry\b", skeleton.extracted_code or ""))
+        if target_child_index < 0 or target_child_index >= len(matches):
+            return None
+        prefix = skeleton.extracted_code[: matches[target_child_index].start()]
+        decl_matches = list(
+            re.finditer(
+                r"(?:^|\n)\s*(?:have|let)\s+([A-Za-z_][A-Za-z0-9_']*)\b",
+                prefix,
+            )
+        )
+        if not decl_matches:
+            return None
+        return decl_matches[-1].group(1)
+
+    @staticmethod
+    def _strip_optional_by(action_code: str) -> str:
+        action_code = textwrap.dedent(action_code).strip("\n")
+        match = re.match(r"^\s*by(?:\s+|$)", action_code)
+        if not match:
+            return action_code
+        return textwrap.dedent(action_code[match.end():]).strip("\n")
+
+    @staticmethod
+    def _extract_between_markers(code: str, start_marker: str, end_marker: str) -> str:
+        lines = code.splitlines()
+        start = next(i for i, line in enumerate(lines) if start_marker in line)
+        end = next(i for i, line in enumerate(lines[start + 1 :], start + 1) if end_marker in line)
+        return textwrap.dedent("\n".join(lines[start + 1 : end])).strip("\n")
+
+    @classmethod
+    def _subgoal_target_score_code(
+        cls,
+        parent_state: ProofState,
+        skeleton: Action,
+        target_child_index: int,
+        action_code: str,
+    ) -> str:
+        start_marker = "-- GAMMAZERO_TARGET_SCORE_START"
+        end_marker = "-- GAMMAZERO_TARGET_SCORE_END"
+        target_body = cls._strip_optional_by(action_code)
+        marked_target = f"{start_marker}\n{target_body}\n{end_marker}"
+        marked_body = cls._subgoal_skeleton_with_replacement(
+            skeleton,
+            target_child_index,
+            marked_target,
+        )
+        marked_full = build_theorem(parent_state, marked_body)
+        target_lines = cls._extract_between_markers(marked_full, start_marker, end_marker)
+        return build_theorem(parent_state, target_lines)
+
+    @staticmethod
+    def safe_execute_subgoal_tactic(
+        lean: LeanEnv,
+        parent_state: ProofState,
+        skeleton: Action,
+        target_child_index: int,
+        action_code: str,
+    ) -> LeanExecutionResult:
+        try:
+            skeleton_code = BatchExecutor._subgoal_skeleton_with_replacement(
+                skeleton,
+                target_child_index,
+                action_code,
+            )
+            candidate_code = build_theorem(parent_state, skeleton_code)
+            vr = lean.verify(candidate_code)
+            return LeanExecutionResult.ok(candidate_code, vr, [])
+        except Exception as e:
+            return LeanExecutionResult.from_transport_error(f"{type(e).__name__}: {e}")
+
+    def compute_failed_subgoal_tactic_patch(
+        self,
+        child_state: ProofState,
+        parent_state: ProofState,
+        skeleton: Action,
+        target_child_index: int,
+        raw_output: str,
+        action_code: str,
+        candidate_code: str,
+        prompt: str,
+    ) -> FailedActionPatch:
+        """Patch a failed subgoal tactic in parent context, then score target lines only."""
+        sorrifier = self.failure._new_sorrifier()
+        patched = sorrifier.fix_code(candidate_code)
+        patched_vr = self.lean.verify(patched)
+        patched_raw = f"```lean4\n{patched}\n```"
+        patched_action_code = get_subgoal_tactic_code(
+            patched_raw,
+            skeleton.extracted_code,
+            target_child_index,
+        )
+        if not patched_action_code:
+            patched_action_code = "sorry"
+
+        full_orig = self._subgoal_target_score_code(
+            parent_state,
+            skeleton,
+            target_child_index,
+            action_code,
+        )
+        full_patched = self._subgoal_target_score_code(
+            parent_state,
+            skeleton,
+            target_child_index,
+            patched_action_code,
+        )
+        r_fail = self.reward.r_env(full_orig, full_patched, patched_vr)
+        r_dep = 0.0
+        if patched_vr.get("pass"):
+            target_name = self._subgoal_target_decl_name(skeleton, target_child_index)
+            if target_name is not None:
+                r_dep = self.reward_assigner.calculate_patched_tactic_r_dep(
+                    patched,
+                    patched_action_code,
+                    target_name=target_name,
+                )
+
+        return FailedActionPatch(
+            state=child_state,
+            action_kind="tactic",
+            action_content=raw_output,
+            lean_code=action_code,
+            prompt=prompt,
+            patched=patched,
+            patched_vr=patched_vr,
+            patched_action_code=patched_action_code,
+            r_fail=r_fail,
+            r_dep=r_dep,
+            new_subgoals=(),
+        )
+
+    @staticmethod
     def _normalize_goal(goal: str) -> str:
         return " ".join(goal.split())
 
@@ -106,7 +277,17 @@ class BatchExecutor:
         if prompts is None:
             prompts = [build_prompt(s, action_type) for s in states]
 
-        tasks: list[tuple[int, int, ProofState, str, str, concurrent.futures.Future]] = []
+        tasks: list[
+            tuple[
+                int,
+                int,
+                ProofState,
+                str,
+                str,
+                bool,
+                concurrent.futures.Future,
+            ]
+        ] = []
         feedbacks: list[list[tuple[str, str, str] | None]] = [
             [None] * len(actions) for actions in action_batches
         ]
@@ -120,7 +301,20 @@ class BatchExecutor:
                     if not budget.try_consume():
                         break
                     raw_output = action_dict["text"]
-                    lean_code = get_lean_code(raw_output)
+                    subgoal_tactic = False
+                    target = None
+                    if action_type == "tactic":
+                        target = self._subgoal_tactic_target(graph, state)
+                    if target is not None:
+                        subgoal_tactic = True
+                        _, skeleton, target_child_index = target
+                        lean_code = get_subgoal_tactic_code(
+                            raw_output,
+                            skeleton.extracted_code,
+                            target_child_index,
+                        )
+                    else:
+                        lean_code = get_lean_code(raw_output, allow_body=action_type == "tactic")
                     if not lean_code:
                         self.failure.handle_system_execute_failure(
                             graph,
@@ -131,12 +325,39 @@ class BatchExecutor:
                             prompts[i],
                         )
                         continue
-                    fut = pool.submit(BatchExecutor.safe_execute, self.lean, state, lean_code)
-                    tasks.append((i, j, state, raw_output, lean_code, fut))
+                    if action_type == "tactic" and self._has_forbidden_tactic_token(lean_code):
+                        graph.expand(
+                            state,
+                            Action(
+                                action_type="tactic",
+                                content=raw_output,
+                                extracted_code=lean_code,
+                                children=(),
+                                prompt=prompts[i],
+                            ),
+                            r_env=0.0,
+                            tactic_status="FAILED",
+                        )
+                        feedbacks[i][j] = (lean_code, self.FORBIDDEN_TACTIC_FEEDBACK, "")
+                        continue
+
+                    if target is not None:
+                        parent_state, skeleton, target_child_index = target
+                        fut = pool.submit(
+                            BatchExecutor.safe_execute_subgoal_tactic,
+                            self.lean,
+                            parent_state,
+                            skeleton,
+                            target_child_index,
+                            lean_code,
+                        )
+                    else:
+                        fut = pool.submit(BatchExecutor.safe_execute, self.lean, state, lean_code)
+                    tasks.append((i, j, state, raw_output, lean_code, subgoal_tactic, fut))
                 if budget.used >= budget.max_nodes:
                     break
 
-            for i, j, state, raw_output, lean_code, future in tasks:
+            for i, j, state, raw_output, lean_code, subgoal_tactic, future in tasks:
                 res: LeanExecutionResult = future.result()
                 prompt = prompts[i]
                 if res.has_system_failure:
@@ -148,6 +369,69 @@ class BatchExecutor:
                 full_code = build_theorem(state, lean_code)
                 # For a complete tactic, code passed Lean with 0 sorries → r_env = 1.0
                 r_env = 1.0
+
+                if action_type == "tactic" and subgoal_tactic:
+                    if state_vr.get("pass"):
+                        target = self._subgoal_tactic_target(graph, state)
+                        r_dep = 0.0
+                        if target is not None:
+                            parent_state, skeleton, target_child_index = target
+                            target_name = self._subgoal_target_decl_name(
+                                skeleton,
+                                target_child_index,
+                            )
+                            if target_name is not None:
+                                r_dep = self.reward_assigner.calculate_r_dep(
+                                    state_code,
+                                    lean_code,
+                                    target_name=target_name,
+                                )
+                        act = Action(
+                            action_type="tactic",
+                            content=raw_output,
+                            extracted_code=lean_code,
+                            children=(),
+                            prompt=prompt,
+                        )
+                        graph.expand(
+                            state,
+                            act,
+                            r_env=r_env,
+                            r_dep=r_dep,
+                            tactic_status="SOLVED",
+                        )
+                    else:
+                        target = self._subgoal_tactic_target(graph, state)
+                        if target is not None:
+                            parent_state, skeleton, target_child_index = target
+                            fut = pool.submit(
+                                self.compute_failed_subgoal_tactic_patch,
+                                state,
+                                parent_state,
+                                skeleton,
+                                target_child_index,
+                                raw_output,
+                                lean_code,
+                                state_code,
+                                prompt,
+                            )
+                            patch_futures.append((i, j, lean_code, state_vr, fut))
+                        else:
+                            graph.expand(
+                                state,
+                                Action(
+                                    action_type="tactic",
+                                    content=raw_output,
+                                    extracted_code=lean_code,
+                                    children=(),
+                                    prompt=prompt,
+                                ),
+                                r_env=0.0,
+                                r_dep=0.0,
+                                tactic_status="FAILED",
+                            )
+                            feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), "")
+                    continue
 
                 if state_vr.get("complete"):
                     if action_type not in ("tactic", "skeleton"):

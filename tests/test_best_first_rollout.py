@@ -126,6 +126,125 @@ class FakeLeanNoSubgoals:
         )
 
 
+class SubgoalTacticLean:
+    scheduler = FakeScheduler()
+
+    def __init__(self, *, pass_result=True):
+        self.pass_result = pass_result
+        self.execute_calls = 0
+        self.verify_calls: list[str] = []
+
+    def execute(self, state, code):
+        self.execute_calls += 1
+        raise AssertionError("subgoal child tactics must not use isolated execute")
+
+    def verify(self, code):
+        self.verify_calls.append(code)
+        if self.pass_result:
+            return {
+                "pass": True,
+                "complete": False,
+                "errors": [],
+                "warnings": [{"severity": "warning", "data": "declaration uses 'sorry'"}],
+                "sorries": [{"goal": "sibling admit"}],
+            }
+        return {
+            "pass": False,
+            "complete": False,
+            "errors": [{"severity": "error", "data": "subgoal failure"}],
+            "warnings": [],
+            "sorries": [],
+        }
+
+
+class PatchableSubgoalTacticLean:
+    scheduler = FakeScheduler()
+
+    def __init__(self):
+        self.execute_calls = 0
+        self.verify_calls: list[str] = []
+
+    def execute(self, state, code):
+        self.execute_calls += 1
+        raise AssertionError("subgoal child tactics must not use isolated execute")
+
+    def verify(self, code):
+        self.verify_calls.append(code)
+        if "exact fixed" in code:
+            return {
+                "pass": True,
+                "complete": False,
+                "errors": [],
+                "warnings": [{"severity": "warning", "data": "declaration uses 'sorry'"}],
+                "sorries": [{"goal": "sibling admit"}],
+            }
+        return {
+            "pass": False,
+            "complete": False,
+            "errors": [{"severity": "error", "data": "subgoal failure"}],
+            "warnings": [],
+            "sorries": [],
+        }
+
+    def analyze_dependencies(self, proof_code, allowed_vars=None, target_name=None):
+        return {
+            "core_solved": ["MAIN_GOAL"],
+            "core_failed": [],
+            "benign": [],
+            "malignant": [],
+        }
+
+
+class FixBadSorrifier:
+    def fix_code(self, code):
+        return code.replace("exact bad", "exact fixed")
+
+
+class SubgoalPatchFailure:
+    def handle_system_execute_failure(self, *args, **kwargs):
+        raise AssertionError("unexpected system failure")
+
+    def compute_failed_action_patch(self, *args, **kwargs):
+        raise AssertionError("subgoal tactic should use the subgoal patch path")
+
+    def _new_sorrifier(self):
+        return FixBadSorrifier()
+
+    def apply_failed_action_patch(self, graph, patch):
+        graph.expand(
+            patch.state,
+            Action(
+                action_type=patch.action_kind,
+                content=patch.action_content,
+                extracted_code=patch.lean_code,
+                children=(),
+                prompt=patch.prompt,
+            ),
+            r_env=patch.r_fail,
+            r_dep=patch.r_dep,
+            tactic_status="FAILED",
+        )
+        return patch.patched_action_code
+
+
+class FixedReward:
+    def __init__(self, r_env):
+        self.r_env_value = r_env
+        self.calls: list[tuple[str, str, dict]] = []
+
+    def r_env(self, full_orig, full_patched, patched_vr):
+        self.calls.append((full_orig, full_patched, patched_vr))
+        return self.r_env_value
+
+    def r_dep(self, dep_graph):
+        n_c = len(dep_graph.get("core", []))
+        n_b = len(dep_graph.get("benign", []))
+        n_m = len(dep_graph.get("malignant", []))
+        if n_c == 0:
+            return 0.0
+        return n_c / (n_c + 0.5 * n_b + 2.0 * n_m)
+
+
 class NoopFailureHandler:
     def handle_system_execute_failure(self, *args, **kwargs):
         pass
@@ -577,6 +696,171 @@ def test_tactic_feedback_is_cached_and_added_to_retry_prompt():
     assert prompt.index("[PROBLEM]") < prompt.index("PREVIOUS TACTIC ATTEMPTS FAILED")
     assert built_prompt.index("[PROBLEM]") < built_prompt.index("PREVIOUS TACTIC ATTEMPTS FAILED")
 
+
+def test_subgoal_child_tactic_is_verified_inside_parent_skeleton():
+    root = ProofState("h : True\nChild : Prop\nSibling : Prop", "True")
+    child = ProofState("h : True\nChild : Prop\nSibling : Prop", "Child")
+    sibling = ProofState("h : True\nChild : Prop\nSibling : Prop", "Sibling")
+    skeleton = Action(
+        "skeleton",
+        "skel",
+        extracted_code="have h_child : Child := sorry\nhave h_sibling : Sibling := sorry\ntrivial",
+        children=(child, sibling),
+    )
+    graph = ANDORGraph(root)
+    graph.expand(root, skeleton, r_env=1.0)
+    graph.add_state(child, depth=1)
+    lean = SubgoalTacticLean(pass_result=True)
+    executor = BatchExecutor(lean, NoopFailure(), FakeReward(), max_workers=1)
+    raw = (
+        "<think>\nUse the available proof of True for the target subgoal.\n</think>\n"
+        "```lean4\n"
+        "theorem my_theorem (h : True) (Child Sibling : Prop) : True := by\n"
+        "  have h_child : Child := by\n"
+        "    exact h\n"
+        "  have h_sibling : Sibling := admit\n"
+        "  trivial\n"
+        "```"
+    )
+
+    feedbacks = executor.execute(
+        graph,
+        [child],
+        [[{"text": raw}]],
+        "tactic",
+        RolloutBudget(4),
+        prompts=["subgoal prompt"],
+    )
+
+    actions = graph.get_actions(child)
+    assert feedbacks == [[None]]
+    assert lean.execute_calls == 0
+    assert len(lean.verify_calls) == 1
+    assert "have h_child : Child := by\n    exact h" in lean.verify_calls[0]
+    assert "have h_sibling : Sibling := by\n    admit" in lean.verify_calls[0]
+    assert graph.status(actions[0]) == "SOLVED"
+
+
+def test_subgoal_tactic_rejects_forbidden_placeholders_before_verify():
+    root = ProofState("h : True\nChild : Prop", "True")
+    child = ProofState("h : True\nChild : Prop", "Child")
+    skeleton = Action(
+        "skeleton",
+        "skel",
+        extracted_code="have h_child : Child := sorry\ntrivial",
+        children=(child,),
+    )
+    graph = ANDORGraph(root)
+    graph.expand(root, skeleton, r_env=1.0)
+    graph.add_state(child, depth=1)
+    lean = SubgoalTacticLean(pass_result=True)
+    executor = BatchExecutor(lean, NoopFailure(), FakeReward(), max_workers=1)
+    raw = (
+        "<think>\nThis attempt is bad because it uses a placeholder.\n</think>\n"
+        "```lean4\n"
+        "theorem my_theorem (h : True) (Child : Prop) : True := by\n"
+        "  have h_child : Child := by\n"
+        "    -- comment may mention sorry\n"
+        "    exact admit\n"
+        "  trivial\n"
+        "```"
+    )
+
+    feedbacks = executor.execute(
+        graph,
+        [child],
+        [[{"text": raw}]],
+        "tactic",
+        RolloutBudget(4),
+        prompts=["subgoal prompt"],
+    )
+
+    actions = graph.get_actions(child)
+    assert lean.verify_calls == []
+    assert graph.status(actions[0]) == "FAILED"
+    assert "TACTIC POLICY VIOLATION" in feedbacks[0][0][1]
+
+
+def test_failed_subgoal_tactic_scores_only_marked_target_lines_in_parent_context():
+    root = ProofState("h : True\nChild : Prop\nSibling : Prop", "True")
+    child = ProofState("h : True\nChild : Prop\nSibling : Prop", "Child")
+    sibling = ProofState("h : True\nChild : Prop\nSibling : Prop", "Sibling")
+    skeleton = Action(
+        "skeleton",
+        "skel",
+        extracted_code="have h_child : Child := sorry\nhave h_sibling : Sibling := sorry\ntrivial",
+        children=(child, sibling),
+    )
+    graph = ANDORGraph(root)
+    graph.expand(root, skeleton, r_env=1.0)
+    graph.add_state(child, depth=1)
+    lean = PatchableSubgoalTacticLean()
+    reward = FixedReward(0.42)
+    executor = BatchExecutor(lean, SubgoalPatchFailure(), reward, max_workers=1)
+    raw = (
+        "<think>\nTry a tactic for the target subgoal.\n</think>\n"
+        "```lean4\n"
+        "theorem my_theorem (h : True) (Child Sibling : Prop) : True := by\n"
+        "  have h_child : Child := by\n"
+        "    exact bad\n"
+        "  have h_sibling : Sibling := by admit\n"
+        "  trivial\n"
+        "```"
+    )
+
+    feedbacks = executor.execute(
+        graph,
+        [child],
+        [[{"text": raw}]],
+        "tactic",
+        RolloutBudget(4),
+        prompts=["subgoal prompt"],
+    )
+
+    actions = graph.get_actions(child)
+    assert len(actions) == 1
+    assert lean.execute_calls == 0
+    assert len(lean.verify_calls) == 2
+    assert graph.status(actions[0]) == "FAILED"
+    assert graph.get_r_env(actions[0]) == 0.42
+    assert graph._r_dep[actions[0]] == 1.0
+    assert feedbacks[0][0][2] == "exact fixed"
+    full_orig, full_patched, _ = reward.calls[0]
+    assert "exact bad" in full_orig
+    assert "exact fixed" in full_patched
+    assert "theorem my_theorem (h : True) (Child : Prop) (Sibling : Prop) : True" in full_orig
+    assert "theorem my_theorem (h : True) (Child : Prop) (Sibling : Prop) : True" in full_patched
+    assert "h_sibling" not in full_orig
+    assert "h_sibling" not in full_patched
+    assert "GAMMAZERO_TARGET_SCORE" not in full_orig
+    assert "GAMMAZERO_TARGET_SCORE" not in full_patched
+
+
+def test_subgoal_tactic_prompt_keeps_only_target_sorry():
+    root = ProofState("h : True", "True")
+    child = ProofState("h : True\nChild : Prop", "Child")
+    sibling = ProofState("h : True\nSibling : Prop", "Sibling")
+    graph = ANDORGraph(root)
+    skeleton = Action(
+        "skeleton",
+        "skel",
+        extracted_code="have h_child : Child := sorry\nhave h_sibling : Sibling := sorry\ntrivial",
+        children=(child, sibling),
+    )
+    graph.expand(root, skeleton, r_env=1.0)
+    graph.add_state(child, depth=1)
+    rollout = make_rollout()
+
+    prompts = [
+        rollout.prompt_builder.build_subgoal_tactic(root, skeleton, 0)
+    ]
+
+    problem = prompts[0].split("[PROBLEM]", 1)[1]
+    code = problem.rsplit("```lean4", 1)[1].split("```", 1)[0]
+    assert code.count("sorry") == 1
+    assert code.count("admit") >= 1
+    assert "have h_sibling : Sibling := by admit" in code
+    assert "whole parent theorem scaffold" in prompts[0]
 
 def test_parent_requeues_after_failed_attempts_when_budget_remains():
     root = ProofState("", "root")

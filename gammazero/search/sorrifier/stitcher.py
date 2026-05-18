@@ -38,8 +38,10 @@ class ProofStitcher:
                     base_indent = " " * (len(last_line) - len(last_line.lstrip()))
                     child_indent = base_indent + "  "
                     
-                    if clean_proof.startswith("by ") or clean_proof.startswith("by\n"):
-                        clean_proof = clean_proof[2:].lstrip()
+                    if clean_proof.startswith("by\n"):
+                        clean_proof = textwrap.dedent(clean_proof[3:]).strip("\n")
+                    elif clean_proof.startswith("by "):
+                        clean_proof = clean_proof[3:].strip("\n")
                         
                     proof_lines = clean_proof.splitlines()
                     indented_body = "\n".join(child_indent + l for l in proof_lines)

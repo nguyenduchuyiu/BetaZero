@@ -31,7 +31,35 @@ class ExprDependencyAnalyzer:
                     if k != "expr": stack.append((v, idx))
         return False
 
-    def classify_skeleton_subgoals(self, root_expr: Dict[str, Any], allowed_vars: set[str] | None = None) -> Dict[str, List[str]]:
+    def _find_decl_value(self, root_node: Any, target_name: str) -> Any | None:
+        stack = [root_node]
+        while stack:
+            node = stack.pop()
+            if not isinstance(node, dict):
+                continue
+
+            if node.get("expr") == "letE" and node.get("var_name") == target_name:
+                return node.get("val")
+
+            if (
+                node.get("expr") == "app"
+                and isinstance(node.get("fn"), dict)
+                and node["fn"].get("expr") == "lam"
+                and node["fn"].get("var_name") == target_name
+            ):
+                return node.get("arg")
+
+            for k, v in node.items():
+                if k != "expr" and isinstance(v, dict):
+                    stack.append(v)
+        return None
+
+    def classify_skeleton_subgoals(
+        self,
+        root_expr: Dict[str, Any],
+        allowed_vars: set[str] | None = None,
+        target_name: str | None = None,
+    ) -> Dict[str, List[str]]:
         results = {"core_solved": [], "core_failed": [], "malignant": [], "benign": []}
 
         def traverse(root_node: Any):
@@ -52,6 +80,17 @@ class ExprDependencyAnalyzer:
 
                 for k, v in node.items():
                     if k != "expr" and isinstance(v, dict): stack.append(v)
+
+        if target_name:
+            target_val = self._find_decl_value(root_expr, target_name)
+            if target_val is None:
+                return results
+            if self._contains_sorry(target_val):
+                results["core_failed"].append("MAIN_GOAL")
+            else:
+                results["core_solved"].append("MAIN_GOAL")
+            traverse(target_val)
+            return {k: list(set(v)) for k, v in results.items()}
 
         # Check if the main goal itself is closed by a naked 'sorry'
         # We traverse the root to find the innermost body

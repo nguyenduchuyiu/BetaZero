@@ -114,15 +114,15 @@ class Sorrifier:
                         return self._force_full_sorrify()
                         
                     if not success:
-                        return self.current_content
-                        break
+                        return self._force_full_sorrify()
 
                     pbar.update(1)
 
+            # Fallback to fully sorrify if loop ends without resolving all errors
+            return self._force_full_sorrify()
+
         finally:
             self._log_close()
-
-        return self.current_content
 
     # ==========================================
     # CORE FIXING LOGIC (Trùng khớp 100% bản cũ)

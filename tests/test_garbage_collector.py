@@ -1,12 +1,12 @@
 import pytest
 import re
-from betazero.core.nodes import ProofState, Action
-from betazero.search.graph import ANDORGraph
-from betazero.search.reward.reward_assigner import DependencyRewardAssigner
+from gammazero.core.nodes import ProofState, Action
+from gammazero.search.graph import ANDORGraph
+from gammazero.search.reward.reward_assigner import DependencyRewardAssigner
 
 
 class _FakeLean:
-    def analyze_dependencies(self, proof_code, allowed_vars=None):
+    def analyze_dependencies(self, proof_code, allowed_vars=None, target_name=None):
         return {
             "core_solved": ["MAIN_GOAL", "h_final"],
             "core_failed": [],
@@ -24,7 +24,7 @@ class _FakeReward:
 
 
 class _FakeLeanRedundantCore:
-    def analyze_dependencies(self, proof_code, allowed_vars=None):
+    def analyze_dependencies(self, proof_code, allowed_vars=None, target_name=None):
         return {
             "core_solved": ["MAIN_GOAL", "h_rel", "h_final"],
             "core_failed": [],

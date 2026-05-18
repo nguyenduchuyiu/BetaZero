@@ -1,6 +1,8 @@
 from __future__ import annotations
 import textwrap
-from gammazero.core.nodes import ProofState
+import re
+
+from gammazero.core.nodes import Action, ProofState
 from gammazero.utils.lean_cmd import build_theorem
 
 _OUTPUT_FORMAT_INSTRUCTION = textwrap.dedent(
@@ -20,14 +22,14 @@ You may only use the information in the problem statement below.
 ).strip()
 
 
-_TACTIC_INSTRUCTION = textwrap.dedent("""
+_ROOT_TACTIC_INSTRUCTION = textwrap.dedent("""
 You are an elite Lean 4 Tactic Agent. Your objective is to close a goal.
 You will be provided the [PROBLEM].
 
 CRITICAL INSTRUCTIONS:
 1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. 
 2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.
-3. FAIL FAST: If the goal is unprovable (due to a flawed premise), output `sorry`.
+3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.
 
 OUTPUT FORMAT EXAMPLE:
 <think>
@@ -39,6 +41,42 @@ theorem my_theorem proposition := by
 ```
 """
 ).strip()
+
+
+_SUBGOAL_TACTIC_INSTRUCTION = textwrap.dedent("""
+You are an elite Lean 4 Subgoal Tactic Agent.
+
+You will be given the full parent proof scaffold, not an isolated theorem for
+the subgoal. Exactly one placeholder is written as `sorry`; that is the current
+subgoal you must solve. Other sibling placeholders are written as `admit`; they
+are intentionally left for other search nodes.
+
+CRITICAL INSTRUCTIONS:
+1. Solve ONLY the unique `sorry` placeholder. Do not solve or edit any `admit`.
+2. Your final Lean code block must contain the WHOLE parent theorem scaffold
+   from [PROBLEM], with only the unique `sorry` placeholder replaced by your
+   proof.
+3. Do not change any code outside the subgoal marked by the unique `sorry`.
+   Keep every sibling `admit` exactly as an `admit`.
+4. The replacement proof for the target subgoal must not contain `sorry` or `admit` outside
+   comments.
+5. Use the surrounding scaffold to preserve Lean's original elaboration context.
+
+OUTPUT FORMAT EXAMPLE:
+<think>
+[Your thinking process goes here. Be concise and direct.]
+</think>
+```lean4
+theorem my_theorem proposition := by
+  have h1 : intermediate_prop_1 := admit
+  have h2 : intermediate_prop_2 := admit
+  -- This is the unique subgoal that must be solved.
+  have h3 : target_subgoal_prop := by
+    [Your tactic]
+  have h4 : intermediate_prop_4 := admit
+  exact final_assembly
+```
+""").strip()
 
 
 _SKELETON_INSTRUCTION = textwrap.dedent("""
@@ -135,31 +173,6 @@ theorem my_theorem proposition := by
 """).strip()
 
 
-# _SKELETON_INSTRUCTION = textwrap.dedent("""
-# You are a Subgoal Generator for a Search Tree in Lean 4. 
-# Your task is to propose potential intermediate milestones to expand the search space, NOT to solve the problem.
-
-# CRITICAL CONSTRAINTS:
-# 1. DEFER VERIFICATION: You are explicitly forbidden from proving the subgoals. EVERY `have` statement MUST end with `:= sorry`. Even if a step is trivially true, you must delegate it to the search tree using `:= sorry`.
-# 2. NO TERMINAL STATES: Do not attempt to close the final goal directly. You MUST wrap the final target in a `have` statement named `h_final` with `:= sorry`, and then close the block strictly with `exact h_final`.
-# 3. FLAT TOPOLOGY ONLY: Branching tactics are incompatible with this search phase. NEVER use `cases`, `rcases`, `induction`, `obtain`, or `by_cases`. 
-
-# Remember: You are generating an exploratory search node, not a finished proof. Incompleteness (using `sorry`) is the strict requirement for success.
-
-# OUTPUT FORMAT EXAMPLE:
-# <think>
-# [Your thinking process goes here. Be concise and direct.]
-# </think>
-# ```lean4
-# theorem my_theorem proposition := by
-#   have h1 prop1 := sorry
-#   have h2 prop2 := sorry
-#   have h_final final_prop := sorry
-#   exact h_final
-# ```
-
-# """).strip()
-
 def _format_chatml_from_messages(messages: list[dict[str, str]]) -> str:
     parts = []
     for msg in messages:
@@ -181,9 +194,42 @@ def _format_problem(state: ProofState) -> str:
         "```"
     )
 
+
+def render_subgoal_tactic_code(
+    parent_state: ProofState,
+    skeleton: Action,
+    target_child_index: int,
+) -> str:
+    parts = re.split(r"\bsorry\b", skeleton.extracted_code)
+    sorry_count = len(parts) - 1
+    if sorry_count != len(skeleton.children) or target_child_index >= sorry_count:
+        return build_theorem(parent_state, skeleton.extracted_code, name="my_theorem").rstrip()
+
+    body = parts[0]
+    for i in range(sorry_count):
+        body += "sorry" if i == target_child_index else "by admit"
+        body += parts[i + 1]
+    return build_theorem(parent_state, body, name="my_theorem").rstrip()
+
+
+def _format_subgoal_tactic_problem(
+    parent_state: ProofState,
+    skeleton: Action,
+    target_child_index: int,
+) -> str:
+    code = render_subgoal_tactic_code(parent_state, skeleton, target_child_index)
+    return (
+        "[PROBLEM]\n"
+        "```lean4\n"
+        f"{code}\n"
+        "```\n\n"
+        "Solve the unique `sorry` placeholder only. The `admit` placeholders are sibling subgoals."
+    )
+
+
 def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -> list[dict[str, str]]:
     if action_type == "tactic":
-        instruction = _TACTIC_INSTRUCTION
+        instruction = _ROOT_TACTIC_INSTRUCTION
     elif action_type == "skeleton":
         instruction = _SKELETON_INSTRUCTION
     else:
@@ -204,6 +250,45 @@ def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -
 def build_prompt(state: ProofState, action_type: str, extra_rules: str = "") -> str:
     messages = build_messages(state, action_type, extra_rules)
     return _format_chatml_from_messages(messages)
+
+
+def build_subgoal_tactic_prompt(
+    parent_state: ProofState,
+    skeleton: Action,
+    target_child_index: int,
+    feedback_blocks: list[str] | None = None,
+    *,
+    max_feedbacks: int = 3,
+) -> str:
+    full_system = _SUBGOAL_TACTIC_INSTRUCTION + "\n\n" + textwrap.dedent(
+        """
+        OUTPUT INSTRUCTIONS
+        1. OUTPUT FORMAT: First output `<think>...</think>`, then output EXACTLY ONE valid ```lean4 ... ``` block.
+        2. The code block must contain the whole parent theorem scaffold.
+        3. Change only the unique `sorry` subgoal; leave sibling `admit` placeholders unchanged.
+        4. Do not add conversational text after the code block.
+        """
+    ).strip()
+    user_msg_content = _USER_BASE_INSTRUCTION + "\n" + _format_subgoal_tactic_problem(
+        parent_state,
+        skeleton,
+        target_child_index,
+    )
+    if feedback_blocks:
+        feedback_block = (
+            "PREVIOUS SUBGOAL TACTIC ATTEMPTS FAILED.\n"
+            "Use the Lean feedback below to produce a NEW parent scaffold for the same `sorry`. "
+            "Do not repeat the failed tactic.\n\n"
+            + "\n\n".join(feedback_blocks[-max_feedbacks:])
+        )
+        user_msg_content += "\n\n" + feedback_block
+    return _format_chatml_from_messages(
+        [
+            {"role": "system", "content": full_system},
+            {"role": "user", "content": user_msg_content},
+            {"role": "assistant", "content": "<think>\n"},
+        ]
+    )
 
 
 def format_tactic_feedback_block(lean_code: str, lean_feedback: str) -> str:
@@ -290,6 +375,22 @@ class SearchPromptBuilder:
                 max_feedbacks=self.max_skeleton_feedbacks,
             )
         return build_prompt(state, action_type)
+
+    def build_subgoal_tactic(
+        self,
+        parent_state: ProofState,
+        skeleton: Action,
+        target_child_index: int,
+        *,
+        tactic_feedbacks: list[str] | None = None,
+    ) -> str:
+        return build_subgoal_tactic_prompt(
+            parent_state,
+            skeleton,
+            target_child_index,
+            tactic_feedbacks or [],
+            max_feedbacks=self.max_tactic_feedbacks,
+        )
 
     def format_tactic_feedback(self, lean_code: str, lean_feedback: str) -> str:
         return format_tactic_feedback_block(lean_code, lean_feedback)

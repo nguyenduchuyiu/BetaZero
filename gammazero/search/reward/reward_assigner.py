@@ -194,6 +194,7 @@ class DependencyRewardAssigner:
         self,
         full_code: str,
         action_code: str,
+        target_name: str | None = None,
     ) -> float:
         """Score whether a tactic consumes the local `have/let`s it introduced."""
         action_local_vars = self._extract_action_local_vars(action_code)
@@ -201,7 +202,14 @@ class DependencyRewardAssigner:
         if not action_local_vars and not self._has_real_sorry(full_code):
             return 1.0
 
-        dep_analysis = self.lean.analyze_dependencies(full_code, allowed_vars=action_local_vars)
+        dep_analysis = self.lean.analyze_dependencies(
+            full_code,
+            allowed_vars=action_local_vars,
+            target_name=target_name,
+        )
+        if target_name is not None:
+            return self._score_dependency_analysis(dep_analysis)
+
         garbage_vars = dep_analysis.get("benign", []) + dep_analysis.get("malignant", [])
         cleaned_action_code = self._prune_verifiable_tactic_garbage(
             full_code,
@@ -216,10 +224,16 @@ class DependencyRewardAssigner:
         cleaned_dep_analysis = self.lean.analyze_dependencies(
             cleaned_full_code,
             allowed_vars=action_local_vars,
+            target_name=target_name,
         )
         return self._score_dependency_analysis(cleaned_dep_analysis)
 
-    def calculate_patched_tactic_r_dep(self, full_code: str, action_code: str) -> float:
+    def calculate_patched_tactic_r_dep(
+        self,
+        full_code: str,
+        action_code: str,
+        target_name: str | None = None,
+    ) -> float:
         """
         Score a patched tactic that may contain local `have ... := sorry`
         scaffolding. Naked/exact sorry remains fatal, but a sorry-backed local
@@ -231,7 +245,11 @@ class DependencyRewardAssigner:
         if not action_local_vars and not self._has_real_sorry(full_code):
             return 1.0
 
-        dep_analysis = self.lean.analyze_dependencies(full_code, allowed_vars=action_local_vars)
+        dep_analysis = self.lean.analyze_dependencies(
+            full_code,
+            allowed_vars=action_local_vars,
+            target_name=target_name,
+        )
         return self._score_patched_dependency_analysis(dep_analysis)
 
     def _prune_verifiable_tactic_garbage(
