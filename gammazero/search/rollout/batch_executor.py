@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from gammazero.core import ProofState, Action
 from gammazero.policy.output_parser import (
     get_lean_code,
+    get_subgoal_skeleton_code,
     get_subgoal_tactic_code,
     strip_lean_comments,
 )
@@ -17,6 +18,7 @@ from gammazero.search.graph import ANDORGraph
 from gammazero.search.reward import DependencyRewardAssigner, RewardCalculator
 from gammazero.search.sorrifier.stitcher import ProofStitcher
 from gammazero.utils.lean_cmd import build_theorem
+from gammazero.utils.lean_parse import parse_proof_state
 
 from .execution_result import LeanExecutionResult
 from .failure_handler import FailedActionPatch, FailureHandler
@@ -108,6 +110,8 @@ class BatchExecutor:
                 return parent_state, action, child_index
         return None
 
+    _subgoal_skeleton_target = _subgoal_tactic_target
+
     @staticmethod
     def _subgoal_skeleton_with_replacement(
         skeleton: Action,
@@ -191,6 +195,40 @@ class BatchExecutor:
         except Exception as e:
             return LeanExecutionResult.from_transport_error(f"{type(e).__name__}: {e}")
 
+    @staticmethod
+    def safe_execute_subgoal_skeleton(
+        lean: LeanEnv,
+        child_state: ProofState,
+        parent_state: ProofState,
+        skeleton: Action,
+        target_child_index: int,
+        action_code: str,
+    ) -> LeanExecutionResult:
+        try:
+            skeleton_code = BatchExecutor._subgoal_skeleton_with_replacement(
+                skeleton,
+                target_child_index,
+                action_code,
+            )
+            candidate_code = build_theorem(parent_state, skeleton_code)
+            vr = lean.verify(candidate_code)
+            excluded_goals = {
+                BatchExecutor._normalize_goal(child.goal)
+                for i, child in enumerate(skeleton.children)
+                if i != target_child_index
+            }
+            subgoals: list[ProofState] = []
+            for s in vr.get("sorries", []):
+                ps = parse_proof_state(s.get("goal", ""), header=child_state.header)
+                if ps.goal in ["SOLVED_OR_EMPTY", "ELABORATION_FAULT"]:
+                    continue
+                if BatchExecutor._normalize_goal(ps.goal) in excluded_goals:
+                    continue
+                subgoals.append(ps)
+            return LeanExecutionResult.ok(candidate_code, vr, subgoals)
+        except Exception as e:
+            return LeanExecutionResult.from_transport_error(f"{type(e).__name__}: {e}")
+
     def compute_failed_subgoal_tactic_patch(
         self,
         child_state: ProofState,
@@ -252,6 +290,58 @@ class BatchExecutor:
             new_subgoals=(),
         )
 
+    def compute_failed_subgoal_skeleton_patch(
+        self,
+        child_state: ProofState,
+        parent_state: ProofState,
+        skeleton: Action,
+        target_child_index: int,
+        raw_output: str,
+        action_code: str,
+        candidate_code: str,
+        prompt: str,
+    ) -> FailedActionPatch:
+        """Patch a failed mini-skeleton in parent context, then score target lines only."""
+        sorrifier = self.failure._new_sorrifier()
+        patched = sorrifier.fix_code(candidate_code)
+        patched_vr = self.lean.verify(patched)
+        patched_raw = f"```lean4\n{patched}\n```"
+        patched_action_code = get_subgoal_skeleton_code(
+            patched_raw,
+            skeleton.extracted_code,
+            target_child_index,
+        )
+        if not patched_action_code:
+            patched_action_code = "sorry"
+
+        full_orig = self._subgoal_target_score_code(
+            parent_state,
+            skeleton,
+            target_child_index,
+            action_code,
+        )
+        full_patched = self._subgoal_target_score_code(
+            parent_state,
+            skeleton,
+            target_child_index,
+            patched_action_code,
+        )
+        r_fail = self.reward.r_env(full_orig, full_patched, patched_vr)
+
+        return FailedActionPatch(
+            state=child_state,
+            action_kind="skeleton",
+            action_content=raw_output,
+            lean_code=action_code,
+            prompt=prompt,
+            patched=patched,
+            patched_vr=patched_vr,
+            patched_action_code=patched_action_code,
+            r_fail=r_fail,
+            r_dep=0.0,
+            new_subgoals=(),
+        )
+
     @staticmethod
     def _normalize_goal(goal: str) -> str:
         return " ".join(goal.split())
@@ -285,6 +375,7 @@ class BatchExecutor:
                 str,
                 str,
                 bool,
+                bool,
                 concurrent.futures.Future,
             ]
         ] = []
@@ -302,17 +393,28 @@ class BatchExecutor:
                         break
                     raw_output = action_dict["text"]
                     subgoal_tactic = False
+                    subgoal_skeleton = False
                     target = None
                     if action_type == "tactic":
                         target = self._subgoal_tactic_target(graph, state)
+                    elif action_type == "skeleton":
+                        target = self._subgoal_skeleton_target(graph, state)
                     if target is not None:
-                        subgoal_tactic = True
                         _, skeleton, target_child_index = target
-                        lean_code = get_subgoal_tactic_code(
-                            raw_output,
-                            skeleton.extracted_code,
-                            target_child_index,
-                        )
+                        if action_type == "tactic":
+                            subgoal_tactic = True
+                            lean_code = get_subgoal_tactic_code(
+                                raw_output,
+                                skeleton.extracted_code,
+                                target_child_index,
+                            )
+                        else:
+                            subgoal_skeleton = True
+                            lean_code = get_subgoal_skeleton_code(
+                                raw_output,
+                                skeleton.extracted_code,
+                                target_child_index,
+                            )
                     else:
                         lean_code = get_lean_code(raw_output, allow_body=action_type == "tactic")
                     if not lean_code:
@@ -341,7 +443,7 @@ class BatchExecutor:
                         feedbacks[i][j] = (lean_code, self.FORBIDDEN_TACTIC_FEEDBACK, "")
                         continue
 
-                    if target is not None:
+                    if target is not None and action_type == "tactic":
                         parent_state, skeleton, target_child_index = target
                         fut = pool.submit(
                             BatchExecutor.safe_execute_subgoal_tactic,
@@ -351,13 +453,24 @@ class BatchExecutor:
                             target_child_index,
                             lean_code,
                         )
+                    elif target is not None and action_type == "skeleton":
+                        parent_state, skeleton, target_child_index = target
+                        fut = pool.submit(
+                            BatchExecutor.safe_execute_subgoal_skeleton,
+                            self.lean,
+                            state,
+                            parent_state,
+                            skeleton,
+                            target_child_index,
+                            lean_code,
+                        )
                     else:
                         fut = pool.submit(BatchExecutor.safe_execute, self.lean, state, lean_code)
-                    tasks.append((i, j, state, raw_output, lean_code, subgoal_tactic, fut))
+                    tasks.append((i, j, state, raw_output, lean_code, subgoal_tactic, subgoal_skeleton, fut))
                 if budget.used >= budget.max_nodes:
                     break
 
-            for i, j, state, raw_output, lean_code, subgoal_tactic, future in tasks:
+            for i, j, state, raw_output, lean_code, subgoal_tactic, subgoal_skeleton, future in tasks:
                 res: LeanExecutionResult = future.result()
                 prompt = prompts[i]
                 if res.has_system_failure:
@@ -431,6 +544,78 @@ class BatchExecutor:
                                 tactic_status="FAILED",
                             )
                             feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), "")
+                    continue
+
+                if action_type == "skeleton" and subgoal_skeleton:
+                    target = self._subgoal_skeleton_target(graph, state)
+                    if target is None:
+                        graph.expand(
+                            state,
+                            Action(
+                                action_type="skeleton",
+                                content=raw_output,
+                                extracted_code=lean_code,
+                                children=(),
+                                prompt=prompt,
+                            ),
+                            r_env=0.0,
+                        )
+                        feedbacks[i][j] = (lean_code, "missing parent skeleton target", "")
+                        continue
+
+                    parent_state, skeleton, target_child_index = target
+                    if state_vr.get("pass"):
+                        if self.skeleton_restates_parent_goal(state, subgoals):
+                            graph.expand(
+                                state,
+                                Action(
+                                    action_type="skeleton",
+                                    content=raw_output,
+                                    extracted_code=lean_code,
+                                    children=(),
+                                    prompt=prompt,
+                                ),
+                                r_env=0.0,
+                            )
+                            feedbacks[i][j] = (
+                                lean_code,
+                                self.BAD_FINAL_GOAL_SKELETON_FEEDBACK,
+                                lean_code,
+                            )
+                            continue
+
+                        full_target = self._subgoal_target_score_code(
+                            parent_state,
+                            skeleton,
+                            target_child_index,
+                            lean_code,
+                        )
+                        r_env_score = self.reward.r_env(full_target, full_target, state_vr)
+                        graph.expand(
+                            state,
+                            Action(
+                                action_type="skeleton",
+                                content=raw_output,
+                                extracted_code=lean_code,
+                                children=tuple(subgoals),
+                                prompt=prompt,
+                            ),
+                            r_env=r_env_score,
+                        )
+                    else:
+                        fut = pool.submit(
+                            self.compute_failed_subgoal_skeleton_patch,
+                            state,
+                            parent_state,
+                            skeleton,
+                            target_child_index,
+                            raw_output,
+                            lean_code,
+                            state_code,
+                            prompt,
+                        )
+                        patch_futures.append((i, j, lean_code, state_vr, fut))
+                        feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), "")
                     continue
 
                 if state_vr.get("complete"):

@@ -862,6 +862,158 @@ def test_subgoal_tactic_prompt_keeps_only_target_sorry():
     assert "have h_sibling : Sibling := by admit" in code
     assert "whole parent theorem scaffold" in prompts[0]
 
+
+def test_subgoal_skeleton_prompt_keeps_parent_scaffold_context():
+    root = ProofState("h : True", "True")
+    child = ProofState("h : True\nChild : Prop", "Child")
+    sibling = ProofState("h : True\nSibling : Prop", "Sibling")
+    graph = ANDORGraph(root)
+    skeleton = Action(
+        "skeleton",
+        "skel",
+        extracted_code=(
+            "have h_pre : True := by trivial\n"
+            "have h_child : Child := sorry\n"
+            "have h_sibling : Sibling := sorry\n"
+            "trivial"
+        ),
+        children=(child, sibling),
+    )
+    graph.expand(root, skeleton, r_env=1.0)
+    graph.add_state(child, depth=1)
+    rollout = make_rollout()
+
+    prompt = rollout.prompt_builder.build_subgoal_skeleton(root, skeleton, 0)
+
+    problem = prompt.split("[PROBLEM]", 1)[1]
+    code = problem.rsplit("```lean4", 1)[1].split("```", 1)[0]
+    assert code.count("sorry") == 1
+    assert code.count("admit") >= 1
+    assert "have h_pre : True := by trivial" in code
+    assert "have h_sibling : Sibling := by admit" in code
+    assert "Subgoal Skeleton Generator" in prompt
+
+
+def test_subgoal_child_skeleton_is_verified_inside_parent_skeleton():
+    root = ProofState("h : True\nChild : Prop\nSibling : Prop", "True")
+    child = ProofState("h : True\nChild : Prop\nSibling : Prop\nPart : Prop", "Child")
+    sibling = ProofState("h : True\nChild : Prop\nSibling : Prop", "Sibling")
+    parent_skeleton = Action(
+        "skeleton",
+        "skel",
+        extracted_code=(
+            "have h_pre : True := by trivial\n"
+            "have h_child : Child := sorry\n"
+            "have h_sibling : Sibling := sorry\n"
+            "trivial"
+        ),
+        children=(child, sibling),
+    )
+    graph = ANDORGraph(root)
+    graph.expand(root, parent_skeleton, r_env=1.0)
+    graph.add_state(child, depth=1)
+    lean = SubgoalTacticLean(pass_result=True)
+    lean.verify = lambda code: (
+        lean.verify_calls.append(code)
+        or {
+            "pass": True,
+            "complete": False,
+            "errors": [],
+            "warnings": [{"severity": "warning", "data": "declaration uses 'sorry'"}],
+            "sorries": [{"goal": "⊢ Part"}, {"goal": "⊢ Sibling"}],
+        }
+    )
+    reward = FixedReward(0.42)
+    executor = BatchExecutor(lean, NoopFailure(), reward, max_workers=1)
+    raw = (
+        "<think>\nDecompose the target subgoal in the parent scaffold.\n</think>\n"
+        "```lean4\n"
+        "theorem my_theorem (h : True) (Child Sibling Part : Prop) : True := by\n"
+        "  have h_pre : True := by trivial\n"
+        "  have h_child : Child := by\n"
+        "    have h_part : Part := sorry\n"
+        "    admit\n"
+        "  have h_sibling : Sibling := by admit\n"
+        "  trivial\n"
+        "```"
+    )
+
+    feedbacks = executor.execute(
+        graph,
+        [child],
+        [[{"text": raw}]],
+        "skeleton",
+        RolloutBudget(4),
+        prompts=["subgoal skeleton prompt"],
+    )
+
+    actions = graph.get_actions(child)
+    assert feedbacks == [[None]]
+    assert lean.execute_calls == 0
+    assert len(lean.verify_calls) == 1
+    assert "have h_pre : True := by trivial" in lean.verify_calls[0]
+    assert "have h_child : Child := by\n    have h_part : Part := sorry\n    admit" in lean.verify_calls[0]
+    assert "have h_sibling : Sibling := by\n    admit" in lean.verify_calls[0]
+    assert len(actions) == 1
+    assert actions[0].action_type == "skeleton"
+    assert actions[0].extracted_code == "have h_part : Part := sorry\nadmit"
+    assert [s.goal for s in actions[0].children] == ["Part"]
+    assert graph.get_r_env(actions[0]) == 0.42
+
+
+def test_failed_subgoal_child_skeleton_patch_scores_target_slice():
+    root = ProofState("h : True\nChild : Prop\nSibling : Prop", "True")
+    child = ProofState("h : True\nChild : Prop\nSibling : Prop\nPart : Prop", "Child")
+    sibling = ProofState("h : True\nChild : Prop\nSibling : Prop", "Sibling")
+    parent_skeleton = Action(
+        "skeleton",
+        "skel",
+        extracted_code=(
+            "have h_pre : True := by trivial\n"
+            "have h_child : Child := sorry\n"
+            "have h_sibling : Sibling := sorry\n"
+            "trivial"
+        ),
+        children=(child, sibling),
+    )
+    graph = ANDORGraph(root)
+    graph.expand(root, parent_skeleton, r_env=1.0)
+    graph.add_state(child, depth=1)
+    lean = PatchableSubgoalTacticLean()
+    reward = FixedReward(0.37)
+    executor = BatchExecutor(lean, SubgoalPatchFailure(), reward, max_workers=1)
+    raw = (
+        "<think>\nBad mini-skeleton first.\n</think>\n"
+        "```lean4\n"
+        "theorem my_theorem (h : True) (Child Sibling Part : Prop) : True := by\n"
+        "  have h_pre : True := by trivial\n"
+        "  have h_child : Child := by\n"
+        "    exact bad\n"
+        "  have h_sibling : Sibling := by admit\n"
+        "  trivial\n"
+        "```"
+    )
+
+    feedbacks = executor.execute(
+        graph,
+        [child],
+        [[{"text": raw}]],
+        "skeleton",
+        RolloutBudget(4),
+        prompts=["subgoal skeleton prompt"],
+    )
+
+    actions = graph.get_actions(child)
+    assert len(actions) == 1
+    assert graph.status(actions[0]) == "FAILED"
+    assert graph.get_r_env(actions[0]) == 0.37
+    assert feedbacks[0][0][2] == "exact fixed"
+    full_orig, full_patched, _ = reward.calls[0]
+    assert "exact bad" in full_orig
+    assert "exact fixed" in full_patched
+    assert "h_sibling" not in full_orig
+    assert "h_sibling" not in full_patched
+
 def test_parent_requeues_after_failed_attempts_when_budget_remains():
     root = ProofState("", "root")
     graph = ANDORGraph(root)

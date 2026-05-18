@@ -500,6 +500,19 @@ class BestFirstRollout:
                             )
                         )
                         continue
+                if action_type == "skeleton":
+                    target = BatchExecutor._subgoal_skeleton_target(graph, state)
+                    if target is not None:
+                        parent_state, skeleton, target_child_index = target
+                        prompts.append(
+                            self.prompt_builder.build_subgoal_skeleton(
+                                parent_state,
+                                skeleton,
+                                target_child_index,
+                                skeleton_feedbacks=self._skeleton_feedback_by_state.get(state, []),
+                            )
+                        )
+                        continue
                 prompts.append(
                     self.prompt_builder.build(
                         state,

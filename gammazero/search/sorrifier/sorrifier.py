@@ -18,7 +18,6 @@ from tqdm import tqdm
 
 # Đã cập nhật import theo môi trường hiện tại của bạn
 from gammazero.env import Lean4ServerScheduler
-from gammazero.env.ast_parser import get_lean_ast
 
 BLOCK_STARTERS = (
     "have", "·", ".", "cases ", "cases' ", "induction ", 
@@ -327,6 +326,8 @@ class Sorrifier:
         return sorted(fatal_errors), sorted(unsolved_goals)
 
     def _get_ast_lines(self) -> List[Dict]:
+        from gammazero.env.ast_parser import get_lean_ast
+
         blocks = get_lean_ast(self.current_content)
         raw_bytes = self.current_content.encode('utf-8')
         for b in blocks:
@@ -381,5 +382,4 @@ class Sorrifier:
         if not any(stripped.startswith(cmd) for cmd in BLOCK_STARTERS): return False
         if stripped.startswith("have") and ":=" not in stripped: return False
         return True
-
 

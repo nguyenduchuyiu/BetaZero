@@ -79,6 +79,102 @@ theorem my_theorem proposition := by
 """).strip()
 
 
+_SUBGOAL_SKELETON_INSTRUCTION = textwrap.dedent("""
+You are a Lean 4 Subgoal Skeleton Generator.
+
+You will be given the full parent proof scaffold, not an isolated theorem for
+the subgoal. Exactly one placeholder is written as `sorry`; that is the current
+subgoal you must decompose. Other sibling placeholders are written as `admit`;
+they are intentionally left for other search nodes.
+
+CRITICAL INSTRUCTIONS:
+1. Replace ONLY the unique `sorry` placeholder with a mini-skeleton proof.
+2. Your final Lean code block must contain the WHOLE parent theorem scaffold
+   from [PROBLEM], with only the unique `sorry` placeholder replaced.
+3. Do not change any code outside the subgoal marked by the unique `sorry`.
+   Keep every sibling `admit` exactly as an `admit`.
+4. Use the surrounding scaffold to preserve Lean's original elaboration context.
+
+MINI-SKELETON CONSTRAINTS:
+
+1. LEAF OBLIGATIONS ONLY:
+   Every new `sorry` in your replacement must appear only in a named
+   intermediate `have ... := sorry` statement. These named `have`s are the new
+   child subgoals for the search tree.
+
+2. NO TARGET-GOAL SORRY:
+   You are strictly forbidden from replacing the target with:
+     `have h_final : <target subgoal proposition> := sorry`
+   or any `have` whose proposition is syntactically identical or trivially
+   equivalent to the target subgoal with `:= sorry`.
+
+3. TARGET ASSEMBLY MUST BE SORRY-FREE:
+   After introducing the new leaf obligations, the replacement mini-skeleton
+   must close the target subgoal by combining those leaves and the surrounding
+   local context. The final assembly inside the target replacement may use
+   simple Lean proof terms/tactics such as:
+     `exact ...`
+     `apply ...`
+     `constructor`
+     `And.intro`
+     `Or.inl`, `Or.inr`
+     `Exists.intro`
+     tuple notation `⟨..., ...⟩`
+     `simpa using ...`
+   But the target assembly itself must not contain `sorry`.
+
+4. ALL IMPORTANT LEAVES MUST BE CONSUMED:
+   Each generated leaf obligation should be useful for closing the target
+   subgoal. Avoid decorative or unused facts. Prefer leaves that correspond
+   directly to missing proof pieces.
+
+5. PROGRESS REQUIREMENT:
+   Each new `sorry` obligation must be a strict decomposition of the target
+   subgoal. It should be simpler, narrower, or more local than the target.
+   Do not restate the target subgoal under another name.
+
+6. FLAT TOPOLOGY:
+   Avoid branching search tactics such as `cases`, `rcases`, `induction`,
+   `obtain`, or `by_cases` inside the mini-skeleton. If case analysis is
+   mathematically needed, create a named leaf obligation that packages the
+   needed result instead.
+
+7. IF NO USEFUL DECOMPOSITION EXISTS:
+   Output a minimal mini-skeleton with one genuinely useful intermediate lemma
+   if possible. If the target subgoal is already atomic and cannot be
+   decomposed, replace the unique `sorry` with `sorry`.
+
+OUTPUT FORMAT EXAMPLE:
+<think>
+[Briefly explain the local decomposition plan. Name the intermediate
+obligations and why they are strictly simpler/useful for closing the target
+subgoal.]
+</think>
+```lean4
+theorem my_theorem proposition := by
+  have h1 : intermediate_prop_1 := admit
+  -- This is the unique subgoal that must be decomposed.
+  have h2 : target_subgoal_prop := by
+    have h2a : smaller_prop_1 := sorry
+    have h2b : smaller_prop_2 := sorry
+    exact target_assembly_using h2a h2b
+  have h3 : intermediate_prop_3 := admit
+  exact final_assembly
+```
+
+BAD EXAMPLE:
+```lean4
+theorem my_theorem proposition := by
+  have h1 : intermediate_prop_1 := admit
+  have h2 : target_subgoal_prop := by
+    have h_final : target_subgoal_prop := sorry
+    exact h_final
+  have h3 : intermediate_prop_3 := admit
+  exact final_assembly
+```
+""").strip()
+
+
 _SKELETON_INSTRUCTION = textwrap.dedent("""
 You are a Dependency Skeleton Generator for a Lean 4 proof search tree.
 
@@ -227,6 +323,21 @@ def _format_subgoal_tactic_problem(
     )
 
 
+def _format_subgoal_skeleton_problem(
+    parent_state: ProofState,
+    skeleton: Action,
+    target_child_index: int,
+) -> str:
+    code = render_subgoal_tactic_code(parent_state, skeleton, target_child_index)
+    return (
+        "[PROBLEM]\n"
+        "```lean4\n"
+        f"{code}\n"
+        "```\n\n"
+        "Decompose the unique `sorry` placeholder only. The `admit` placeholders are sibling subgoals."
+    )
+
+
 def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -> list[dict[str, str]]:
     if action_type == "tactic":
         instruction = _ROOT_TACTIC_INSTRUCTION
@@ -279,6 +390,45 @@ def build_subgoal_tactic_prompt(
             "PREVIOUS SUBGOAL TACTIC ATTEMPTS FAILED.\n"
             "Use the Lean feedback below to produce a NEW parent scaffold for the same `sorry`. "
             "Do not repeat the failed tactic.\n\n"
+            + "\n\n".join(feedback_blocks[-max_feedbacks:])
+        )
+        user_msg_content += "\n\n" + feedback_block
+    return _format_chatml_from_messages(
+        [
+            {"role": "system", "content": full_system},
+            {"role": "user", "content": user_msg_content},
+            {"role": "assistant", "content": "<think>\n"},
+        ]
+    )
+
+
+def build_subgoal_skeleton_prompt(
+    parent_state: ProofState,
+    skeleton: Action,
+    target_child_index: int,
+    feedback_blocks: list[str] | None = None,
+    *,
+    max_feedbacks: int = 3,
+) -> str:
+    full_system = _SUBGOAL_SKELETON_INSTRUCTION + "\n\n" + textwrap.dedent(
+        """
+        OUTPUT INSTRUCTIONS
+        1. OUTPUT FORMAT: First output `<think>...</think>`, then output EXACTLY ONE valid ```lean4 ... ``` block.
+        2. The code block must contain the whole parent theorem scaffold.
+        3. Change only the unique `sorry` subgoal; leave sibling `admit` placeholders unchanged.
+        4. Do not add conversational text after the code block.
+        """
+    ).strip()
+    user_msg_content = _USER_BASE_INSTRUCTION + "\n" + _format_subgoal_skeleton_problem(
+        parent_state,
+        skeleton,
+        target_child_index,
+    )
+    if feedback_blocks:
+        feedback_block = (
+            "PREVIOUS SUBGOAL SKELETON ATTEMPTS FAILED.\n"
+            "Use the Lean feedback below to produce a NEW parent scaffold for the same `sorry`. "
+            "Do not repeat the failed mini-skeleton.\n\n"
             + "\n\n".join(feedback_blocks[-max_feedbacks:])
         )
         user_msg_content += "\n\n" + feedback_block
@@ -390,6 +540,22 @@ class SearchPromptBuilder:
             target_child_index,
             tactic_feedbacks or [],
             max_feedbacks=self.max_tactic_feedbacks,
+        )
+
+    def build_subgoal_skeleton(
+        self,
+        parent_state: ProofState,
+        skeleton: Action,
+        target_child_index: int,
+        *,
+        skeleton_feedbacks: list[str] | None = None,
+    ) -> str:
+        return build_subgoal_skeleton_prompt(
+            parent_state,
+            skeleton,
+            target_child_index,
+            skeleton_feedbacks or [],
+            max_feedbacks=self.max_skeleton_feedbacks,
         )
 
     def format_tactic_feedback(self, lean_code: str, lean_feedback: str) -> str:

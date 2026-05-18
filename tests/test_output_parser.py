@@ -3,7 +3,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from gammazero.policy.output_parser import get_lean_code, get_subgoal_tactic_code
+from gammazero.policy.output_parser import (
+    get_lean_code,
+    get_subgoal_skeleton_code,
+    get_subgoal_tactic_code,
+)
 
 
 def test_get_lean_code_requires_final_fence():
@@ -86,3 +90,20 @@ theorem my_theorem (h : True) (Child Sibling : Prop) : True := by
     skeleton = "have h_child : Child := sorry\nhave h_sibling : Sibling := sorry\ntrivial"
 
     assert get_subgoal_tactic_code(raw, skeleton, 0) == "exact h\nexact h"
+
+
+def test_get_subgoal_skeleton_code_extracts_mini_skeleton_with_new_sorries():
+    raw = """```lean4
+theorem my_theorem (h : True) (Child Sibling : Prop) : True := by
+  have h_child : Child := by
+    have h_part : True := sorry
+    exact h
+  have h_sibling : Sibling := by admit
+  trivial
+```"""
+    skeleton = "have h_child : Child := sorry\nhave h_sibling : Sibling := sorry\ntrivial"
+
+    assert get_subgoal_skeleton_code(raw, skeleton, 0) == (
+        "have h_part : True := sorry\n"
+        "exact h"
+    )

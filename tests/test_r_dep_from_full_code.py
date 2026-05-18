@@ -1,6 +1,8 @@
 import pytest
 
+from gammazero.core import Action, ProofState
 from gammazero.env.lean_env import LeanEnv
+from gammazero.search.graph import ANDORGraph
 from gammazero.search.reward.calculator import RewardCalculator
 from gammazero.search.reward.reward_assigner import DependencyRewardAssigner
 
@@ -192,3 +194,67 @@ def test_calculate_patched_tactic_r_dep_scores_sorry_scaffolding(
 
     print(f"{name}: r_dep={score:.4f}, vars={sorted(lean.allowed_vars or [])}")
     assert score == expected
+
+
+def test_stitched_subgoal_skeleton_r_dep_scores_target_in_parent_scaffold():
+    root = ProofState("hp : Part\nChild Sibling Part : Prop", "True")
+    child = ProofState("hp : Part\nChild Sibling Part : Prop", "Child")
+    sibling = ProofState("hp : Part\nChild Sibling Part : Prop", "Sibling")
+    part = ProofState("hp : Part\nChild Sibling Part : Prop", "Part")
+    graph = ANDORGraph(root)
+    parent_skeleton = Action(
+        "skeleton",
+        "parent",
+        extracted_code=(
+            "have h_child : Child := sorry\n"
+            "have h_sibling : Sibling := sorry\n"
+            "trivial"
+        ),
+        children=(child, sibling),
+    )
+    mini_skeleton = Action(
+        "skeleton",
+        "mini",
+        extracted_code=(
+            "have h_part : Part := sorry\n"
+            "exact h_part"
+        ),
+        children=(part,),
+    )
+    part_tactic = Action("tactic", "part", extracted_code="exact hp")
+    graph.expand(root, parent_skeleton, r_env=1.0)
+    graph.expand(child, mini_skeleton, r_env=1.0)
+    graph.expand(part, part_tactic, r_env=1.0, tactic_status="SOLVED")
+
+    class TargetedLean:
+        def __init__(self):
+            self.verify_calls = []
+            self.analysis_calls = []
+
+        def verify(self, code):
+            self.verify_calls.append(code)
+            return {"pass": True, "complete": False, "errors": [], "warnings": [], "sorries": []}
+
+        def analyze_dependencies(self, proof_code, allowed_vars=None, target_name=None):
+            self.analysis_calls.append((proof_code, set(allowed_vars or set()), target_name))
+            if target_name == "h_child" and allowed_vars == {"h_part"}:
+                return {
+                    "core_solved": ["MAIN_GOAL"],
+                    "core_failed": [],
+                    "benign": [],
+                    "malignant": [],
+                }
+            return {
+                "core_solved": [],
+                "core_failed": ["MAIN_GOAL"],
+                "benign": [],
+                "malignant": [],
+            }
+
+    lean = TargetedLean()
+    DependencyRewardAssigner(lean, RewardCalculator()).stitch_and_score_skeletons(graph)
+
+    assert graph._r_dep[mini_skeleton] == 1.0
+    assert lean.analysis_calls[-1][1] == {"h_part"}
+    assert lean.analysis_calls[-1][2] == "h_child"
+    assert "have h_sibling : Sibling := by\n    admit" in lean.analysis_calls[-1][0]

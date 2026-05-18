@@ -88,12 +88,30 @@ class DependencyRewardAssigner:
                 continue
 
             stitched_code = self._stitch_child_proofs(graph, action)
-            r_dep_score, garbage_vars, solved_by_stitched_proof = self._score_stitched_skeleton(
-                parent_state,
-                action.extracted_code,
-                stitched_code,
-                graph.get_r_env(action),
-            )
+            parent_skeleton_target = self._parent_skeleton_target(graph, parent_state)
+            if parent_skeleton_target is not None:
+                (
+                    grandparent_state,
+                    parent_skeleton,
+                    target_child_index,
+                ) = parent_skeleton_target
+                r_dep_score, garbage_vars, solved_by_stitched_proof = (
+                    self._score_stitched_subgoal_skeleton(
+                        grandparent_state,
+                        parent_skeleton,
+                        target_child_index,
+                        action.extracted_code,
+                        stitched_code,
+                        graph.get_r_env(action),
+                    )
+                )
+            else:
+                r_dep_score, garbage_vars, solved_by_stitched_proof = self._score_stitched_skeleton(
+                    parent_state,
+                    action.extracted_code,
+                    stitched_code,
+                    graph.get_r_env(action),
+                )
 
             if solved_by_stitched_proof:
                 if garbage_vars:
@@ -109,6 +127,44 @@ class DependencyRewardAssigner:
     def _stitch_child_proofs(graph: ANDORGraph, action) -> str:
         child_proofs = [graph.extract_proof_code(child) for child in action.children]
         return ProofStitcher.stitch(action.extracted_code, child_proofs)
+
+    @staticmethod
+    def _parent_skeleton_target(
+        graph: ANDORGraph,
+        state,
+    ):
+        for parent_state, action, child_index in graph.parent_skeleton_items_for_state(state):
+            if graph.status(action) != "FAILED":
+                return parent_state, action, child_index
+        return None
+
+    @staticmethod
+    def _skeleton_with_target_replacement(
+        skeleton,
+        target_child_index: int,
+        replacement_code: str,
+    ) -> str:
+        child_proofs = [
+            replacement_code if idx == target_child_index else "admit"
+            for idx, _ in enumerate(skeleton.children)
+        ]
+        return ProofStitcher.stitch(skeleton.extracted_code, child_proofs)
+
+    @staticmethod
+    def _target_decl_name(skeleton_code: str, target_child_index: int) -> str | None:
+        matches = list(re.finditer(r"\bsorry\b", skeleton_code or ""))
+        if target_child_index < 0 or target_child_index >= len(matches):
+            return None
+        prefix = skeleton_code[: matches[target_child_index].start()]
+        decl_matches = list(
+            re.finditer(
+                r"(?:^|\n)\s*(?:have|let)\s+([A-Za-z_][A-Za-z0-9_']*)\b",
+                prefix,
+            )
+        )
+        if not decl_matches:
+            return None
+        return decl_matches[-1].group(1)
 
     def _score_stitched_skeleton(
         self,
@@ -149,6 +205,44 @@ class DependencyRewardAssigner:
         )
         solved_by_stitched_proof = cleaned_complete and r_dep_score > 0
         return (r_dep_score if solved_by_stitched_proof else 0.0), garbage_vars, solved_by_stitched_proof
+
+    def _score_stitched_subgoal_skeleton(
+        self,
+        grandparent_state,
+        parent_skeleton,
+        target_child_index: int,
+        mini_skeleton_code: str,
+        stitched_mini_code: str,
+        r_env: float,
+    ) -> tuple[float, list[str], bool]:
+        if not mini_skeleton_code or r_env != 1.0:
+            return 0.0, [], False
+
+        mini_subgoal_vars = self._extract_sorry_vars(mini_skeleton_code)
+        parent_stitched_code = self._skeleton_with_target_replacement(
+            parent_skeleton,
+            target_child_index,
+            stitched_mini_code,
+        )
+        if self._has_real_sorry(stitched_mini_code):
+            return 0.0, [], False
+
+        target_name = self._target_decl_name(parent_skeleton.extracted_code, target_child_index)
+        if target_name is None:
+            return 0.0, [], False
+
+        full_code = build_theorem(grandparent_state, parent_stitched_code)
+        verified = self.lean.verify(full_code)
+        if not verified.get("pass"):
+            return 0.0, [], False
+
+        dep_analysis = self.lean.analyze_dependencies(
+            full_code,
+            allowed_vars=mini_subgoal_vars,
+            target_name=target_name,
+        )
+        r_dep_score = self._score_dependency_analysis(dep_analysis)
+        return (r_dep_score if r_dep_score > 0 else 0.0), [], r_dep_score > 0
 
     def _analyze_stitched_dependencies(
         self,

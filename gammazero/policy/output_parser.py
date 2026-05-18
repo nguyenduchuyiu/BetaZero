@@ -127,3 +127,47 @@ def get_subgoal_tactic_code(raw: str, skeleton_code: str, target_child_index: in
     if not replacement_clean or replacement_clean in {"sorry", "admit"}:
         return ""
     return replacement
+
+
+def get_subgoal_skeleton_code(raw: str, skeleton_code: str, target_child_index: int) -> str:
+    """Extract the mini-skeleton replacing one parent-skeleton `sorry`.
+
+    Unlike tactic extraction, a skeleton replacement is allowed to contain new
+    `sorry` leaves. Sibling placeholders in the returned parent scaffold must
+    remain as `admit`.
+    """
+    code_block = _final_lean_block(raw)
+    if not code_block:
+        return ""
+
+    if not _LEAN_HEADER.search(code_block) or not _PROOF_DIVIDER.search(code_block):
+        return get_lean_code(raw, allow_body=True)
+
+    divider_match = _PROOF_DIVIDER.search(code_block)
+    if not divider_match:
+        return ""
+
+    proof_body = textwrap.dedent(code_block[divider_match.end():]).strip("\n")
+    skeleton_body = textwrap.dedent(skeleton_code or "").strip("\n")
+    parts = re.split(r"\bsorry\b", skeleton_body)
+    sorry_count = len(parts) - 1
+    if sorry_count <= 0 or target_child_index < 0 or target_child_index >= sorry_count:
+        return ""
+
+    pattern = re.escape(parts[0])
+    for i in range(sorry_count):
+        if i == target_child_index:
+            pattern += r"(?P<replacement>.*?)"
+        else:
+            pattern += r"(?:by\s+admit|admit)"
+        pattern += re.escape(parts[i + 1])
+
+    match = re.search(pattern, proof_body, flags=re.DOTALL)
+    if not match:
+        return ""
+
+    replacement = _strip_leading_by(match.group("replacement"))
+    replacement_clean = strip_lean_comments(replacement).strip()
+    if not replacement_clean or replacement_clean == "admit":
+        return ""
+    return replacement

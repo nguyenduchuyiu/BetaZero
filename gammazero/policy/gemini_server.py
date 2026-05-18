@@ -1,6 +1,6 @@
 import os
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from google import genai
 from google.genai import types
 
@@ -92,20 +92,37 @@ class GeminiAPIServer:
             for _ in range(n):
                 requests_args.append((i, prompt))
                 
-        def _one_request(args):
+        def _one_request(req_idx: int, args):
             i, prompt = args
+            started = time.time()
             for attempt in range(1, self.max_retries + 1):
                 resp = self._get_gemini_response(prompt)
                 if resp is not None:
-                    return i, {"text": resp}
+                    elapsed = time.time() - started
+                    print(
+                        f"[Gemini API] Received completion {req_idx + 1}/{len(requests_args)} "
+                        f"(state={i}, attempt={attempt}, chars={len(resp)}, elapsed={elapsed:.1f}s)",
+                        flush=True,
+                    )
+                    return req_idx, i, {"text": resp}
                 time.sleep(self.retry_delay)
-            return i, {"text": ""}
+            elapsed = time.time() - started
+            print(
+                f"[Gemini API] Completion {req_idx + 1}/{len(requests_args)} failed after "
+                f"{self.max_retries} attempts (state={i}, elapsed={elapsed:.1f}s)",
+                flush=True,
+            )
+            return req_idx, i, {"text": ""}
 
         print(f"[Gemini API] Generating {len(requests_args)} completions in parallel (batch_size={self.batch_size})...")
         with ThreadPoolExecutor(max_workers=self.batch_size) as executor:
-            outcomes = list(executor.map(_one_request, requests_args))
+            futures = [
+                executor.submit(_one_request, req_idx, args)
+                for req_idx, args in enumerate(requests_args)
+            ]
+            outcomes = [future.result() for future in as_completed(futures)]
             
-        for i, res in outcomes:
+        for _, i, res in sorted(outcomes, key=lambda item: item[0]):
             results[i].append(res)
                 
         return results

@@ -1,7 +1,5 @@
 from gammazero.core import ProofState
-from gammazero.env.ast_parser import get_lean_ast
 from gammazero.env import Lean4ServerScheduler
-from gammazero.env.expr_parser import get_lean_expr_tree
 from gammazero.utils.lean_parse import parse_proof_state
 from gammazero.utils.lean_cmd import build_theorem
 
@@ -30,6 +28,8 @@ class LeanEnv:
         return candidate_code, vr, subgoals
 
     def get_ast(self, code: str) -> list:
+        from gammazero.env.ast_parser import get_lean_ast
+
         return get_lean_ast(code)
 
     def analyze_dependencies(
@@ -42,6 +42,7 @@ class LeanEnv:
         Classify subgoals using Lean 4 Expr Tree deep analysis.
         Returns classifications for: core_solved, core_failed, malignant, benign.
         """
+        from gammazero.env.expr_parser import get_lean_expr_tree
         from gammazero.search.sorrifier.dependency_analyzer import SHARED_EXPR_ANALYZER
         ast_expr_list = get_lean_expr_tree(proof_code)
         

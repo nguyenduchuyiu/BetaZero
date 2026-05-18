@@ -4,7 +4,6 @@ __all__ = [
     "BestFirstRollout",
     "DependencyRewardAssigner",
     "FailureHandler",
-    "GRPOTrainer",
     "LevelwiseRollout",
     "RewardCalculator",
     "RolloutBudget",
@@ -37,8 +36,4 @@ def __getattr__(name):
         from .sorrifier import Sorrifier
 
         return Sorrifier
-    if name == "GRPOTrainer":
-        from .trainer import GRPOTrainer
-
-        return GRPOTrainer
     raise AttributeError(name)
