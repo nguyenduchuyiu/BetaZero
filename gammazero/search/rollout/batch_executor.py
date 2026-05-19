@@ -241,40 +241,65 @@ class BatchExecutor:
         prompt: str,
     ) -> FailedActionPatch:
         """Patch a failed subgoal tactic in parent context, then score target lines only."""
-        sorrifier = self.failure._new_sorrifier()
-        patched = sorrifier.fix_code(candidate_code)
-        patched_vr = self.lean.verify(patched)
-        patched_raw = f"```lean4\n{patched}\n```"
-        patched_action_code = get_subgoal_tactic_code(
-            patched_raw,
-            skeleton.extracted_code,
-            target_child_index,
-        )
-        if not patched_action_code:
-            patched_action_code = "sorry"
+        try:
+            sorrifier = self.failure._new_sorrifier()
+            patched = sorrifier.fix_code(candidate_code)
+            patched_vr = self.lean.verify(patched)
+            patched_raw = f"```lean4\n{patched}\n```"
+            patched_action_code = get_subgoal_tactic_code(
+                patched_raw,
+                skeleton.extracted_code,
+                target_child_index,
+            )
+            if not patched_action_code:
+                patched_action_code = "sorry"
 
-        full_orig = self._subgoal_target_score_code(
-            parent_state,
-            skeleton,
-            target_child_index,
-            action_code,
-        )
-        full_patched = self._subgoal_target_score_code(
-            parent_state,
-            skeleton,
-            target_child_index,
-            patched_action_code,
-        )
-        r_fail = self.reward.r_env(full_orig, full_patched, patched_vr)
-        r_dep = 0.0
-        if patched_vr.get("pass"):
-            target_name = self._subgoal_target_decl_name(skeleton, target_child_index)
-            if target_name is not None:
-                r_dep = self.reward_assigner.calculate_patched_tactic_r_dep(
-                    patched,
-                    patched_action_code,
-                    target_name=target_name,
-                )
+            full_orig = self._subgoal_target_score_code(
+                parent_state,
+                skeleton,
+                target_child_index,
+                action_code,
+            )
+            full_patched = self._subgoal_target_score_code(
+                parent_state,
+                skeleton,
+                target_child_index,
+                patched_action_code,
+            )
+            r_fail = self.reward.r_env(full_orig, full_patched, patched_vr)
+            r_dep = 0.0
+            if patched_vr.get("pass"):
+                target_name = self._subgoal_target_decl_name(skeleton, target_child_index)
+                if target_name is not None:
+                    r_dep = self.reward_assigner.calculate_patched_tactic_r_dep(
+                        patched,
+                        patched_action_code,
+                        target_name=target_name,
+                    )
+        except Exception as e:
+            print(
+                "[BatchExecutor] Sorrifier failed while patching subgoal tactic: "
+                f"{type(e).__name__}: {e}",
+                flush=True,
+            )
+            print(
+                f"[BatchExecutor] Child goal: {child_state.goal[:240]} "
+                f"(target_child_index={target_child_index})",
+                flush=True,
+            )
+            print(f"[BatchExecutor] Parent goal: {parent_state.goal[:240]}", flush=True)
+            patched = candidate_code
+            patched_vr = {
+                "pass": False,
+                "complete": False,
+                "errors": [],
+                "warnings": [],
+                "sorries": [],
+                "system_errors": f"Sorrifier failed: {type(e).__name__}: {e}",
+            }
+            patched_action_code = "sorry"
+            r_fail = 0.0
+            r_dep = 0.0
 
         return FailedActionPatch(
             state=child_state,
@@ -302,31 +327,55 @@ class BatchExecutor:
         prompt: str,
     ) -> FailedActionPatch:
         """Patch a failed mini-skeleton in parent context, then score target lines only."""
-        sorrifier = self.failure._new_sorrifier()
-        patched = sorrifier.fix_code(candidate_code)
-        patched_vr = self.lean.verify(patched)
-        patched_raw = f"```lean4\n{patched}\n```"
-        patched_action_code = get_subgoal_skeleton_code(
-            patched_raw,
-            skeleton.extracted_code,
-            target_child_index,
-        )
-        if not patched_action_code:
-            patched_action_code = "sorry"
+        try:
+            sorrifier = self.failure._new_sorrifier()
+            patched = sorrifier.fix_code(candidate_code)
+            patched_vr = self.lean.verify(patched)
+            patched_raw = f"```lean4\n{patched}\n```"
+            patched_action_code = get_subgoal_skeleton_code(
+                patched_raw,
+                skeleton.extracted_code,
+                target_child_index,
+            )
+            if not patched_action_code:
+                patched_action_code = "sorry"
 
-        full_orig = self._subgoal_target_score_code(
-            parent_state,
-            skeleton,
-            target_child_index,
-            action_code,
-        )
-        full_patched = self._subgoal_target_score_code(
-            parent_state,
-            skeleton,
-            target_child_index,
-            patched_action_code,
-        )
-        r_fail = self.reward.r_env(full_orig, full_patched, patched_vr)
+            full_orig = self._subgoal_target_score_code(
+                parent_state,
+                skeleton,
+                target_child_index,
+                action_code,
+            )
+            full_patched = self._subgoal_target_score_code(
+                parent_state,
+                skeleton,
+                target_child_index,
+                patched_action_code,
+            )
+            r_fail = self.reward.r_env(full_orig, full_patched, patched_vr)
+        except Exception as e:
+            print(
+                "[BatchExecutor] Sorrifier failed while patching subgoal skeleton: "
+                f"{type(e).__name__}: {e}",
+                flush=True,
+            )
+            print(
+                f"[BatchExecutor] Child goal: {child_state.goal[:240]} "
+                f"(target_child_index={target_child_index})",
+                flush=True,
+            )
+            print(f"[BatchExecutor] Parent goal: {parent_state.goal[:240]}", flush=True)
+            patched = candidate_code
+            patched_vr = {
+                "pass": False,
+                "complete": False,
+                "errors": [],
+                "warnings": [],
+                "sorries": [],
+                "system_errors": f"Sorrifier failed: {type(e).__name__}: {e}",
+            }
+            patched_action_code = "sorry"
+            r_fail = 0.0
 
         return FailedActionPatch(
             state=child_state,
@@ -383,7 +432,17 @@ class BatchExecutor:
             [None] * len(actions) for actions in action_batches
         ]
         patch_futures: list[
-            tuple[int, int, str, dict, concurrent.futures.Future[FailedActionPatch]]
+            tuple[
+                int,
+                int,
+                ProofState,
+                str,
+                str,
+                str,
+                str,
+                dict,
+                concurrent.futures.Future[FailedActionPatch],
+            ]
         ] = []
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=self._max_workers) as pool:
@@ -528,7 +587,9 @@ class BatchExecutor:
                                 state_code,
                                 prompt,
                             )
-                            patch_futures.append((i, j, lean_code, state_vr, fut))
+                            patch_futures.append(
+                                (i, j, state, "tactic", raw_output, prompt, lean_code, state_vr, fut)
+                            )
                         else:
                             graph.expand(
                                 state,
@@ -614,7 +675,9 @@ class BatchExecutor:
                             state_code,
                             prompt,
                         )
-                        patch_futures.append((i, j, lean_code, state_vr, fut))
+                        patch_futures.append(
+                            (i, j, state, "skeleton", raw_output, prompt, lean_code, state_vr, fut)
+                        )
                         feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), "")
                     continue
 
@@ -653,7 +716,9 @@ class BatchExecutor:
                         state_vr,
                         prompt,
                     )
-                    patch_futures.append((i, j, lean_code, state_vr, fut))
+                    patch_futures.append(
+                        (i, j, state, action_type, raw_output, prompt, lean_code, state_vr, fut)
+                    )
                     
                 elif action_type == "skeleton":
                     if state_vr.get("pass"):
@@ -699,12 +764,53 @@ class BatchExecutor:
                             state_vr,
                             prompt,
                         )
-                        patch_futures.append((i, j, lean_code, state_vr, fut))
+                        patch_futures.append(
+                            (i, j, state, action_type, raw_output, prompt, lean_code, state_vr, fut)
+                        )
                 else:
                     raise ValueError(f"Invalid action type: {action_type}")
 
-            for i, j, lean_code, state_vr, future in patch_futures:
-                patch = future.result()
+            for (
+                i,
+                j,
+                state,
+                action_kind,
+                raw_output,
+                prompt,
+                lean_code,
+                state_vr,
+                future,
+            ) in patch_futures:
+                try:
+                    patch = future.result()
+                except Exception as e:
+                    print(
+                        f"[BatchExecutor] Patch future crashed for {action_kind}: "
+                        f"{type(e).__name__}: {e}",
+                        flush=True,
+                    )
+                    print(f"[BatchExecutor] Goal: {state.goal[:240]}", flush=True)
+                    graph.expand(
+                        state,
+                        Action(
+                            action_type=action_kind,
+                            content=raw_output,
+                            extracted_code=lean_code,
+                            children=(),
+                            prompt=prompt,
+                        ),
+                        r_env=0.0,
+                        r_dep=0.0,
+                        tactic_status="FAILED" if action_kind == "tactic" else None,
+                    )
+                    feedback = format_lean_feedback(state_vr)
+                    suffix = f"Sorrifier failed: {type(e).__name__}: {e}"
+                    feedbacks[i][j] = (
+                        lean_code,
+                        f"{feedback}\n{suffix}" if feedback else suffix,
+                        "",
+                    )
+                    continue
                 sorr_body = self.failure.apply_failed_action_patch(graph, patch)
                 feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), sorr_body)
 

@@ -32,11 +32,13 @@ def sanitize_header(code: str) -> str:
 
 
 def build_theorem(state: ProofState, code: str, *, name: str = "my_theorem") -> str:
-    params = [
-        f"({line.strip()})"
-        for line in (state.context or "").splitlines()
-        if line.strip() and ":" in line and not line.strip().startswith("case ")
-    ]
+    params = []
+    for line in (state.context or "").splitlines():
+        if line.strip() and ":" in line and not line.strip().startswith("case "):
+            decl = line.strip()
+            if ":=" in decl:
+                decl = decl.split(":=")[0].strip()
+            params.append(f"({decl})")
     param_str = (" ".join(params) + " ") if params else ""
 
     import textwrap

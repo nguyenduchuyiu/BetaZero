@@ -58,8 +58,7 @@ CRITICAL INSTRUCTIONS:
    proof.
 3. Do not change any code outside the subgoal marked by the unique `sorry`.
    Keep every sibling `admit` exactly as an `admit`.
-4. The replacement proof for the target subgoal must not contain `sorry` or `admit` outside
-   comments.
+4. The replacement proof for the target subgoal must not contain `sorry` or `admit` in tactics.
 5. Use the surrounding scaffold to preserve Lean's original elaboration context.
 
 OUTPUT FORMAT EXAMPLE:
@@ -70,7 +69,7 @@ OUTPUT FORMAT EXAMPLE:
 theorem my_theorem proposition := by
   have h1 : intermediate_prop_1 := admit
   have h2 : intermediate_prop_2 := admit
-  -- This is the unique subgoal that must be solved.
+  -- This is the unique subgoal that must be solved and cannot contain `sorry` or `admit` in tactics.
   have h3 : target_subgoal_prop := by
     [Your tactic]
   have h4 : intermediate_prop_4 := admit

@@ -52,6 +52,12 @@ class FailureHandler:
     ) -> None:
         """Timeout / crash / transport errors: penalize graph edge; do not run sorrifier."""
         r = 0.0
+        print(
+            f"[FailureHandler] System failure while executing {action_kind}: "
+            f"{result.system_errors or 'unknown transport error'}",
+            flush=True,
+        )
+        print(f"[FailureHandler] Goal: {state.goal[:240]}", flush=True)
         graph.expand(
             state,
             Action(
@@ -89,27 +95,53 @@ class FailureHandler:
         prompt: str = "",
     ) -> FailedActionPatch:
         """Run the expensive, side-effect-free patching work for a failed action."""
-        sorrifier = self._new_sorrifier()
-        patched = sorrifier.fix_code(state_code)
-        patched_vr = self.lean.verify(patched)
-        patched_action_code = extract_proof_body(patched)
+        try:
+            sorrifier = self._new_sorrifier()
+            patched = sorrifier.fix_code(state_code)
+            patched_vr = self.lean.verify(patched)
+            patched_action_code = extract_proof_body(patched)
 
-        full_orig = build_theorem(state, lean_code)
-        full_patched = build_theorem(state, patched_action_code)
-        r_fail = self.reward.r_env(full_orig, full_patched, patched_vr)
-        r_dep = 0.0
-        if action_kind == "tactic" and patched_vr.get("pass"):
-            r_dep = self.reward_assigner.calculate_patched_tactic_r_dep(
-                full_patched,
-                patched_action_code,
-            )
+            full_orig = build_theorem(state, lean_code)
+            full_patched = build_theorem(state, patched_action_code)
+            r_fail = self.reward.r_env(full_orig, full_patched, patched_vr)
+            r_dep = 0.0
+            if action_kind == "tactic" and patched_vr.get("pass"):
+                r_dep = self.reward_assigner.calculate_patched_tactic_r_dep(
+                    full_patched,
+                    patched_action_code,
+                )
 
-        new_subgoals: tuple[ProofState, ...] = ()
-        if action_kind == "skeleton":
-            new_subgoals = tuple(
-                parse_proof_state(s.get("goal", ""), header=state.header)
+            new_subgoals: tuple[ProofState, ...] = ()
+            if action_kind == "skeleton":
+                new_subgoals = tuple(
+                    parse_proof_state(s.get("goal", ""), header=state.header)
                 for s in patched_vr.get("sorries", [])
             )
+        except Exception as e:
+            first_error = ""
+            if state_vr.get("errors"):
+                first_error = state_vr["errors"][0].get("data", "")
+            print(
+                f"[FailureHandler] Sorrifier failed while patching {action_kind}: "
+                f"{type(e).__name__}: {e}",
+                flush=True,
+            )
+            print(f"[FailureHandler] Goal: {state.goal[:240]}", flush=True)
+            if first_error:
+                print(f"[FailureHandler] Original Lean error: {first_error[:500]}", flush=True)
+            patched = state_code
+            patched_vr = {
+                "pass": False,
+                "complete": False,
+                "errors": [],
+                "warnings": [],
+                "sorries": [],
+                "system_errors": f"Sorrifier failed: {type(e).__name__}: {e}",
+            }
+            patched_action_code = "sorry"
+            r_fail = 0.0
+            r_dep = 0.0
+            new_subgoals = ()
 
         return FailedActionPatch(
             state=state,
