@@ -307,8 +307,13 @@ class ANDORGraph:
         if action.action_type == "tactic":
             return action.extracted_code
 
+        if self._skeleton_override.get(action) is not True:
+            return None
+
         # Skeleton: recurse down to children
         child_proofs = [self._extract_proof_code(child, visiting) for child in action.children]
+        if any(proof is None for proof in child_proofs):
+            return None
         
         stitched = ProofStitcher.stitch(action.extracted_code, child_proofs)
         

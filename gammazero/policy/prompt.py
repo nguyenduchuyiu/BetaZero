@@ -4,6 +4,11 @@ import re
 
 from gammazero.core.nodes import Action, ProofState
 from gammazero.utils.lean_cmd import build_theorem
+from gammazero.utils.scaffold import (
+    render_single_target_scaffold,
+    sorry_index_after_replacement,
+    target_subgoal_label,
+)
 
 _OUTPUT_FORMAT_INSTRUCTION = textwrap.dedent(
 """
@@ -50,9 +55,11 @@ You will be given the full parent proof scaffold, not an isolated theorem for
 the subgoal. Exactly one placeholder is written as `sorry`; that is the current
 subgoal you must solve. Other sibling placeholders are written as `admit`; they
 are intentionally left for other search nodes.
+The user message names the target in a TARGET SUBGOAL section.
 
 CRITICAL INSTRUCTIONS:
-1. Solve ONLY the unique `sorry` placeholder. Do not solve or edit any `admit`.
+1. Solve ONLY the named TARGET SUBGOAL, which is also the unique `sorry`
+   placeholder. Do not solve or edit any `admit`.
 2. Your final Lean code block must contain the WHOLE parent theorem scaffold
    from [PROBLEM], with only the unique `sorry` placeholder replaced by your
    proof.
@@ -85,9 +92,11 @@ You will be given the full parent proof scaffold, not an isolated theorem for
 the subgoal. Exactly one placeholder is written as `sorry`; that is the current
 subgoal you must decompose. Other sibling placeholders are written as `admit`;
 they are intentionally left for other search nodes.
+The user message names the target in a TARGET SUBGOAL section.
 
 CRITICAL INSTRUCTIONS:
-1. Replace ONLY the unique `sorry` placeholder with a mini-skeleton proof.
+1. Replace ONLY the named TARGET SUBGOAL, which is also the unique `sorry`
+   placeholder, with a mini-skeleton proof.
 2. Your final Lean code block must contain the WHOLE parent theorem scaffold
    from [PROBLEM], with only the unique `sorry` placeholder replaced.
 3. Do not change any code outside the subgoal marked by the unique `sorry`.
@@ -140,8 +149,9 @@ MINI-SKELETON CONSTRAINTS:
 
 7. IF NO USEFUL DECOMPOSITION EXISTS:
    Output a minimal mini-skeleton with one genuinely useful intermediate lemma
-   if possible. If the target subgoal is already atomic and cannot be
-   decomposed, replace the unique `sorry` with `sorry`.
+   if possible. Do not leave the target subgoal as a naked `sorry`; if no valid
+   decomposition exists, produce the best named leaf obligation and close the
+   target assembly from that leaf.
 
 OUTPUT FORMAT EXAMPLE:
 <think>
@@ -224,7 +234,9 @@ CRITICAL CONSTRAINTS:
 
 7. IF NO USEFUL DECOMPOSITION EXISTS:
    Output a minimal skeleton with one genuinely useful intermediate lemma if possible.
-   If the goal is already atomic and cannot be decomposed, output `sorry`.
+   Do not leave the final goal as a naked `sorry`; if no valid decomposition
+   exists, produce the best named leaf obligation and close the final assembly
+   from that leaf.
 
 GOOD EXAMPLE:
 ```lean4
@@ -280,8 +292,23 @@ def _format_chatml_from_messages(messages: list[dict[str, str]]) -> str:
         res = res.rsplit("\n<|im_end|>", 1)[0]
     return clean_prompt(res)
 
+
+def _build_chatml_prompt(system: str, user: str, assistant_prefill: str = "<think>\n") -> str:
+    return _format_chatml_from_messages(
+        [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+            {"role": "assistant", "content": assistant_prefill},
+        ]
+    )
+
+
 def _format_problem(state: ProofState) -> str:
-    code = build_theorem(state, "sorry", name="my_theorem").rstrip()
+    code = (
+        render_single_target_scaffold(state.scaffold_code, state.target_index).rstrip()
+        if state.scaffold_code
+        else build_theorem(state, "sorry", name="my_theorem").rstrip()
+    )
     return (
         "[PROBLEM]\n"
         "```lean4\n"
@@ -294,16 +321,39 @@ def render_subgoal_tactic_code(
     parent_state: ProofState,
     skeleton: Action,
     target_child_index: int,
+    child_state: ProofState | None = None,
 ) -> str:
+    if child_state is not None and child_state.scaffold_code:
+        return render_single_target_scaffold(
+            child_state.scaffold_code,
+            child_state.target_index,
+        ).rstrip()
+
     parts = re.split(r"\bsorry\b", skeleton.extracted_code)
     sorry_count = len(parts) - 1
     if sorry_count != len(skeleton.children) or target_child_index >= sorry_count:
+        if parent_state.scaffold_code:
+            return render_single_target_scaffold(
+                parent_state.scaffold_code,
+                parent_state.target_index,
+            ).rstrip()
         return build_theorem(parent_state, skeleton.extracted_code, name="my_theorem").rstrip()
 
     body = parts[0]
     for i in range(sorry_count):
         body += "sorry" if i == target_child_index else "by admit"
         body += parts[i + 1]
+    if parent_state.scaffold_code:
+        from gammazero.utils.scaffold import replace_sorry_at
+
+        scaffold = replace_sorry_at(parent_state.scaffold_code, parent_state.target_index, body)
+        target_index = sorry_index_after_replacement(
+            parent_state.scaffold_code,
+            parent_state.target_index,
+            body,
+            target_child_index,
+        )
+        return render_single_target_scaffold(scaffold, target_index).rstrip()
     return build_theorem(parent_state, body, name="my_theorem").rstrip()
 
 
@@ -311,14 +361,30 @@ def _format_subgoal_tactic_problem(
     parent_state: ProofState,
     skeleton: Action,
     target_child_index: int,
+    child_state: ProofState | None = None,
 ) -> str:
-    code = render_subgoal_tactic_code(parent_state, skeleton, target_child_index)
+    code = render_subgoal_tactic_code(parent_state, skeleton, target_child_index, child_state)
+    target_label = target_subgoal_label(
+        skeleton.extracted_code,
+        target_child_index,
+        target_kind="skeleton_child",
+    )
+    target_goal = (
+        skeleton.children[target_child_index].goal
+        if 0 <= target_child_index < len(skeleton.children)
+        else ""
+    )
     return (
         "[PROBLEM]\n"
         "```lean4\n"
         f"{code}\n"
         "```\n\n"
-        "Solve the unique `sorry` placeholder only. The `admit` placeholders are sibling subgoals."
+        "[TARGET SUBGOAL]\n"
+        f"name: {target_label}\n"
+        f"child_index: {target_child_index}\n"
+        f"goal: {target_goal}\n\n"
+        f"Solve exactly the `sorry` for target subgoal `{target_label}`. "
+        "The `admit` placeholders are sibling subgoals."
     )
 
 
@@ -326,40 +392,65 @@ def _format_subgoal_skeleton_problem(
     parent_state: ProofState,
     skeleton: Action,
     target_child_index: int,
+    child_state: ProofState | None = None,
 ) -> str:
-    code = render_subgoal_tactic_code(parent_state, skeleton, target_child_index)
+    code = render_subgoal_tactic_code(parent_state, skeleton, target_child_index, child_state)
+    target_label = target_subgoal_label(
+        skeleton.extracted_code,
+        target_child_index,
+        target_kind="skeleton_child",
+    )
+    target_goal = (
+        skeleton.children[target_child_index].goal
+        if 0 <= target_child_index < len(skeleton.children)
+        else ""
+    )
     return (
         "[PROBLEM]\n"
         "```lean4\n"
         f"{code}\n"
         "```\n\n"
-        "Decompose the unique `sorry` placeholder only. The `admit` placeholders are sibling subgoals."
+        "[TARGET SUBGOAL]\n"
+        f"name: {target_label}\n"
+        f"child_index: {target_child_index}\n"
+        f"goal: {target_goal}\n\n"
+        f"Decompose exactly the `sorry` for target subgoal `{target_label}` into a mini-skeleton. "
+        "The `admit` placeholders are sibling subgoals."
     )
 
 
-def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -> list[dict[str, str]]:
+def _root_system_instruction(action_type: str) -> str:
     if action_type == "tactic":
         instruction = _ROOT_TACTIC_INSTRUCTION
     elif action_type == "skeleton":
         instruction = _SKELETON_INSTRUCTION
     else:
         raise ValueError(action_type)
-    
-    full_system = instruction + '\n\n' + _OUTPUT_FORMAT_INSTRUCTION
-    
+
+    return instruction + "\n\n" + _OUTPUT_FORMAT_INSTRUCTION
+
+
+def _root_user_message(state: ProofState, extra_rules: str = "") -> str:
     user_msg_content = _USER_BASE_INSTRUCTION + "\n" + _format_problem(state)
     if extra_rules:
         user_msg_content = user_msg_content + "\n\n" + extra_rules.strip()
-        
+    return user_msg_content
+
+
+def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -> list[dict[str, str]]:
+    """Return structured ChatML messages for callers that need message-level access."""
     return [
-        {"role": "system", "content": full_system},
-        {"role": "user", "content": user_msg_content},
-        {"role": "assistant", "content": "<think>\n"}
+        {"role": "system", "content": _root_system_instruction(action_type)},
+        {"role": "user", "content": _root_user_message(state, extra_rules)},
+        {"role": "assistant", "content": "<think>\n"},
     ]
 
+
 def build_prompt(state: ProofState, action_type: str, extra_rules: str = "") -> str:
-    messages = build_messages(state, action_type, extra_rules)
-    return _format_chatml_from_messages(messages)
+    return _build_chatml_prompt(
+        _root_system_instruction(action_type),
+        _root_user_message(state, extra_rules),
+    )
 
 
 def build_subgoal_tactic_prompt(
@@ -367,6 +458,7 @@ def build_subgoal_tactic_prompt(
     skeleton: Action,
     target_child_index: int,
     feedback_blocks: list[str] | None = None,
+    child_state: ProofState | None = None,
     *,
     max_feedbacks: int = 3,
 ) -> str:
@@ -383,6 +475,7 @@ def build_subgoal_tactic_prompt(
         parent_state,
         skeleton,
         target_child_index,
+        child_state,
     )
     if feedback_blocks:
         feedback_block = (
@@ -392,13 +485,7 @@ def build_subgoal_tactic_prompt(
             + "\n\n".join(feedback_blocks[-max_feedbacks:])
         )
         user_msg_content += "\n\n" + feedback_block
-    return _format_chatml_from_messages(
-        [
-            {"role": "system", "content": full_system},
-            {"role": "user", "content": user_msg_content},
-            {"role": "assistant", "content": "<think>\n"},
-        ]
-    )
+    return _build_chatml_prompt(full_system, user_msg_content)
 
 
 def build_subgoal_skeleton_prompt(
@@ -406,6 +493,7 @@ def build_subgoal_skeleton_prompt(
     skeleton: Action,
     target_child_index: int,
     feedback_blocks: list[str] | None = None,
+    child_state: ProofState | None = None,
     *,
     max_feedbacks: int = 3,
 ) -> str:
@@ -422,6 +510,7 @@ def build_subgoal_skeleton_prompt(
         parent_state,
         skeleton,
         target_child_index,
+        child_state,
     )
     if feedback_blocks:
         feedback_block = (
@@ -431,20 +520,14 @@ def build_subgoal_skeleton_prompt(
             + "\n\n".join(feedback_blocks[-max_feedbacks:])
         )
         user_msg_content += "\n\n" + feedback_block
-    return _format_chatml_from_messages(
-        [
-            {"role": "system", "content": full_system},
-            {"role": "user", "content": user_msg_content},
-            {"role": "assistant", "content": "<think>\n"},
-        ]
-    )
+    return _build_chatml_prompt(full_system, user_msg_content)
 
 
-def format_tactic_feedback_block(lean_code: str, lean_feedback: str) -> str:
+def format_tactic_feedback_block(checked_code: str, lean_feedback: str) -> str:
     return (
-        "FAILED TACTIC CODE:\n"
+        "FAILED CHECKED CODE:\n"
         "```lean4\n"
-        f"{lean_code.strip()}\n"
+        f"{checked_code.strip()}\n"
         "```\n\n"
         "LEAN ERROR FEEDBACK:\n"
         f"{lean_feedback.strip()}"
@@ -469,11 +552,11 @@ def build_tactic_retry_prompt(
     return build_prompt(state, "tactic", extra_rules=feedback_block)
 
 
-def format_skeleton_feedback_block(lean_code: str, lean_feedback: str) -> str:
+def format_skeleton_feedback_block(checked_code: str, lean_feedback: str) -> str:
     return (
-        "FAILED SKELETON CODE:\n"
+        "FAILED CHECKED CODE:\n"
         "```lean4\n"
-        f"{lean_code.strip()}\n"
+        f"{checked_code.strip()}\n"
         "```\n\n"
         "LEAN ERROR FEEDBACK:\n"
         f"{lean_feedback.strip()}"
@@ -531,6 +614,7 @@ class SearchPromptBuilder:
         skeleton: Action,
         target_child_index: int,
         *,
+        child_state: ProofState | None = None,
         tactic_feedbacks: list[str] | None = None,
     ) -> str:
         return build_subgoal_tactic_prompt(
@@ -538,6 +622,7 @@ class SearchPromptBuilder:
             skeleton,
             target_child_index,
             tactic_feedbacks or [],
+            child_state=child_state,
             max_feedbacks=self.max_tactic_feedbacks,
         )
 
@@ -547,6 +632,7 @@ class SearchPromptBuilder:
         skeleton: Action,
         target_child_index: int,
         *,
+        child_state: ProofState | None = None,
         skeleton_feedbacks: list[str] | None = None,
     ) -> str:
         return build_subgoal_skeleton_prompt(
@@ -554,14 +640,15 @@ class SearchPromptBuilder:
             skeleton,
             target_child_index,
             skeleton_feedbacks or [],
+            child_state=child_state,
             max_feedbacks=self.max_skeleton_feedbacks,
         )
 
-    def format_tactic_feedback(self, lean_code: str, lean_feedback: str) -> str:
-        return format_tactic_feedback_block(lean_code, lean_feedback)
+    def format_tactic_feedback(self, checked_code: str, lean_feedback: str) -> str:
+        return format_tactic_feedback_block(checked_code, lean_feedback)
 
-    def format_skeleton_feedback(self, lean_code: str, lean_feedback: str) -> str:
-        return format_skeleton_feedback_block(lean_code, lean_feedback)
+    def format_skeleton_feedback(self, checked_code: str, lean_feedback: str) -> str:
+        return format_skeleton_feedback_block(checked_code, lean_feedback)
 
 
 def clean_prompt(text: str) -> str:

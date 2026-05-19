@@ -1,8 +1,11 @@
 from __future__ import annotations
+import inspect
 import os
 from dataclasses import dataclass, asdict, field
 from typing import Optional
 import yaml
+
+from gammazero.search.rollout.heuristic import SimpleHeuristicScorer
 
 
 @dataclass
@@ -85,6 +88,27 @@ class Config:
     # Logging
     log_dir: str = "outputs/runs"
     rollout_graph_log_dir: Optional[str] = None  # e.g. outputs/rollouts → JSON per theorem/iter
+
+    def __post_init__(self) -> None:
+        if self.heuristic is None:
+            self.heuristic = {}
+            return
+        if not isinstance(self.heuristic, dict):
+            raise TypeError("heuristic must be a mapping of SimpleHeuristicScorer keyword arguments")
+
+        signature = inspect.signature(SimpleHeuristicScorer)
+        allowed = {
+            name
+            for name, param in signature.parameters.items()
+            if name != "self" and param.kind is param.KEYWORD_ONLY
+        }
+        unknown = sorted(set(self.heuristic) - allowed)
+        if unknown:
+            raise ValueError(
+                "Unknown heuristic config key(s): "
+                + ", ".join(unknown)
+                + ". Remove stale keys from the YAML or add them to SimpleHeuristicScorer."
+            )
 
     @classmethod
     def from_yaml(cls, path: str) -> Config:

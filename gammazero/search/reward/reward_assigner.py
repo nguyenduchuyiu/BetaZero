@@ -4,6 +4,7 @@ from gammazero.env.lean_env import LeanEnv
 from gammazero.search.graph import ANDORGraph
 from gammazero.search.sorrifier.stitcher import ProofStitcher
 from gammazero.utils.lean_cmd import build_theorem
+from gammazero.utils.scaffold import replace_sorry_at
 from .calculator import RewardCalculator
 import re
 
@@ -47,6 +48,12 @@ class DependencyRewardAssigner:
         clean = re.sub(r"/\-(?:.|\n)*?\-/|--.*", "", code or "")
         return bool(re.search(r"\bsorry\b", clean))
 
+    @staticmethod
+    def _full_code_for_state(state, proof_code: str) -> str:
+        if getattr(state, "scaffold_code", ""):
+            return replace_sorry_at(state.scaffold_code, state.target_index, proof_code)
+        return build_theorem(state, proof_code)
+
     def _expand_verifiable_garbage(
         self,
         parent_state,
@@ -73,7 +80,7 @@ class DependencyRewardAssigner:
             if self._has_real_sorry(trial_code):
                 continue
 
-            trial_full_code = build_theorem(parent_state, trial_code)
+            trial_full_code = self._full_code_for_state(parent_state, trial_code)
             trial_vr = self.lean.verify(trial_full_code)
             if trial_vr.get("complete"):
                 ordered_garbage.append(var)
@@ -203,8 +210,7 @@ class DependencyRewardAssigner:
             base_malignant,
             garbage_vars,
         )
-        solved_by_stitched_proof = cleaned_complete and r_dep_score > 0
-        return (r_dep_score if solved_by_stitched_proof else 0.0), garbage_vars, solved_by_stitched_proof
+        return (r_dep_score if cleaned_complete else 0.0), garbage_vars, cleaned_complete
 
     def _score_stitched_subgoal_skeleton(
         self,
@@ -231,7 +237,7 @@ class DependencyRewardAssigner:
         if target_name is None:
             return 0.0, [], False
 
-        full_code = build_theorem(grandparent_state, parent_stitched_code)
+        full_code = self._full_code_for_state(grandparent_state, parent_stitched_code)
         verified = self.lean.verify(full_code)
         if not verified.get("pass"):
             return 0.0, [], False
@@ -242,7 +248,7 @@ class DependencyRewardAssigner:
             target_name=target_name,
         )
         r_dep_score = self._score_dependency_analysis(dep_analysis)
-        return (r_dep_score if r_dep_score > 0 else 0.0), [], r_dep_score > 0
+        return r_dep_score, [], True
 
     def _analyze_stitched_dependencies(
         self,
@@ -250,7 +256,7 @@ class DependencyRewardAssigner:
         stitched_code: str,
         target_vars: set[str],
     ) -> dict:
-        full_code = build_theorem(parent_state, stitched_code)
+        full_code = self._full_code_for_state(parent_state, stitched_code)
         return self.lean.analyze_dependencies(full_code, allowed_vars=target_vars)
 
     def _score_cleaned_stitched_proof(
@@ -264,7 +270,7 @@ class DependencyRewardAssigner:
     ) -> tuple[float, bool]:
         # Dependency analysis proposes garbage pruning; Lean remains the source
         # of truth before a skeleton can be marked solved.
-        cleaned_full_code = build_theorem(parent_state, cleaned_code)
+        cleaned_full_code = self._full_code_for_state(parent_state, cleaned_code)
         cleaned_vr = self.lean.verify(cleaned_full_code)
         if not cleaned_vr.get("complete"):
             return 0.0, False

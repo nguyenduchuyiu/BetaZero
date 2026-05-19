@@ -31,10 +31,7 @@ class SimpleHeuristicScorer(SearchScorer):
         *,
         incoming_skeleton_weight: float = 2.0,
         best_tactic_weight: float = 1.5,
-        final_child_bonus: float = 6.0,
-        solved_ratio_bonus: float = 2.0,
-        parent_depth_bonus: float = 1.0,
-        depth_penalty: float = 0.10,
+        depth_penalty: float = 0.15,
         tactic_retry_penalty: float = 0.10,
         skeleton_retry_penalty: float = 0.12,
         bad_skeleton_round_penalty: float = 0.8,
@@ -44,13 +41,9 @@ class SimpleHeuristicScorer(SearchScorer):
         skeleton_sorrified_penalty: float = 0.25,
         committed_child_bonus: float = 8.0,
         last_child_committed_bonus: float = 20.0,
-        committed_solved_ratio_bonus: float = 3.0,
     ):
         self.incoming_skeleton_weight = incoming_skeleton_weight
         self.best_tactic_weight = best_tactic_weight
-        self.final_child_bonus = final_child_bonus
-        self.solved_ratio_bonus = solved_ratio_bonus
-        self.parent_depth_bonus = parent_depth_bonus
         self.depth_penalty = depth_penalty
         self.tactic_retry_penalty = tactic_retry_penalty
         self.skeleton_retry_penalty = skeleton_retry_penalty
@@ -61,69 +54,14 @@ class SimpleHeuristicScorer(SearchScorer):
         self.skeleton_sorrified_penalty = skeleton_sorrified_penalty
         self.committed_child_bonus = committed_child_bonus
         self.last_child_committed_bonus = last_child_committed_bonus
-        self.committed_solved_ratio_bonus = committed_solved_ratio_bonus
 
-    def parent_completion_bonus(
+    def committed_skeleton_progress_bonus(
         self,
         state: ProofState,
         graph: ANDORGraph,
         stats: dict[ProofState, StateStats],
     ) -> float:
         bonus = 0.0
-        for parent_state, skeleton in getattr(stats[state], "parent_skeletons", []):
-            children = skeleton.children
-            if not children:
-                continue
-            if any(graph.status(child) == "FAILED" for child in children):
-                continue
-
-            total = len(children)
-            solved = sum(graph.status(child) == "SOLVED" for child in children)
-            open_count = sum(graph.status(child) == "OPEN" for child in children)
-            solved_ratio = solved / total
-
-            if open_count == 1 and graph.status(state) == "OPEN":
-                parent_stats = stats.get(parent_state)
-                parent_depth = parent_stats.depth if parent_stats is not None else graph.get_depth(parent_state)
-                if parent_depth <= 1:
-                    bonus += 12.0
-                else:
-                    bonus += self.final_child_bonus
-            bonus += self.solved_ratio_bonus * solved_ratio
-
-            parent_stats = stats.get(parent_state)
-            parent_depth = parent_stats.depth if parent_stats is not None else graph.get_depth(parent_state)
-            bonus += self.parent_depth_bonus / (1.0 + max(parent_depth, 0))
-        return bonus
-
-    def root_critical_bonus(
-        self,
-        state: ProofState,
-        graph: ANDORGraph,
-        stats: dict[ProofState, StateStats],
-    ) -> float:
-        bonus = 0.0
-
-        for parent_state, _skeleton in getattr(stats[state], "parent_skeletons", []):
-            d = stats[parent_state].depth
-
-            if d == 0:
-                bonus += 8.0
-            elif d == 1:
-                bonus += 4.0
-            elif d == 2:
-                bonus += 2.0
-
-        return bonus
-
-    def committed_child_bonus_for_state(
-        self,
-        state: ProofState,
-        graph: ANDORGraph,
-        stats: dict[ProofState, StateStats],
-    ) -> float:
-        bonus = 0.0
-
         for parent_state, skeleton in getattr(stats[state], "parent_skeletons", []):
             parent_stats = stats.get(parent_state)
             if parent_stats is None or parent_stats.committed_skeleton != skeleton:
@@ -132,15 +70,19 @@ class SimpleHeuristicScorer(SearchScorer):
             children = skeleton.children
             if not children:
                 continue
+            statuses = [graph.status(child) for child in children]
+            if any(status == "FAILED" for status in statuses):
+                continue
 
             bonus += self.committed_child_bonus
-            solved = sum(graph.status(child) == "SOLVED" for child in children)
-            open_count = sum(graph.status(child) == "OPEN" for child in children)
 
-            if open_count == 1 and graph.status(state) == "OPEN":
+            open_children = [
+                child
+                for child, status in zip(children, statuses, strict=False)
+                if status == "OPEN"
+            ]
+            if len(open_children) == 1 and open_children[0] == state:
                 bonus += self.last_child_committed_bonus
-
-            bonus += self.committed_solved_ratio_bonus * solved / max(1, len(children))
 
         return bonus
 
@@ -155,9 +97,7 @@ class SimpleHeuristicScorer(SearchScorer):
         score = 0.0
         score += self.incoming_skeleton_weight * getattr(st, "incoming_skeleton_score", 0.0)
         score += self.best_tactic_weight * getattr(st, "best_tactic_r_env", 0.0)
-        score += self.parent_completion_bonus(state, graph, stats)
-        score += self.root_critical_bonus(state, graph, stats)
-        score += self.committed_child_bonus_for_state(state, graph, stats)
+        score += self.committed_skeleton_progress_bonus(state, graph, stats)
         score -= self.depth_penalty * st.depth
         score -= self.tactic_retry_penalty * st.tactic_tries
         score -= self.skeleton_retry_penalty * st.skeleton_tries
@@ -188,12 +128,6 @@ class SimpleHeuristicScorer(SearchScorer):
         return score
 
     def child_count_score(self, n: int) -> float:
-        if n == 0:
+        if n <= 0:
             return -2.0
-        if n == 1:
-            return 0.2
-        if n in (2, 3):
-            return 1.0
-        if n == 4:
-            return 0.5
-        return -0.3 * (n - 4)
+        return 1.0 - 0.25 * max(0, n - 2)

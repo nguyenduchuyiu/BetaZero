@@ -4,6 +4,7 @@ from typing import Any, Dict
 
 from gammazero.core import ProofState, Action
 from gammazero.search.graph import ANDORGraph
+from gammazero.utils.scaffold import target_subgoal_label
 
 class GraphLogger:
     """Crawler đồ thị AND/OR để export ra JSON dùng cho visualization."""
@@ -33,24 +34,65 @@ class GraphLogger:
         visited_states = set()
         visited_actions = set()
 
+        def is_generic_label(state: ProofState, label: str | None) -> bool:
+            if not label or label == f"target_{state.target_index}":
+                return True
+            kind = (state.target_kind or "").strip()
+            return bool(kind and label == f"{kind}_{state.target_index}")
+
+        def label_from_parent_skeleton(
+            state: ProofState,
+            child_index_filter: int | None = None,
+        ) -> str | None:
+            for _, skeleton_action, child_index in graph.parent_skeleton_items_for_state(state):
+                if child_index_filter is not None and child_index != child_index_filter:
+                    continue
+                return target_subgoal_label(
+                    skeleton_action.extracted_code,
+                    child_index,
+                    target_kind="skeleton_child",
+                )
+            return None
+
+        def state_target_label(state: ProofState) -> str:
+            label = target_subgoal_label(
+                state.scaffold_code,
+                state.target_index,
+                target_kind=state.target_kind,
+            )
+            if is_generic_label(state, label):
+                return label_from_parent_skeleton(state) or label
+            return label
+
         def traverse_state(state: ProofState):
             if state in visited_states:
                 return
             visited_states.add(state)
             
             s_id = self._get_state_id(state)
+            target_label = state_target_label(state)
             # Trích xuất proof body nếu trạng thái đã SOLVED
-            proof_body = graph.extract_proof_code(state) if graph.status(state) == "SOLVED" else "  sorry"
+            proof_body = (
+                graph.extract_proof_code(state)
+                if graph.status(state) == "SOLVED"
+                else None
+            ) or "  sorry"
 
             nodes.append({
                 "id": s_id,
                 "type": "OR",
                 "status": graph.status(state),
                 "depth": graph.get_depth(state),
+                "target_label": target_label,
                 "content": {
                     "context": state.context,
                     "goal": state.goal,
-                    "proof_body": proof_body
+                    "proof_body": proof_body,
+                    "scaffold_code": state.scaffold_code,
+                    "target_index": state.target_index,
+                    "target_kind": state.target_kind,
+                    "target_label": target_label,
+                    "parent_action_id": state.parent_action_id,
                 },
                 "metrics": {
                     "V_value": max(
@@ -78,6 +120,18 @@ class GraphLogger:
             r_d = graph._r_dep.get(action, 0.0) 
             prompt = action.prompt or ""
             extracted_lean_code = action.extracted_code
+            parent_state = graph.get_parent(action)
+            target_label = None
+            if parent_state is not None:
+                target_label = state_target_label(parent_state)
+            target_child_label = None
+            if action.target_child_index is not None and parent_state is not None:
+                target_child_label = label_from_parent_skeleton(
+                    parent_state,
+                    child_index_filter=action.target_child_index,
+                )
+                if target_child_label is None:
+                    target_child_label = target_label
 
             nodes.append({
                 "id": a_id,
@@ -88,6 +142,13 @@ class GraphLogger:
                 "content": action.content,
                 "prompt": action.prompt,
                 "extracted_lean_code": extracted_lean_code,
+                "verify_code": action.verify_code,
+                "stitched_code": action.stitched_code,
+                "patched_code": action.patched_code,
+                "lean_feedback": action.lean_feedback,
+                "target_label": target_label,
+                "target_child_index": action.target_child_index,
+                "target_child_label": target_child_label,
                 "metrics": {
                     "r_env": graph.get_r_env(action),
                     "r_dep": r_d,

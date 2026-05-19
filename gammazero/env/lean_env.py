@@ -2,6 +2,13 @@ from gammazero.core import ProofState
 from gammazero.env import Lean4ServerScheduler
 from gammazero.utils.lean_parse import parse_proof_state
 from gammazero.utils.lean_cmd import build_theorem
+from gammazero.utils.scaffold import (
+    isolate_sorry_target,
+    placeholder_count,
+    replace_sorry_at,
+    sorry_index_for_placeholder_index,
+    verifier_placeholder_index_for_sorry,
+)
 
 
 class LeanEnv:
@@ -15,15 +22,45 @@ class LeanEnv:
 
     def execute(self, state: ProofState, code: str) -> tuple[str, dict, list[ProofState]]:
         """Build, verify, and parse subgoals for a tactic applied to state."""
-        candidate_code = build_theorem(state, code)
+        if state.scaffold_code:
+            candidate_code = replace_sorry_at(state.scaffold_code, state.target_index, code)
+        else:
+            candidate_code = build_theorem(state, code)
         vr = self.scheduler.verify(candidate_code)
         
         subgoals = []
         if vr.get("pass"):
-            for s in vr.get("sorries", []):
+            if state.scaffold_code:
+                target_sorry_start = verifier_placeholder_index_for_sorry(
+                    state.scaffold_code,
+                    state.target_index,
+                )
+                target_sorry_end = target_sorry_start + placeholder_count(code)
+            else:
+                target_sorry_start = 0
+                target_sorry_end = len(vr.get("sorries", []))
+            for idx, s in enumerate(vr.get("sorries", [])):
+                if idx < target_sorry_start or idx >= target_sorry_end:
+                    continue
+                target_index = sorry_index_for_placeholder_index(candidate_code, idx)
+                if target_index is None:
+                    continue
+                child_scaffold, child_target_index = isolate_sorry_target(
+                    candidate_code,
+                    target_index,
+                )
                 ps = parse_proof_state(s.get("goal", ""), header=state.header)
                 if ps.goal not in ["SOLVED_OR_EMPTY", "ELABORATION_FAULT"]:
-                    subgoals.append(ps)
+                    subgoals.append(
+                        ProofState(
+                            context=ps.context,
+                            goal=ps.goal,
+                            header=ps.header,
+                            scaffold_code=child_scaffold,
+                            target_index=child_target_index,
+                            target_kind="skeleton_child",
+                        )
+                    )
 
         return candidate_code, vr, subgoals
 

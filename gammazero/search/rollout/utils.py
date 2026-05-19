@@ -1,12 +1,50 @@
 """Lean example-wrapper helpers and verify message formatting."""
 
-def format_lean_feedback(vr: dict) -> str:
-    lines = [e.get("data", "") for e in vr.get("errors", [])[:12] if e.get("data", "")]
-    if vr.get("system_errors"):
-        lines.append(str(vr["system_errors"])[:800])
-    return "\n".join(lines)
-
 import re
+
+
+def _shorten_feedback(text: str, *, max_chars: int = 900) -> str:
+    text = (text or "").strip()
+    if len(text) <= max_chars:
+        return text
+    return text[:max_chars].rstrip() + "\n... [truncated]"
+
+
+def _message_position(msg: dict) -> str:
+    """Return a compact Lean message position when the REPL provides one."""
+    pos = msg.get("pos") or msg.get("startPos") or msg.get("endPos")
+    if isinstance(pos, dict):
+        line = pos.get("line")
+        col = pos.get("column") or pos.get("col")
+    else:
+        line = msg.get("line")
+        col = msg.get("column") or msg.get("col")
+
+    if line is None:
+        return ""
+    if col is None:
+        return f"L{line}"
+    return f"L{line}:C{col}"
+
+
+def _format_message(msg: dict, *, max_chars: int) -> str:
+    data = _shorten_feedback(msg.get("data", ""), max_chars=max_chars)
+    if not data:
+        return ""
+    pos = _message_position(msg)
+    return f"{pos}: {data}" if pos else data
+
+
+def format_lean_feedback(vr: dict, *, max_errors: int = 3, max_chars_per_error: int = 900) -> str:
+    lines = [
+        formatted
+        for e in vr.get("errors", [])[:max_errors]
+        for formatted in [_format_message(e, max_chars=max_chars_per_error)]
+        if formatted
+    ]
+    if vr.get("system_errors"):
+        lines.append(_shorten_feedback(str(vr["system_errors"]), max_chars=max_chars_per_error))
+    return "\n".join(lines)
 
 def inject_patched_code_to_raw(raw_output: str, patched_full_code: str) -> str:
     """

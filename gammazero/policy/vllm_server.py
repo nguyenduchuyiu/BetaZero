@@ -191,7 +191,10 @@ class VLLMServer:
             return [[] for _ in states]
         
         def get_choice(c):
-            return {"text": c["text"].strip()}
+            return {
+                "text": c["text"].strip(),
+                "finish_reason": c.get("finish_reason", ""),
+            }
 
         return [[get_choice(choices[i * n + j]) for j in range(n)]
                 for i in range(len(states))]

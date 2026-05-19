@@ -454,11 +454,11 @@
     }
 
     #detail-panel.open {
-      width: 280px;
+      width: 420px;
     }
 
     #detail-inner {
-      width: 280px;
+      width: 420px;
       padding: 14px;
       overflow-y: auto;
       flex: 1;
@@ -543,6 +543,10 @@
       white-space: pre-wrap;
       max-height: 120px;
       overflow-y: auto;
+    }
+
+    .detail-code.tall {
+      max-height: 260px;
     }
 
     .metric-grid {
@@ -831,6 +835,7 @@
             <div class="detail-section-title" style="margin-top:10px">Proof Body</div>
             <div class="detail-code" id="d-proof-body" style="color:#2ecc71"></div>
           </div>
+          <div id="d-or-extra"></div>
         </div>
 
         <div id="d-action-section" style="display:none">
@@ -842,6 +847,7 @@
           <div class="detail-code" id="d-action-lean"></div>
           <div class="detail-section-title" style="margin-top:10px">Prompt</div>
           <div class="detail-code" id="d-prompt" style="max-height:80px"></div>
+          <div id="d-action-extra"></div>
         </div>
 
         <div id="d-metrics-section">
@@ -1175,7 +1181,9 @@
         .attr('fill', '#8b90a0')
         .attr('pointer-events', 'none')
         .text(d => {
-          const s = d.id;
+          const s = (d.type === 'OR' && (d.target_label || (d.content && d.content.target_label)))
+            ? `${d.id}:${d.target_label || d.content.target_label}`
+            : d.id;
           return s.length > 14 ? s.slice(0, 14) + '…' : s;
         })
         .attr('display', showLabels ? '' : 'none');
@@ -1191,7 +1199,7 @@
         .attr('fill', '#e8eaf0')
         .attr('pointer-events', 'none')
         .text(d => {
-          if (d.type === 'AND') return 'Q:' + (d.metrics.Q_value || 0).toFixed(2);
+          if (d.type === 'AND') return 'Q:' + metricValue(d.metrics.Q_value).toFixed(2);
           return 'V:' + (d.metrics.V_value || 0).toFixed(2);
         })
         .attr('display', showMetrics ? '' : 'none');
@@ -1391,6 +1399,13 @@
       document.getElementById('d-status-text').textContent = statusTxt;
       document.getElementById('d-depth').textContent = d.depth != null ? `depth ${d.depth}` : '';
 
+      const renderField = (label, value, tall = false) => {
+        if (value == null || value === '') return '';
+        const text = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+        const cls = tall ? 'detail-code tall' : 'detail-code';
+        return `<div class="detail-section-title" style="margin-top:10px">${label}</div><div class="${cls}">${escapeHtml(text)}</div>`;
+      };
+
       if (d.type === 'OR') {
         document.getElementById('d-content-section').style.display = '';
         document.getElementById('d-action-section').style.display = 'none';
@@ -1406,6 +1421,12 @@
         } else {
           document.getElementById('d-proof-section').style.display = 'none';
         }
+        document.getElementById('d-or-extra').innerHTML =
+          renderField('Target label', d.content && d.content.target_label) +
+          renderField('Target kind', d.content && d.content.target_kind) +
+          renderField('Target index', d.content && d.content.target_index) +
+          renderField('Parent action id', d.content && d.content.parent_action_id) +
+          renderField('Scaffold code', d.content && d.content.scaffold_code, true);
         document.getElementById('d-q-v-main').textContent = (d.metrics && d.metrics.V_value != null) ? d.metrics.V_value.toFixed(4) : '—';
       } else {
         document.getElementById('d-content-section').style.display = 'none';
@@ -1422,10 +1443,18 @@
           : (rawStr ? getLeanCode(rawStr) : '');
         document.getElementById('d-action-lean').textContent = extracted || '—';
         document.getElementById('d-prompt').textContent = d.prompt || '—';
+        document.getElementById('d-action-extra').innerHTML =
+          renderField('Target label', d.target_label) +
+          renderField('Target child label', d.target_child_label) +
+          renderField('Target child index', d.target_child_index) +
+          renderField('Verify code', d.verify_code, true) +
+          renderField('Stitched code', d.stitched_code, true) +
+          renderField('Patched code', d.patched_code, true) +
+          renderField('Lean feedback', d.lean_feedback, true);
         const m = d.metrics || {};
-        document.getElementById('d-r-env').textContent = m.r_env != null ? m.r_env.toFixed(3) : '—';
-        document.getElementById('d-r-dep').textContent = m.r_dep != null ? m.r_dep.toFixed(3) : '—';
-        document.getElementById('d-q-v-main').textContent = m.Q_value != null ? m.Q_value.toFixed(4) : '—';
+        document.getElementById('d-r-env').textContent = m.r_env != null ? metricValue(m.r_env).toFixed(3) : '—';
+        document.getElementById('d-r-dep').textContent = m.r_dep != null ? metricValue(m.r_dep).toFixed(3) : '—';
+        document.getElementById('d-q-v-main').textContent = m.Q_value != null ? metricValue(m.Q_value).toFixed(4) : '—';
       }
 
       // Connections
@@ -1436,6 +1465,15 @@
       if (outEdges.length) connHtml += `<div style="color:var(--text3)">→ to ${outEdges.length} node(s)</div>`;
       if (!connHtml) connHtml = '<div style="color:var(--text3)">No connections visible</div>';
       document.getElementById('d-connections').innerHTML = connHtml;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
     }
 
     function closeDetail() {
@@ -1455,7 +1493,9 @@
       if (d.type === 'AND') {
         html += `<div class="tt-row"><span>Action</span><span style="color:${nodeColor(d)}">${d.action_type || '—'}</span></div>`;
         if (d.metrics) {
-          html += `<div class="tt-row"><span>Q-value</span><span style="color:#5b7fff">${(d.metrics.Q_value || 0).toFixed(4)}</span></div>`;
+          html += `<div class="tt-row"><span>Q-value</span><span style="color:#5b7fff">${metricValue(d.metrics.Q_value).toFixed(4)}</span></div>`;
+          html += `<div class="tt-row"><span>r_env</span><span>${metricValue(d.metrics.r_env).toFixed(4)}</span></div>`;
+          html += `<div class="tt-row"><span>r_dep</span><span>${metricValue(d.metrics.r_dep).toFixed(4)}</span></div>`;
         }
       } else {
         if (d.metrics) {
@@ -1465,6 +1505,10 @@
       tt.innerHTML = html;
       tt.style.display = 'block';
       moveTooltip(e);
+    }
+
+    function metricValue(value) {
+      return Number.isFinite(Number(value)) ? Number(value) : 0;
     }
     function moveTooltip(e) {
       const tt = document.getElementById('tooltip');

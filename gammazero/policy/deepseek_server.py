@@ -39,7 +39,7 @@ class DeepSeekAPIServer:
         """No process to kill."""
         pass
 
-    def _get_official_api_response(self, prompt: str) -> str | None:
+    def _get_official_api_response(self, prompt: str) -> dict | None:
         if not self.api_key:
             print("Warning: DEEPSEEK_API_KEY environment variable is not set!")
             
@@ -60,7 +60,11 @@ class DeepSeekAPIServer:
             )
             resp.raise_for_status()
             data = resp.json()
-            return data["choices"][0]["text"]
+            choice = data["choices"][0]
+            return {
+                "text": choice.get("text", ""),
+                "finish_reason": choice.get("finish_reason", ""),
+            }
         except Exception as e:
             print(f"Lỗi gọi Official API: {e}")
             return None
@@ -92,9 +96,9 @@ class DeepSeekAPIServer:
         def _one_request(args):
             i, prompt = args
             for attempt in range(1, self.max_retries + 1):
-                resp = self._get_official_api_response(prompt)
-                if resp is not None:
-                    return i, {"text": resp}
+                res = self._get_official_api_response(prompt)
+                if res is not None:
+                    return i, res
                 time.sleep(self.retry_delay)
             return i, {"text": ""}
 

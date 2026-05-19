@@ -8,6 +8,11 @@ from typing import TYPE_CHECKING
 from gammazero.core import ProofState, Action
 from gammazero.utils.lean_cmd import build_theorem
 from gammazero.utils.lean_parse import extract_proof_body, parse_proof_state
+from gammazero.utils.scaffold import (
+    isolate_sorry_target,
+    replace_sorry_at,
+    sorry_index_for_placeholder_index,
+)
 from gammazero.search.graph import ANDORGraph
 from gammazero.search.reward import DependencyRewardAssigner, RewardCalculator
 
@@ -24,9 +29,12 @@ class FailedActionPatch:
     action_content: str
     lean_code: str
     prompt: str
+    verify_code: str
+    stitched_code: str
     patched: str
     patched_vr: dict
     patched_action_code: str
+    lean_feedback: str
     r_fail: float
     r_dep: float
     new_subgoals: tuple[ProofState, ...]
@@ -66,6 +74,10 @@ class FailureHandler:
                 extracted_code="",
                 children=(),
                 prompt=prompt,
+                verify_code=result.state_code,
+                stitched_code="",
+                patched_code="",
+                lean_feedback=result.system_errors or "",
             ),
             r_env=r,
             tactic_status="FAILED" if action_kind == "tactic" else None,
@@ -84,6 +96,12 @@ class FailureHandler:
             log_path=log_path,
         )
 
+    @staticmethod
+    def _verify_code_for_state(state: ProofState, action_code: str) -> str:
+        if state.scaffold_code:
+            return replace_sorry_at(state.scaffold_code, state.target_index, action_code)
+        return build_theorem(state, action_code)
+
     def compute_failed_action_patch(
         self,
         state: ProofState,
@@ -101,8 +119,8 @@ class FailureHandler:
             patched_vr = self.lean.verify(patched)
             patched_action_code = extract_proof_body(patched)
 
-            full_orig = build_theorem(state, lean_code)
-            full_patched = build_theorem(state, patched_action_code)
+            full_orig = self._verify_code_for_state(state, lean_code)
+            full_patched = self._verify_code_for_state(state, patched_action_code)
             r_fail = self.reward.r_env(full_orig, full_patched, patched_vr)
             r_dep = 0.0
             if action_kind == "tactic" and patched_vr.get("pass"):
@@ -113,10 +131,28 @@ class FailureHandler:
 
             new_subgoals: tuple[ProofState, ...] = ()
             if action_kind == "skeleton":
-                new_subgoals = tuple(
-                    parse_proof_state(s.get("goal", ""), header=state.header)
-                for s in patched_vr.get("sorries", [])
-            )
+                parsed_subgoals = []
+                for sorry_idx, s in enumerate(patched_vr.get("sorries", [])):
+                    target_index = sorry_index_for_placeholder_index(patched, sorry_idx)
+                    if target_index is None:
+                        continue
+                    child_scaffold, child_target_index = isolate_sorry_target(
+                        patched,
+                        target_index,
+                    )
+                    ps = parse_proof_state(s.get("goal", ""), header=state.header)
+                    parsed_subgoals.append(
+                        ProofState(
+                            context=ps.context,
+                            goal=ps.goal,
+                            header=ps.header,
+                            scaffold_code=child_scaffold,
+                            target_index=child_target_index,
+                            target_kind="patched_skeleton_child",
+                        )
+                    )
+                new_subgoals = tuple(parsed_subgoals)
+            lean_feedback = ""
         except Exception as e:
             first_error = ""
             if state_vr.get("errors"):
@@ -142,6 +178,7 @@ class FailureHandler:
             r_fail = 0.0
             r_dep = 0.0
             new_subgoals = ()
+            lean_feedback = f"Sorrifier failed: {type(e).__name__}: {e}"
 
         return FailedActionPatch(
             state=state,
@@ -149,9 +186,12 @@ class FailureHandler:
             action_content=action_content,
             lean_code=lean_code,
             prompt=prompt,
+            verify_code=state_code,
+            stitched_code=state_code,
             patched=patched,
             patched_vr=patched_vr,
             patched_action_code=patched_action_code,
+            lean_feedback=lean_feedback,
             r_fail=r_fail,
             r_dep=r_dep,
             new_subgoals=new_subgoals,
@@ -165,6 +205,10 @@ class FailureHandler:
             extracted_code=patch.lean_code,
             children=(),
             prompt=patch.prompt,
+            verify_code=patch.verify_code,
+            stitched_code=patch.stitched_code,
+            patched_code=patch.patched,
+            lean_feedback=patch.lean_feedback,
         )
 
         graph.expand(

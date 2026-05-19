@@ -21,6 +21,18 @@ from gammazero.policy.prompt import SearchPromptBuilder
 from gammazero.utils.lean_parse import parse_proof_state
 from gammazero.utils.lean_cmd import DEFAULT_OPEN
 from gammazero.utils.graph_logger import GraphLogger
+from gammazero.utils.scaffold import sorry_count
+
+
+def _rollout_output_path(lean_path: str, args: argparse.Namespace) -> str:
+    if args.lean_dir:
+        rel_path = os.path.relpath(lean_path, args.lean_dir)
+        return os.path.join(args.out_json, rel_path.replace(".lean", ".json"))
+
+    out_path = args.out_json
+    if out_path.endswith("/") or os.path.isdir(out_path):
+        out_path = os.path.join(out_path, os.path.basename(lean_path).replace(".lean", ".json"))
+    return out_path
 
 
 def main():
@@ -65,6 +77,25 @@ def main():
         if not os.path.exists(lean_path):
             raise FileNotFoundError(lean_path)
         lean_files = [lean_path]
+
+    rollout_items = []
+    skipped_existing = []
+    for lean_path in lean_files:
+        out_path = _rollout_output_path(lean_path, args)
+        if os.path.exists(out_path):
+            skipped_existing.append((lean_path, out_path))
+        else:
+            rollout_items.append((lean_path, out_path))
+
+    for lean_path, out_path in skipped_existing:
+        print(f"[skip existing] {lean_path} -> {out_path}")
+
+    if skipped_existing:
+        print(f"Skipped {len(skipped_existing)} existing rollout(s).")
+
+    if not rollout_items:
+        print("No new rollouts to run.")
+        return
 
     verifier = Lean4ServerScheduler(
         max_concurrent_requests=cfg.lean_workers, timeout=lean_timeout, name="rollout_external"
@@ -117,8 +148,8 @@ def main():
             ),
         )
 
-        for i, lean_path in enumerate(lean_files):
-            print(f"[{i+1}/{len(lean_files)}] Rolling out: {lean_path}")
+        for i, (lean_path, out_path) in enumerate(rollout_items):
+            print(f"[{i+1}/{len(rollout_items)}] Rolling out: {lean_path}")
             
             with open(lean_path, encoding="utf-8") as f:
                 content = f.read()
@@ -131,15 +162,19 @@ def main():
             if root_state is None:
                 print(f"Warning: Could not parse theorem from: {lean_path}. Skipping.")
                 continue
-
-            # Determine output path
-            if args.lean_dir:
-                rel_path = os.path.relpath(lean_path, args.lean_dir)
-                out_path = os.path.join(args.out_json, rel_path.replace(".lean", ".json"))
-            else:
-                out_path = args.out_json
-                if out_path.endswith("/") or os.path.isdir(out_path):
-                    out_path = os.path.join(out_path, os.path.basename(lean_path).replace(".lean", ".json"))
+            root_state = ProofState(
+                context=root_state.context,
+                goal=root_state.goal,
+                header=root_state.header,
+                scaffold_code=content,
+                target_index=0,
+                target_kind="root",
+            )
+            if sorry_count(content) != 1:
+                print(
+                    f"Warning: expected exactly one root sorry in {lean_path}, "
+                    f"found {sorry_count(content)}. Scaffold patching may be ambiguous."
+                )
 
             os.makedirs(os.path.dirname(out_path), exist_ok=True)
             

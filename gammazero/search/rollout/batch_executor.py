@@ -8,10 +8,12 @@ from typing import TYPE_CHECKING
 
 from gammazero.core import ProofState, Action
 from gammazero.policy.output_parser import (
+    explain_empty_lean_code,
     get_lean_code,
     get_subgoal_skeleton_code,
     get_subgoal_tactic_code,
     strip_lean_comments,
+    validate_skeleton_replacement,
 )
 from gammazero.policy.prompt import build_prompt
 from gammazero.search.graph import ANDORGraph
@@ -19,6 +21,11 @@ from gammazero.search.reward import DependencyRewardAssigner, RewardCalculator
 from gammazero.search.sorrifier.stitcher import ProofStitcher
 from gammazero.utils.lean_cmd import build_theorem
 from gammazero.utils.lean_parse import parse_proof_state
+from gammazero.utils.scaffold import (
+    isolate_sorry_target,
+    replace_sorry_at,
+    sorry_index_for_placeholder_index,
+)
 
 from .execution_result import LeanExecutionResult
 from .failure_handler import FailedActionPatch, FailureHandler
@@ -61,8 +68,8 @@ class BatchExecutor:
     )
     FORBIDDEN_TACTIC_FEEDBACK = (
         "TACTIC POLICY VIOLATION: tactic proof bodies must not contain `sorry` "
-        "or `admit` outside comments. The subgoal verifier may contain sibling "
-        "`admit` placeholders, so the replacement code itself must be placeholder-free."
+        "or `admit` outside comments. The replacement code itself must be "
+        "placeholder-free."
     )
 
     def __init__(
@@ -90,15 +97,34 @@ class BatchExecutor:
             return LeanExecutionResult.ok(sc, vr, sg)
         except Exception as e:
             try:
-                sc = build_theorem(state, action_code)
+                sc = BatchExecutor._state_verify_code(state, action_code)
             except Exception:
                 sc = ""
             return LeanExecutionResult.from_transport_error(f"{type(e).__name__}: {e}", sc)
 
     @staticmethod
+    def _state_verify_code(state: ProofState, action_code: str) -> str:
+        if state.scaffold_code:
+            return replace_sorry_at(state.scaffold_code, state.target_index, action_code)
+        return build_theorem(state, action_code)
+
+    @staticmethod
     def _has_forbidden_tactic_token(action_code: str) -> bool:
         clean = strip_lean_comments(action_code)
         return bool(re.search(r"\b(?:sorry|admit)\b", clean))
+
+    @classmethod
+    def _action_policy_feedback(cls, action_type: str, action_code: str) -> str:
+        if action_type == "tactic" and cls._has_forbidden_tactic_token(action_code):
+            return cls.FORBIDDEN_TACTIC_FEEDBACK
+        if action_type == "skeleton":
+            return validate_skeleton_replacement(action_code)
+        return ""
+
+    @staticmethod
+    def _verifier_placeholder_count(code: str) -> int:
+        clean = strip_lean_comments(code)
+        return len(re.findall(r"\b(?:sorry|admit)\b", clean))
 
     @staticmethod
     def _subgoal_tactic_target(
@@ -122,6 +148,41 @@ class BatchExecutor:
         for idx, _ in enumerate(skeleton.children):
             child_proofs.append(action_code if idx == target_child_index else "admit")
         return ProofStitcher.stitch(skeleton.extracted_code, child_proofs)
+
+    @staticmethod
+    def _subgoal_skeleton_with_marked_replacement(
+        skeleton: Action,
+        target_child_index: int,
+        action_code: str,
+    ) -> tuple[str, str, str]:
+        start_marker = "-- GAMMAZERO_SUBGOAL_SKELETON_START"
+        end_marker = "-- GAMMAZERO_SUBGOAL_SKELETON_END"
+        marked_action = f"{start_marker}\n{action_code}\n{end_marker}"
+        return (
+            BatchExecutor._subgoal_skeleton_with_replacement(
+                skeleton,
+                target_child_index,
+                marked_action,
+            ),
+            start_marker,
+            end_marker,
+        )
+
+    @staticmethod
+    def _scaffold_with_replacement(
+        parent_state: ProofState,
+        skeleton: Action,
+        target_child_index: int,
+        action_code: str,
+    ) -> str:
+        skeleton_code = BatchExecutor._subgoal_skeleton_with_replacement(
+            skeleton,
+            target_child_index,
+            action_code,
+        )
+        if parent_state.scaffold_code:
+            return replace_sorry_at(parent_state.scaffold_code, parent_state.target_index, skeleton_code)
+        return build_theorem(parent_state, skeleton_code)
 
     @staticmethod
     def _subgoal_target_decl_name(skeleton: Action, target_child_index: int) -> str | None:
@@ -162,6 +223,14 @@ class BatchExecutor:
         target_child_index: int,
         action_code: str,
     ) -> str:
+        if parent_state.scaffold_code:
+            skeleton_code = cls._subgoal_skeleton_with_replacement(
+                skeleton,
+                target_child_index,
+                action_code,
+            )
+            return replace_sorry_at(parent_state.scaffold_code, parent_state.target_index, skeleton_code)
+
         start_marker = "-- GAMMAZERO_TARGET_SCORE_START"
         end_marker = "-- GAMMAZERO_TARGET_SCORE_END"
         target_body = cls._strip_optional_by(action_code)
@@ -171,8 +240,13 @@ class BatchExecutor:
             target_child_index,
             marked_target,
         )
-        marked_full = build_theorem(parent_state, marked_body)
+        if parent_state.scaffold_code:
+            marked_full = replace_sorry_at(parent_state.scaffold_code, parent_state.target_index, marked_body)
+        else:
+            marked_full = build_theorem(parent_state, marked_body)
         target_lines = cls._extract_between_markers(marked_full, start_marker, end_marker)
+        if parent_state.scaffold_code:
+            return replace_sorry_at(parent_state.scaffold_code, parent_state.target_index, target_lines)
         return build_theorem(parent_state, target_lines)
 
     @staticmethod
@@ -184,12 +258,12 @@ class BatchExecutor:
         action_code: str,
     ) -> LeanExecutionResult:
         try:
-            skeleton_code = BatchExecutor._subgoal_skeleton_with_replacement(
+            candidate_code = BatchExecutor._scaffold_with_replacement(
+                parent_state,
                 skeleton,
                 target_child_index,
                 action_code,
             )
-            candidate_code = build_theorem(parent_state, skeleton_code)
             vr = lean.verify(candidate_code)
             return LeanExecutionResult.ok(candidate_code, vr, [])
         except Exception as e:
@@ -205,26 +279,57 @@ class BatchExecutor:
         action_code: str,
     ) -> LeanExecutionResult:
         try:
-            skeleton_code = BatchExecutor._subgoal_skeleton_with_replacement(
-                skeleton,
-                target_child_index,
-                action_code,
+            skeleton_code, start_marker, end_marker = (
+                BatchExecutor._subgoal_skeleton_with_marked_replacement(
+                    skeleton,
+                    target_child_index,
+                    action_code,
+                )
             )
-            candidate_code = build_theorem(parent_state, skeleton_code)
+            if parent_state.scaffold_code:
+                marked_candidate_code = replace_sorry_at(
+                    parent_state.scaffold_code,
+                    parent_state.target_index,
+                    skeleton_code,
+                )
+            else:
+                marked_candidate_code = build_theorem(parent_state, skeleton_code)
+
+            before_marker, after_start = marked_candidate_code.split(start_marker, 1)
+            marked_target, after_marker = after_start.split(end_marker, 1)
+            before_marker = before_marker.rstrip(" \t")
+            marked_target = marked_target.strip("\n")
+            candidate_code = before_marker + marked_target + after_marker
+
+            target_sorry_start = BatchExecutor._verifier_placeholder_count(before_marker)
+            target_sorry_end = target_sorry_start + BatchExecutor._verifier_placeholder_count(action_code)
+
             vr = lean.verify(candidate_code)
-            excluded_goals = {
-                BatchExecutor._normalize_goal(child.goal)
-                for i, child in enumerate(skeleton.children)
-                if i != target_child_index
-            }
             subgoals: list[ProofState] = []
-            for s in vr.get("sorries", []):
+            for sorry_idx, s in enumerate(vr.get("sorries", [])):
+                if sorry_idx < target_sorry_start or sorry_idx >= target_sorry_end:
+                    continue
+                target_index = sorry_index_for_placeholder_index(candidate_code, sorry_idx)
+                if target_index is None:
+                    continue
+                child_scaffold, child_target_index = isolate_sorry_target(
+                    candidate_code,
+                    target_index,
+                )
                 ps = parse_proof_state(s.get("goal", ""), header=child_state.header)
                 if ps.goal in ["SOLVED_OR_EMPTY", "ELABORATION_FAULT"]:
                     continue
-                if BatchExecutor._normalize_goal(ps.goal) in excluded_goals:
-                    continue
-                subgoals.append(ps)
+                subgoals.append(
+                    ProofState(
+                        context=ps.context,
+                        goal=ps.goal,
+                        header=ps.header,
+                        scaffold_code=child_scaffold,
+                        target_index=child_target_index,
+                        target_kind="mini_skeleton_child",
+                        parent_action_id=skeleton.id,
+                    )
+                )
             return LeanExecutionResult.ok(candidate_code, vr, subgoals)
         except Exception as e:
             return LeanExecutionResult.from_transport_error(f"{type(e).__name__}: {e}")
@@ -250,6 +355,7 @@ class BatchExecutor:
                 patched_raw,
                 skeleton.extracted_code,
                 target_child_index,
+                allow_partial_scaffold=True,
             )
             if not patched_action_code:
                 patched_action_code = "sorry"
@@ -268,6 +374,7 @@ class BatchExecutor:
             )
             r_fail = self.reward.r_env(full_orig, full_patched, patched_vr)
             r_dep = 0.0
+            lean_feedback = ""
             if patched_vr.get("pass"):
                 target_name = self._subgoal_target_decl_name(skeleton, target_child_index)
                 if target_name is not None:
@@ -300,6 +407,7 @@ class BatchExecutor:
             patched_action_code = "sorry"
             r_fail = 0.0
             r_dep = 0.0
+            lean_feedback = f"Sorrifier failed: {type(e).__name__}: {e}"
 
         return FailedActionPatch(
             state=child_state,
@@ -307,9 +415,12 @@ class BatchExecutor:
             action_content=raw_output,
             lean_code=action_code,
             prompt=prompt,
+            verify_code=candidate_code,
+            stitched_code=candidate_code,
             patched=patched,
             patched_vr=patched_vr,
             patched_action_code=patched_action_code,
+            lean_feedback=lean_feedback,
             r_fail=r_fail,
             r_dep=r_dep,
             new_subgoals=(),
@@ -336,6 +447,7 @@ class BatchExecutor:
                 patched_raw,
                 skeleton.extracted_code,
                 target_child_index,
+                allow_partial_scaffold=True,
             )
             if not patched_action_code:
                 patched_action_code = "sorry"
@@ -353,6 +465,7 @@ class BatchExecutor:
                 patched_action_code,
             )
             r_fail = self.reward.r_env(full_orig, full_patched, patched_vr)
+            lean_feedback = ""
         except Exception as e:
             print(
                 "[BatchExecutor] Sorrifier failed while patching subgoal skeleton: "
@@ -376,6 +489,7 @@ class BatchExecutor:
             }
             patched_action_code = "sorry"
             r_fail = 0.0
+            lean_feedback = f"Sorrifier failed: {type(e).__name__}: {e}"
 
         return FailedActionPatch(
             state=child_state,
@@ -383,9 +497,12 @@ class BatchExecutor:
             action_content=raw_output,
             lean_code=action_code,
             prompt=prompt,
+            verify_code=candidate_code,
+            stitched_code=candidate_code,
             patched=patched,
             patched_vr=patched_vr,
             patched_action_code=patched_action_code,
+            lean_feedback=lean_feedback,
             r_fail=r_fail,
             r_dep=0.0,
             new_subgoals=(),
@@ -477,29 +594,43 @@ class BatchExecutor:
                     else:
                         lean_code = get_lean_code(raw_output, allow_body=action_type == "tactic")
                     if not lean_code:
+                        empty_code_feedback = self._state_verify_code(state, "")
+                        extraction_feedback = explain_empty_lean_code(
+                            raw_output,
+                            subgoal=target is not None,
+                            finish_reason=action_dict.get("finish_reason"),
+                        )
                         self.failure.handle_system_execute_failure(
                             graph,
                             state,
                             action_type,
                             raw_output,
-                            LeanExecutionResult.from_transport_error("empty_lean_code"),
+                            LeanExecutionResult.from_transport_error(
+                                extraction_feedback,
+                                empty_code_feedback,
+                            ),
                             prompts[i],
                         )
                         continue
-                    if action_type == "tactic" and self._has_forbidden_tactic_token(lean_code):
+                    policy_feedback = self._action_policy_feedback(action_type, lean_code)
+                    if policy_feedback:
+                        invalid_code = self._state_verify_code(state, lean_code)
                         graph.expand(
                             state,
                             Action(
-                                action_type="tactic",
+                                action_type=action_type,
                                 content=raw_output,
                                 extracted_code=lean_code,
                                 children=(),
                                 prompt=prompts[i],
+                                verify_code=invalid_code,
+                                lean_feedback=policy_feedback,
+                                target_child_index=target_child_index if target is not None else None,
                             ),
                             r_env=0.0,
-                            tactic_status="FAILED",
+                            tactic_status="FAILED" if action_type == "tactic" else None,
                         )
-                        feedbacks[i][j] = (lean_code, self.FORBIDDEN_TACTIC_FEEDBACK, "")
+                        feedbacks[i][j] = (invalid_code, policy_feedback, "")
                         continue
 
                     if target is not None and action_type == "tactic":
@@ -538,7 +669,7 @@ class BatchExecutor:
                     )
                     continue
                 state_code, state_vr, subgoals = res.state_code, res.verify, list(res.subgoals)
-                full_code = build_theorem(state, lean_code)
+                full_code = state_code
                 # For a complete tactic, code passed Lean with 0 sorries → r_env = 1.0
                 r_env = 1.0
 
@@ -564,6 +695,9 @@ class BatchExecutor:
                             extracted_code=lean_code,
                             children=(),
                             prompt=prompt,
+                            verify_code=state_code,
+                            lean_feedback=format_lean_feedback(state_vr),
+                            target_child_index=target_child_index if target is not None else None,
                         )
                         graph.expand(
                             state,
@@ -599,12 +733,14 @@ class BatchExecutor:
                                     extracted_code=lean_code,
                                     children=(),
                                     prompt=prompt,
+                                    verify_code=state_code,
+                                    lean_feedback=format_lean_feedback(state_vr),
                                 ),
                                 r_env=0.0,
                                 r_dep=0.0,
                                 tactic_status="FAILED",
                             )
-                            feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), "")
+                            feedbacks[i][j] = (state_code, format_lean_feedback(state_vr), "")
                     continue
 
                 if action_type == "skeleton" and subgoal_skeleton:
@@ -618,10 +754,12 @@ class BatchExecutor:
                                 extracted_code=lean_code,
                                 children=(),
                                 prompt=prompt,
+                                verify_code=state_code,
+                                lean_feedback="missing parent skeleton target",
                             ),
                             r_env=0.0,
                         )
-                        feedbacks[i][j] = (lean_code, "missing parent skeleton target", "")
+                        feedbacks[i][j] = (state_code, "missing parent skeleton target", "")
                         continue
 
                     parent_state, skeleton, target_child_index = target
@@ -635,13 +773,16 @@ class BatchExecutor:
                                     extracted_code=lean_code,
                                     children=(),
                                     prompt=prompt,
+                                    verify_code=state_code,
+                                    lean_feedback=self.BAD_FINAL_GOAL_SKELETON_FEEDBACK,
+                                    target_child_index=target_child_index,
                                 ),
                                 r_env=0.0,
                             )
                             feedbacks[i][j] = (
-                                lean_code,
+                                state_code,
                                 self.BAD_FINAL_GOAL_SKELETON_FEEDBACK,
-                                lean_code,
+                                state_code,
                             )
                             continue
 
@@ -660,6 +801,10 @@ class BatchExecutor:
                                 extracted_code=lean_code,
                                 children=tuple(subgoals),
                                 prompt=prompt,
+                                verify_code=state_code,
+                                stitched_code=state_code,
+                                lean_feedback=format_lean_feedback(state_vr),
+                                target_child_index=target_child_index,
                             ),
                             r_env=r_env_score,
                         )
@@ -678,7 +823,7 @@ class BatchExecutor:
                         patch_futures.append(
                             (i, j, state, "skeleton", raw_output, prompt, lean_code, state_vr, fut)
                         )
-                        feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), "")
+                        feedbacks[i][j] = (state_code, format_lean_feedback(state_vr), "")
                     continue
 
                 if state_vr.get("complete"):
@@ -695,6 +840,8 @@ class BatchExecutor:
                         extracted_code=lean_code,
                         children=(),
                         prompt=prompt,
+                        verify_code=state_code,
+                        lean_feedback=format_lean_feedback(state_vr),
                     )
                     graph.expand(
                         state,
@@ -731,13 +878,15 @@ class BatchExecutor:
                                     extracted_code=lean_code,
                                     children=(),
                                     prompt=prompt,
+                                    verify_code=state_code,
+                                    lean_feedback=self.BAD_FINAL_GOAL_SKELETON_FEEDBACK,
                                 ),
                                 r_env=0.0,
                             )
                             feedbacks[i][j] = (
-                                lean_code,
+                                state_code,
                                 self.BAD_FINAL_GOAL_SKELETON_FEEDBACK,
-                                lean_code,
+                                state_code,
                             )
                             continue
                         # Calculate r_env even for passing skeletons to catch semantic/AST issues
@@ -750,6 +899,9 @@ class BatchExecutor:
                                 extracted_code=lean_code,
                                 children=tuple(subgoals),
                                 prompt=prompt,
+                                verify_code=state_code,
+                                stitched_code=state_code,
+                                lean_feedback=format_lean_feedback(state_vr),
                             ),
                             r_env=r_env_score,
                         )
@@ -798,6 +950,8 @@ class BatchExecutor:
                             extracted_code=lean_code,
                             children=(),
                             prompt=prompt,
+                            verify_code=self._state_verify_code(state, lean_code),
+                            lean_feedback=f"Sorrifier failed: {type(e).__name__}: {e}",
                         ),
                         r_env=0.0,
                         r_dep=0.0,
@@ -806,12 +960,16 @@ class BatchExecutor:
                     feedback = format_lean_feedback(state_vr)
                     suffix = f"Sorrifier failed: {type(e).__name__}: {e}"
                     feedbacks[i][j] = (
-                        lean_code,
+                        self._state_verify_code(state, lean_code),
                         f"{feedback}\n{suffix}" if feedback else suffix,
                         "",
                     )
                     continue
                 sorr_body = self.failure.apply_failed_action_patch(graph, patch)
-                feedbacks[i][j] = (lean_code, format_lean_feedback(state_vr), sorr_body)
+                feedbacks[i][j] = (
+                    patch.verify_code or self._state_verify_code(state, lean_code),
+                    format_lean_feedback(state_vr),
+                    sorr_body,
+                )
 
         return feedbacks

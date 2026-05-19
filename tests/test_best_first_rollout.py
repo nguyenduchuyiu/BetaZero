@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 from gammazero.core import Action, ProofState
+from gammazero.env.lean_env import LeanEnv
+from gammazero.policy.output_parser import INVALID_SKELETON_FEEDBACK, TRUNCATED_THINK_FEEDBACK
 from gammazero.policy.prompt import build_skeleton_retry_prompt, build_tactic_retry_prompt
 from gammazero.search.graph import ANDORGraph
 from gammazero.search.rollout.heuristic import SimpleHeuristicScorer
 from gammazero.search.rollout.best_first_rollout import BestFirstRollout
 from gammazero.search.rollout.batch_executor import BatchExecutor, RolloutBudget
+from gammazero.search.rollout.execution_result import LeanExecutionResult
 from gammazero.search.rollout.search_queue import StatePriorityQueue
 from gammazero.search.rollout.search_stats import StateStats
+from gammazero.utils.graph_logger import GraphLogger
+from gammazero.utils.scaffold import target_subgoal_label
 
 
 class FakePolicy:
@@ -102,6 +107,41 @@ class NoopFailure:
 
     def apply_failed_action_patch(self, *args, **kwargs):
         raise AssertionError("policy rejection should not apply patch")
+
+
+class RecordingSystemFailure:
+    def __init__(self):
+        self.results: list[LeanExecutionResult] = []
+
+    def handle_system_execute_failure(
+        self,
+        graph,
+        state,
+        action_kind,
+        action_content,
+        result,
+        prompt="",
+    ):
+        self.results.append(result)
+        graph.expand(
+            state,
+            Action(
+                action_type=action_kind,
+                content=action_content,
+                extracted_code="",
+                prompt=prompt,
+                verify_code=result.state_code,
+                lean_feedback=result.system_errors,
+            ),
+            r_env=0.0,
+            tactic_status="FAILED" if action_kind == "tactic" else None,
+        )
+
+    def compute_failed_action_patch(self, *args, **kwargs):
+        raise AssertionError("system extraction failure should not run patching")
+
+    def apply_failed_action_patch(self, *args, **kwargs):
+        raise AssertionError("system extraction failure should not apply patch")
 
 
 class FixedScoreScorer:
@@ -243,6 +283,27 @@ class FixedReward:
         if n_c == 0:
             return 0.0
         return n_c / (n_c + 0.5 * n_b + 2.0 * n_m)
+
+
+class FixedSubgoalLean:
+    def __init__(self, result):
+        self.result = result
+
+    def execute(self, state, code):
+        return self.result
+
+    def verify(self, code):
+        raise AssertionError("unexpected verify call")
+
+
+class StaticVerifyScheduler:
+    def __init__(self, verify_result):
+        self.verify_result = verify_result
+        self.verify_calls: list[str] = []
+
+    def verify(self, code):
+        self.verify_calls.append(code)
+        return self.verify_result
 
 
 class NoopFailureHandler:
@@ -635,7 +696,7 @@ def test_skeleton_feedback_is_cached_and_added_to_retry_prompt():
     prompt = build_skeleton_retry_prompt(root, rollout._skeleton_feedback_by_state[root])
 
     assert "PREVIOUS SKELETON ATTEMPTS FAILED" in prompt
-    assert "FAILED SKELETON CODE" in prompt
+    assert "FAILED CHECKED CODE" in prompt
     assert "unknown identifier 'bad'" in prompt
     assert "Do not repeat the failed skeleton" in prompt
     assert prompt.index("[PROBLEM]") < prompt.index("PREVIOUS SKELETON ATTEMPTS FAILED")
@@ -675,6 +736,76 @@ def test_bad_final_goal_skeleton_is_failed_with_policy_feedback():
     assert "BAD EXAMPLE" in feedbacks[0][0][1]
 
 
+def test_subgoal_skeleton_with_admit_and_naked_sorry_is_policy_failed_before_verify():
+    root = ProofState("Child Sibling Part : Prop", "True")
+    child = ProofState("Child Sibling Part : Prop", "Child")
+    sibling = ProofState("Child Sibling Part : Prop", "Sibling")
+    skeleton = Action(
+        "skeleton",
+        "skel",
+        extracted_code="have h_child : Child := sorry\nhave h_sibling : Sibling := sorry\ntrivial",
+        children=(child, sibling),
+    )
+    graph = ANDORGraph(root)
+    graph.expand(root, skeleton, r_env=1.0)
+    graph.add_state(child, depth=1)
+    lean = SubgoalTacticLean(pass_result=True)
+    executor = BatchExecutor(lean, NoopFailure(), FakeReward(), max_workers=1)
+    raw = (
+        "```lean4\n"
+        "theorem my_theorem (Child Sibling Part : Prop) : True := by\n"
+        "  have h_child : Child := by\n"
+        "    have h_part : Part := sorry\n"
+        "    admit\n"
+        "    sorry\n"
+        "  have h_sibling : Sibling := by admit\n"
+        "  trivial\n"
+        "```"
+    )
+
+    feedbacks = executor.execute(
+        graph,
+        [child],
+        [[{"text": raw}]],
+        "skeleton",
+        RolloutBudget(4),
+        prompts=["subgoal skeleton prompt"],
+    )
+
+    actions = graph.get_actions(child)
+    assert lean.verify_calls == []
+    assert len(actions) == 1
+    assert graph.status(actions[0]) == "FAILED"
+    assert actions[0].extracted_code == "have h_part : Part := sorry\nadmit\nsorry"
+    assert actions[0].lean_feedback == INVALID_SKELETON_FEEDBACK
+    assert feedbacks[0][0][1] == INVALID_SKELETON_FEEDBACK
+
+
+def test_empty_extraction_records_failed_action_without_retry_feedback():
+    root = ProofState("", "True")
+    graph = ANDORGraph(root)
+    failure = RecordingSystemFailure()
+    lean = SubgoalTacticLean(pass_result=True)
+    executor = BatchExecutor(lean, failure, FakeReward(), max_workers=1)
+
+    feedbacks = executor.execute(
+        graph,
+        [root],
+        [[{"text": "<think>no final lean block</think>"}]],
+        "tactic",
+        RolloutBudget(4),
+        prompts=["prompt"],
+    )
+
+    actions = graph.get_actions(root)
+    assert feedbacks == [[None]]
+    assert len(failure.results) == 1
+    assert failure.results[0].system_errors == TRUNCATED_THINK_FEEDBACK
+    assert len(actions) == 1
+    assert graph.status(actions[0]) == "FAILED"
+    assert actions[0].extracted_code == ""
+
+
 def test_tactic_feedback_is_cached_and_added_to_retry_prompt():
     root = ProofState("", "root")
     graph = ANDORGraph(root)
@@ -689,10 +820,10 @@ def test_tactic_feedback_is_cached_and_added_to_retry_prompt():
     )
 
     assert "PREVIOUS TACTIC ATTEMPTS FAILED" in prompt
-    assert "FAILED TACTIC CODE" in prompt
+    assert "FAILED CHECKED CODE" in prompt
     assert "unknown identifier 'bad'" in prompt
     assert "Do not repeat the failed tactic" in prompt
-    assert "FAILED TACTIC CODE" in built_prompt
+    assert "FAILED CHECKED CODE" in built_prompt
     assert prompt.index("[PROBLEM]") < prompt.index("PREVIOUS TACTIC ATTEMPTS FAILED")
     assert built_prompt.index("[PROBLEM]") < built_prompt.index("PREVIOUS TACTIC ATTEMPTS FAILED")
 
@@ -836,6 +967,19 @@ def test_failed_subgoal_tactic_scores_only_marked_target_lines_in_parent_context
     assert "GAMMAZERO_TARGET_SCORE" not in full_patched
 
 
+def test_failed_tactic_backup_uses_r_env_and_r_dep():
+    root = ProofState("", "True")
+    graph = ANDORGraph(root)
+    tactic = Action("tactic", "bad", extracted_code="bad")
+    graph.expand(root, tactic, r_env=0.25, r_dep=1.0, tactic_status="FAILED")
+
+    q_values = graph.backup()
+
+    assert graph.status(tactic) == "FAILED"
+    assert q_values[tactic] == 1.25
+    assert graph.backup_value_for_action(tactic, q_values[tactic]) == 1.25
+
+
 def test_subgoal_tactic_prompt_keeps_only_target_sorry():
     root = ProofState("h : True", "True")
     child = ProofState("h : True\nChild : Prop", "Child")
@@ -861,6 +1005,179 @@ def test_subgoal_tactic_prompt_keeps_only_target_sorry():
     assert code.count("admit") >= 1
     assert "have h_sibling : Sibling := by admit" in code
     assert "whole parent theorem scaffold" in prompts[0]
+
+
+def test_lean_execute_child_scaffolds_isolate_sibling_sorries():
+    parent_scaffold = (
+        "theorem my_theorem (Child Sibling : Prop) : True := by\n"
+        "  sorry\n"
+    )
+    state = ProofState(
+        "Child Sibling : Prop",
+        "True",
+        scaffold_code=parent_scaffold,
+        target_index=0,
+        target_kind="root",
+    )
+    scheduler = StaticVerifyScheduler(
+        {
+            "pass": True,
+            "complete": False,
+            "errors": [],
+            "warnings": [],
+            "sorries": [{"goal": "⊢ Child"}, {"goal": "⊢ Sibling"}],
+        }
+    )
+    lean = LeanEnv(scheduler)
+
+    _, _, children = lean.execute(
+        state,
+        "have h_child : Child := sorry\nhave h_sibling : Sibling := sorry\ntrivial",
+    )
+
+    assert len(children) == 2
+    assert children[0].target_index == 0
+    assert children[0].scaffold_code.count("sorry") == 1
+    assert children[0].scaffold_code.count("admit") == 1
+    assert "have h_child : Child := sorry" in children[0].scaffold_code
+    assert "have h_sibling : Sibling := by\n    admit" in children[0].scaffold_code
+    assert children[1].target_index == 0
+    assert children[1].scaffold_code.count("sorry") == 1
+    assert children[1].scaffold_code.count("admit") == 1
+    assert "have h_child : Child := by\n    admit" in children[1].scaffold_code
+    assert "have h_sibling : Sibling := sorry" in children[1].scaffold_code
+
+
+def test_subgoal_prompt_uses_child_scaffold_with_nested_siblings_admitted():
+    child_scaffold = (
+        "theorem my_theorem (H Part Other Sibling : Prop) : True := by\n"
+        "  have h_equiv : H := by\n"
+        "    have h_x_sol : Part := sorry\n"
+        "    have h_other : Other := by\n"
+        "      admit\n"
+        "    admit\n"
+        "  have h_sibling : Sibling := by\n"
+        "    admit\n"
+        "  trivial\n"
+    )
+    root = ProofState("H Sibling : Prop", "True")
+    child = ProofState(
+        "H Part Other Sibling : Prop",
+        "Part",
+        scaffold_code=child_scaffold,
+        target_index=0,
+        target_kind="mini_skeleton_child",
+    )
+    sibling = ProofState("H Part Other Sibling : Prop", "Other")
+    skeleton = Action(
+        "skeleton",
+        "skel",
+        extracted_code="have h_x_sol : Part := sorry\nhave h_other : Other := sorry\nadmit",
+        children=(child, sibling),
+    )
+    rollout = make_rollout()
+
+    prompt = rollout.prompt_builder.build_subgoal_tactic(
+        root,
+        skeleton,
+        0,
+        child_state=child,
+    )
+
+    problem = prompt.split("[PROBLEM]", 1)[1]
+    code = problem.rsplit("```lean4", 1)[1].split("```", 1)[0]
+    assert code.count("sorry") == 1
+    assert "have h_x_sol : Part := sorry" in code
+    assert "have h_other : Other := by\n      admit" in code
+    assert "have h_sibling : Sibling := by\n    admit" in code
+
+
+def test_scaffold_target_label_names_have_containing_sorry():
+    scaffold = (
+        "theorem my_theorem (Child Part : Prop) : True := by\n"
+        "  have h_child : Child := by\n"
+        "    have h_part : Part := sorry\n"
+        "    admit\n"
+        "  have h_done : True := sorry\n"
+        "  trivial\n"
+    )
+
+    assert target_subgoal_label(scaffold, 0) == "h_part"
+    assert target_subgoal_label(scaffold, 1) == "h_done"
+
+
+def test_graph_logger_exports_or_node_target_label():
+    scaffold = (
+        "theorem my_theorem (Child : Prop) : True := by\n"
+        "  have h_child : Child := sorry\n"
+        "  trivial\n"
+    )
+    root = ProofState(
+        "Child : Prop",
+        "Child",
+        scaffold_code=scaffold,
+        target_index=0,
+        target_kind="skeleton_child",
+    )
+    graph = ANDORGraph(root)
+
+    data = GraphLogger().export_to_dict(graph, root, {})
+
+    root_node = next(node for node in data["nodes"] if node["id"] == data["root_id"])
+    assert root_node["target_label"] == "h_child"
+    assert root_node["content"]["target_label"] == "h_child"
+
+
+def test_graph_logger_exports_and_node_target_child_label():
+    root = ProofState("Child Sibling : Prop", "True")
+    child = ProofState("Child Sibling : Prop", "Child")
+    sibling = ProofState("Child Sibling : Prop", "Sibling")
+    graph = ANDORGraph(root)
+    skeleton = Action(
+        "skeleton",
+        "skel",
+        extracted_code="have h_child : Child := sorry\nhave h_sibling : Sibling := sorry\ntrivial",
+        children=(child, sibling),
+    )
+    graph.expand(root, skeleton, r_env=1.0)
+    tactic = Action(
+        "tactic",
+        "solve child",
+        extracted_code="exact trivial",
+        target_child_index=0,
+    )
+    graph.expand(child, tactic, r_env=1.0, tactic_status="SOLVED")
+
+    data = GraphLogger().export_to_dict(graph, root, {})
+
+    action_node = next(
+        node
+        for node in data["nodes"]
+        if node["type"] == "AND" and node["content"] == "solve child"
+    )
+    assert action_node["target_label"] == "h_child"
+    assert action_node["target_child_label"] == "h_child"
+
+
+def test_subgoal_tactic_prompt_names_target_subgoal():
+    root = ProofState("h : True", "True")
+    child = ProofState("h : True\nChild : Prop", "Child")
+    sibling = ProofState("h : True\nSibling : Prop", "Sibling")
+    skeleton = Action(
+        "skeleton",
+        "skel",
+        extracted_code="have h_child : Child := sorry\nhave h_sibling : Sibling := sorry\ntrivial",
+        children=(child, sibling),
+    )
+    rollout = make_rollout()
+
+    prompt = rollout.prompt_builder.build_subgoal_tactic(root, skeleton, 0)
+
+    assert "[TARGET SUBGOAL]" in prompt
+    assert "name: h_child" in prompt
+    assert "child_index: 0" in prompt
+    assert "goal: Child" in prompt
+    assert "Solve exactly the `sorry` for target subgoal `h_child`" in prompt
 
 
 def test_subgoal_skeleton_prompt_keeps_parent_scaffold_context():
@@ -892,6 +1209,27 @@ def test_subgoal_skeleton_prompt_keeps_parent_scaffold_context():
     assert "have h_pre : True := by trivial" in code
     assert "have h_sibling : Sibling := by admit" in code
     assert "Subgoal Skeleton Generator" in prompt
+
+
+def test_subgoal_skeleton_prompt_names_target_subgoal():
+    root = ProofState("h : True", "True")
+    child = ProofState("h : True\nChild : Prop", "Child")
+    sibling = ProofState("h : True\nSibling : Prop", "Sibling")
+    skeleton = Action(
+        "skeleton",
+        "skel",
+        extracted_code="have h_child : Child := sorry\nhave h_sibling : Sibling := sorry\ntrivial",
+        children=(child, sibling),
+    )
+    rollout = make_rollout()
+
+    prompt = rollout.prompt_builder.build_subgoal_skeleton(root, skeleton, 0)
+
+    assert "[TARGET SUBGOAL]" in prompt
+    assert "name: h_child" in prompt
+    assert "child_index: 0" in prompt
+    assert "goal: Child" in prompt
+    assert "Decompose exactly the `sorry` for target subgoal `h_child`" in prompt
 
 
 def test_subgoal_child_skeleton_is_verified_inside_parent_skeleton():
@@ -932,7 +1270,7 @@ def test_subgoal_child_skeleton_is_verified_inside_parent_skeleton():
         "  have h_pre : True := by trivial\n"
         "  have h_child : Child := by\n"
         "    have h_part : Part := sorry\n"
-        "    admit\n"
+        "    exact h_part\n"
         "  have h_sibling : Sibling := by admit\n"
         "  trivial\n"
         "```"
@@ -952,12 +1290,17 @@ def test_subgoal_child_skeleton_is_verified_inside_parent_skeleton():
     assert lean.execute_calls == 0
     assert len(lean.verify_calls) == 1
     assert "have h_pre : True := by trivial" in lean.verify_calls[0]
-    assert "have h_child : Child := by\n    have h_part : Part := sorry\n    admit" in lean.verify_calls[0]
+    assert "have h_child : Child := by\n    have h_part : Part := sorry\n    exact h_part" in lean.verify_calls[0]
     assert "have h_sibling : Sibling := by\n    admit" in lean.verify_calls[0]
     assert len(actions) == 1
     assert actions[0].action_type == "skeleton"
-    assert actions[0].extracted_code == "have h_part : Part := sorry\nadmit"
+    assert actions[0].extracted_code == "have h_part : Part := sorry\nexact h_part"
     assert [s.goal for s in actions[0].children] == ["Part"]
+    assert actions[0].children[0].target_index == 0
+    assert actions[0].children[0].scaffold_code.count("sorry") == 1
+    assert actions[0].children[0].scaffold_code.count("admit") == 1
+    assert "have h_part : Part := sorry" in actions[0].children[0].scaffold_code
+    assert "have h_sibling : Sibling := by\n    admit" in actions[0].children[0].scaffold_code
     assert graph.get_r_env(actions[0]) == 0.42
 
 
@@ -1013,6 +1356,72 @@ def test_failed_subgoal_child_skeleton_patch_scores_target_slice():
     assert "exact fixed" in full_patched
     assert "h_sibling" not in full_orig
     assert "h_sibling" not in full_patched
+
+
+def test_subgoal_child_skeleton_targets_offset_sorry_index():
+    root = ProofState("h : True\nChild : Prop\nSibling : Prop", "True")
+    child = ProofState("h : True\nChild : Prop\nSibling : Prop", "Child")
+    sibling = ProofState("h : True\nChild : Prop\nSibling : Prop\nPart : Prop", "Sibling")
+    parent_skeleton = Action(
+        "skeleton",
+        "skel",
+        extracted_code=(
+            "have h_pre : True := by trivial\n"
+            "have h_child : Child := sorry\n"
+            "have h_sibling : Sibling := sorry\n"
+            "trivial"
+        ),
+        children=(child, sibling),
+    )
+    graph = ANDORGraph(root)
+    graph.expand(root, parent_skeleton, r_env=1.0)
+    graph.add_state(sibling, depth=1)
+    lean = SubgoalTacticLean(pass_result=True)
+    lean.verify = lambda code: (
+        lean.verify_calls.append(code)
+        or {
+            "pass": True,
+            "complete": False,
+            "errors": [],
+            "warnings": [{"severity": "warning", "data": "declaration uses 'sorry'"}],
+            "sorries": [{"goal": "⊢ Child"}, {"goal": "⊢ Part"}],
+        }
+    )
+    reward = FixedReward(0.42)
+    executor = BatchExecutor(lean, NoopFailure(), reward, max_workers=1)
+    raw = (
+        "<think>\nDecompose the target subgoal in the parent scaffold.\n</think>\n"
+        "```lean4\n"
+        "theorem my_theorem (h : True) (Child Sibling Part : Prop) : True := by\n"
+        "  have h_pre : True := by trivial\n"
+        "  have h_child : Child := by admit\n"
+        "  have h_sibling : Sibling := by\n"
+        "    have h_part : Part := sorry\n"
+        "    exact h_part\n"
+        "  trivial\n"
+        "```"
+    )
+
+    executor.execute(
+        graph,
+        [sibling],
+        [[{"text": raw}]],
+        "skeleton",
+        RolloutBudget(4),
+        prompts=["subgoal skeleton prompt"],
+    )
+
+    assert len(lean.verify_calls) == 1
+    assert "have h_child : Child := by\n    admit" in lean.verify_calls[0]
+    assert "have h_sibling : Sibling := by\n    have h_part : Part := sorry" in lean.verify_calls[0]
+    children = graph.get_actions(sibling)[0].children
+    assert [s.goal for s in children] == ["Part"]
+    assert children[0].target_index == 0
+    assert children[0].scaffold_code.count("sorry") == 1
+    assert children[0].scaffold_code.count("admit") == 1
+    assert "have h_child : Child := by\n    admit" in children[0].scaffold_code
+    assert "have h_part : Part := sorry" in children[0].scaffold_code
+
 
 def test_parent_requeues_after_failed_attempts_when_budget_remains():
     root = ProofState("", "root")
@@ -1297,7 +1706,7 @@ def test_state_score_prioritizes_last_open_child_of_parent_skeleton():
     graph.mark_solved(solved_child_1)
     graph.mark_solved(solved_child_2)
     stats = {
-        root: StateStats(depth=0),
+        root: StateStats(depth=0, committed_skeleton=skeleton),
         solved_child_1: StateStats(depth=1),
         solved_child_2: StateStats(depth=1),
         target: StateStats(depth=1, parent_skeletons=[(root, skeleton)]),
@@ -1309,6 +1718,26 @@ def test_state_score_prioritizes_last_open_child_of_parent_skeleton():
     unrelated_score = scorer.score_state(unrelated, graph, stats)
 
     assert target_score > unrelated_score + 7.0
+
+
+def test_uncommitted_skeleton_child_does_not_get_completion_bonus():
+    root = ProofState("", "root")
+    solved_child = ProofState("", "solved")
+    target = ProofState("", "target")
+    graph = ANDORGraph(root)
+    skeleton = Action("skeleton", "split", children=(solved_child, target))
+    graph.expand(root, skeleton, r_env=1.0)
+    graph.add_state(solved_child, depth=1)
+    graph.add_state(target, depth=1)
+    graph.mark_solved(solved_child)
+    stats = {
+        root: StateStats(depth=0),
+        solved_child: StateStats(depth=1),
+        target: StateStats(depth=1, parent_skeletons=[(root, skeleton)]),
+    }
+    scorer = SimpleHeuristicScorer()
+
+    assert scorer.committed_skeleton_progress_bonus(target, graph, stats) == 0.0
 
 
 def test_finalize_unresolved_marks_open_states_and_actions_failed():

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from collections import defaultdict
 from typing import Protocol
 
@@ -496,6 +497,7 @@ class BestFirstRollout:
                                 parent_state,
                                 skeleton,
                                 target_child_index,
+                                child_state=state,
                                 tactic_feedbacks=self._tactic_feedback_by_state.get(state, []),
                             )
                         )
@@ -509,6 +511,7 @@ class BestFirstRollout:
                                 parent_state,
                                 skeleton,
                                 target_child_index,
+                                child_state=state,
                                 skeleton_feedbacks=self._skeleton_feedback_by_state.get(state, []),
                             )
                         )
@@ -562,10 +565,10 @@ class BestFirstRollout:
             for row in rows:
                 if row is None:
                     continue
-                lean_code, lean_feedback, _ = row
+                checked_code, lean_feedback, _ = row
                 if not lean_feedback:
                     continue
-                block = self.prompt_builder.format_tactic_feedback(lean_code, lean_feedback)
+                block = self.prompt_builder.format_tactic_feedback(checked_code, lean_feedback)
                 self._tactic_feedback_by_state.setdefault(state, []).append(block)
 
     def record_skeleton_feedback(
@@ -577,10 +580,10 @@ class BestFirstRollout:
             for row in rows:
                 if row is None:
                     continue
-                lean_code, lean_feedback, _ = row
+                checked_code, lean_feedback, _ = row
                 if not lean_feedback:
                     continue
-                block = self.prompt_builder.format_skeleton_feedback(lean_code, lean_feedback)
+                block = self.prompt_builder.format_skeleton_feedback(checked_code, lean_feedback)
                 self._skeleton_feedback_by_state.setdefault(state, []).append(block)
 
     def update_best_tactic_r_env(
@@ -952,7 +955,16 @@ class BestFirstRollout:
     def state_key(self, state: ProofState) -> str:
         ctx = " ".join((state.context or "").split())
         goal = " ".join((state.goal or "").split())
-        return ctx + "\n⊢ " + goal
+        scaffold = " ".join((state.scaffold_code or "").split())
+        scaffold_hash = hashlib.sha1(scaffold.encode("utf-8")).hexdigest() if scaffold else ""
+        return "\n".join(
+            [
+                ctx + "\n⊢ " + goal,
+                f"target_kind={state.target_kind}",
+                f"target_index={state.target_index}",
+                f"scaffold_sha1={scaffold_hash}",
+            ]
+        )
 
     def can_requeue_state(
         self, state: ProofState, graph: ANDORGraph, stats: dict[ProofState, StateStats]

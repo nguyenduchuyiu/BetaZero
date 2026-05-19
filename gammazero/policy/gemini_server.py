@@ -37,7 +37,7 @@ class GeminiAPIServer:
         """No process to kill."""
         pass
 
-    def _get_gemini_response(self, prompt: str) -> str | None:
+    def _get_gemini_response(self, prompt: str) -> dict | None:
         try:
             # Disable thinking as requested: 'không thinking'            
             if os.getenv("DEBUG_GEMINI"):
@@ -54,16 +54,20 @@ class GeminiAPIServer:
                 
             )
             
-            if response.candidates and response.candidates[0].finish_reason != "STOP":
-                print(f"Warning: Gemini stopped with reason: {response.candidates[0].finish_reason}")
-                if response.candidates[0].finish_message:
-                    print(f"Finish message: {response.candidates[0].finish_message}")
+            finish_reason = ""
+            if response.candidates:
+                finish_reason = str(response.candidates[0].finish_reason or "")
+                if finish_reason != "STOP":
+                    print(f"Warning: Gemini stopped with reason: {response.candidates[0].finish_reason}")
+                    if response.candidates[0].finish_message:
+                        print(f"Finish message: {response.candidates[0].finish_message}")
 
+            text = ""
             if response.text:
-                return response.text
+                text = response.text
             elif response.candidates and response.candidates[0].content.parts:
-                return "".join(p.text for p in response.candidates[0].content.parts if p.text)
-            return ""
+                text = "".join(p.text for p in response.candidates[0].content.parts if p.text)
+            return {"text": text, "finish_reason": finish_reason}
         except Exception as e:
             print(f"Lỗi gọi Gemini API: {e}")
             return None
@@ -96,15 +100,15 @@ class GeminiAPIServer:
             i, prompt = args
             started = time.time()
             for attempt in range(1, self.max_retries + 1):
-                resp = self._get_gemini_response(prompt)
-                if resp is not None:
+                res = self._get_gemini_response(prompt)
+                if res is not None:
                     elapsed = time.time() - started
                     print(
                         f"[Gemini API] Received completion {req_idx + 1}/{len(requests_args)} "
-                        f"(state={i}, attempt={attempt}, chars={len(resp)}, elapsed={elapsed:.1f}s)",
+                        f"(state={i}, attempt={attempt}, chars={len(res.get('text', ''))}, elapsed={elapsed:.1f}s)",
                         flush=True,
                     )
-                    return req_idx, i, {"text": resp}
+                    return req_idx, i, res
                 time.sleep(self.retry_delay)
             elapsed = time.time() - started
             print(
