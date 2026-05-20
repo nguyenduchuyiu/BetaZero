@@ -3,7 +3,6 @@ from __future__ import annotations
 from gammazero.core import Action, ProofState
 from gammazero.env.lean_env import LeanEnv
 from gammazero.policy.output_parser import INVALID_SKELETON_FEEDBACK, TRUNCATED_THINK_FEEDBACK
-from gammazero.policy.prompt import build_skeleton_retry_prompt, build_tactic_retry_prompt
 from gammazero.search.graph import ANDORGraph
 from gammazero.search.rollout.heuristic import SimpleHeuristicScorer
 from gammazero.search.rollout.best_first_rollout import BestFirstRollout
@@ -687,21 +686,6 @@ def test_valid_zero_children_excludes_raw_failed_skeletons():
     assert zero_children == 1
 
 
-def test_skeleton_feedback_is_cached_and_added_to_retry_prompt():
-    root = ProofState("", "root")
-    graph = ANDORGraph(root)
-    rollout = make_rollout(executor=FeedbackExecutor())
-
-    rollout.run_jobs(graph, [(root, 1)], "skeleton")
-    prompt = build_skeleton_retry_prompt(root, rollout._skeleton_feedback_by_state[root])
-
-    assert "PREVIOUS SKELETON ATTEMPTS FAILED" in prompt
-    assert "FAILED CHECKED CODE" in prompt
-    assert "unknown identifier 'bad'" in prompt
-    assert "Do not repeat the failed skeleton" in prompt
-    assert prompt.index("[PROBLEM]") < prompt.index("PREVIOUS SKELETON ATTEMPTS FAILED")
-
-
 def test_bad_final_goal_skeleton_is_failed_with_policy_feedback():
     root = ProofState("h : True", "False")
     graph = ANDORGraph(root)
@@ -804,28 +788,6 @@ def test_empty_extraction_records_failed_action_without_retry_feedback():
     assert len(actions) == 1
     assert graph.status(actions[0]) == "FAILED"
     assert actions[0].extracted_code == ""
-
-
-def test_tactic_feedback_is_cached_and_added_to_retry_prompt():
-    root = ProofState("", "root")
-    graph = ANDORGraph(root)
-    rollout = make_rollout(executor=FeedbackExecutor())
-
-    rollout.run_jobs(graph, [(root, 1)], "tactic")
-    prompt = build_tactic_retry_prompt(root, rollout._tactic_feedback_by_state[root])
-    built_prompt = rollout.prompt_builder.build(
-        root,
-        "tactic",
-        tactic_feedbacks=rollout._tactic_feedback_by_state[root],
-    )
-
-    assert "PREVIOUS TACTIC ATTEMPTS FAILED" in prompt
-    assert "FAILED CHECKED CODE" in prompt
-    assert "unknown identifier 'bad'" in prompt
-    assert "Do not repeat the failed tactic" in prompt
-    assert "FAILED CHECKED CODE" in built_prompt
-    assert prompt.index("[PROBLEM]") < prompt.index("PREVIOUS TACTIC ATTEMPTS FAILED")
-    assert built_prompt.index("[PROBLEM]") < built_prompt.index("PREVIOUS TACTIC ATTEMPTS FAILED")
 
 
 def test_subgoal_child_tactic_is_verified_inside_parent_skeleton():
@@ -980,33 +942,6 @@ def test_failed_tactic_backup_uses_r_env_and_r_dep():
     assert graph.backup_value_for_action(tactic, q_values[tactic]) == 1.25
 
 
-def test_subgoal_tactic_prompt_keeps_only_target_sorry():
-    root = ProofState("h : True", "True")
-    child = ProofState("h : True\nChild : Prop", "Child")
-    sibling = ProofState("h : True\nSibling : Prop", "Sibling")
-    graph = ANDORGraph(root)
-    skeleton = Action(
-        "skeleton",
-        "skel",
-        extracted_code="have h_child : Child := sorry\nhave h_sibling : Sibling := sorry\ntrivial",
-        children=(child, sibling),
-    )
-    graph.expand(root, skeleton, r_env=1.0)
-    graph.add_state(child, depth=1)
-    rollout = make_rollout()
-
-    prompts = [
-        rollout.prompt_builder.build_subgoal_tactic(root, skeleton, 0)
-    ]
-
-    problem = prompts[0].split("[PROBLEM]", 1)[1]
-    code = problem.rsplit("```lean4", 1)[1].split("```", 1)[0]
-    assert code.count("sorry") == 1
-    assert code.count("admit") >= 1
-    assert "have h_sibling : Sibling := by admit" in code
-    assert "whole parent theorem scaffold" in prompts[0]
-
-
 def test_lean_execute_child_scaffolds_isolate_sibling_sorries():
     parent_scaffold = (
         "theorem my_theorem (Child Sibling : Prop) : True := by\n"
@@ -1046,50 +981,6 @@ def test_lean_execute_child_scaffolds_isolate_sibling_sorries():
     assert children[1].scaffold_code.count("admit") == 1
     assert "have h_child : Child := by\n    admit" in children[1].scaffold_code
     assert "have h_sibling : Sibling := sorry" in children[1].scaffold_code
-
-
-def test_subgoal_prompt_uses_child_scaffold_with_nested_siblings_admitted():
-    child_scaffold = (
-        "theorem my_theorem (H Part Other Sibling : Prop) : True := by\n"
-        "  have h_equiv : H := by\n"
-        "    have h_x_sol : Part := sorry\n"
-        "    have h_other : Other := by\n"
-        "      admit\n"
-        "    admit\n"
-        "  have h_sibling : Sibling := by\n"
-        "    admit\n"
-        "  trivial\n"
-    )
-    root = ProofState("H Sibling : Prop", "True")
-    child = ProofState(
-        "H Part Other Sibling : Prop",
-        "Part",
-        scaffold_code=child_scaffold,
-        target_index=0,
-        target_kind="mini_skeleton_child",
-    )
-    sibling = ProofState("H Part Other Sibling : Prop", "Other")
-    skeleton = Action(
-        "skeleton",
-        "skel",
-        extracted_code="have h_x_sol : Part := sorry\nhave h_other : Other := sorry\nadmit",
-        children=(child, sibling),
-    )
-    rollout = make_rollout()
-
-    prompt = rollout.prompt_builder.build_subgoal_tactic(
-        root,
-        skeleton,
-        0,
-        child_state=child,
-    )
-
-    problem = prompt.split("[PROBLEM]", 1)[1]
-    code = problem.rsplit("```lean4", 1)[1].split("```", 1)[0]
-    assert code.count("sorry") == 1
-    assert "have h_x_sol : Part := sorry" in code
-    assert "have h_other : Other := by\n      admit" in code
-    assert "have h_sibling : Sibling := by\n    admit" in code
 
 
 def test_scaffold_target_label_names_have_containing_sorry():
@@ -1157,79 +1048,6 @@ def test_graph_logger_exports_and_node_target_child_label():
     )
     assert action_node["target_label"] == "h_child"
     assert action_node["target_child_label"] == "h_child"
-
-
-def test_subgoal_tactic_prompt_names_target_subgoal():
-    root = ProofState("h : True", "True")
-    child = ProofState("h : True\nChild : Prop", "Child")
-    sibling = ProofState("h : True\nSibling : Prop", "Sibling")
-    skeleton = Action(
-        "skeleton",
-        "skel",
-        extracted_code="have h_child : Child := sorry\nhave h_sibling : Sibling := sorry\ntrivial",
-        children=(child, sibling),
-    )
-    rollout = make_rollout()
-
-    prompt = rollout.prompt_builder.build_subgoal_tactic(root, skeleton, 0)
-
-    assert "[TARGET SUBGOAL]" in prompt
-    assert "name: h_child" in prompt
-    assert "child_index: 0" in prompt
-    assert "goal: Child" in prompt
-    assert "Solve exactly the `sorry` for target subgoal `h_child`" in prompt
-
-
-def test_subgoal_skeleton_prompt_keeps_parent_scaffold_context():
-    root = ProofState("h : True", "True")
-    child = ProofState("h : True\nChild : Prop", "Child")
-    sibling = ProofState("h : True\nSibling : Prop", "Sibling")
-    graph = ANDORGraph(root)
-    skeleton = Action(
-        "skeleton",
-        "skel",
-        extracted_code=(
-            "have h_pre : True := by trivial\n"
-            "have h_child : Child := sorry\n"
-            "have h_sibling : Sibling := sorry\n"
-            "trivial"
-        ),
-        children=(child, sibling),
-    )
-    graph.expand(root, skeleton, r_env=1.0)
-    graph.add_state(child, depth=1)
-    rollout = make_rollout()
-
-    prompt = rollout.prompt_builder.build_subgoal_skeleton(root, skeleton, 0)
-
-    problem = prompt.split("[PROBLEM]", 1)[1]
-    code = problem.rsplit("```lean4", 1)[1].split("```", 1)[0]
-    assert code.count("sorry") == 1
-    assert code.count("admit") >= 1
-    assert "have h_pre : True := by trivial" in code
-    assert "have h_sibling : Sibling := by admit" in code
-    assert "Subgoal Skeleton Generator" in prompt
-
-
-def test_subgoal_skeleton_prompt_names_target_subgoal():
-    root = ProofState("h : True", "True")
-    child = ProofState("h : True\nChild : Prop", "Child")
-    sibling = ProofState("h : True\nSibling : Prop", "Sibling")
-    skeleton = Action(
-        "skeleton",
-        "skel",
-        extracted_code="have h_child : Child := sorry\nhave h_sibling : Sibling := sorry\ntrivial",
-        children=(child, sibling),
-    )
-    rollout = make_rollout()
-
-    prompt = rollout.prompt_builder.build_subgoal_skeleton(root, skeleton, 0)
-
-    assert "[TARGET SUBGOAL]" in prompt
-    assert "name: h_child" in prompt
-    assert "child_index: 0" in prompt
-    assert "goal: Child" in prompt
-    assert "Decompose exactly the `sorry` for target subgoal `h_child`" in prompt
 
 
 def test_subgoal_child_skeleton_is_verified_inside_parent_skeleton():

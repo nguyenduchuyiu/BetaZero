@@ -10,14 +10,46 @@ from gammazero.utils.scaffold import (
     target_subgoal_label,
 )
 
-_OUTPUT_FORMAT_INSTRUCTION = textwrap.dedent(
-"""
-OUTPUT INSTRUCTIONS
-1. You MUST use the exact theorem signature (name and arguments) provided in the [PROBLEM].
-2. OUTPUT FORMAT: After the </think> tag, you MUST output EXACTLY ONE valid ```lean4 ... ``` block containing your final answer. Do not add conversational text after the code block.
-3. Adjust the length of your <think> process to the complexity of the problem. If the problem is simple, a concise and direct breakdown is PERFECT. Do not artificially inflate the reasoning.
-"""
-).strip()
+def _final_output_instructions(*, whole_scaffold: bool, skeleton: bool) -> str:
+    code_scope = (
+        "the WHOLE parent theorem scaffold"
+        if whole_scaffold
+        else "the exact theorem signature from [PROBLEM]"
+    )
+    rules = [
+        "You MUST start with a <think>...</think> block explaining your approach.",
+        f"After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing {code_scope}.",
+    ]
+    if whole_scaffold:
+        rules.append(
+            "Change ONLY the unique `sorry` subgoal; leave all `admit` placeholders perfectly intact."
+        )
+    if skeleton:
+        rules.append(
+            "Any new `sorry` must be a named leaf obligation; the final assembly must be sorry-free."
+        )
+    rules.append("Do not add any conversational text after the code block.")
+    numbered_rules = "\n".join(
+        f"{idx}. {rule}" for idx, rule in enumerate(rules, start=1)
+    )
+    return "\n".join(
+        [
+            "=========================================",
+            "FINAL OUTPUT INSTRUCTIONS & FORMAT:",
+            "The logs above are raw system outputs. You MUST NOT mimic their format.",
+            "You must strictly follow this format:",
+            "",
+            numbered_rules,
+            "",
+            "EXAMPLE FORMAT:",
+            "<think>",
+            "[Your concise reasoning here]",
+            "</think>",
+            "```lean4",
+            "[Your final Lean code here]",
+            "```",
+        ]
+    )
 
 _USER_BASE_INSTRUCTION = textwrap.dedent(
 """
@@ -35,15 +67,6 @@ CRITICAL INSTRUCTIONS:
 1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. 
 2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.
 3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.
-
-OUTPUT FORMAT EXAMPLE:
-<think>
-[Your thinking process goes here. Be concise and direct.]
-</think>
-```lean4
-theorem my_theorem proposition := by
-  [Your tactic sequence goes here. Be concise and direct.]
-```
 """
 ).strip()
 
@@ -67,21 +90,6 @@ CRITICAL INSTRUCTIONS:
    Keep every sibling `admit` exactly as an `admit`.
 4. The replacement proof for the target subgoal must not contain `sorry` or `admit` in tactics.
 5. Use the surrounding scaffold to preserve Lean's original elaboration context.
-
-OUTPUT FORMAT EXAMPLE:
-<think>
-[Your thinking process goes here. Be concise and direct.]
-</think>
-```lean4
-theorem my_theorem proposition := by
-  have h1 : intermediate_prop_1 := admit
-  have h2 : intermediate_prop_2 := admit
-  -- This is the unique subgoal that must be solved and cannot contain `sorry` or `admit` in tactics.
-  have h3 : target_subgoal_prop := by
-    [Your tactic]
-  have h4 : intermediate_prop_4 := admit
-  exact final_assembly
-```
 """).strip()
 
 
@@ -152,24 +160,6 @@ MINI-SKELETON CONSTRAINTS:
    if possible. Do not leave the target subgoal as a naked `sorry`; if no valid
    decomposition exists, produce the best named leaf obligation and close the
    target assembly from that leaf.
-
-OUTPUT FORMAT EXAMPLE:
-<think>
-[Briefly explain the local decomposition plan. Name the intermediate
-obligations and why they are strictly simpler/useful for closing the target
-subgoal.]
-</think>
-```lean4
-theorem my_theorem proposition := by
-  have h1 : intermediate_prop_1 := admit
-  -- This is the unique subgoal that must be decomposed.
-  have h2 : target_subgoal_prop := by
-    have h2a : smaller_prop_1 := sorry
-    have h2b : smaller_prop_2 := sorry
-    exact target_assembly_using h2a h2b
-  have h3 : intermediate_prop_3 := admit
-  exact final_assembly
-```
 
 BAD EXAMPLE:
 ```lean4
@@ -266,17 +256,6 @@ theorem my_theorem proposition := by
 Remember: the search tree solves the `sorry` leaf obligations. Your job is to make sure
 that once those leaves are solved, the original goal closes automatically.
 
-OUTPUT FORMAT EXAMPLE:
-<think>
-[Briefly explain the decomposition plan. Name the intermediate obligations and
-why they are strictly simpler/useful for closing the final goal.]
-</think>
-```lean4
-theorem my_theorem proposition := by
-  have h1 : intermediate_prop_1 := sorry
-  have h2 : intermediate_prop_2 := sorry
-  exact final_assembly_using h1 h2
-```
 """).strip()
 
 
@@ -427,13 +406,17 @@ def _root_system_instruction(action_type: str) -> str:
     else:
         raise ValueError(action_type)
 
-    return instruction + "\n\n" + _OUTPUT_FORMAT_INSTRUCTION
+    return instruction
 
 
-def _root_user_message(state: ProofState, extra_rules: str = "") -> str:
+def _root_user_message(state: ProofState, action_type: str, extra_rules: str = "") -> str:
     user_msg_content = _USER_BASE_INSTRUCTION + "\n" + _format_problem(state)
     if extra_rules:
         user_msg_content = user_msg_content + "\n\n" + extra_rules.strip()
+    user_msg_content += "\n\n" + _final_output_instructions(
+        whole_scaffold=False,
+        skeleton=action_type == "skeleton",
+    )
     return user_msg_content
 
 
@@ -441,7 +424,7 @@ def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -
     """Return structured ChatML messages for callers that need message-level access."""
     return [
         {"role": "system", "content": _root_system_instruction(action_type)},
-        {"role": "user", "content": _root_user_message(state, extra_rules)},
+        {"role": "user", "content": _root_user_message(state, action_type, extra_rules)},
         {"role": "assistant", "content": "<think>\n"},
     ]
 
@@ -449,7 +432,7 @@ def build_messages(state: ProofState, action_type: str, extra_rules: str = "") -
 def build_prompt(state: ProofState, action_type: str, extra_rules: str = "") -> str:
     return _build_chatml_prompt(
         _root_system_instruction(action_type),
-        _root_user_message(state, extra_rules),
+        _root_user_message(state, action_type, extra_rules),
     )
 
 
@@ -462,15 +445,7 @@ def build_subgoal_tactic_prompt(
     *,
     max_feedbacks: int = 3,
 ) -> str:
-    full_system = _SUBGOAL_TACTIC_INSTRUCTION + "\n\n" + textwrap.dedent(
-        """
-        OUTPUT INSTRUCTIONS
-        1. OUTPUT FORMAT: First output `<think>...</think>`, then output EXACTLY ONE valid ```lean4 ... ``` block.
-        2. The code block must contain the whole parent theorem scaffold.
-        3. Change only the unique `sorry` subgoal; leave sibling `admit` placeholders unchanged.
-        4. Do not add conversational text after the code block.
-        """
-    ).strip()
+    full_system = _SUBGOAL_TACTIC_INSTRUCTION
     user_msg_content = _USER_BASE_INSTRUCTION + "\n" + _format_subgoal_tactic_problem(
         parent_state,
         skeleton,
@@ -485,6 +460,10 @@ def build_subgoal_tactic_prompt(
             + "\n\n".join(feedback_blocks[-max_feedbacks:])
         )
         user_msg_content += "\n\n" + feedback_block
+    user_msg_content += "\n\n" + _final_output_instructions(
+        whole_scaffold=True,
+        skeleton=False,
+    )
     return _build_chatml_prompt(full_system, user_msg_content)
 
 
@@ -497,15 +476,7 @@ def build_subgoal_skeleton_prompt(
     *,
     max_feedbacks: int = 3,
 ) -> str:
-    full_system = _SUBGOAL_SKELETON_INSTRUCTION + "\n\n" + textwrap.dedent(
-        """
-        OUTPUT INSTRUCTIONS
-        1. OUTPUT FORMAT: First output `<think>...</think>`, then output EXACTLY ONE valid ```lean4 ... ``` block.
-        2. The code block must contain the whole parent theorem scaffold.
-        3. Change only the unique `sorry` subgoal; leave sibling `admit` placeholders unchanged.
-        4. Do not add conversational text after the code block.
-        """
-    ).strip()
+    full_system = _SUBGOAL_SKELETON_INSTRUCTION
     user_msg_content = _USER_BASE_INSTRUCTION + "\n" + _format_subgoal_skeleton_problem(
         parent_state,
         skeleton,
@@ -520,6 +491,10 @@ def build_subgoal_skeleton_prompt(
             + "\n\n".join(feedback_blocks[-max_feedbacks:])
         )
         user_msg_content += "\n\n" + feedback_block
+    user_msg_content += "\n\n" + _final_output_instructions(
+        whole_scaffold=True,
+        skeleton=True,
+    )
     return _build_chatml_prompt(full_system, user_msg_content)
 
 
