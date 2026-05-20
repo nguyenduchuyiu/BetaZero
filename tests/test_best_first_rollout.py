@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from gammazero.core import Action, ProofState
 from gammazero.env.lean_env import LeanEnv
 from gammazero.policy.output_parser import INVALID_SKELETON_FEEDBACK, TRUNCATED_THINK_FEEDBACK
@@ -11,7 +13,7 @@ from gammazero.search.rollout.execution_result import LeanExecutionResult
 from gammazero.search.rollout.search_queue import StatePriorityQueue
 from gammazero.search.rollout.search_stats import StateStats
 from gammazero.utils.graph_logger import GraphLogger
-from gammazero.utils.scaffold import target_subgoal_label
+from gammazero.utils.scaffold import target_subgoal_label, verifier_sorries_by_source_position
 
 
 class FakePolicy:
@@ -303,6 +305,53 @@ class StaticVerifyScheduler:
     def verify(self, code):
         self.verify_calls.append(code)
         return self.verify_result
+
+
+def _positioned_placeholder_sorries(
+    code: str,
+    goals: list[str],
+    *,
+    order: list[int] | None = None,
+) -> list[dict]:
+    matches = list(re.finditer(r"\b(?:sorry|admit)\b", code))
+    assert len(matches) >= len(goals)
+    records = []
+    for match, goal in zip(matches, goals):
+        line_start = code.rfind("\n", 0, match.start()) + 1
+        line = code.count("\n", 0, match.start()) + 1
+        column = match.start() - line_start
+        end_column = match.end() - line_start
+        records.append(
+            {
+                "goal": goal,
+                "pos": {"line": line, "column": column},
+                "endPos": {"line": line, "column": end_column},
+            }
+        )
+    if order is not None:
+        records = [records[i] for i in order]
+    return records
+
+
+class PositionedVerifyScheduler:
+    def __init__(self, goals: list[str], *, order: list[int] | None = None):
+        self.goals = goals
+        self.order = order
+        self.verify_calls: list[str] = []
+
+    def verify(self, code):
+        self.verify_calls.append(code)
+        return {
+            "pass": True,
+            "complete": False,
+            "errors": [],
+            "warnings": [],
+            "sorries": _positioned_placeholder_sorries(
+                code,
+                self.goals,
+                order=self.order,
+            ),
+        }
 
 
 class NoopFailureHandler:
@@ -954,15 +1003,7 @@ def test_lean_execute_child_scaffolds_isolate_sibling_sorries():
         target_index=0,
         target_kind="root",
     )
-    scheduler = StaticVerifyScheduler(
-        {
-            "pass": True,
-            "complete": False,
-            "errors": [],
-            "warnings": [],
-            "sorries": [{"goal": "⊢ Child"}, {"goal": "⊢ Sibling"}],
-        }
-    )
+    scheduler = PositionedVerifyScheduler(["⊢ Child", "⊢ Sibling"])
     lean = LeanEnv(scheduler)
 
     _, _, children = lean.execute(
@@ -1076,7 +1117,10 @@ def test_subgoal_child_skeleton_is_verified_inside_parent_skeleton():
             "complete": False,
             "errors": [],
             "warnings": [{"severity": "warning", "data": "declaration uses 'sorry'"}],
-            "sorries": [{"goal": "⊢ Part"}, {"goal": "⊢ Sibling"}],
+            "sorries": _positioned_placeholder_sorries(
+                code,
+                ["⊢ Part", "⊢ Sibling"],
+            ),
         }
     )
     reward = FixedReward(0.42)
@@ -1202,7 +1246,10 @@ def test_subgoal_child_skeleton_targets_offset_sorry_index():
             "complete": False,
             "errors": [],
             "warnings": [{"severity": "warning", "data": "declaration uses 'sorry'"}],
-            "sorries": [{"goal": "⊢ Child"}, {"goal": "⊢ Part"}],
+            "sorries": _positioned_placeholder_sorries(
+                code,
+                ["⊢ Child", "⊢ Part"],
+            ),
         }
     )
     reward = FixedReward(0.42)
@@ -1239,6 +1286,77 @@ def test_subgoal_child_skeleton_targets_offset_sorry_index():
     assert children[0].scaffold_code.count("admit") == 1
     assert "have h_child : Child := by\n    admit" in children[0].scaffold_code
     assert "have h_part : Part := sorry" in children[0].scaffold_code
+
+
+def test_subgoal_child_skeleton_uses_positions_not_verifier_order():
+    root = ProofState("Child Sibling Left Right : Prop", "True")
+    child = ProofState("Child Sibling Left Right : Prop", "Child")
+    sibling = ProofState("Child Sibling Left Right : Prop", "Sibling")
+    parent_skeleton = Action(
+        "skeleton",
+        "skel",
+        extracted_code=(
+            "have h_child : Child := sorry\n"
+            "have h_sibling : Sibling := sorry\n"
+            "trivial"
+        ),
+        children=(child, sibling),
+    )
+
+    class OutOfOrderLean:
+        def verify(self, code):
+            return {
+                "pass": True,
+                "complete": False,
+                "errors": [],
+                "warnings": [{"severity": "warning", "data": "declaration uses 'sorry'"}],
+                "sorries": _positioned_placeholder_sorries(
+                    code,
+                    ["⊢ Left", "⊢ Right", "⊢ Sibling"],
+                    order=[2, 1, 0],
+                ),
+            }
+
+    result = BatchExecutor.safe_execute_subgoal_skeleton(
+        OutOfOrderLean(),
+        child,
+        root,
+        parent_skeleton,
+        0,
+        "have h_left : Left := sorry\n"
+        "have h_right : Right := sorry\n"
+        "exact h_left",
+    )
+
+    assert result.verify["pass"] is True
+    assert [state.goal for state in result.subgoals] == ["Left", "Right"]
+    assert "have h_left : Left := sorry" in result.subgoals[0].scaffold_code
+    assert "have h_right : Right := by\n      admit" in result.subgoals[0].scaffold_code
+    assert "have h_left : Left := by\n      admit" in result.subgoals[1].scaffold_code
+    assert "have h_right : Right := sorry" in result.subgoals[1].scaffold_code
+
+
+def test_verifier_position_mapping_handles_utf8_byte_columns():
+    code = (
+        "theorem my_theorem : True := by\n"
+        "  have hπ : True := sorry\n"
+        "  have h₂ : True := sorry\n"
+        "  trivial\n"
+    )
+    second = list(re.finditer(r"\bsorry\b", code))[1]
+    line_start = code.rfind("\n", 0, second.start()) + 1
+    line = code.count("\n", 0, second.start()) + 1
+    byte_column = len(code[line_start : second.start()].encode("utf-8"))
+    byte_end_column = len(code[line_start : second.end()].encode("utf-8"))
+    sorries = [
+        {
+            "goal": "⊢ second",
+            "pos": {"line": line, "column": byte_column},
+            "endPos": {"line": line, "column": byte_end_column},
+        }
+    ]
+
+    assert verifier_sorries_by_source_position(code, sorries)[0][0] == 1
 
 
 def test_parent_requeues_after_failed_attempts_when_budget_remains():
@@ -1319,6 +1437,56 @@ def test_reserved_skeleton_keeps_score_but_does_not_backup_to_parent_value():
     assert graph.status(reserved) == "RESERVED"
     assert q_values[reserved] == 1.0
     assert graph.backup_value_for_action(reserved, q_values[reserved]) == 0.0
+
+
+def test_reserved_fallback_activates_after_child_exhaustion_before_queue_empty():
+    root = ProofState("", "root")
+    committed_child = ProofState("", "committed_child")
+    fallback_child = ProofState("", "fallback_child")
+
+    class TwoSkeletonExecutor:
+        def execute(self, graph, states, batches, action_type, budget, prompts=None):
+            for state, batch in zip(states, batches):
+                for item in batch:
+                    if not budget.try_consume():
+                        return []
+                    if action_type == "tactic":
+                        status = "SOLVED" if state == fallback_child else "FAILED"
+                        graph.expand(
+                            state,
+                            Action("tactic", item["text"], extracted_code="tactic"),
+                            r_env=1.0 if status == "SOLVED" else 0.0,
+                            tactic_status=status,
+                        )
+                        continue
+
+                    child = committed_child if item["text"].endswith(":0") else fallback_child
+                    graph.expand(
+                        state,
+                        Action("skeleton", item["text"], extracted_code="have h := by sorry", children=(child,)),
+                        r_env=1.0,
+                    )
+            return []
+
+    rollout = make_rollout(
+        executor=TwoSkeletonExecutor(),
+        max_depth=1,
+        max_nodes=16,
+        initial_skeleton_k=2,
+        max_skeleton_per_state=2,
+        max_reserved_skeletons_per_state=1,
+        scorer=FixedScoreScorer({"skeleton:root:0": 2.0, "skeleton:root:1": 1.0}),
+    )
+
+    _, graph, _ = rollout.rollout(root)
+    root_skeletons = [action for action in graph.get_actions(root) if action.action_type == "skeleton"]
+    committed = next(action for action in root_skeletons if action.content.endswith(":0"))
+    fallback = next(action for action in root_skeletons if action.content.endswith(":1"))
+
+    assert graph.status(committed) == "FAILED"
+    assert graph.status(fallback) == "SOLVED"
+    assert graph.status(root) == "SOLVED"
+    assert rollout.last_search_metadata["skeleton_commitment"]["fallback_activated"] == 1
 
 
 def test_failed_committed_skeleton_activates_best_reserved_fallback():

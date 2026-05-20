@@ -24,7 +24,7 @@ from gammazero.utils.lean_parse import parse_proof_state
 from gammazero.utils.scaffold import (
     isolate_sorry_target,
     replace_sorry_at,
-    sorry_index_for_placeholder_index,
+    verifier_sorries_by_source_position,
 )
 
 from .execution_result import LeanExecutionResult
@@ -120,11 +120,6 @@ class BatchExecutor:
         if action_type == "skeleton":
             return validate_skeleton_replacement(action_code)
         return ""
-
-    @staticmethod
-    def _verifier_placeholder_count(code: str) -> int:
-        clean = strip_lean_comments(code)
-        return len(re.findall(r"\b(?:sorry|admit)\b", clean))
 
     @staticmethod
     def _subgoal_tactic_target(
@@ -302,18 +297,16 @@ class BatchExecutor:
             before_marker = before_marker.rstrip(" \t")
             marked_target = marked_target.strip("\n")
             candidate_code = before_marker + marked_target + after_marker
-
-            target_sorry_start = BatchExecutor._verifier_placeholder_count(before_marker)
-            target_sorry_end = target_sorry_start + BatchExecutor._verifier_placeholder_count(action_code)
-
             vr = lean.verify(candidate_code)
             subgoals: list[ProofState] = []
-            for sorry_idx, s in enumerate(vr.get("sorries", [])):
-                if sorry_idx < target_sorry_start or sorry_idx >= target_sorry_end:
-                    continue
-                target_index = sorry_index_for_placeholder_index(candidate_code, sorry_idx)
-                if target_index is None:
-                    continue
+            start_char = len(before_marker)
+            end_char = start_char + len(marked_target)
+            for target_index, s in verifier_sorries_by_source_position(
+                candidate_code,
+                vr.get("sorries", []),
+                start_offset=start_char,
+                end_offset=end_char,
+            ):
                 child_scaffold, child_target_index = isolate_sorry_target(
                     candidate_code,
                     target_index,

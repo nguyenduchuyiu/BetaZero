@@ -4,10 +4,8 @@ from gammazero.utils.lean_parse import parse_proof_state
 from gammazero.utils.lean_cmd import build_theorem
 from gammazero.utils.scaffold import (
     isolate_sorry_target,
-    placeholder_count,
     replace_sorry_at,
-    sorry_index_for_placeholder_index,
-    verifier_placeholder_index_for_sorry,
+    verifier_sorries_by_source_position,
 )
 
 
@@ -22,29 +20,32 @@ class LeanEnv:
 
     def execute(self, state: ProofState, code: str) -> tuple[str, dict, list[ProofState]]:
         """Build, verify, and parse subgoals for a tactic applied to state."""
+        start_marker = "-- GAMMAZERO_START"
+        end_marker = "-- GAMMAZERO_END"
+        marked_code = f"{start_marker}\n{code}\n{end_marker}"
         if state.scaffold_code:
-            candidate_code = replace_sorry_at(state.scaffold_code, state.target_index, code)
+            marked_candidate_code = replace_sorry_at(state.scaffold_code, state.target_index, marked_code)
         else:
-            candidate_code = build_theorem(state, code)
+            marked_candidate_code = build_theorem(state, marked_code)
+
+        before_marker, after_start = marked_candidate_code.split(start_marker, 1)
+        marked_target, after_marker = after_start.split(end_marker, 1)
+        before_marker = before_marker.rstrip(" \t")
+        marked_target = marked_target.strip("\n")
+        candidate_code = before_marker + marked_target + after_marker
+
         vr = self.scheduler.verify(candidate_code)
-        
+
         subgoals = []
         if vr.get("pass"):
-            if state.scaffold_code:
-                target_sorry_start = verifier_placeholder_index_for_sorry(
-                    state.scaffold_code,
-                    state.target_index,
-                )
-                target_sorry_end = target_sorry_start + placeholder_count(code)
-            else:
-                target_sorry_start = 0
-                target_sorry_end = len(vr.get("sorries", []))
-            for idx, s in enumerate(vr.get("sorries", [])):
-                if idx < target_sorry_start or idx >= target_sorry_end:
-                    continue
-                target_index = sorry_index_for_placeholder_index(candidate_code, idx)
-                if target_index is None:
-                    continue
+            start_char = len(before_marker)
+            end_char = start_char + len(marked_target)
+            for target_index, s in verifier_sorries_by_source_position(
+                candidate_code,
+                vr.get("sorries", []),
+                start_offset=start_char,
+                end_offset=end_char,
+            ):
                 child_scaffold, child_target_index = isolate_sorry_target(
                     candidate_code,
                     target_index,

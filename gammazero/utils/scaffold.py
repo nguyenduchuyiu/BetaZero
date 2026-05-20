@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import bisect
 import re
 import textwrap
+from dataclasses import dataclass
+from typing import Any, Iterable
 
 
 _SORRY_RE = re.compile(r"\bsorry\b")
@@ -9,37 +12,151 @@ _PLACEHOLDER_RE = re.compile(r"\b(?:sorry|admit)\b")
 _DECL_RE = re.compile(r"(?:have|let)\s+([^\s:=()]+)")
 
 
+@dataclass(frozen=True)
+class SourcePlaceholder:
+    token: str
+    start: int
+    end: int
+    line: int
+    char_column: int
+    byte_column: int
+    end_char_column: int
+    end_byte_column: int
+    sorry_index: int | None
+
+
 def sorry_count(code: str) -> int:
     return len(_SORRY_RE.findall(code or ""))
 
 
-def placeholder_count(code: str) -> int:
-    return len(_PLACEHOLDER_RE.findall(code or ""))
+def _line_start_offsets(code: str) -> list[int]:
+    starts = [0]
+    for match in re.finditer("\n", code or ""):
+        starts.append(match.end())
+    return starts
 
 
-def verifier_placeholder_index_for_sorry(scaffold_code: str, target_index: int) -> int:
-    """Map a textual `sorry` index to Lean verifier's sorry/admit index."""
-    code = scaffold_code or ""
-    matches = list(_SORRY_RE.finditer(code))
-    if target_index < 0 or target_index >= len(matches):
-        return target_index
-    target_pos = matches[target_index].start()
-    return sum(1 for match in _PLACEHOLDER_RE.finditer(code) if match.start() < target_pos)
+def _line_number_for_offset(line_starts: list[int], offset: int) -> int:
+    return bisect.bisect_right(line_starts, offset)
 
 
-def sorry_index_for_placeholder_index(code: str, placeholder_index: int) -> int | None:
-    """Return textual `sorry` index for a verifier placeholder, or None for `admit`."""
-    if placeholder_index < 0:
+def _source_placeholders(code: str) -> list[SourcePlaceholder]:
+    code = code or ""
+    line_starts = _line_start_offsets(code)
+    placeholders: list[SourcePlaceholder] = []
+    sorry_seen = 0
+    for match in _PLACEHOLDER_RE.finditer(code):
+        line = _line_number_for_offset(line_starts, match.start())
+        line_start = line_starts[line - 1]
+        prefix = code[line_start : match.start()]
+        token_text = match.group(0)
+        token_start_col = len(prefix)
+        token_end_col = token_start_col + len(token_text)
+        token_start_byte_col = len(prefix.encode("utf-8"))
+        token_end_byte_col = token_start_byte_col + len(token_text.encode("utf-8"))
+        sorry_index = sorry_seen if token_text == "sorry" else None
+        placeholders.append(
+            SourcePlaceholder(
+                token=token_text,
+                start=match.start(),
+                end=match.end(),
+                line=line,
+                char_column=token_start_col,
+                byte_column=token_start_byte_col,
+                end_char_column=token_end_col,
+                end_byte_column=token_end_byte_col,
+                sorry_index=sorry_index,
+            )
+        )
+        if token_text == "sorry":
+            sorry_seen += 1
+    return placeholders
+
+
+def _pos_line_col(pos: Any) -> tuple[int, int] | None:
+    if not isinstance(pos, dict):
+        return None
+    try:
+        return int(pos.get("line", 0)), int(pos.get("column", 0))
+    except (TypeError, ValueError):
         return None
 
-    sorry_seen = 0
-    for idx, match in enumerate(_PLACEHOLDER_RE.finditer(code or "")):
-        token = match.group(0)
-        if idx == placeholder_index:
-            return sorry_seen if token == "sorry" else None
-        if token == "sorry":
-            sorry_seen += 1
+
+def placeholder_at_verifier_position(
+    code: str,
+    pos: Any,
+    end_pos: Any = None,
+) -> SourcePlaceholder | None:
+    """Return the source placeholder reported by Lean's `pos`.
+
+    Lean positions are stable source locations, but the meaning of `column`
+    can differ across producers: some callers effectively treat it as a UTF-8
+    byte column, while Python string offsets are character based.  Match both
+    representations on the same source line, and use `endPos` as a tie-breaker
+    when available.
+    """
+    line_col = _pos_line_col(pos)
+    if line_col is None:
+        return None
+    line, column = line_col
+    if line <= 0:
+        return None
+
+    candidates = [
+        ph
+        for ph in _source_placeholders(code)
+        if ph.line == line and (ph.byte_column == column or ph.char_column == column)
+    ]
+    if len(candidates) == 1:
+        return candidates[0]
+
+    end_line_col = _pos_line_col(end_pos)
+    if end_line_col is not None:
+        end_line, end_column = end_line_col
+        candidates = [
+            ph
+            for ph in candidates
+            if ph.line == end_line
+            and (ph.end_byte_column == end_column or ph.end_char_column == end_column)
+        ]
+        if len(candidates) == 1:
+            return candidates[0]
+
     return None
+
+
+def verifier_sorries_by_source_position(
+    code: str,
+    verifier_sorries: Iterable[dict[str, Any]],
+    *,
+    start_offset: int | None = None,
+    end_offset: int | None = None,
+) -> list[tuple[int, dict[str, Any]]]:
+    """Pair Lean sorry records with textual `sorry` indices, sorted by source.
+
+    The Lean REPL may report `sorries` in InfoTree traversal order, which is not
+    guaranteed to match textual placeholder order.  This helper uses source
+    positions instead.  `admit` records are intentionally ignored because graph
+    children must correspond only to real `sorry` holes that this search node
+    owns.
+    """
+    paired: list[tuple[int, int, dict[str, Any]]] = []
+    for verifier_sorry in verifier_sorries:
+        placeholder = placeholder_at_verifier_position(
+            code,
+            verifier_sorry.get("pos"),
+            verifier_sorry.get("endPos"),
+        )
+        if placeholder is None or placeholder.token != "sorry" or placeholder.sorry_index is None:
+            continue
+        if start_offset is not None and placeholder.start < start_offset:
+            continue
+        if end_offset is not None and placeholder.start >= end_offset:
+            continue
+        paired.append((placeholder.start, placeholder.sorry_index, verifier_sorry))
+
+    paired.sort(key=lambda item: item[0])
+    return [(sorry_index, verifier_sorry) for _, sorry_index, verifier_sorry in paired]
 
 
 def _line_spans(code: str) -> list[tuple[int, int, str]]:

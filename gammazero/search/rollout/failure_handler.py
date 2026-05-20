@@ -11,7 +11,7 @@ from gammazero.utils.lean_parse import extract_proof_body, parse_proof_state
 from gammazero.utils.scaffold import (
     isolate_sorry_target,
     replace_sorry_at,
-    sorry_index_for_placeholder_index,
+    verifier_sorries_by_source_position,
 )
 from gammazero.search.graph import ANDORGraph
 from gammazero.search.reward import DependencyRewardAssigner, RewardCalculator
@@ -132,15 +132,17 @@ class FailureHandler:
             new_subgoals: tuple[ProofState, ...] = ()
             if action_kind == "skeleton":
                 parsed_subgoals = []
-                for sorry_idx, s in enumerate(patched_vr.get("sorries", [])):
-                    target_index = sorry_index_for_placeholder_index(patched, sorry_idx)
-                    if target_index is None:
-                        continue
+                for target_index, s in verifier_sorries_by_source_position(
+                    patched,
+                    patched_vr.get("sorries", []),
+                ):
                     child_scaffold, child_target_index = isolate_sorry_target(
                         patched,
                         target_index,
                     )
                     ps = parse_proof_state(s.get("goal", ""), header=state.header)
+                    if ps.goal in ["SOLVED_OR_EMPTY", "ELABORATION_FAULT"]:
+                        continue
                     parsed_subgoals.append(
                         ProofState(
                             context=ps.context,

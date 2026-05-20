@@ -335,13 +335,25 @@ class BestFirstRollout:
                     stop_reason = "root_solved"
                     break
 
+            closed_any_state = False
             for state in states:
                 if self.can_requeue_state(state, graph, stats):
                     score = self.scorer.score_state(state, graph, stats)
                     stats[state].last_score = score
                     queue.push(state, score)
                 else:
-                    self.maybe_exhaust_state(state, graph, stats)
+                    closed_any_state = self.maybe_exhaust_state(state, graph, stats) or closed_any_state
+
+            if closed_any_state:
+                self.propagate(graph, stats)
+                if self.skeleton_commitment:
+                    refresh_stats = self.refresh_commitments(graph, stats, queue, seen_states)
+                    self.record_commitment_refresh(metadata, refresh_stats)
+                    if refresh_stats["fallback_activated"]:
+                        self.propagate(graph, stats)
+                if graph.status(theorem) == "SOLVED":
+                    stop_reason = "root_solved"
+                    break
 
             prune_stats = self.prune_queue(queue, graph, stats)
             metadata["beam"]["states_pruned_global"] += prune_stats["global"]
@@ -990,19 +1002,20 @@ class BestFirstRollout:
 
     def maybe_exhaust_state(
         self, state: ProofState, graph: ANDORGraph, stats: dict[ProofState, StateStats]
-    ) -> None:
+    ) -> bool:
         if graph.status(state) != "OPEN":
-            return
+            return False
         st = stats[state]
         if st.depth >= self.max_depth:
             st.exhausted = True
         elif st.tactic_tries >= self.max_tactic_per_state and st.skeleton_tries >= self.max_skeleton_per_state:
             st.exhausted = True
         else:
-            return
+            return False
         actions = graph.get_actions(state)
         if actions and all(graph.status(action) == "FAILED" for action in actions):
-            graph.mark_failed(state)
+            return graph.mark_failed(state)
+        return False
 
     def prune_queue(
         self,
