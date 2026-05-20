@@ -62,7 +62,7 @@ class ANDORGraph:
             if override == "SOLVED":
                 memo[node] = True
                 return True
-            if override == "FAILED":
+            if override in ("FAILED", "RESERVED"):
                 memo[node] = False
                 return False
             if isinstance(node, ProofState):
@@ -143,6 +143,13 @@ class ANDORGraph:
             self._solved_cache.clear()
             return old != "FAILED"
 
+    def mark_reserved(self, node: ProofState | Action) -> bool:
+        with self._lock:
+            old = self._status_override.get(node)
+            self._status_override[node] = "RESERVED"
+            self._solved_cache.clear()
+            return old != "RESERVED"
+
     def unsolved_states(self) -> list[ProofState]:
         with self._lock:
             keys = list(self._actions.keys())
@@ -176,14 +183,24 @@ class ANDORGraph:
                         out.append((parent, action, idx))
         return out
 
-    def set_r_dep(self, action: Action, r_dep: float) -> None:
+    def set_r_dep(self, action: Action, r_dep: float) -> bool:
         with self._lock:
+            old = self._r_dep.get(action)
             self._r_dep[action] = r_dep
+            return old != r_dep
 
-    def set_skeleton_override(self, action: Action, is_solved: bool):
+    def set_skeleton_override(self, action: Action, is_solved: bool) -> bool:
         with self._lock:
+            old = self._skeleton_override.get(action)
             self._skeleton_override[action] = is_solved
             self._solved_cache.clear() # Nhớ xóa cache để graph tính lại từ đầu
+            return old != is_solved
+
+    def set_stitched_code(self, action: Action, stitched_code: str) -> bool:
+        with self._lock:
+            old = action.stitched_code
+            object.__setattr__(action, "stitched_code", stitched_code)
+            return old != stitched_code
 
     def get_depth(self, state: ProofState) -> int:
         with self._lock:
@@ -197,7 +214,7 @@ class ANDORGraph:
             solve_memo: dict[Any, bool] = {}
 
             def backup_value(action: Action) -> float:
-                if action.action_type == "skeleton" and self.status(action) == "FAILED":
+                if action.action_type == "skeleton" and self.status(action) in ("FAILED", "RESERVED"):
                     return 0.0
                 return Q(action)
 
@@ -239,7 +256,7 @@ class ANDORGraph:
     def backup_value_for_action(self, action: Action, q_value: float) -> float:
         """Value an action contributes upward to its parent OR-node."""
         with self._lock:
-            if action.action_type == "skeleton" and self.status(action) == "FAILED":
+            if action.action_type == "skeleton" and self.status(action) in ("FAILED", "RESERVED"):
                 return 0.0
             return q_value
 

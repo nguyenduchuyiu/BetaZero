@@ -133,13 +133,14 @@ class BestFirstRollout:
                 "children_duplicate": 0,
             },
             "final_status": {
-                "states": {"OPEN": 0, "SOLVED": 0, "FAILED": 0},
+                "states": {"OPEN": 0, "SOLVED": 0, "FAILED": 0, "RESERVED": 0},
                 "actions": {
                     "tactic_SOLVED": 0,
                     "tactic_FAILED": 0,
                     "skeleton_OPEN": 0,
                     "skeleton_SOLVED": 0,
                     "skeleton_FAILED": 0,
+                    "skeleton_RESERVED": 0,
                 },
             },
             "depth_distribution": {
@@ -690,11 +691,14 @@ class BestFirstRollout:
         return selected
 
     def reserve_skeleton(self, graph: ANDORGraph, st: StateStats, score: float, action: Action) -> None:
-        graph.mark_failed(action)
+        graph.mark_reserved(action)
         st.reserved_skeletons.append((score, action))
         st.reserved_skeletons.sort(key=lambda x: x[0], reverse=True)
         if self.max_reserved_skeletons_per_state >= 0:
+            evicted = st.reserved_skeletons[self.max_reserved_skeletons_per_state :]
             del st.reserved_skeletons[self.max_reserved_skeletons_per_state :]
+            for _, evicted_action in evicted:
+                graph.mark_failed(evicted_action)
 
     def select_skeletons_beam(
         self,
@@ -788,7 +792,7 @@ class BestFirstRollout:
         reserve = [
             (score, action)
             for score, action in st.reserved_skeletons
-            if graph.status(action) != "SOLVED"
+            if graph.status(action) == "RESERVED"
         ]
         reserve.sort(key=lambda x: x[0], reverse=True)
         st.reserved_skeletons = reserve
@@ -797,6 +801,7 @@ class BestFirstRollout:
             return None
 
         score, action = reserve.pop(0)
+        graph.mark_open(state)
         graph.mark_open(action)
         st.committed_skeleton = action
         st.committed_skeleton_progress_last = self.count_solved_children(action, graph)
@@ -872,8 +877,13 @@ class BestFirstRollout:
             if st is None or st.committed_skeleton is None:
                 continue
 
-            if graph.status(state) != "OPEN":
+            state_status = graph.status(state)
+            if state_status == "SOLVED":
                 continue
+            if state_status == "FAILED":
+                if not st.reserved_skeletons:
+                    continue
+                graph.mark_open(state)
 
             skel = st.committed_skeleton
             status = graph.status(skel)

@@ -513,7 +513,7 @@ def test_reserved_skeleton_blocks_new_skeleton_sampling():
     graph = ANDORGraph(root)
     reserved = Action("skeleton", "reserved", children=(child,))
     graph.expand(root, reserved, r_env=1.0)
-    graph.mark_failed(reserved)
+    graph.mark_reserved(reserved)
     stats = {
         root: StateStats(
             depth=0,
@@ -1300,10 +1300,25 @@ def test_unselected_skeletons_are_reserved_and_only_committed_children_activate(
     assert selected == [(root, chosen, 10.0)]
     assert stats[root].committed_skeleton == chosen
     assert graph.status(chosen) == "OPEN"
-    assert graph.status(ignored_1) == "FAILED"
-    assert graph.status(ignored_2) == "FAILED"
+    assert graph.status(ignored_1) == "RESERVED"
+    assert graph.status(ignored_2) == "RESERVED"
     assert [action for _, action in stats[root].reserved_skeletons] == [ignored_1, ignored_2]
     assert {state.goal for _, state in queue.items()} == {"chosen", "chosen2"}
+
+
+def test_reserved_skeleton_keeps_score_but_does_not_backup_to_parent_value():
+    root = ProofState("", "root")
+    child = ProofState("", "child")
+    graph = ANDORGraph(root)
+    reserved = Action("skeleton", "reserved", children=(child,))
+    graph.expand(root, reserved, r_env=1.0)
+    graph.mark_reserved(reserved)
+
+    q_values = graph.backup()
+
+    assert graph.status(reserved) == "RESERVED"
+    assert q_values[reserved] == 1.0
+    assert graph.backup_value_for_action(reserved, q_values[reserved]) == 0.0
 
 
 def test_failed_committed_skeleton_activates_best_reserved_fallback():
@@ -1316,6 +1331,7 @@ def test_failed_committed_skeleton_activates_best_reserved_fallback():
     graph.expand(root, committed, r_env=1.0)
     graph.expand(root, fallback, r_env=1.0)
     graph.mark_failed(committed)
+    graph.mark_reserved(fallback)
     stats = {
         root: StateStats(
             depth=0,
@@ -1341,6 +1357,66 @@ def test_failed_committed_skeleton_activates_best_reserved_fallback():
     assert {state.goal for _, state in queue.items()} == {"fallback_child"}
 
 
+def test_failed_parent_state_still_activates_reserved_fallback():
+    root = ProofState("", "root")
+    failed_child = ProofState("", "failed_child")
+    fallback_child = ProofState("", "fallback_child")
+    graph = ANDORGraph(root)
+    committed = Action("skeleton", "committed", children=(failed_child,))
+    fallback = Action("skeleton", "fallback", children=(fallback_child,))
+    graph.expand(root, committed, r_env=1.0)
+    graph.expand(root, fallback, r_env=1.0)
+    graph.mark_failed(committed)
+    graph.mark_reserved(fallback)
+    graph.mark_failed(root)
+    stats = {
+        root: StateStats(
+            depth=0,
+            exhausted=True,
+            committed_skeleton=committed,
+            reserved_skeletons=[(5.0, fallback)],
+        )
+    }
+    queue = StatePriorityQueue()
+    rollout = make_rollout()
+    seen = {rollout.state_key(root): root}
+
+    result = rollout.refresh_commitments(graph, stats, queue, seen)
+
+    assert result["committed_failed"] == 1
+    assert result["fallback_activated"] == 1
+    assert graph.status(root) == "OPEN"
+    assert graph.status(fallback) == "OPEN"
+    assert stats[root].committed_skeleton == fallback
+    assert {state.goal for _, state in queue.items()} == {"fallback_child"}
+
+
+def test_exhausted_state_with_reserved_fallback_is_not_propagated_failed():
+    root = ProofState("", "root")
+    failed_child = ProofState("", "failed_child")
+    fallback_child = ProofState("", "fallback_child")
+    graph = ANDORGraph(root)
+    committed = Action("skeleton", "committed", children=(failed_child,))
+    fallback = Action("skeleton", "fallback", children=(fallback_child,))
+    graph.expand(root, committed, r_env=1.0)
+    graph.expand(root, fallback, r_env=1.0)
+    graph.mark_failed(committed)
+    graph.mark_reserved(fallback)
+    stats = {
+        root: StateStats(
+            depth=0,
+            exhausted=True,
+            committed_skeleton=committed,
+            reserved_skeletons=[(5.0, fallback)],
+        )
+    }
+    rollout = make_rollout()
+
+    rollout.propagate(graph, stats)
+
+    assert graph.status(root) == "OPEN"
+
+
 def test_stale_committed_skeleton_keeps_commitment_and_does_not_parallel_fallback():
     root = ProofState("", "root")
     hard_child = ProofState("", "hard_child")
@@ -1350,7 +1426,7 @@ def test_stale_committed_skeleton_keeps_commitment_and_does_not_parallel_fallbac
     fallback = Action("skeleton", "fallback", children=(fallback_child,))
     graph.expand(root, stale, r_env=1.0)
     graph.expand(root, fallback, r_env=1.0)
-    graph.mark_failed(fallback)
+    graph.mark_reserved(fallback)
     stats = {
         root: StateStats(
             depth=0,
@@ -1367,7 +1443,7 @@ def test_stale_committed_skeleton_keeps_commitment_and_does_not_parallel_fallbac
     assert result["committed_stale"] == 1
     assert result["fallback_activated"] == 0
     assert graph.status(stale) == "OPEN"
-    assert graph.status(fallback) == "FAILED"
+    assert graph.status(fallback) == "RESERVED"
     assert stats[root].committed_skeleton == stale
     assert len(queue) == 0
 
@@ -1381,7 +1457,7 @@ def test_stale_committed_skeleton_can_still_solve_without_parallel_fallback():
     fallback = Action("skeleton", "fallback", children=(fallback_child,))
     graph.expand(root, stale, r_env=1.0)
     graph.expand(root, fallback, r_env=1.0)
-    graph.mark_failed(fallback)
+    graph.mark_reserved(fallback)
     stats = {
         root: StateStats(
             depth=0,
@@ -1400,7 +1476,7 @@ def test_stale_committed_skeleton_can_still_solve_without_parallel_fallback():
 
     assert result["fallback_activated"] == 0
     assert graph.status(stale) == "SOLVED"
-    assert graph.status(fallback) == "FAILED"
+    assert graph.status(fallback) == "RESERVED"
     assert len(queue) == 0
 
 
@@ -1415,7 +1491,7 @@ def test_solved_committed_skeleton_does_not_activate_reserved_fallback():
     graph.expand(root, fallback, r_env=1.0)
     graph.mark_solved(child)
     graph.mark_solved(committed)
-    graph.mark_failed(fallback)
+    graph.mark_reserved(fallback)
     stats = {
         root: StateStats(
             depth=0,
@@ -1431,7 +1507,7 @@ def test_solved_committed_skeleton_does_not_activate_reserved_fallback():
 
     assert result["fallback_activated"] == 0
     assert graph.status(root) == "SOLVED"
-    assert graph.status(fallback) == "FAILED"
+    assert graph.status(fallback) == "RESERVED"
     assert len(queue) == 0
 
 

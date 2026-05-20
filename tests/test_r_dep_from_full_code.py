@@ -255,6 +255,56 @@ def test_stitched_subgoal_skeleton_r_dep_scores_target_in_parent_scaffold():
     DependencyRewardAssigner(lean, RewardCalculator()).stitch_and_score_skeletons(graph)
 
     assert graph._r_dep[mini_skeleton] == 1.0
-    assert lean.analysis_calls[-1][1] == {"h_part"}
-    assert lean.analysis_calls[-1][2] == "h_child"
-    assert "have h_sibling : Sibling := by\n    admit" in lean.analysis_calls[-1][0]
+    target_calls = [call for call in lean.analysis_calls if call[2] == "h_child"]
+    assert target_calls
+    proof_code, allowed_vars, target_name = target_calls[-1]
+    assert allowed_vars == {"h_part"}
+    assert target_name == "h_child"
+    assert "have h_sibling : Sibling := by\n    admit" in proof_code
+
+
+def test_nested_skeletons_are_stitched_bottom_up():
+    root = ProofState(context="", goal="Root", header="")
+    child = ProofState(context="", goal="Child", header="")
+    leaf = ProofState(context="", goal="Leaf", header="")
+    graph = ANDORGraph(root)
+
+    parent_skeleton = Action(
+        "skeleton",
+        "parent",
+        extracted_code="have h_child : Child := sorry\nexact h_child",
+        children=(child,),
+    )
+    mini_skeleton = Action(
+        "skeleton",
+        "mini",
+        extracted_code="have h_leaf : Leaf := sorry\nexact h_leaf",
+        children=(leaf,),
+    )
+    leaf_tactic = Action("tactic", "leaf", extracted_code="exact leaf_proof")
+
+    # Insert parent before child to reproduce the stale one-pass order.
+    graph.expand(root, parent_skeleton, r_env=1.0)
+    graph.expand(child, mini_skeleton, r_env=1.0)
+    graph.expand(leaf, leaf_tactic, r_env=1.0, r_dep=1.0, tactic_status="SOLVED")
+
+    class AlwaysCompleteLean:
+        def verify(self, code):
+            return {"pass": True, "complete": True, "errors": [], "warnings": [], "sorries": []}
+
+        def analyze_dependencies(self, proof_code, allowed_vars=None, target_name=None):
+            return {
+                "core_solved": sorted(allowed_vars or {"MAIN_GOAL"}),
+                "core_failed": [],
+                "benign": [],
+                "malignant": [],
+            }
+
+    DependencyRewardAssigner(AlwaysCompleteLean(), RewardCalculator()).stitch_and_score_skeletons(graph)
+
+    proof = graph.extract_proof_code(root)
+    assert proof is not None
+    assert "exact leaf_proof" in proof
+    assert "sorry" not in proof
+    assert "exact leaf_proof" in parent_skeleton.stitched_code
+    assert graph._r_dep[parent_skeleton] > 0.0

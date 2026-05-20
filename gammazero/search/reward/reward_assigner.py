@@ -89,42 +89,71 @@ class DependencyRewardAssigner:
         return ordered_garbage, cleaned_code
 
     def stitch_and_score_skeletons(self, graph: ANDORGraph) -> None:
-        """Fill skeleton sorries with child proofs, then score dependency quality."""
-        for action, parent_state in graph.parent_items():
-            if not self._should_score_skeleton(action):
-                continue
+        """Fill skeleton sorries with child proofs, then score dependency quality.
 
-            stitched_code = self._stitch_child_proofs(graph, action)
-            parent_skeleton_target = self._parent_skeleton_target(graph, parent_state)
-            if parent_skeleton_target is not None:
-                (
+        Nested skeletons must be rescored after deeper skeletons become
+        stitchable. A single parent-to-child pass can leave a parent with stale
+        `sorry` placeholders even when all leaves are solved.
+        """
+        max_rounds = max(1, len(graph.all_actions()))
+        for _ in range(max_rounds):
+            changed = False
+            for action, parent_state in self._skeleton_parent_items_bottom_up(graph):
+                changed = self._stitch_and_score_one_skeleton(graph, action, parent_state) or changed
+            if not changed:
+                break
+
+    def assign(self, graph: ANDORGraph) -> None:
+        self.stitch_and_score_skeletons(graph)
+
+    def _skeleton_parent_items_bottom_up(self, graph: ANDORGraph):
+        return sorted(
+            (
+                (action, parent_state)
+                for action, parent_state in graph.parent_items()
+                if self._should_score_skeleton(action)
+            ),
+            key=lambda item: graph.get_depth(item[1]),
+            reverse=True,
+        )
+
+    def _stitch_and_score_one_skeleton(self, graph: ANDORGraph, action, parent_state) -> bool:
+        if not self._should_score_skeleton(action):
+            return False
+
+        stitched_code = self._stitch_child_proofs(graph, action)
+        parent_skeleton_target = self._parent_skeleton_target(graph, parent_state)
+        if parent_skeleton_target is not None:
+            (
+                grandparent_state,
+                parent_skeleton,
+                target_child_index,
+            ) = parent_skeleton_target
+            r_dep_score, garbage_vars, solved_by_stitched_proof = (
+                self._score_stitched_subgoal_skeleton(
                     grandparent_state,
                     parent_skeleton,
                     target_child_index,
-                ) = parent_skeleton_target
-                r_dep_score, garbage_vars, solved_by_stitched_proof = (
-                    self._score_stitched_subgoal_skeleton(
-                        grandparent_state,
-                        parent_skeleton,
-                        target_child_index,
-                        action.extracted_code,
-                        stitched_code,
-                        graph.get_r_env(action),
-                    )
-                )
-            else:
-                r_dep_score, garbage_vars, solved_by_stitched_proof = self._score_stitched_skeleton(
-                    parent_state,
                     action.extracted_code,
                     stitched_code,
                     graph.get_r_env(action),
                 )
+            )
+        else:
+            r_dep_score, garbage_vars, solved_by_stitched_proof = self._score_stitched_skeleton(
+                parent_state,
+                action.extracted_code,
+                stitched_code,
+                graph.get_r_env(action),
+            )
 
-            if solved_by_stitched_proof:
-                if garbage_vars:
-                    graph.set_garbage_vars(action, garbage_vars)
-                graph.set_skeleton_override(action, True)
-            graph.set_r_dep(action, r_dep_score)
+        changed = graph.set_stitched_code(action, stitched_code)
+        if solved_by_stitched_proof:
+            if garbage_vars:
+                graph.set_garbage_vars(action, garbage_vars)
+            changed = graph.set_skeleton_override(action, True) or changed
+        changed = graph.set_r_dep(action, r_dep_score) or changed
+        return changed
 
     @staticmethod
     def _should_score_skeleton(action) -> bool:
@@ -141,7 +170,9 @@ class DependencyRewardAssigner:
         state,
     ):
         for parent_state, action, child_index in graph.parent_skeleton_items_for_state(state):
-            if graph.status(action) != "FAILED":
+            if parent_state == state:
+                continue
+            if graph.status(action) not in ("FAILED", "RESERVED"):
                 return parent_state, action, child_index
         return None
 

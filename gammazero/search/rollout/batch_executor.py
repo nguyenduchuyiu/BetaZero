@@ -132,7 +132,9 @@ class BatchExecutor:
         state: ProofState,
     ) -> tuple[ProofState, Action, int] | None:
         for parent_state, action, child_index in graph.parent_skeleton_items_for_state(state):
-            if graph.status(action) != "FAILED":
+            if parent_state == state:
+                continue
+            if graph.status(action) not in ("FAILED", "RESERVED"):
                 return parent_state, action, child_index
         return None
 

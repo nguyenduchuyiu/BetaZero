@@ -21,9 +21,11 @@
       --or-open: #378ADD;
       --or-proved: #1D9E75;
       --or-failed: #E24B4A;
+      --or-reserved: #8F6AD8;
       --or-border-open: #5b9ee8;
       --or-border-proved: #2dcb97;
       --or-border-failed: #f06a69;
+      --or-border-reserved: #b090ef;
 
       --and-open: #7F77DD;
       --and-proved: #639922;
@@ -654,6 +656,7 @@
       <div><b id="stat-edges">0</b> edges</div>
       <div><b id="stat-proved" style="color:var(--or-proved)">0</b> proved</div>
       <div><b id="stat-failed" style="color:var(--or-failed)">0</b> failed</div>
+      <div><b id="stat-reserved" style="color:var(--or-reserved)">0</b> reserved</div>
       <div><b id="stat-open" style="color:var(--or-open)">0</b> open</div>
     </div>
     <div class="topbar-right">
@@ -749,6 +752,9 @@
         <div class="chip active" id="chip-failed"
           style="border-color:var(--or-failed);color:var(--or-failed);background:rgba(226,75,74,0.1)"
           onclick="toggleFilter('failed')">Failed</div>
+        <div class="chip active" id="chip-reserved"
+          style="border-color:var(--or-reserved);color:var(--or-reserved);background:rgba(143,106,216,0.1)"
+          onclick="toggleFilter('reserved')">Reserved</div>
         <div class="chip active" id="chip-OR"
           style="border-color:var(--or-open);color:var(--text2);background:var(--surface2)"
           onclick="toggleFilter('OR')">OR nodes</div>
@@ -769,6 +775,9 @@
         </div>
         <div class="legend-item">
           <div class="legend-dot" style="background:var(--or-failed)"></div>Failed state
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--or-reserved)"></div>Reserved node
         </div>
         <div style="font-size:10px;color:var(--text3);margin:8px 0 4px;font-weight:700;letter-spacing:0.06em">AND nodes
           (actions)</div>
@@ -935,12 +944,12 @@
     let svgEl, gEl, zoomBehavior;
     let nodeR = 18;
     let showLabels = true, showMetrics = true, highlightPath = true;
-    let activeFilters = { open: true, proved: true, failed: true, OR: true, AND: true };
+    let activeFilters = { open: true, proved: true, failed: true, reserved: true, OR: true, AND: true };
     let selectedId = null;
     let currentLayout = 'force';
     let currentTransform = d3.zoomIdentity;
 
-    /** JSON from GraphLogger uses SOLVED/FAILED; filters/colors use proved/failed/open */
+    /** JSON from GraphLogger uses SOLVED/FAILED/RESERVED; filters/colors use proved/failed/reserved/open */
     function canonicalStatus(raw) {
       const s = (raw == null || raw === '') ? 'open' : String(raw).toLowerCase();
       return s === 'solved' ? 'proved' : s;
@@ -950,7 +959,7 @@
     function nodeColor(d) {
       const s = canonicalStatus(d.status);
       if (d.type === 'OR') {
-        return s === 'proved' ? '#1D9E75' : s === 'failed' ? '#E24B4A' : '#378ADD';
+        return s === 'proved' ? '#1D9E75' : s === 'failed' ? '#E24B4A' : s === 'reserved' ? '#8F6AD8' : '#378ADD';
       } else {
         return d.action_type === 'skeleton' ? '#8B7CFF' : '#F0A33A';
       }
@@ -964,14 +973,14 @@
     function nodeBorderColor(d) {
       const s = canonicalStatus(d.status);
       if (d.type === 'OR') {
-        return s === 'proved' ? '#2dcb97' : s === 'failed' ? '#f06a69' : '#5b9ee8';
+        return s === 'proved' ? '#2dcb97' : s === 'failed' ? '#f06a69' : s === 'reserved' ? '#b090ef' : '#5b9ee8';
       } else {
-        return s === 'proved' ? '#87cc33' : s === 'failed' ? '#f07a50' : '#a49af0';
+        return s === 'proved' ? '#87cc33' : s === 'failed' ? '#f07a50' : s === 'reserved' ? '#b090ef' : '#a49af0';
       }
     }
     function statusColor(status) {
       const s = canonicalStatus(status);
-      return s === 'proved' ? '#1D9E75' : s === 'failed' ? '#E24B4A' : '#378ADD';
+      return s === 'proved' ? '#1D9E75' : s === 'failed' ? '#E24B4A' : s === 'reserved' ? '#8F6AD8' : '#378ADD';
     }
 
     // ───── FILE LOAD ─────
@@ -1019,9 +1028,11 @@
 
       const proved = data.nodes.filter(n => canonicalStatus(n.status) === 'proved').length;
       const failed = data.nodes.filter(n => canonicalStatus(n.status) === 'failed').length;
-      const open = data.nodes.length - proved - failed;
+      const reserved = data.nodes.filter(n => canonicalStatus(n.status) === 'reserved').length;
+      const open = data.nodes.length - proved - failed - reserved;
       document.getElementById('stat-proved').textContent = proved;
       document.getElementById('stat-failed').textContent = failed;
+      document.getElementById('stat-reserved').textContent = reserved;
       document.getElementById('stat-open').textContent = open;
       document.getElementById('graph-info').textContent = data.root_id ? `Root: ${data.root_id}` : '';
 

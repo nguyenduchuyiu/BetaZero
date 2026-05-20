@@ -1,153 +1,394 @@
-# GammaZero System Description
+# GammaZero Architecture
 
 ## Abstract
 
-GammaZero is a system for proving Lean 4 theorems with language models. It represents proof search as an AND/OR graph. Each proof state can be solved by one successful action. An action can be a direct Lean tactic, or a proof skeleton that creates smaller proof states. The search uses a priority queue over open proof states. The priority score is a custom heuristic inspired by proof-number search. It gives high priority to states that are likely to complete an active proof decomposition, for example the last unsolved child of a committed skeleton.
+GammaZero is a Lean 4 proof search system driven by language model samples. The
+system does not treat the model as a trusted prover. The model proposes proof
+fragments, Lean checks them, and the search graph records the exact logical
+dependency between generated fragments.
 
-This document explains the system at the level of concepts and data flow. It assumes the reader has not read the code.
+The main representation is an AND/OR proof graph. A proof state is an OR node:
+one successful action is enough to solve it. A skeleton action is an AND node:
+all child proof states created by the skeleton must be solved. This structure
+lets GammaZero combine direct tactic search with recursive decomposition.
 
-## 1. Basic Terms
+The system works by combining several concrete mechanisms:
 
-Lean 4 is the theorem prover used to check every proof. A generated proof is accepted only if Lean accepts it.
+- custom Lean server processes that expose verification, syntax spans, and
+  kernel expression trees,
+- tactic attempts before decomposition,
+- skeletons that expose named child obligations,
+- scaffold-aware prompts and verification for subgoals,
+- immediate admission of sibling obligations when a child is isolated,
+- policy checks before Lean verification,
+- AST-guided repair of failed Lean code into useful partial structure,
+- dependency analysis over Lean expression trees,
+- dense rewards for partial survival and dependency quality,
+- commitment to one active skeleton with fallback to reserved skeletons,
+- priority scores that favor states likely to finish an active proof,
+- search with a limited number of generated actions and a limited depth.
 
-A tactic is a short Lean proof script for the current goal. If it closes the goal, the proof state is solved.
+This document describes the system at the level of data structures and control
+flow. It is intended to be readable without the source code.
 
-A skeleton is a larger Lean proof outline. It may contain `sorry` placeholders. Each placeholder becomes a child proof state. The system then tries to solve those child states separately.
+## 1. Objects
 
-A proof state is a pair of local hypotheses and a goal. In the code this is `ProofState`.
+Lean 4 is the proof checker. A proof is accepted only when Lean accepts the
+complete theorem without unresolved placeholders.
 
-An action is one attempt to solve a proof state. In the code this is `Action`. There are two action kinds:
+A `ProofState` contains:
 
-- `tactic`: direct proof attempt for the current state.
-- `skeleton`: decomposition into child proof states.
+- local hypotheses,
+- the current goal,
+- optional scaffold code,
+- the index of the target `sorry` inside that scaffold,
+- metadata describing the target kind.
 
-The main idea is simple: try direct tactics first. If direct tactics do not solve the state, ask the model for a skeleton. Then solve the children of the skeleton. If all children are solved, the skeleton solves its parent.
+An `Action` is one generated attempt attached to a proof state. GammaZero uses
+two action types:
 
-## 2. AND/OR Proof Graph
+- `tactic`: a proof body intended to close the current target.
+- `skeleton`: a proof body that introduces named `sorry` leaves as child goals.
 
-The search graph is stored in `gammazero/search/graph/and_or_graph.py`.
+A skeleton is not allowed to leave a naked final `sorry`. Every new unresolved
+obligation must be a named local declaration such as:
 
-A proof state is an OR node. It is solved when at least one of its actions is solved. This matches proof search: one valid proof is enough.
+```lean4
+have h_step : proposition := sorry
+```
 
-An action is an AND node when it is a skeleton. A skeleton is solved only when all of its child proof states are solved. This matches decomposition: every subgoal introduced by the skeleton must be proved.
+This rule is important because the search tree needs stable child obligations.
+The names let the system display, track, and later stitch those obligations.
 
-A tactic action has no child proof states. It is solved if Lean verifies that the tactic closes the goal.
+## 2. AND/OR Graph
 
-The graph stores:
+The graph is stored in `gammazero/search/graph/and_or_graph.py`.
 
-- all actions attached to each proof state,
-- the parent proof state of each action,
-- the current status of each proof state and action,
-- the environment reward `r_env`,
-- the dependency reward `r_dep`,
-- the depth of each proof state.
+A proof state is an OR node. It is solved if at least one attached action is
+solved.
 
-Statuses are propagated upward. If a child state is solved, its parent skeleton may become solved. If a skeleton becomes solved, its parent proof state becomes solved. If all useful actions for a state fail, the state can be marked failed.
+A tactic action has no children. It is solved if Lean verifies that the tactic
+closes the target.
 
-## 3. Lean Verification
+A skeleton action has child proof states. It is solved only if all required
+children are solved. This is the AND part of the graph.
 
-Lean verification is the ground truth. The language model can propose code, but Lean decides whether the code is valid.
+The graph records:
 
-The verifier runs Lean through a persistent REPL process. The worker first imports Mathlib and stores the resulting Lean environment. Later verification calls reuse this environment. This avoids importing Mathlib again for every candidate proof.
+- parent state for each action,
+- children of each skeleton action,
+- status of every state and action,
+- `r_env`, the environment reward,
+- `r_dep`, the dependency reward,
+- target labels for subgoal display,
+- depth of each proof state.
 
-Each verification call returns structured information:
+State identity is not only the pair `(context, goal)`. For scaffolded subgoals,
+the key also includes the scaffold hash, target kind, and target index. This
+prevents two equal-looking goals from being merged when they belong to different
+positions in different proof scaffolds.
 
-- whether Lean accepted the code,
+Statuses propagate upward. When a child state is solved, its parent skeleton may
+become solved. When a skeleton is solved, its parent state becomes solved. This
+propagation is repeated after each batch of verified actions.
+
+## 3. Scaffold-Aware Subgoals
+
+GammaZero does not solve child goals as isolated theorems when the child comes
+from a skeleton. Instead, it keeps a parent theorem scaffold.
+
+Inside the scaffold:
+
+- the current child target is represented by one `sorry`,
+- sibling obligations are represented by `admit`,
+- surrounding local declarations are preserved.
+
+This design keeps Lean elaboration close to the original proof context. It also
+prevents the model from accidentally solving a sibling obligation or changing
+the shape of the parent proof.
+
+When a skeleton creates children, each child receives its own scaffold. The
+target child keeps the unique `sorry`. All sibling children at that level are
+immediately turned into `admit`. This invariant is inherited through deeper
+levels of the search tree.
+
+The result is a simple local contract:
+
+```text
+solve exactly this sorry;
+keep every admit unchanged.
+```
+
+The same contract is used for subgoal tactics and subgoal mini-skeletons.
+
+The scaffold utilities also infer target labels from local declarations. If the
+target `sorry` appears inside `have h_step : ... := ...`, the target label is
+`h_step`. These labels are used in prompts, JSON logs, and the graph viewer.
+
+## 4. Model Interface
+
+The policy model is sampled in two modes.
+
+In tactic mode, the model receives a proof state and returns a Lean proof for
+the current target.
+
+In skeleton mode, the model receives a proof state and returns a Lean proof
+outline with named child obligations. The skeleton must close its final assembly
+from those named obligations.
+
+For subgoals, the model receives the full parent theorem scaffold rather than an
+isolated theorem. The prompt explicitly names the target subgoal:
+
+```text
+[TARGET SUBGOAL]
+name: h_name
+child_index: i
+goal: ...
+```
+
+The final output instructions are placed at the end of the user message, after
+the problem statement and any previous Lean feedback. This makes the required
+format the closest instruction to the model's first generated token.
+
+The prompt builder also uses assistant prefill with `<think>\n`. Depending on
+the sampler, the returned text may include only the continuation after that
+prefix or may include a fresh `<think>` tag. The parser therefore treats the
+final Lean code block as the source of truth.
+
+The sampling backend is intentionally not part of the proof logic. Any sampler
+can be used if it returns candidate text for tactic and skeleton requests. The
+architecture is defined by what happens after sampling: parsing, policy checks,
+Lean verification, repair, scoring, and graph search.
+
+## 5. Output Parsing and Policy Checks
+
+Model output is parsed before any Lean call. The parser extracts exactly one
+final Lean code block. It does not recover code from malformed text by guessing.
+
+For tactic actions, the extracted replacement must not contain `sorry` or
+`admit` outside comments.
+
+For skeleton actions, `admit` is forbidden inside the replacement. A `sorry` is
+allowed only when it is a named leaf obligation. A naked final `sorry` fails the
+policy check before Lean is called.
+
+If no Lean code is extracted, the system records a failed action for logging and
+graph analysis. It does not turn unclear extraction failures into retry feedback
+for the model. Retry feedback is reserved for code-related failures where the
+system has a checked Lean fragment or a clear policy violation.
+
+This separation matters. It prevents a formatting failure or a truncated model
+response from teaching the next sample the wrong proof behavior.
+
+When sampling metadata reports a length or maximum-token finish reason, the
+parser records a truncation explanation: the model should think shorter and
+finish with one final Lean block. If a final Lean block exists but the target
+replacement cannot be matched inside a subgoal scaffold, the failure is recorded
+as a subgoal extraction failure.
+
+For subgoal extraction, the parser compares the returned full scaffold with the
+expected parent scaffold and extracts only the replacement for the target
+`sorry`. Sibling `admit` placeholders are not part of the extracted action.
+
+## 6. Lean Kernel Interface
+
+Lean verification is the ground truth. GammaZero also uses Lean as a structured
+analysis engine, not only as a pass/fail checker.
+
+The codebase contains custom Lean-side server programs under `repl/`:
+
+- `repl`, the interactive Lean REPL used for verification,
+- `dump_ast_server`, which parses Lean files and returns syntax node spans,
+- `dump_expr_server`, which elaborates Lean files and returns kernel expression
+  trees for declarations.
+
+Each server is driven as a persistent subprocess. The Python side sends file
+paths or commands through standard input and reads JSON records from standard
+output.
+
+The verifier stores the Mathlib environment produced by an initial warmup
+command. Later verification requests reuse that environment instead of importing
+Mathlib from scratch. The AST and expression-tree daemons use the same idea:
+they keep a live Lean process and reload imports only when the file header
+changes. This makes repeated verification and analysis fast enough to sit inside
+the search loop.
+
+Each verification result contains:
+
+- whether Lean accepted the candidate,
 - whether the theorem is complete,
-- the list of remaining `sorry` placeholders,
-- Lean errors and warnings.
+- remaining `sorry` placeholders,
+- warnings,
+- errors.
 
-The worker also protects the search from stuck Lean processes. If a verification call takes too long, the worker kills the process and starts a new one.
+If the verifier process becomes stuck or times out, the system treats the event
+as a system failure, records the failed action, and continues the search.
 
-## 4. Model Outputs
+The process manager is defensive. Workers are killed and respawned after a
+timeout or after a fixed number of requests, which avoids one stuck Lean command
+or long-running process from blocking the whole rollout.
 
-The policy model is asked for two kinds of outputs.
+## 7. Repair Through Sorrification
 
-For a tactic request, the model receives the current proof state and returns Lean code intended to close that state directly.
+Many generated Lean proofs are not correct but still contain useful structure.
+GammaZero uses the `Sorrifier` to turn such code into a Lean-checkable partial
+proof.
 
-For a skeleton request, the model receives the current proof state and returns a Lean proof outline. The outline may contain `sorry`. Each `sorry` describes a child goal that the search can solve later.
+The repair process is conservative. It does not invent a new mathematical
+proof. It removes or replaces invalid blocks so that Lean can expose the
+remaining valid structure.
 
-The system extracts Lean code from model text before sending it to Lean. If the model output violates the expected format or policy rules, the action is rejected or repaired.
-
-## 5. Repairing Generated Lean Code
-
-Many generated proofs are close to useful but do not compile. GammaZero uses a repair component called `Sorrifier`, implemented in `gammazero/search/sorrifier`.
-
-The repair process is conservative. It does not try to invent a new proof. It removes or replaces invalid parts so that Lean can still expose useful structure.
-
-Common repair actions include:
+Typical repair operations are:
 
 - replace a failing proof block with `sorry`,
 - remove a malformed line,
 - close an unfinished block with `sorry`,
-- remove a larger block when local repair does not make progress.
+- remove a larger block when local repair does not progress.
 
-The repaired code is scored by how much original code survived. This score is `r_env`.
+The important part is how the repair target is chosen. The Sorrifier repeatedly
+verifies the candidate and reads the first Lean error or unsolved-goal location.
+It then asks the Lean AST daemon for syntax spans and maps byte offsets back to
+source lines. For fatal errors, it chooses the smallest enclosing tactic or
+sequence node and either removes it, replaces it with `sorry`, or hollows out the
+block header. For unsolved goals, it chooses the nearest enclosing declaration,
+tactic `have`, `let`, `cases`, or similar scope and inserts a `sorry` at the
+right indentation.
 
-## 6. Dependency Analysis
+If the same broken state repeats, the Sorrifier escalates to a larger enclosing
+block and deletes the child lines of that block. This prevents local repair from
+cycling forever on the same malformed tactic. If no AST-guided repair is
+possible, it falls back to replacing the proof body with one top-level `sorry`.
 
-Skeletons can contain child lemmas that are not actually used by the final proof. Some of those child lemmas may still contain `sorry`. Lean rejects the whole theorem if any `sorry` remains, even when the remaining placeholder is in an unused lemma.
+The repaired candidate is verified again. If it passes with remaining named
+obligations, it can still create useful graph structure.
 
-GammaZero handles this by analyzing dependencies in the Lean expression tree. The analyzer checks which local declarations are used by the final proof term.
+The failure handler separates system failures from checked Lean failures. A
+system failure is logged and marked failed without repair. A checked Lean
+failure can be repaired, verified again, scored, and inserted into the graph as
+a failed but informative action.
 
-Each child lemma is classified into one of four groups:
+## 8. Expression-Tree Dependency Analysis
 
-- `core_solved`: solved and used by the final proof,
-- `core_failed`: unsolved and used by the final proof,
-- `benign`: solved but not used,
-- `malignant`: unsolved and not used.
+Skeletons often contain extra local declarations. Some are useful for the final
+assembly, and some are not. Lean still rejects a theorem if an unused local
+declaration contains `sorry`, even when that declaration is not used by the
+final proof term.
 
-The names are implementation labels. The important distinction is whether a lemma is used by the final proof. If an unused lemma is present, the proof stitcher can remove it from the final proof text.
+GammaZero analyzes dependencies in Lean's kernel expression tree. The
+expression-tree daemon emits JSON for Lean `Expr` nodes such as `bvar`, `fvar`,
+`app`, `lam`, `forallE`, `letE`, `mdata`, and constants. This is lower level
+than source text: it is the elaborated proof object that Lean itself checks.
 
-This lets the system keep a valid proof even when the model generated extra unused structure.
+The dependency traversal is De Bruijn-aware. When it enters a binder such as
+`lam`, `forallE`, or `letE`, the target bound-variable index is shifted before
+the traversal continues into the body. This lets the analyzer distinguish a
+declaration that is actually consumed by the final proof term from one that only
+appears near the proof in source text.
 
-## 7. Search Procedure
+The analyzer also detects `sorryAx` in the expression tree. Combining bound
+variable use with `sorryAx` detection gives four classes:
 
-GammaZero uses a best-first search over the AND/OR graph. The search keeps a priority queue of open proof states. At each step, it selects the open states with the highest heuristic scores.
+- `core_solved`: solved and used,
+- `core_failed`: unsolved and used,
+- `benign`: solved and unused,
+- `malignant`: unsolved and unused.
 
-For each selected state, the search performs the following operations:
+Unused declarations can be removed during final proof construction. This lets
+the system keep useful proof structure while discarding decorative or harmful
+lemmas.
 
-1. Try tactic actions for the state.
-2. Verify each tactic in Lean.
-3. Record the best tactic reward seen for the state.
-4. If tactic attempts are not enough, ask for skeleton actions.
-5. Score the skeleton actions.
-6. Choose one skeleton to focus on.
-7. Add the skeleton children as new proof states.
-8. Recompute graph statuses.
-9. Reinsert still-open states into the priority queue.
+Dependency analysis also produces `r_dep`, a reward that prefers skeletons whose
+children are actually used.
 
-The search has finite limits from configuration. Examples are the maximum number of actions, maximum depth, maximum tactic attempts per state, and maximum skeleton attempts per state. These limits keep a hard problem from consuming the whole run.
+The same mechanism is used for tactics that introduce local `have` or `let`
+declarations. If a tactic creates local facts, GammaZero can score whether those
+facts are consumed by the final proof term.
 
-The search also keeps only the best open states in the queue. This is not a separate algorithmic idea. It is a practical limit on how many open states are kept for later work.
+## 9. Search Loop
 
-## 8. Tactic Attempts Before Skeletons
+GammaZero performs best-first search over open proof states. The search uses a
+priority queue. Each run has explicit limits, such as:
 
-For a new proof state, GammaZero tries direct tactics before asking for a skeleton. This is useful because many goals can be solved without decomposition.
+- maximum number of generated actions,
+- maximum depth,
+- maximum tactic attempts per state,
+- maximum skeleton attempts per state,
+- maximum number of open states kept globally,
+- maximum number of open states kept per depth.
 
-A skeleton is considered only after the state has received enough tactic attempts. The default configuration uses `min_tactic_before_skeleton`.
+At each iteration, the search:
 
-If a tactic has a strong `r_env` score but does not yet solve the state, the system keeps trying tactics for longer. The reason is that a good partial tactic may be close to a complete proof, and a skeleton may be unnecessary.
+1. selects high-priority open states,
+2. samples tactic actions for those states,
+3. verifies tactic actions,
+4. updates graph status and rewards,
+5. decides whether a state should request skeletons,
+6. samples skeleton actions when needed,
+7. verifies or repairs skeleton actions,
+8. selects skeletons worth activating,
+9. inserts child states of selected skeletons,
+10. propagates solved and failed statuses,
+11. reinserts still-open states into the priority queue.
 
-This rule avoids decomposing every goal too early.
+The search does not ask for skeletons immediately on every state. It first gives
+direct tactics a chance. This matters because many Lean goals are small once the
+right local facts are available.
 
-## 9. Skeleton Commitment
+Queue pruning is explicit. After each round, state scores are recomputed. The
+queue keeps only the highest-scoring open states globally and only a fixed
+number of open states at each depth. A state becomes exhausted when it reaches
+the depth limit or consumes its tactic and skeleton limits. If all actions for
+an exhausted state have failed, the state is marked failed.
 
-When several skeletons are available for one proof state, the system chooses one skeleton as the active decomposition. This is called commitment.
+## 10. Tactic-First Rule
 
-The committed skeleton receives focused search effort. Its children are inserted into the queue. The parent state does not keep asking for new skeletons while the committed skeleton is active.
+For each new state, GammaZero first samples tactic attempts. A skeleton is
+requested only after enough tactic attempts have been tried.
 
-Other good skeletons can be stored as reserved skeletons. If the committed skeleton fails, a reserved skeleton can be activated later.
+If a failed tactic receives a strong `r_env` score, the system may keep trying
+tactics for longer. A high `r_env` means a large part of the generated proof
+survived Lean repair, so the state may be close to a direct solution.
 
-A committed skeleton fails when one of its required child states fails. It may also become stale if repeated search rounds do not solve more of its children. In that case, the system can move to a reserved skeleton.
+This rule prevents unnecessary decomposition. It also reduces the number of
+child states created from goals that could have been solved directly.
 
-This design prevents the search from spreading across many incompatible decompositions at the same parent state.
+Both tactic and skeleton sampling are limited by the same global action counter.
+The system never treats a large model batch as free work.
 
-## 10. State Heuristic
+## 11. Skeleton Commitment
 
-The state heuristic is implemented in `gammazero/search/rollout/heuristic.py`.
+Several skeletons can be generated for the same proof state. They often propose
+incompatible decompositions. Solving children from many incompatible skeletons
+at the same time spreads search effort too thin.
 
-The score of a proof state is:
+GammaZero therefore commits to one active skeleton for a parent state.
+
+The committed skeleton receives focused search effort. Its children enter the
+priority queue. While it remains active, the parent state does not keep asking
+for new skeletons.
+
+Other promising skeletons can be stored as reserved skeletons. If the committed
+skeleton fails, or if it becomes stale after repeated rounds without progress,
+a reserved skeleton can be activated.
+
+This is a controlled fallback mechanism. It gives the search focus without
+making the first skeleton choice irreversible.
+
+Reserved skeletons are marked failed while they are inactive. When one is chosen
+as the new commitment, it is reopened and its children are activated. This keeps
+the graph focused on one active decomposition while preserving fallback
+structure.
+
+The search rejects duplicate skeletons. Two skeletons are duplicates when they
+have the same parent state key and the same ordered child state keys. The later
+duplicate is marked failed before it can consume search effort.
+
+## 12. State Priority Score
+
+The state priority score is implemented in
+`gammazero/search/rollout/heuristic.py`.
+
+The score has the following structure:
 
 ```text
 score(state)
@@ -160,25 +401,25 @@ score(state)
   - bad_skeleton_round_penalty * bad_skeleton_rounds
 ```
 
-The terms have the following meanings.
+The terms have direct meanings.
 
-`incoming_skeleton_score` is the score of the skeleton that created the state. A child from a promising skeleton inherits some of that promise.
+`incoming_skeleton_score` transfers some priority from a good skeleton to its
+children.
 
-`best_tactic_r_env` is the best environment reward among tactics already tried on the state. A state with a good partial tactic remains interesting.
+`best_tactic_r_env` keeps a state interesting when a previous tactic almost
+worked.
 
-`committed_skeleton_progress_bonus` is added when the state is a child of the currently committed skeleton of its parent. The bonus is larger when the state is the last open child of that skeleton. This is the main mechanism that pushes the search to finish an active decomposition.
+`committed_skeleton_progress_bonus` favors children of the currently committed
+skeleton. The bonus is larger for the last open child of that skeleton. This
+pushes the search to finish a proof decomposition instead of constantly opening
+new branches.
 
-The depth penalty prefers shallower states when other signals are similar.
+The depth and retry penalties reduce priority for states that are deep or have
+already consumed many attempts.
 
-The retry penalties reduce the score of states that have already consumed many tactic or skeleton attempts.
+## 13. Skeleton Priority Score
 
-The bad skeleton penalty reduces the score of a state when recent skeleton attempts did not create useful child states.
-
-## 11. Skeleton Heuristic
-
-The skeleton score is also implemented in `heuristic.py`.
-
-The score of a skeleton action is:
+Skeleton actions also receive a score before activation:
 
 ```text
 score(skeleton)
@@ -186,26 +427,37 @@ score(skeleton)
   + skeleton_parent_score_weight * parent_last_score
   + child_count_score(number_of_children)
   - skeleton_depth_penalty * parent_depth
-  - skeleton_sorrified_penalty, if the skeleton was repaired
+  - skeleton_sorrified_penalty, if repaired
 ```
 
-`r_env` measures how much of the generated skeleton survived verification and repair.
+`r_env` measures how much generated structure survived verification or repair.
 
-`parent_last_score` lets a skeleton inherit part of the priority of the parent state.
+`parent_last_score` lets a skeleton inherit some priority from the state that
+requested it.
 
-`child_count_score` prefers a small, useful number of children. A skeleton with zero children is penalized. One or two children are treated as good. More children receive a mild linear penalty.
+`child_count_score` prefers a small number of useful children. Zero children are
+penalized. One or two children are often preferred. Large decompositions receive
+a penalty because they increase the number of required subproofs.
 
-The depth penalty discourages decompositions that start too deep in the graph.
+The repair penalty is mild. A repaired skeleton can still be useful, but a
+clean skeleton is preferred when other signals are similar.
 
-The repair penalty mildly discourages skeletons that needed repair before they became usable.
+Skeletons with no children are not useful decompositions and receive a negative
+child-count score unless they are already solved by Lean.
 
-## 12. Rewards
+## 14. Dense Rewards
 
-GammaZero records two rewards for actions.
+GammaZero does not use only a binary solved/failed signal. It records dense
+rewards for each generated action, including actions that do not close the
+goal.
 
-The first reward is `r_env`. It measures how much generated code survived after repair. The system compares the original generated code with the repaired code. A proof that survives mostly intact receives a higher score. A proof that is almost entirely replaced by `sorry` receives a low score.
+`r_env` measures how much of the generated code survived Lean checking and
+repair. A candidate whose structure remains mostly intact receives a high
+score. A candidate reduced mostly to placeholders receives a low score.
 
-The second reward is `r_dep`. It measures whether the skeleton introduced useful lemmas. The reward is high when solved child lemmas are used by the final proof. It is lower when the skeleton contains unused solved lemmas or unused failed lemmas.
+`r_dep` measures whether generated child obligations are used by the final
+assembly. The reward is high when solved child lemmas are used. It is lower
+when the skeleton creates unused work.
 
 The dependency reward has the form:
 
@@ -213,51 +465,113 @@ The dependency reward has the form:
 r_dep = n_core / (n_core + 0.5 * n_benign + 2.0 * n_unused_failed)
 ```
 
-Here `n_core` is the number of solved child lemmas used by the final proof. `n_benign` is the number of solved but unused child lemmas. `n_unused_failed` is the number of unsolved and unused child lemmas.
+where:
 
-These rewards serve two purposes. They guide search during a rollout, and they provide training signals after the rollout.
+- `n_core` is the number of solved child declarations used by the final proof,
+- `n_benign` is the number of solved but unused declarations,
+- `n_unused_failed` is the number of unsolved and unused declarations.
 
-## 13. Backup Values
+These rewards guide the current search and explain which failed actions still
+contained useful proof structure.
 
-After a rollout, the graph computes values for actions. A tactic value is based on its direct rewards. A skeleton value is based on its rewards and the values of its children.
+The implementation computes `r_env` by comparing the original proof body with
+the repaired proof body. It counts surviving non-comment proof lines and
+penalizes Lean warnings that indicate unused or ineffective code.
 
-For a skeleton, the child contribution uses the weakest child value. This reflects the AND structure: a skeleton is only as strong as its hardest required child.
+The dense signal is important for proof search. A failed tactic that leaves a
+valid chain of useful local facts is different from a failed tactic whose body
+collapses into one placeholder. A skeleton whose children are actually used in
+the final assembly is different from a skeleton that creates unused work. The
+reward functions make these distinctions visible to the priority queue and the
+AND/OR value backup.
 
-Failed skeletons keep their own recorded reward for analysis, but they do not contribute value upward to solve the parent state.
+## 15. Value Backup
 
-## 14. Final Proof Construction
+After a rollout, GammaZero computes action values on the graph.
 
-When child proof states are solved, the system can insert their proofs back into the parent skeleton. This is handled by the proof stitcher.
+A tactic value comes from its direct rewards.
 
-The stitcher replaces target `sorry` placeholders with child proofs. It then verifies the full theorem again in Lean.
+A skeleton value combines its own rewards with child values. Because a skeleton
+is an AND node, its child contribution is limited by the weakest required child.
+This reflects the proof condition: every required child must be solved.
 
-After verification, dependency analysis may remove unused local declarations. The final proof is accepted only if Lean accepts the resulting theorem without unresolved placeholders.
+Failed actions keep their recorded rewards for analysis, but they do not solve
+their parent state.
 
-## 15. Configuration
+## 16. Final Proof Construction
 
-The main runtime configuration is in `configs/api.yaml`. The `Config` class loads this file and validates the `heuristic` section against the current `SimpleHeuristicScorer` constructor. This matters because stale heuristic keys should fail early instead of silently changing behavior.
+When children are solved, the proof stitcher inserts their proof bodies back
+into the parent skeleton.
 
-Important configuration groups are:
+The final theorem is checked again in Lean. If dependency analysis shows that
+some local declarations are unused, the proof text can be cleaned by removing
+them. The final result is accepted only after Lean verifies the cleaned theorem
+without unresolved placeholders.
 
-- search limits: `max_depth`, `max_nodes`,
-- tactic sampling: `initial_tactic_k`, `retry_tactic_k`, `max_tactic_per_state`,
-- skeleton sampling: `initial_skeleton_k`, `retry_skeleton_k`, `max_skeleton_per_state`,
-- state queue limits: `state_beam_width`, `state_beam_per_depth`,
-- skeleton commitment: `skeleton_commitment`, `max_reserved_skeletons_per_state`, `commit_stale_rounds_before_fallback`,
-- heuristic weights: the keys under `heuristic`.
+This final verification step is essential. The graph may contain many useful
+partial fragments, but only a complete Lean theorem is a proof.
 
-The configuration does not define the algorithm by itself. It only sets limits and weights for the components described above.
+When extracting proof text from the graph, GammaZero tries all solved actions for
+a state and prefers the first proof that contains no real `sorry` outside
+comments. If no clean proof is available, it can still return the first
+stitchable proof as a fallback for inspection. The final Lean verification step
+decides whether the extracted text is a complete proof.
 
-## 16. Summary
+The graph logger exports the final graph to JSON. Each action node records the
+raw model content, prompt, extracted Lean code, verified code, patched code,
+Lean feedback, target label, `r_env`, `r_dep`, and `Q_value`. This is the data
+used by the HTML graph viewer.
 
-GammaZero combines direct proof attempts and structured decomposition.
+The JSON also includes search metadata: action budget usage, Lean verification
+counts, skeleton repair counts, final state and action statuses, depth
+distribution, queue pruning counts, and skeleton commitment statistics.
 
-The AND/OR graph records how proof states, tactics, and skeletons depend on one another.
+## 17. Configuration
 
-Lean verification is used for every generated proof fragment.
+The main runtime configuration is `configs/api.yaml`.
 
-The search uses a priority queue and a simple heuristic. The heuristic gives high priority to states that are likely to finish an active skeleton, especially the last unsolved child.
+The configuration sets limits and weights. It does not change the logical
+contract of the system. Important groups include:
 
-Skeleton commitment keeps the search focused on one decomposition at a time while still allowing fallback to reserved skeletons.
+- action and depth limits,
+- tactic sampling counts,
+- skeleton sampling counts,
+- state queue limits,
+- skeleton commitment parameters,
+- heuristic weights,
+- verifier timeout settings.
 
-Repair and dependency analysis make generated Lean code more useful without trusting invalid code. The system can preserve useful proof structure, remove unused declarations, and verify the final theorem again in Lean.
+The configuration loader validates heuristic keys against the current
+`SimpleHeuristicScorer` constructor. This catches stale configuration fields
+early.
+
+The rollout entry point accepts either one Lean file or a directory of Lean
+files. It skips JSON outputs that already exist, constructs the root
+`ProofState` from the original theorem scaffold, warns when the root file does
+not contain exactly one `sorry`, and exports one graph JSON file per theorem.
+
+## 18. Design Rationale
+
+GammaZero works because it turns language model samples into checked graph
+structure instead of treating samples as final answers.
+
+The model is useful for proposing tactics and decompositions. Lean is used to
+accept, reject, or expose partial structure. The graph records dependencies
+between the resulting fragments. The search policy then spends effort on states
+that are close to closing an active proof path.
+
+The central design choices are:
+
+- use direct tactics before decomposition,
+- decompose only into named obligations,
+- verify subgoals in their parent scaffold,
+- admit sibling obligations when focusing on one child,
+- reject invalid placeholder usage before Lean,
+- repair failed code only to preserve useful structure,
+- remove unused declarations through dependency analysis,
+- commit to one skeleton while keeping fallback skeletons,
+- prioritize the last open child of a committed skeleton,
+- compute action values from the AND/OR proof graph.
+
+Together these choices make the search tree smaller, the model prompt more
+local, and the final proof construction more reliable.
