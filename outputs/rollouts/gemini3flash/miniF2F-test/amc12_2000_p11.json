@@ -1,0 +1,258 @@
+{
+  "theorem_goal": "a / b + b / a - a * b = 2",
+  "root_id": "state_0",
+  "total_nodes": 7,
+  "search_metadata": {
+    "budget": {
+      "max_nodes": 512,
+      "used_total": 6,
+      "used_tactic": 6,
+      "used_skeleton_raw": 0,
+      "lean_verify_calls": 6,
+      "patch_verify_calls": 5
+    },
+    "skeleton_pipeline": {
+      "requested": 0,
+      "raw_verify_success": 0,
+      "raw_verify_failed": 0,
+      "patch_attempted": 0,
+      "patch_scored": 0,
+      "patch_failed": 0,
+      "feedback_generated": 0,
+      "inserted_raw": 0,
+      "selected_by_beam": 0,
+      "rejected_by_beam": 0,
+      "valid_zero_children": 0,
+      "skeleton_duplicate_actions": 0,
+      "children_new": 0,
+      "children_duplicate": 0
+    },
+    "final_status": {
+      "states": {
+        "OPEN": 0,
+        "SOLVED": 1,
+        "FAILED": 0,
+        "RESERVED": 0
+      },
+      "actions": {
+        "tactic_SOLVED": 1,
+        "tactic_FAILED": 5,
+        "skeleton_OPEN": 0,
+        "skeleton_SOLVED": 0,
+        "skeleton_FAILED": 0,
+        "skeleton_RESERVED": 0
+      }
+    },
+    "depth_distribution": {
+      "states_seen_by_depth": {
+        "0": 1
+      },
+      "states_solved_by_depth": {
+        "0": 1
+      },
+      "queue_at_stop_by_depth": {},
+      "max_depth_reached": 0
+    },
+    "beam": {
+      "states_pruned_global": 0,
+      "states_pruned_per_depth": 0,
+      "skeletons_selected": 0,
+      "skeletons_rejected_by_beam": 0
+    },
+    "skeleton_commitment": {
+      "committed": 0,
+      "reserved": 0,
+      "fallback_activated": 0,
+      "committed_solved": 0,
+      "committed_failed": 0,
+      "committed_stale": 0,
+      "blocked_new_skeleton_due_to_active_commit": 0
+    }
+  },
+  "nodes": [
+    {
+      "id": "state_0",
+      "type": "OR",
+      "status": "SOLVED",
+      "depth": 0,
+      "target_label": "root_goal",
+      "content": {
+        "context": "a b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b",
+        "goal": "a / b + b / a - a * b = 2",
+        "proof_body": "\n  field_simp [h₀.1, h₀.2]\n  have h₂ : (a * b)^2 = (a - b)^2 := by rw [h₁]\n  ring_nf at h₂ ⊢\n  rw [h₂]\n  ring",
+        "scaffold_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  sorry\n",
+        "target_index": 0,
+        "target_kind": "root",
+        "target_label": "root_goal",
+        "parent_action_id": ""
+      },
+      "metrics": {
+        "V_value": 2.0
+      }
+    },
+    {
+      "id": "action_0",
+      "internal_id": "A_ea34f7",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\nThe objective is to prove `a / b + b / a - a * b = 2` given `a * b = a - b` and `a, b ≠ 0`.\n\n1. **Necessary Hypotheses**:\n   - `h₀ : a ≠ 0 ∧ b ≠ 0`\n   - `h₁ : a * b = a - b`\n\n2. **Reasoning**:\n   - Start with the goal expression: `a/b + b/a - ab`.\n   - Combine the first two terms: `a/b + b/a = (a^2 + b^2) / (ab)`.\n   - From `h₁`, we have `a - b = ab`. Square both sides: `(a - b)^2 = (ab)^2`.\n   - Expanding gives `a^2 - 2ab + b^2 = (ab)^2`, so `a^2 + b^2 = (ab)^2 + 2ab`.\n   - Substitute this back into the sum: `(a^2 + b^2) / (ab) = ((ab)^2 + 2ab) / (ab)`.\n   - Since `ab ≠ 0` (from `h₀`), we simplify: `((ab)^2 + 2ab) / (ab) = ab + 2`.\n   - Now substitute this into the original goal expression: `(ab + 2) - ab`.\n   - The `ab` terms cancel out, leaving `2`.\n\n3. **Tactics**:\n   - Use `field_simp` to handle denominators.\n   - Use `linear_combination` or `ring` after substituting the identity derived from `h₁`.\n</think>\n```lean4\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have ha : a ≠ 0 := h₀.1\n  have hb : b ≠ 0 := h₀.2\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n  field_simp [ha, hb, hab]\n  -- Goal: (a * a + b * b - a * b * (a * b)) / (a * b) = 2\n  -- Which is: a^2 + b^2 - (ab)^2 = 2ab\n  -- From h₁, a - b = ab. Square it: (a - b)^2 = (ab)^2\n  -- a^2 - 2ab + b^2 = (ab)^2 => a^2 + b^2 - (ab)^2 = 2ab\n  have h_sq : (a - b)^2 = (a * b)^2 := by rw [h₁]\n  ring_nf at h_sq\n  linear_combination (norm := ring) h_sq / (a * b)\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have ha : a ≠ 0 := h₀.1\n  have hb : b ≠ 0 := h₀.2\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n  field_simp [ha, hb, hab]\n  -- Goal: (a * a + b * b - a * b * (a * b)) / (a * b) = 2\n  -- Which is: a^2 + b^2 - (ab)^2 = 2ab\n  -- From h₁, a - b = ab. Square it: (a - b)^2 = (ab)^2\n  -- a^2 - 2ab + b^2 = (ab)^2 => a^2 + b^2 - (ab)^2 = 2ab\n  have h_sq : (a - b)^2 = (a * b)^2 := by rw [h₁]\n  ring_nf at h_sq\n  linear_combination (norm := ring) h_sq / (a * b)",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    have ha : a ≠ 0 := h₀.1\n    have hb : b ≠ 0 := h₀.2\n    have hab : a * b ≠ 0 := mul_ne_zero ha hb\n    field_simp [ha, hb, hab]\n    -- Goal: (a * a + b * b - a * b * (a * b)) / (a * b) = 2\n    -- Which is: a^2 + b^2 - (ab)^2 = 2ab\n    -- From h₁, a - b = ab. Square it: (a - b)^2 = (ab)^2\n    -- a^2 - 2ab + b^2 = (ab)^2 => a^2 + b^2 - (ab)^2 = 2ab\n    have h_sq : (a - b)^2 = (a * b)^2 := by rw [h₁]\n    ring_nf at h_sq\n    linear_combination (norm := ring) h_sq / (a * b)\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    have ha : a ≠ 0 := h₀.1\n    have hb : b ≠ 0 := h₀.2\n    have hab : a * b ≠ 0 := mul_ne_zero ha hb\n    field_simp [ha, hb, hab]\n    -- Goal: (a * a + b * b - a * b * (a * b)) / (a * b) = 2\n    -- Which is: a^2 + b^2 - (ab)^2 = 2ab\n    -- From h₁, a - b = ab. Square it: (a - b)^2 = (ab)^2\n    -- a^2 - 2ab + b^2 = (ab)^2 => a^2 + b^2 - (ab)^2 = 2ab\n    have h_sq : (a - b)^2 = (a * b)^2 := by rw [h₁]\n    ring_nf at h_sq\n    linear_combination (norm := ring) h_sq / (a * b)\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_1",
+      "internal_id": "A_fe1142",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n*   Goal: `a / b + b / a - a * b = 2`\n    *   Hypotheses: `a ≠ 0`, `b ≠ 0`, `a * b = a - b`.\n    *   Expand `a / b + b / a`: This is `(a^2 + b^2) / (a * b)`.\n    *   From `a * b = a - b`, we have `(a * b)^2 = (a - b)^2 = a^2 + b^2 - 2ab`.\n    *   So `a^2 + b^2 = (a * b)^2 + 2ab`.\n    *   Substitute this into the expression:\n        `((a * b)^2 + 2ab) / (ab) - ab`\n        `= (ab)^2 / ab + 2ab / ab - ab`\n        `= ab + 2 - ab`\n        `= 2`.\n    *   The steps require `ab ≠ 0`, which is true since `a ≠ 0` and `b ≠ 0`.\n</think>\n```lean4\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  field_simp [h₀.1, h₀.2]\n  have h_ab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  rw [h₁]\n  ring\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  field_simp [h₀.1, h₀.2]\n  have h_ab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  rw [h₁]\n  ring",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    field_simp [h₀.1, h₀.2]\n    have h_ab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n    rw [h₁]\n    ring\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    field_simp [h₀.1, h₀.2]\n    have h_ab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n    rw [h₁]\n    ring\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_2",
+      "internal_id": "A_96c8c4",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n- Goal: `a / b + b / a - a * b = 2`.\n- Given: `a * b = a - b`, `a ≠ 0`, `b ≠ 0`.\n- Algebraic steps:\n  1. `a / b + b / a = (a^2 + b^2) / (a * b)`.\n  2. `a^2 + b^2 = (a - b)^2 + 2ab`.\n  3. Substitute `a - b = ab`: `a^2 + b^2 = (ab)^2 + 2ab`.\n  4. `a / b + b / a = ((ab)^2 + 2ab) / (ab) = ab + 2`.\n  5. `a / b + b / a - ab = (ab + 2) - ab = 2`.\n- Proof Strategy: Use `field_simp` to clear denominators and then substitute `a - b` or use `linear_combination`.\n</think>\n```lean4\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  field_simp [h₀.1, h₀.2]\n  rw [h₁]\n  ring\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  field_simp [h₀.1, h₀.2]\n  rw [h₁]\n  ring",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    field_simp [h₀.1, h₀.2]\n    rw [h₁]\n    ring\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    field_simp [h₀.1, h₀.2]\n    rw [h₁]\n    ring\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_3",
+      "internal_id": "A_76afc7",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n*   Goal: `a / b + b / a - a * b = 2`\n*   Given: `a ≠ 0`, `b ≠ 0`, `a * b = a - b`\n*   Key idea: Express `a / b + b / a` in terms of `a` and `b`.\n*   `a / b + b / a = (a^2 + b^2) / (a * b)`.\n*   From `a * b = a - b`, we have `(a - b)^2 = (a * b)^2`.\n*   Expanding gives `a^2 - 2ab + b^2 = (ab)^2`.\n*   So `a^2 + b^2 = (ab)^2 + 2ab`.\n*   Then `a / b + b / a = ((ab)^2 + 2ab) / (ab) = ab + 2`.\n*   Substitute this into the goal: `(ab + 2) - ab = 2`.\n*   This matches the RHS.\n</think>\n```lean4\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n  field_simp\n  rw [h₁]\n  ring\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n  field_simp\n  rw [h₁]\n  ring",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    rcases h₀ with ⟨ha, hb⟩\n    have hab : a * b ≠ 0 := mul_ne_zero ha hb\n    field_simp\n    rw [h₁]\n    ring\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    rcases h₀ with ⟨ha, hb⟩\n    have hab : a * b ≠ 0 := mul_ne_zero ha hb\n    field_simp\n    rw [h₁]\n    ring\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_4",
+      "internal_id": "A_6e4d4c",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "<think>\n- Goal: $a/b + b/a - ab = 2$\n- Given: $h_0: a \\neq 0, b \\neq 0$, $h_1: ab = a - b$.\n- Necessary hypotheses: $h_0, h_1$.\n- Strategy:\n  1. $a/b + b/a - ab = \\frac{a^2 + b^2 - (ab)^2}{ab}$.\n  2. Use $h_1$ to substitute $a-b$ for $ab$.\n  3. Substitute $(ab)^2 = (a-b)^2 = a^2 - 2ab + b^2$.\n  4. The numerator becomes $a^2 + b^2 - (a^2 - 2ab + b^2) = 2ab$.\n  5. The expression is $2ab / ab = 2$.\n- Tactics: `field_simp`, `linear_combination` or `rw` with specific identities.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  field_simp [h₀.1, h₀.2]\n  have h₂ : (a * b)^2 = (a - b)^2 := by rw [h₁]\n  ring_nf at h₂ ⊢\n  rw [h₂]\n  ring\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  sorry\n```\n\nPREVIOUS TACTIC ATTEMPTS FAILED.\nUse the Lean feedback below to produce a NEW tactic proof for the same goal. Do not repeat the failed tactic. Preserve the exact theorem signature.\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    field_simp [h₀.1, h₀.2]\n    have h_ab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n    rw [h₁]\n    ring\n```\n\nLEAN ERROR FEEDBACK:\nL9:C31: unsolved goals\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nh_ab : a * b ≠ 0\n⊢ a ^ 2 - a ^ 2 * b ^ 2 + b ^ 2 = a * 2 - b * 2\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    field_simp [h₀.1, h₀.2]\n    rw [h₁]\n    ring\n```\n\nLEAN ERROR FEEDBACK:\nL9:C31: unsolved goals\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\n⊢ a ^ 2 - a ^ 2 * b ^ 2 + b ^ 2 = a * 2 - b * 2\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    rcases h₀ with ⟨ha, hb⟩\n    have hab : a * b ≠ 0 := mul_ne_zero ha hb\n    field_simp\n    rw [h₁]\n    ring\n```\n\nLEAN ERROR FEEDBACK:\nL9:C31: unsolved goals\na b : ℝ\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\nhab : a * b ≠ 0\n⊢ a ^ 2 - a ^ 2 * b ^ 2 + b ^ 2 = a * 2 - b * 2\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  field_simp [h₀.1, h₀.2]\n  have h₂ : (a * b)^2 = (a - b)^2 := by rw [h₁]\n  ring_nf at h₂ ⊢\n  rw [h₂]\n  ring",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    field_simp [h₀.1, h₀.2]\n    have h₂ : (a * b)^2 = (a - b)^2 := by rw [h₁]\n    ring_nf at h₂ ⊢\n    rw [h₂]\n    ring\n  \n",
+      "stitched_code": "",
+      "patched_code": "",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 1.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_5",
+      "internal_id": "A_bb2abc",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\nThe goal is to prove $a/b + b/a - ab = 2$ given $ab = a - b$ and $a, b \\neq 0$.\n1. Start with the target expression: $a/b + b/a - ab$.\n2. Combine fractions: $\\frac{a^2 + b^2}{ab} - ab$.\n3. Use the given identity $a - b = ab$.\n4. Square the identity: $(a - b)^2 = (ab)^2 \\implies a^2 - 2ab + b^2 = (ab)^2$.\n5. Rearrange to find $a^2 + b^2 = (ab)^2 + 2ab$.\n6. Substitute this into the target expression: $\\frac{(ab)^2 + 2ab}{ab} - ab$.\n7. Simplify: $(ab + 2) - ab = 2$.\n\nNecessary hypotheses: $h_0$ (specifically $a \\neq 0$ and $b \\neq 0$) and $h_1$.\nTactics: `field_simp`, `linear_combination` or `ring` after substitution.\n</think>\n\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  field_simp [h₀.1, h₀.2]\n  have h_sq : (a - b)^2 = (a * b)^2 := by rw [← h₁]\n  ring_nf at h_sq\n  linear_combination (1 / (a * b)) * h_sq - 1 * h₁\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  sorry\n```\n\nPREVIOUS TACTIC ATTEMPTS FAILED.\nUse the Lean feedback below to produce a NEW tactic proof for the same goal. Do not repeat the failed tactic. Preserve the exact theorem signature.\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    field_simp [h₀.1, h₀.2]\n    have h_ab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n    rw [h₁]\n    ring\n```\n\nLEAN ERROR FEEDBACK:\nL9:C31: unsolved goals\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nh_ab : a * b ≠ 0\n⊢ a ^ 2 - a ^ 2 * b ^ 2 + b ^ 2 = a * 2 - b * 2\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    field_simp [h₀.1, h₀.2]\n    rw [h₁]\n    ring\n```\n\nLEAN ERROR FEEDBACK:\nL9:C31: unsolved goals\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\n⊢ a ^ 2 - a ^ 2 * b ^ 2 + b ^ 2 = a * 2 - b * 2\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    rcases h₀ with ⟨ha, hb⟩\n    have hab : a * b ≠ 0 := mul_ne_zero ha hb\n    field_simp\n    rw [h₁]\n    ring\n```\n\nLEAN ERROR FEEDBACK:\nL9:C31: unsolved goals\na b : ℝ\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\nhab : a * b ≠ 0\n⊢ a ^ 2 - a ^ 2 * b ^ 2 + b ^ 2 = a * 2 - b * 2\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  field_simp [h₀.1, h₀.2]\n  have h_sq : (a - b)^2 = (a * b)^2 := by rw [← h₁]\n  ring_nf at h_sq\n  linear_combination (1 / (a * b)) * h_sq - 1 * h₁",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    field_simp [h₀.1, h₀.2]\n    have h_sq : (a - b)^2 = (a * b)^2 := by rw [← h₁]\n    ring_nf at h_sq\n    linear_combination (1 / (a * b)) * h_sq - 1 * h₁\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    field_simp [h₀.1, h₀.2]\n    have h_sq : (a - b)^2 = (a * b)^2 := by rw [← h₁]\n    ring_nf at h_sq\n    linear_combination (1 / (a * b)) * h_sq - 1 * h₁\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  \n    field_simp [h₀.1, h₀.2]\n    have h_sq : (a - b)^2 = (a * b)^2 := by rw [← h₁]\n    ring_nf at h_sq\n    sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.75,
+        "r_dep": 0.0,
+        "Q_value": 0.75
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "state_0",
+      "target": "action_0",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_1",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_2",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_3",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_4",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_5",
+      "relation": "expanded_to"
+    }
+  ]
+}

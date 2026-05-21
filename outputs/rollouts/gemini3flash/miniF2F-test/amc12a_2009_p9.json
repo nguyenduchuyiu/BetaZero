@@ -1,0 +1,204 @@
+{
+  "theorem_goal": "a + b + c = 2",
+  "root_id": "state_0",
+  "total_nodes": 5,
+  "search_metadata": {
+    "budget": {
+      "max_nodes": 512,
+      "used_total": 4,
+      "used_tactic": 4,
+      "used_skeleton_raw": 0,
+      "lean_verify_calls": 4,
+      "patch_verify_calls": 0
+    },
+    "skeleton_pipeline": {
+      "requested": 0,
+      "raw_verify_success": 0,
+      "raw_verify_failed": 0,
+      "patch_attempted": 0,
+      "patch_scored": 0,
+      "patch_failed": 0,
+      "feedback_generated": 0,
+      "inserted_raw": 0,
+      "selected_by_beam": 0,
+      "rejected_by_beam": 0,
+      "valid_zero_children": 0,
+      "skeleton_duplicate_actions": 0,
+      "children_new": 0,
+      "children_duplicate": 0
+    },
+    "final_status": {
+      "states": {
+        "OPEN": 0,
+        "SOLVED": 1,
+        "FAILED": 0,
+        "RESERVED": 0
+      },
+      "actions": {
+        "tactic_SOLVED": 4,
+        "tactic_FAILED": 0,
+        "skeleton_OPEN": 0,
+        "skeleton_SOLVED": 0,
+        "skeleton_FAILED": 0,
+        "skeleton_RESERVED": 0
+      }
+    },
+    "depth_distribution": {
+      "states_seen_by_depth": {
+        "0": 1
+      },
+      "states_solved_by_depth": {
+        "0": 1
+      },
+      "queue_at_stop_by_depth": {},
+      "max_depth_reached": 0
+    },
+    "beam": {
+      "states_pruned_global": 0,
+      "states_pruned_per_depth": 0,
+      "skeletons_selected": 0,
+      "skeletons_rejected_by_beam": 0
+    },
+    "skeleton_commitment": {
+      "committed": 0,
+      "reserved": 0,
+      "fallback_activated": 0,
+      "committed_solved": 0,
+      "committed_failed": 0,
+      "committed_stale": 0,
+      "blocked_new_skeleton_due_to_active_commit": 0
+    }
+  },
+  "nodes": [
+    {
+      "id": "state_0",
+      "type": "OR",
+      "status": "SOLVED",
+      "depth": 0,
+      "target_label": "root_goal",
+      "content": {
+        "context": "a b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f (x + 3) = 3 * x ^ 2 + 7 * x + 4\nh₁ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c",
+        "goal": "a + b + c = 2",
+        "proof_body": "\n  have h2 : f 1 = a + b + c := by\n    rw [h₁ 1]\n    ring\n  rw [← h2]\n  have h3 : f 1 = f ((-2) + 3) := by\n    congr\n    norm_num\n  rw [h3]\n  rw [h₀ (-2)]\n  ring",
+        "scaffold_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2009_p9 (a b c : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f (x + 3) = 3 * x ^ 2 + 7 * x + 4)\n  (h₁ : ∀ x, f x = a * x ^ 2 + b * x + c) : a + b + c = 2 := by\n  sorry\n",
+        "target_index": 0,
+        "target_kind": "root",
+        "target_label": "root_goal",
+        "parent_action_id": ""
+      },
+      "metrics": {
+        "V_value": 2.0
+      }
+    },
+    {
+      "id": "action_0",
+      "internal_id": "A_366ce9",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "<think>\n- Goal: Prove $a + b + c = 2$ given $f(x+3) = 3x^2 + 7x + 4$ and $f(x) = ax^2 + bx + c$.\n- Observe that $a + b + c$ is exactly $f(1)$.\n- To find $f(1)$, use the first equation $f(x+3) = 3x^2 + 7x + 4$.\n- Let $x + 3 = 1$, which means $x = -2$.\n- Substitute $x = -2$ into the first equation:\n  $f(1) = f(-2 + 3) = 3(-2)^2 + 7(-2) + 4$\n  $f(1) = 3(4) - 14 + 4$\n  $f(1) = 12 - 14 + 4 = 2$.\n- Since $f(1) = a(1)^2 + b(1) + c = a + b + c$, we have $a + b + c = 2$.\n\nTactics:\n1. Use `h₁` to rewrite `a + b + c` as `f 1`.\n2. Use `h₀` with $x = -2$ to evaluate `f 1`.\n3. Simplify the arithmetic.\n</think>\n```lean4\ntheorem amc12a_2009_p9 (a b c : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f (x + 3) = 3 * x ^ 2 + 7 * x + 4)\n  (h₁ : ∀ x, f x = a * x ^ 2 + b * x + c) : a + b + c = 2 := by\n  have h2 : f 1 = a + b + c := by\n    rw [h₁ 1]\n    ring\n  rw [← h2]\n  have h3 : f 1 = f ((-2) + 3) := by\n    congr\n    norm_num\n  rw [h3]\n  rw [h₀ (-2)]\n  ring\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2009_p9 (a b c : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f (x + 3) = 3 * x ^ 2 + 7 * x + 4)\n  (h₁ : ∀ x, f x = a * x ^ 2 + b * x + c) : a + b + c = 2 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h2 : f 1 = a + b + c := by\n    rw [h₁ 1]\n    ring\n  rw [← h2]\n  have h3 : f 1 = f ((-2) + 3) := by\n    congr\n    norm_num\n  rw [h3]\n  rw [h₀ (-2)]\n  ring",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2009_p9 (a b c : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f (x + 3) = 3 * x ^ 2 + 7 * x + 4)\n  (h₁ : ∀ x, f x = a * x ^ 2 + b * x + c) : a + b + c = 2 := by\n  \n    have h2 : f 1 = a + b + c := by\n      rw [h₁ 1]\n      ring\n    rw [← h2]\n    have h3 : f 1 = f ((-2) + 3) := by\n      congr\n      norm_num\n    rw [h3]\n    rw [h₀ (-2)]\n    ring\n  \n",
+      "stitched_code": "",
+      "patched_code": "",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 1.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_1",
+      "internal_id": "A_4f38f9",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "<think>\n- Goal: Prove $a + b + c = 2$.\n- Given $h_1$: $f(x) = ax^2 + bx + c$. This implies $a + b + c = f(1)$.\n- Given $h_0$: $f(x + 3) = 3x^2 + 7x + 4$.\n- To find $f(1)$, set $x + 3 = 1$, which means $x = -2$.\n- Substitute $x = -2$ into $h_0$:\n  $f(1) = f(-2 + 3) = 3(-2)^2 + 7(-2) + 4$.\n  $f(1) = 3(4) - 14 + 4 = 12 - 14 + 4 = 2$.\n- Since $f(1) = a(1)^2 + b(1) + c = a + b + c$, then $a + b + c = 2$.\n- Tactics: `specialize` $h_1$ with $x=1$, `specialize` $h_0$ with $x=-2$, then equate and simplify.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2009_p9 (a b c : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f (x + 3) = 3 * x ^ 2 + 7 * x + 4)\n  (h₁ : ∀ x, f x = a * x ^ 2 + b * x + c) : a + b + c = 2 := by\n  have h_f1 : f 1 = a + b + c := by\n    rw [h₁ 1]\n    ring\n  have h_f1_val : f 1 = 2 := by\n    specialize h₀ (-2)\n    norm_num at h₀\n    exact h₀\n  rw [← h_f1, h_f1_val]\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2009_p9 (a b c : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f (x + 3) = 3 * x ^ 2 + 7 * x + 4)\n  (h₁ : ∀ x, f x = a * x ^ 2 + b * x + c) : a + b + c = 2 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h_f1 : f 1 = a + b + c := by\n    rw [h₁ 1]\n    ring\n  have h_f1_val : f 1 = 2 := by\n    specialize h₀ (-2)\n    norm_num at h₀\n    exact h₀\n  rw [← h_f1, h_f1_val]",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2009_p9 (a b c : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f (x + 3) = 3 * x ^ 2 + 7 * x + 4)\n  (h₁ : ∀ x, f x = a * x ^ 2 + b * x + c) : a + b + c = 2 := by\n  \n    have h_f1 : f 1 = a + b + c := by\n      rw [h₁ 1]\n      ring\n    have h_f1_val : f 1 = 2 := by\n      specialize h₀ (-2)\n      norm_num at h₀\n      exact h₀\n    rw [← h_f1, h_f1_val]\n  \n",
+      "stitched_code": "",
+      "patched_code": "",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 1.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_2",
+      "internal_id": "A_34cccd",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "<think>\nThe objective is to find $a+b+c$ where $f(x) = ax^2 + bx + c$.\nWe are given $f(x+3) = 3x^2 + 7x + 4$.\nWe know $a+b+c = f(1)$.\nTo find $f(1)$, we use the equation $f(x+3) = 3x^2 + 7x + 4$ with $x+3 = 1$.\nThis implies $x = -2$.\nPlugging $x = -2$ into the equation:\n$f(1) = f(-2 + 3) = 3(-2)^2 + 7(-2) + 4$\n$f(1) = 3(4) - 14 + 4$\n$f(1) = 12 - 14 + 4 = 2$.\nSince $h_1$ gives $f(x) = ax^2 + bx + c$, then $f(1) = a(1)^2 + b(1) + c = a+b+c$.\nTherefore $a+b+c = 2$.\n\nNecessary Hypotheses:\n- `h₀ : ∀ x, f (x + 3) = 3 * x ^ 2 + 7 * x + 4`\n- `h₁ : ∀ x, f x = a * x ^ 2 + b * x + c`\n\nTactics:\n1. Use `h₁` to show `a + b + c = f 1`.\n2. Use `h₀` with `x = -2` to evaluate `f 1`.\n3. Simplify.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2009_p9 (a b c : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f (x + 3) = 3 * x ^ 2 + 7 * x + 4)\n  (h₁ : ∀ x, f x = a * x ^ 2 + b * x + c) : a + b + c = 2 := by\n  have h_f1 : f 1 = a + b + c := by\n    rw [h₁ 1]\n    ring\n  rw [← h_f1]\n  have h_f1_calc : f 1 = f ((-2) + 3) := by\n    congr\n    norm_num\n  rw [h_f1_calc, h₀ (-2)]\n  norm_num\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2009_p9 (a b c : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f (x + 3) = 3 * x ^ 2 + 7 * x + 4)\n  (h₁ : ∀ x, f x = a * x ^ 2 + b * x + c) : a + b + c = 2 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h_f1 : f 1 = a + b + c := by\n    rw [h₁ 1]\n    ring\n  rw [← h_f1]\n  have h_f1_calc : f 1 = f ((-2) + 3) := by\n    congr\n    norm_num\n  rw [h_f1_calc, h₀ (-2)]\n  norm_num",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2009_p9 (a b c : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f (x + 3) = 3 * x ^ 2 + 7 * x + 4)\n  (h₁ : ∀ x, f x = a * x ^ 2 + b * x + c) : a + b + c = 2 := by\n  \n    have h_f1 : f 1 = a + b + c := by\n      rw [h₁ 1]\n      ring\n    rw [← h_f1]\n    have h_f1_calc : f 1 = f ((-2) + 3) := by\n      congr\n      norm_num\n    rw [h_f1_calc, h₀ (-2)]\n    norm_num\n  \n",
+      "stitched_code": "",
+      "patched_code": "",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 1.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_3",
+      "internal_id": "A_92cafd",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "<think>\nThe objective is to find $a+b+c$ where $f(x) = ax^2 + bx + c$.\nNote that $f(1) = a(1)^2 + b(1) + c = a + b + c$.\nWe are given $f(x + 3) = 3x^2 + 7x + 4$ for all $x$.\nTo find $f(1)$, we need to choose $x$ such that $x + 3 = 1$.\nSetting $x = -2$:\n$f(-2 + 3) = 3(-2)^2 + 7(-2) + 4$\n$f(1) = 3(4) - 14 + 4$\n$f(1) = 12 - 14 + 4 = 2$.\nTherefore, $a + b + c = 2$.\n\nNecessary hypotheses: `h₀`, `h₁`.\nPlan:\n1. Use `h₁` to show `f 1 = a + b + c`.\n2. Use `h₀` with `x = -2` to show `f 1 = 2`.\n3. Combine both results.\n</think>\n\n```lean4\ntheorem amc12a_2009_p9 (a b c : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f (x + 3) = 3 * x ^ 2 + 7 * x + 4)\n  (h₁ : ∀ x, f x = a * x ^ 2 + b * x + c) : a + b + c = 2 := by\n  -- Evaluate f(1) using the definition in h1\n  have h_f1 : f 1 = a + b + c := by\n    rw [h₁ 1]\n    ring\n  -- Evaluate f(1) using the property in h0 by setting x = -2\n  have h_f1_val : f 1 = 2 := by\n    specialize h₀ (-2)\n    norm_num at h₀\n    exact h₀\n  -- Equate the two expressions for f(1)\n  rw [← h_f1, h_f1_val]\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2009_p9 (a b c : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f (x + 3) = 3 * x ^ 2 + 7 * x + 4)\n  (h₁ : ∀ x, f x = a * x ^ 2 + b * x + c) : a + b + c = 2 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  -- Evaluate f(1) using the definition in h1\n  have h_f1 : f 1 = a + b + c := by\n    rw [h₁ 1]\n    ring\n  -- Evaluate f(1) using the property in h0 by setting x = -2\n  have h_f1_val : f 1 = 2 := by\n    specialize h₀ (-2)\n    norm_num at h₀\n    exact h₀\n  -- Equate the two expressions for f(1)\n  rw [← h_f1, h_f1_val]",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2009_p9 (a b c : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f (x + 3) = 3 * x ^ 2 + 7 * x + 4)\n  (h₁ : ∀ x, f x = a * x ^ 2 + b * x + c) : a + b + c = 2 := by\n  \n    -- Evaluate f(1) using the definition in h1\n    have h_f1 : f 1 = a + b + c := by\n      rw [h₁ 1]\n      ring\n    -- Evaluate f(1) using the property in h0 by setting x = -2\n    have h_f1_val : f 1 = 2 := by\n      specialize h₀ (-2)\n      norm_num at h₀\n      exact h₀\n    -- Equate the two expressions for f(1)\n    rw [← h_f1, h_f1_val]\n  \n",
+      "stitched_code": "",
+      "patched_code": "",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 1.0,
+        "Q_value": 2.0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "state_0",
+      "target": "action_0",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_1",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_2",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_3",
+      "relation": "expanded_to"
+    }
+  ]
+}

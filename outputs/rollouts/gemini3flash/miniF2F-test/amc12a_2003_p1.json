@@ -1,0 +1,312 @@
+{
+  "theorem_goal": "∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003",
+  "root_id": "state_0",
+  "total_nodes": 9,
+  "search_metadata": {
+    "budget": {
+      "max_nodes": 512,
+      "used_total": 8,
+      "used_tactic": 8,
+      "used_skeleton_raw": 0,
+      "lean_verify_calls": 8,
+      "patch_verify_calls": 7
+    },
+    "skeleton_pipeline": {
+      "requested": 0,
+      "raw_verify_success": 0,
+      "raw_verify_failed": 0,
+      "patch_attempted": 0,
+      "patch_scored": 0,
+      "patch_failed": 0,
+      "feedback_generated": 0,
+      "inserted_raw": 0,
+      "selected_by_beam": 0,
+      "rejected_by_beam": 0,
+      "valid_zero_children": 0,
+      "skeleton_duplicate_actions": 0,
+      "children_new": 0,
+      "children_duplicate": 0
+    },
+    "final_status": {
+      "states": {
+        "OPEN": 0,
+        "SOLVED": 1,
+        "FAILED": 0,
+        "RESERVED": 0
+      },
+      "actions": {
+        "tactic_SOLVED": 1,
+        "tactic_FAILED": 7,
+        "skeleton_OPEN": 0,
+        "skeleton_SOLVED": 0,
+        "skeleton_FAILED": 0,
+        "skeleton_RESERVED": 0
+      }
+    },
+    "depth_distribution": {
+      "states_seen_by_depth": {
+        "0": 1
+      },
+      "states_solved_by_depth": {
+        "0": 1
+      },
+      "queue_at_stop_by_depth": {},
+      "max_depth_reached": 0
+    },
+    "beam": {
+      "states_pruned_global": 0,
+      "states_pruned_per_depth": 0,
+      "skeletons_selected": 0,
+      "skeletons_rejected_by_beam": 0
+    },
+    "skeleton_commitment": {
+      "committed": 0,
+      "reserved": 0,
+      "fallback_activated": 0,
+      "committed_solved": 0,
+      "committed_failed": 0,
+      "committed_stale": 0,
+      "blocked_new_skeleton_due_to_active_commit": 0
+    }
+  },
+  "nodes": [
+    {
+      "id": "state_0",
+      "type": "OR",
+      "status": "SOLVED",
+      "depth": 0,
+      "target_label": "root_goal",
+      "content": {
+        "context": "u v : ℕ → ℕ\nh₀ : ∀ (n : ℕ), u n = 2 * n + 2\nh₁ : ∀ (n : ℕ), v n = 2 * n + 1",
+        "goal": "∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003",
+        "proof_body": "\n  have h_uv : ∀ k, u k = v k + 1 := by\n    intro k\n    rw [h₀, h₁, Nat.add_assoc]\n  simp_rw [h_uv, Finset.sum_add_distrib]\n  simp only [Finset.sum_const, Finset.card_range, smul_eq_mul, mul_one, Nat.add_sub_cancel_left]",
+        "scaffold_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  sorry\n",
+        "target_index": 0,
+        "target_kind": "root",
+        "target_label": "root_goal",
+        "parent_action_id": ""
+      },
+      "metrics": {
+        "V_value": 2.0
+      }
+    },
+    {
+      "id": "action_0",
+      "internal_id": "A_2f0a29",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\nThe objective is to prove that the difference between the sums of two arithmetic sequences $u_n = 2n + 2$ and $v_n = 2n + 1$ over the range $0$ to $2002$ (total 2003 terms) is 2003.\n\n- $h_0: \\forall n, u(n) = 2n + 2$\n- $h_1: \\forall n, v(n) = 2n + 1$\n- Goal: $(\\sum_{k=0}^{2002} u(k)) - (\\sum_{k=0}^{2002} v(k)) = 2003$\n\n1. Use `Finset.sum_sub_distrib` to combine the sums: $\\sum (u(k) - v(k))$.\n2. Substitute $u(k)$ and $v(k)$ using $h_0$ and $h_1$.\n3. Simplify the expression inside the sum: $(2k + 2) - (2k + 1) = 1$.\n4. The sum becomes $\\sum_{k \\in \\text{range } 2003} 1$.\n5. A sum of 1 over a range of size $N$ is $N$. Here, $N = 2003$.\n6. Note: Since the values are naturals, we should ensure the subtraction is handled correctly or perform the subtraction inside the sum where $u(k) \\ge v(k)$ is trivial.\n</think>\n```lean4\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  rw [← Finset.sum_sub_distrib]\n  · simp [h₀, h₁]\n  · intro k _\n    rw [h₀, h₁]\n    omega\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  rw [← Finset.sum_sub_distrib]\n  · simp [h₀, h₁]\n  · intro k _\n    rw [h₀, h₁]\n    omega",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    · simp [h₀, h₁]\n    · intro k _\n      rw [h₀, h₁]\n      omega\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    · simp [h₀, h₁]\n    · intro k _\n      rw [h₀, h₁]\n      omega\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_1",
+      "internal_id": "A_01e8b8",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\nThe objective is to compute the difference between the sums of two arithmetic sequences: $u_k = 2k + 2$ and $v_k = 2k + 1$ over the range $k \\in \\{0, \\dots, 2002\\}$.\n\nRelevant hypotheses:\n- $h_0: \\forall n, u(n) = 2n + 2$\n- $h_1: \\forall n, v(n) = 2n + 1$\n\nTactic Reasoning:\n1. Use the linearity of summation: $\\sum u_k - \\sum v_k = \\sum (u_k - v_k)$.\n2. Substitute the definitions: $u_k - v_k = (2k + 2) - (2k + 1) = 1$.\n3. The sum of 1 from $k=0$ to $2002$ is exactly the cardinality of the range, which is 2003.\n4. Use `sum_sub_distrib` or `sum_sub_distrib.symm` and simplify the expression inside the sum.\n</think>\n```lean4\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  rw [← Finset.sum_sub_distrib]\n  simp [h₀, h₁]\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  rw [← Finset.sum_sub_distrib]\n  simp [h₀, h₁]",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    simp [h₀, h₁]\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    simp [h₀, h₁]\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_2",
+      "internal_id": "A_2602be",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\nThe goal is to prove that the difference between the sum of the first 2003 terms of $u_n = 2n + 2$ and $v_n = 2n + 1$ is 2003.\n\n1.  **Filter Noise**:\n    -   `h₀ : ∀ n, u n = 2 * n + 2`\n    -   `h₁ : ∀ n, v n = 2 * n + 1`\n    -   Goal: `(∑ k ∈ range 2003, u k) - (∑ k ∈ range 2003, v k) = 2003`\n\n2.  **Tactic Reasoning**:\n    -   Combine the two sums into one using `Finset.sum_sub_distrib`. Note that since the terms $u_k$ and $v_k$ are natural numbers, we should check if $u_k \\ge v_k$ to use subtraction comfortably, or cast to integers.\n    -   Given $u_k = 2k + 2$ and $v_k = 2k + 1$, we have $u_k - v_k = 1$.\n    -   The sum becomes $\\sum_{k=0}^{2002} 1$.\n    -   The sum of 1 over a range of size $N$ is $N$. Here $N = 2003$.\n    -   In Lean, natural number subtraction $a - b$ is 0 if $b > a$. However, $u_k > v_k$ is always true here ($2k+2 > 2k+1$), so `(∑ u) - (∑ v) = ∑ (u - v)` works if we are careful, but it's simpler to use `sum_sub_distrib` in `ℤ` or just prove the equality using `Nat.sum_sub_distrib`.\n    -   Actually, `Finset.sum_sub_distrib` for `Nat` requires $\\forall k, v k \\le u k$. This is true.\n    -   $\\sum_{k \\in range 2003} (u k - v k) = \\sum_{k \\in range 2003} 1 = 2003$.\n\n3.  **Execution**:\n    -   Rewrite $u k$ and $v k$ using `h₀` and `h₁`.\n    -   Use `Nat.sum_sub_distrib` which requires `∀ k ∈ range 2003, v k ≤ u k`.\n    -   Simplify $2k + 2 - (2k + 1)$ to 1.\n    -   Use `Finset.sum_const` and `Finset.card_range`.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  rw [← Finset.sum_sub_distrib]\n  · simp [h₀, h₁, Nat.add_sub_add_left]\n  · intro k _\n    rw [h₀, h₁]\n    exact Nat.le_add_right (2 * k + 1) 1\n\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  rw [← Finset.sum_sub_distrib]\n  · simp [h₀, h₁, Nat.add_sub_add_left]\n  · intro k _\n    rw [h₀, h₁]\n    exact Nat.le_add_right (2 * k + 1) 1",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    · simp [h₀, h₁, Nat.add_sub_add_left]\n    · intro k _\n      rw [h₀, h₁]\n      exact Nat.le_add_right (2 * k + 1) 1\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    · simp [h₀, h₁, Nat.add_sub_add_left]\n    · intro k _\n      rw [h₀, h₁]\n      exact Nat.le_add_right (2 * k + 1) 1\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_3",
+      "internal_id": "A_aa003e",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\nThe objective is to prove that the difference between the sums of two sequences $u_n = 2n + 2$ and $v_n = 2n + 1$ over the range 0 to 2002 (a total of 2003 terms) equals 2003.\n\nHypotheses:\n- $u_n = 2n + 2$\n- $v_n = 2n + 1$\nGoal: $\\sum_{k=0}^{2002} u_k - \\sum_{k=0}^{2002} v_k = 2003$\n\nTactic Reasoning:\n1. Use the linearity of sums: $\\sum u_k - \\sum v_k = \\sum (u_k - v_k)$.\n2. Substitute the definitions: $u_k - v_k = (2k + 2) - (2k + 1) = 1$.\n3. The sum of 1 from $k=0$ to $2002$ is exactly the cardinality of the range, which is 2003.\n4. Final steps involve `rw` for definitions and `sum_sub_distrib`, then `sum_const`.\n</think>\n```lean4\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  rw [← Finset.sum_sub_distrib]\n  simp [h₀, h₁]\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  rw [← Finset.sum_sub_distrib]\n  simp [h₀, h₁]",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    simp [h₀, h₁]\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    simp [h₀, h₁]\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_4",
+      "internal_id": "A_de403f",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\nThe error in previous attempts occurred because `Finset.sum_sub_distrib` requires the element-wise inequality `∀ k, v k ≤ u k` and it applies to the subtraction operator `-`. However, in Lean, natural number subtraction behaves differently, and `sum_sub_distrib` for `ℕ` is often more picky about types or lemmas. \n\nI will use `Int` to avoid natural number subtraction issues, or more simply, prove that `∑ u k = ∑ (v k + 1)` and then use the property that `∑ (v k + 1) = (∑ v k) + (∑ 1)`. \n\nNecessary hypotheses: `h₀`, `h₁`.\nTactic sequence:\n1. Simplify `u k` in terms of `v k` using `h₀` and `h₁`. Specifically, `u k = v k + 1`.\n2. Rewrite the sum of `u k` as the sum of `(v k + 1)`.\n3. Use `Finset.sum_add_distrib`.\n4. Simplify `∑ 1` over `range 2003` to `2003`.\n5. Use `Nat.add_sub_cancel_left`.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  have h_uv : ∀ k, u k = v k + 1 := by\n    intro k\n    rw [h₀, h₁, Nat.add_assoc]\n    rfl\n  simp_rw [h_uv, Finset.sum_add_distrib]\n  simp only [Finset.sum_const, Finset.card_range, smul_eq_mul, mul_one]\n  apply Nat.add_sub_cancel_left\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  sorry\n```\n\nPREVIOUS TACTIC ATTEMPTS FAILED.\nUse the Lean feedback below to produce a NEW tactic proof for the same goal. Do not repeat the failed tactic. Preserve the exact theorem signature.\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    simp [h₀, h₁]\n```\n\nLEAN ERROR FEEDBACK:\nL11:C8: Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ∑ x ∈ ?m.53, ?f x - ∑ x ∈ ?m.53, ?g x\nin the target expression\n  ∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003\n\nu v : ℕ → ℕ\nh₀ : ∀ (n : ℕ), u n = 2 * n + 2\nh₁ : ∀ (n : ℕ), v n = 2 * n + 1\n⊢ ∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    · simp [h₀, h₁, Nat.add_sub_add_left]\n    · intro k _\n      rw [h₀, h₁]\n      exact Nat.le_add_right (2 * k + 1) 1\n```\n\nLEAN ERROR FEEDBACK:\nL11:C8: Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ∑ x ∈ ?m.53, ?f x - ∑ x ∈ ?m.53, ?g x\nin the target expression\n  ∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003\n\nu v : ℕ → ℕ\nh₀ : ∀ (n : ℕ), u n = 2 * n + 2\nh₁ : ∀ (n : ℕ), v n = 2 * n + 1\n⊢ ∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    simp [h₀, h₁]\n```\n\nLEAN ERROR FEEDBACK:\nL11:C8: Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ∑ x ∈ ?m.53, ?f x - ∑ x ∈ ?m.53, ?g x\nin the target expression\n  ∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003\n\nu v : ℕ → ℕ\nh₀ : ∀ (n : ℕ), u n = 2 * n + 2\nh₁ : ∀ (n : ℕ), v n = 2 * n + 1\n⊢ ∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h_uv : ∀ k, u k = v k + 1 := by\n    intro k\n    rw [h₀, h₁, Nat.add_assoc]\n    rfl\n  simp_rw [h_uv, Finset.sum_add_distrib]\n  simp only [Finset.sum_const, Finset.card_range, smul_eq_mul, mul_one]\n  apply Nat.add_sub_cancel_left",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    have h_uv : ∀ k, u k = v k + 1 := by\n      intro k\n      rw [h₀, h₁, Nat.add_assoc]\n      rfl\n    simp_rw [h_uv, Finset.sum_add_distrib]\n    simp only [Finset.sum_const, Finset.card_range, smul_eq_mul, mul_one]\n    apply Nat.add_sub_cancel_left\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    have h_uv : ∀ k, u k = v k + 1 := by\n      intro k\n      rw [h₀, h₁, Nat.add_assoc]\n      rfl\n    simp_rw [h_uv, Finset.sum_add_distrib]\n    simp only [Finset.sum_const, Finset.card_range, smul_eq_mul, mul_one]\n    apply Nat.add_sub_cancel_left\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    have h_uv : ∀ k, u k = v k + 1 := by\n      intro k\n      rw [h₀, h₁, Nat.add_assoc]\n\n    simp_rw [h_uv, Finset.sum_add_distrib]\n    simp only [Finset.sum_const, Finset.card_range, smul_eq_mul, mul_one]\n    apply Nat.add_sub_cancel_left\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.8571428571428571,
+        "r_dep": 1.0,
+        "Q_value": 1.8571428571428572
+      }
+    },
+    {
+      "id": "action_5",
+      "internal_id": "A_b33bda",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\nThe error in the previous attempts was due to `Finset.sum_sub_distrib` not matching directly on natural numbers because subtraction on `ℕ` is not the standard group subtraction (it is saturating). Since `u k ≥ v k` for all `k`, we should use `Nat.sum_sub_distrib`. Alternatively, we can use `cast` to move the problem to `ℤ` or `ℝ`, but the most direct way in `ℕ` is to use the specific theorem for sums of natural numbers.\n\nActually, a simpler approach is to prove the identity `∑ u k = ∑ (v k + 1)` and then use `Finset.sum_add_distrib`.\n\nSteps:\n1. Identify that `u k = v k + 1` from `h₀` and `h₁`.\n2. Rewrite the first sum using `u k = v k + 1`.\n3. Use `Finset.sum_add_distrib` to separate the sums.\n4. The difference then becomes exactly `∑ 1` over `range 2003`, which is `2003`.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  have h_diff : ∀ k, u k = v k + 1 := by\n    intro k\n    rw [h₀, h₁, Nat.add_assoc]\n    rfl\n  simp_rw [h_diff]\n  rw [Finset.sum_add_distrib]\n  simp [Finset.card_range]\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  sorry\n```\n\nPREVIOUS TACTIC ATTEMPTS FAILED.\nUse the Lean feedback below to produce a NEW tactic proof for the same goal. Do not repeat the failed tactic. Preserve the exact theorem signature.\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    simp [h₀, h₁]\n```\n\nLEAN ERROR FEEDBACK:\nL11:C8: Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ∑ x ∈ ?m.53, ?f x - ∑ x ∈ ?m.53, ?g x\nin the target expression\n  ∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003\n\nu v : ℕ → ℕ\nh₀ : ∀ (n : ℕ), u n = 2 * n + 2\nh₁ : ∀ (n : ℕ), v n = 2 * n + 1\n⊢ ∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    · simp [h₀, h₁, Nat.add_sub_add_left]\n    · intro k _\n      rw [h₀, h₁]\n      exact Nat.le_add_right (2 * k + 1) 1\n```\n\nLEAN ERROR FEEDBACK:\nL11:C8: Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ∑ x ∈ ?m.53, ?f x - ∑ x ∈ ?m.53, ?g x\nin the target expression\n  ∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003\n\nu v : ℕ → ℕ\nh₀ : ∀ (n : ℕ), u n = 2 * n + 2\nh₁ : ∀ (n : ℕ), v n = 2 * n + 1\n⊢ ∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    simp [h₀, h₁]\n```\n\nLEAN ERROR FEEDBACK:\nL11:C8: Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ∑ x ∈ ?m.53, ?f x - ∑ x ∈ ?m.53, ?g x\nin the target expression\n  ∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003\n\nu v : ℕ → ℕ\nh₀ : ∀ (n : ℕ), u n = 2 * n + 2\nh₁ : ∀ (n : ℕ), v n = 2 * n + 1\n⊢ ∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h_diff : ∀ k, u k = v k + 1 := by\n    intro k\n    rw [h₀, h₁, Nat.add_assoc]\n    rfl\n  simp_rw [h_diff]\n  rw [Finset.sum_add_distrib]\n  simp [Finset.card_range]",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    have h_diff : ∀ k, u k = v k + 1 := by\n      intro k\n      rw [h₀, h₁, Nat.add_assoc]\n      rfl\n    simp_rw [h_diff]\n    rw [Finset.sum_add_distrib]\n    simp [Finset.card_range]\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    have h_diff : ∀ k, u k = v k + 1 := by\n      intro k\n      rw [h₀, h₁, Nat.add_assoc]\n      rfl\n    simp_rw [h_diff]\n    rw [Finset.sum_add_distrib]\n    simp [Finset.card_range]\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    have h_diff : ∀ k, u k = v k + 1 := by\n      intro k\n      rw [h₀, h₁, Nat.add_assoc]\n\n    simp_rw [h_diff]\n    rw [Finset.sum_add_distrib]\n    simp [Finset.card_range]\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.8571428571428571,
+        "r_dep": 1.0,
+        "Q_value": 1.8571428571428572
+      }
+    },
+    {
+      "id": "action_6",
+      "internal_id": "A_299135",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "<think>\nThe goal is to prove $\\sum_{k=0}^{2002} u(k) - \\sum_{k=0}^{2002} v(k) = 2003$ given $u(n) = 2n + 2$ and $v(n) = 2n + 1$.\nThe previous attempts failed because `Finset.sum_sub_distrib` requires the elements to be in a group (like `ℤ` or `ℝ`), whereas here they are in `ℕ`. In `ℕ`, $a - b$ is the saturating subtraction.\nHowever, since $u(k) = v(k) + 1$, we have $u(k) \\ge v(k)$, so $\\sum u(k) \\ge \\sum v(k)$.\nThe simplest approach in `ℕ` is to use `Nat.sum_sub_distrib` which requires $\\forall k, v(k) \\le u(k)$.\nI will show $u(k) = v(k) + 1$, then use `Finset.sum_add_distrib` on the first sum and finally `Nat.add_sub_cancel_left`.\nThe previous failed code actually said \"No goals to be solved\", which often means the code worked but the environment handling was weird or the output format was wrong. I will provide a clean version.\n\nPlan:\n1. Rewrite $u(k)$ as $v(k) + 1$.\n2. Use `Finset.sum_add_distrib` to split $\\sum (v(k) + 1)$.\n3. Use `Nat.add_sub_cancel_left`.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  have h_uv : ∀ k, u k = v k + 1 := by\n    intro k\n    rw [h₀, h₁, Nat.add_assoc]\n  simp_rw [h_uv, Finset.sum_add_distrib]\n  simp only [Finset.sum_const, Finset.card_range, smul_eq_mul, mul_one, Nat.add_sub_cancel_left]\n\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  sorry\n```\n\nPREVIOUS TACTIC ATTEMPTS FAILED.\nUse the Lean feedback below to produce a NEW tactic proof for the same goal. Do not repeat the failed tactic. Preserve the exact theorem signature.\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    simp [h₀, h₁]\n```\n\nLEAN ERROR FEEDBACK:\nL11:C8: Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ∑ x ∈ ?m.53, ?f x - ∑ x ∈ ?m.53, ?g x\nin the target expression\n  ∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003\n\nu v : ℕ → ℕ\nh₀ : ∀ (n : ℕ), u n = 2 * n + 2\nh₁ : ∀ (n : ℕ), v n = 2 * n + 1\n⊢ ∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    have h_uv : ∀ k, u k = v k + 1 := by\n      intro k\n      rw [h₀, h₁, Nat.add_assoc]\n      rfl\n    simp_rw [h_uv, Finset.sum_add_distrib]\n    simp only [Finset.sum_const, Finset.card_range, smul_eq_mul, mul_one]\n    apply Nat.add_sub_cancel_left\n```\n\nLEAN ERROR FEEDBACK:\nL14:C6: No goals to be solved\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    have h_diff : ∀ k, u k = v k + 1 := by\n      intro k\n      rw [h₀, h₁, Nat.add_assoc]\n      rfl\n    simp_rw [h_diff]\n    rw [Finset.sum_add_distrib]\n    simp [Finset.card_range]\n```\n\nLEAN ERROR FEEDBACK:\nL14:C6: No goals to be solved\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h_uv : ∀ k, u k = v k + 1 := by\n    intro k\n    rw [h₀, h₁, Nat.add_assoc]\n  simp_rw [h_uv, Finset.sum_add_distrib]\n  simp only [Finset.sum_const, Finset.card_range, smul_eq_mul, mul_one, Nat.add_sub_cancel_left]",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    have h_uv : ∀ k, u k = v k + 1 := by\n      intro k\n      rw [h₀, h₁, Nat.add_assoc]\n    simp_rw [h_uv, Finset.sum_add_distrib]\n    simp only [Finset.sum_const, Finset.card_range, smul_eq_mul, mul_one, Nat.add_sub_cancel_left]\n  \n",
+      "stitched_code": "",
+      "patched_code": "",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 1.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_7",
+      "internal_id": "A_7f0118",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\nThe goal is to prove that the difference between the sums of $u(k)$ and $v(k)$ for $k \\in \\{0, \\dots, 2002\\}$ is 2003, given $u(n) = 2n + 2$ and $v(n) = 2n + 1$.\nThe key observation is $u(k) - v(k) = (2k+2) - (2k+1) = 1$.\nIn natural numbers, subtraction `a - b` is tricky because it's truncated at zero. However, since $u(k) \\ge v(k)$ for all $k$, the sum of $u(k)$ is clearly greater than or equal to the sum of $v(k)$.\nThe previous attempts failed likely because they didn't handle the natural number subtraction property `(Σ u) - (Σ v) = Σ (u - v)` correctly or they finished the proof but were flagged by the environment if they didn't match the signature exactly.\nI will use `Nat.sum_sub_distrib` which requires `∀ k, v k ≤ u k`.\n$u k = 2k + 2$ and $v k = 2k + 1$, so $v k \\le u k$ is true.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  rw [← Finset.sum_sub_distrib]\n  · simp [h₀, h₁, Nat.add_sub_add_left]\n  · intro k _\n    rw [h₀, h₁]\n    exact Nat.le_add_right (2 * k + 1) 1\n\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  sorry\n```\n\nPREVIOUS TACTIC ATTEMPTS FAILED.\nUse the Lean feedback below to produce a NEW tactic proof for the same goal. Do not repeat the failed tactic. Preserve the exact theorem signature.\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    simp [h₀, h₁]\n```\n\nLEAN ERROR FEEDBACK:\nL11:C8: Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ∑ x ∈ ?m.53, ?f x - ∑ x ∈ ?m.53, ?g x\nin the target expression\n  ∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003\n\nu v : ℕ → ℕ\nh₀ : ∀ (n : ℕ), u n = 2 * n + 2\nh₁ : ∀ (n : ℕ), v n = 2 * n + 1\n⊢ ∑ k ∈ range 2003, u k - ∑ k ∈ range 2003, v k = 2003\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    have h_uv : ∀ k, u k = v k + 1 := by\n      intro k\n      rw [h₀, h₁, Nat.add_assoc]\n      rfl\n    simp_rw [h_uv, Finset.sum_add_distrib]\n    simp only [Finset.sum_const, Finset.card_range, smul_eq_mul, mul_one]\n    apply Nat.add_sub_cancel_left\n```\n\nLEAN ERROR FEEDBACK:\nL14:C6: No goals to be solved\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    have h_diff : ∀ k, u k = v k + 1 := by\n      intro k\n      rw [h₀, h₁, Nat.add_assoc]\n      rfl\n    simp_rw [h_diff]\n    rw [Finset.sum_add_distrib]\n    simp [Finset.card_range]\n```\n\nLEAN ERROR FEEDBACK:\nL14:C6: No goals to be solved\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  rw [← Finset.sum_sub_distrib]\n  · simp [h₀, h₁, Nat.add_sub_add_left]\n  · intro k _\n    rw [h₀, h₁]\n    exact Nat.le_add_right (2 * k + 1) 1",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    · simp [h₀, h₁, Nat.add_sub_add_left]\n    · intro k _\n      rw [h₀, h₁]\n      exact Nat.le_add_right (2 * k + 1) 1\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by\n  \n    rw [← Finset.sum_sub_distrib]\n    · simp [h₀, h₁, Nat.add_sub_add_left]\n    · intro k _\n      rw [h₀, h₁]\n      exact Nat.le_add_right (2 * k + 1) 1\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12a_2003_p1 (u v : ℕ → ℕ) (h₀ : ∀ n, u n = 2 * n + 2) (h₁ : ∀ n, v n = 2 * n + 1) :\n  ((∑ k ∈ Finset.range 2003, u k) - ∑ k ∈ Finset.range 2003, v k) = 2003 := by sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "state_0",
+      "target": "action_0",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_1",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_2",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_3",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_4",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_5",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_6",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_7",
+      "relation": "expanded_to"
+    }
+  ]
+}
