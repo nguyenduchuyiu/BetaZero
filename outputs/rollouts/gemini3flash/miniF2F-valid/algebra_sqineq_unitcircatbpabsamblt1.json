@@ -1,0 +1,204 @@
+{
+  "theorem_goal": "a * b + |a - b| ≤ 1",
+  "root_id": "state_0",
+  "total_nodes": 5,
+  "search_metadata": {
+    "budget": {
+      "max_nodes": 512,
+      "used_total": 4,
+      "used_tactic": 4,
+      "used_skeleton_raw": 0,
+      "lean_verify_calls": 4,
+      "patch_verify_calls": 3
+    },
+    "skeleton_pipeline": {
+      "requested": 0,
+      "raw_verify_success": 0,
+      "raw_verify_failed": 0,
+      "patch_attempted": 0,
+      "patch_scored": 0,
+      "patch_failed": 0,
+      "feedback_generated": 0,
+      "inserted_raw": 0,
+      "selected_by_beam": 0,
+      "rejected_by_beam": 0,
+      "valid_zero_children": 0,
+      "skeleton_duplicate_actions": 0,
+      "children_new": 0,
+      "children_duplicate": 0
+    },
+    "final_status": {
+      "states": {
+        "OPEN": 0,
+        "SOLVED": 1,
+        "FAILED": 0,
+        "RESERVED": 0
+      },
+      "actions": {
+        "tactic_SOLVED": 1,
+        "tactic_FAILED": 3,
+        "skeleton_OPEN": 0,
+        "skeleton_SOLVED": 0,
+        "skeleton_FAILED": 0,
+        "skeleton_RESERVED": 0
+      }
+    },
+    "depth_distribution": {
+      "states_seen_by_depth": {
+        "0": 1
+      },
+      "states_solved_by_depth": {
+        "0": 1
+      },
+      "queue_at_stop_by_depth": {},
+      "max_depth_reached": 0
+    },
+    "beam": {
+      "states_pruned_global": 0,
+      "states_pruned_per_depth": 0,
+      "skeletons_selected": 0,
+      "skeletons_rejected_by_beam": 0
+    },
+    "skeleton_commitment": {
+      "committed": 0,
+      "reserved": 0,
+      "fallback_activated": 0,
+      "committed_solved": 0,
+      "committed_failed": 0,
+      "committed_stale": 0,
+      "blocked_new_skeleton_due_to_active_commit": 0
+    }
+  },
+  "nodes": [
+    {
+      "id": "state_0",
+      "type": "OR",
+      "status": "SOLVED",
+      "depth": 0,
+      "target_label": "root_goal",
+      "content": {
+        "context": "a b : ℝ\nh₀ : a ^ 2 + b ^ 2 = 1",
+        "goal": "a * b + |a - b| ≤ 1",
+        "proof_body": "\n  have h₁ : (abs (a - b) - 1)^2 ≥ 0 := sq_nonneg (abs (a - b) - 1)\n  have h₂ : (a - b)^2 = a^2 + b^2 - 2 * a * b := by ring\n  rw [h₀] at h₂\n  have h₃ : (abs (a - b))^2 = (a - b)^2 := sq_abs (a - b)\n  rw [h₂] at h₃\n  have h₄ : (abs (a - b) - 1)^2 = (abs (a - b))^2 - 2 * abs (a - b) + 1 := by ring\n  rw [h₃] at h₄\n  linarith",
+        "scaffold_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  sorry\n",
+        "target_index": 0,
+        "target_kind": "root",
+        "target_label": "root_goal",
+        "parent_action_id": ""
+      },
+      "metrics": {
+        "V_value": 2.0
+      }
+    },
+    {
+      "id": "action_0",
+      "internal_id": "A_096fab",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "<think>\n*   Goal: `a * b + |a - b| ≤ 1` given `a^2 + b^2 = 1`.\n    *   Let $x = a - b$. Then $x^2 = a^2 + b^2 - 2ab = 1 - 2ab$.\n    *   This implies $ab = (1 - x^2) / 2$.\n    *   The inequality becomes $(1 - x^2) / 2 + |x| \\le 1$.\n    *   Multiplying by 2: $1 - x^2 + 2|x| \\le 2$.\n    *   Rearranging: $0 \\le x^2 - 2|x| + 1$.\n    *   Note that $x^2 = |x|^2$. So the inequality is $0 \\le (|x| - 1)^2$.\n    *   This is always true for any real $x$.\n    *   Since $a^2 + b^2 = 1$, we have $|a| \\le 1$ and $|b| \\le 1$, but we just need $x$ to be real.\n\nTactics:\n1. Use `abs_le` or cases on the absolute value, but it's simpler to transform the inequality.\n2. Express everything in terms of $a-b$.\n3. Use `nlinarith` or manual rewriting with `pow_two_nonneg`.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  have h₁ : (abs (a - b) - 1)^2 ≥ 0 := sq_nonneg (abs (a - b) - 1)\n  have h₂ : (a - b)^2 = a^2 + b^2 - 2 * a * b := by ring\n  rw [h₀] at h₂\n  have h₃ : (abs (a - b))^2 = (a - b)^2 := sq_abs (a - b)\n  rw [h₂] at h₃\n  have h₄ : (abs (a - b) - 1)^2 = (abs (a - b))^2 - 2 * abs (a - b) + 1 := by ring\n  rw [h₃] at h₄\n  linarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h₁ : (abs (a - b) - 1)^2 ≥ 0 := sq_nonneg (abs (a - b) - 1)\n  have h₂ : (a - b)^2 = a^2 + b^2 - 2 * a * b := by ring\n  rw [h₀] at h₂\n  have h₃ : (abs (a - b))^2 = (a - b)^2 := sq_abs (a - b)\n  rw [h₂] at h₃\n  have h₄ : (abs (a - b) - 1)^2 = (abs (a - b))^2 - 2 * abs (a - b) + 1 := by ring\n  rw [h₃] at h₄\n  linarith",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  \n    have h₁ : (abs (a - b) - 1)^2 ≥ 0 := sq_nonneg (abs (a - b) - 1)\n    have h₂ : (a - b)^2 = a^2 + b^2 - 2 * a * b := by ring\n    rw [h₀] at h₂\n    have h₃ : (abs (a - b))^2 = (a - b)^2 := sq_abs (a - b)\n    rw [h₂] at h₃\n    have h₄ : (abs (a - b) - 1)^2 = (abs (a - b))^2 - 2 * abs (a - b) + 1 := by ring\n    rw [h₃] at h₄\n    linarith\n  \n",
+      "stitched_code": "",
+      "patched_code": "",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 1.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_1",
+      "internal_id": "A_d41b18",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\nThe objective is to prove $ab + |a - b| \\le 1$ given $a^2 + b^2 = 1$.\n1.  **Hypothesis Analysis**: $h_0: a^2 + b^2 = 1$.\n2.  **Symmetry**: The expression $ab + |a - b|$ is symmetric in $a$ and $b$ (since $|a-b| = |b-a|$). We can assume $a \\ge b$ without loss of generality to remove the absolute value.\n3.  **Substitution**: Since $a^2 + b^2 = 1$, we can use trigonometric substitution: $a = \\sin \\theta$, $b = \\cos \\theta$.\n    Then $ab + |a-b| = \\sin \\theta \\cos \\theta + |\\sin \\theta - \\cos \\theta|$.\n4.  **Algebraic Approach**:\n    Let $x = |a - b|$. Then $x^2 = (a-b)^2 = a^2 + b^2 - 2ab = 1 - 2ab$.\n    This implies $2ab = 1 - x^2$, so $ab = (1 - x^2)/2$.\n    The expression becomes $f(x) = \\frac{1-x^2}{2} + x$.\n    We need to find the range of $x = |a - b|$. Since $(a-b)^2 = a^2 + b^2 - 2ab = 1 - 2ab$, and $-1 \\le 2ab \\le 1$ (from $(a \\pm b)^2 \\ge 0$), we have $0 \\le x^2 \\le 2$, so $0 \\le x \\le \\sqrt{2}$.\n    Maximize $f(x) = -\\frac{1}{2}x^2 + x + \\frac{1}{2}$ for $x \\in [0, \\sqrt{2}]$.\n    The vertex of the parabola is at $x = -1 / (2 \\cdot (-1/2)) = 1$.\n    At $x = 1$, $f(1) = -1/2 + 1 + 1/2 = 1$.\n    Since the leading coefficient is negative, the maximum value is 1.\n5.  **Proof Strategy**:\n    - Let $x = |a - b|$.\n    - Note $x^2 = 1 - 2ab$.\n    - Then $2ab = 1 - x^2$.\n    - $ab + |a - b| = (1 - x^2)/2 + x$.\n    - $1 - (ab + |a - b|) = 1 - (1 - x^2)/2 - x = (2 - 1 + x^2 - 2x)/2 = (x^2 - 2x + 1)/2 = (x - 1)^2 / 2$.\n    - Since $(x-1)^2 \\ge 0$, then $1 - (ab + |a - b|) \\ge 0$, so $ab + |a - b| \\le 1$.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  let x := abs (a - b)\n  have hx : x^2 = 1 - 2 * a * b := by\n    rw [sq_abs, sub_sq, h₀, mul_comm a b]\n    ring\n  have h_expr : 1 - (a * b + x) = (x - 1)^2 / 2 := by\n    field_simp\n    rw [hx]\n    ring\n  have h_pos : 0 ≤ (x - 1)^2 / 2 := by\n    positivity\n  linarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  let x := abs (a - b)\n  have hx : x^2 = 1 - 2 * a * b := by\n    rw [sq_abs, sub_sq, h₀, mul_comm a b]\n    ring\n  have h_expr : 1 - (a * b + x) = (x - 1)^2 / 2 := by\n    field_simp\n    rw [hx]\n    ring\n  have h_pos : 0 ≤ (x - 1)^2 / 2 := by\n    positivity\n  linarith",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  \n    let x := abs (a - b)\n    have hx : x^2 = 1 - 2 * a * b := by\n      rw [sq_abs, sub_sq, h₀, mul_comm a b]\n      ring\n    have h_expr : 1 - (a * b + x) = (x - 1)^2 / 2 := by\n      field_simp\n      rw [hx]\n      ring\n    have h_pos : 0 ≤ (x - 1)^2 / 2 := by\n      positivity\n    linarith\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  \n    let x := abs (a - b)\n    have hx : x^2 = 1 - 2 * a * b := by\n      rw [sq_abs, sub_sq, h₀, mul_comm a b]\n      ring\n    have h_expr : 1 - (a * b + x) = (x - 1)^2 / 2 := by\n      field_simp\n      rw [hx]\n      ring\n    have h_pos : 0 ≤ (x - 1)^2 / 2 := by\n      positivity\n    linarith\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  \n    let x := abs (a - b)\n    have hx : x^2 = 1 - 2 * a * b := by\n      sorry\n    have h_expr : 1 - (a * b + x) = (x - 1)^2 / 2 := by\n      field_simp\n      sorry\n    have h_pos : 0 ≤ (x - 1)^2 / 2 := by\n      positivity\n    linarith\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.6363636363636364,
+        "r_dep": 0.6666666666666666,
+        "Q_value": 1.303030303030303
+      }
+    },
+    {
+      "id": "action_2",
+      "internal_id": "A_9c5856",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\nThe objective is to prove $ab + |a - b| \\le 1$ given $a^2 + b^2 = 1$.\n1. Necessary Hypotheses: `h₀ : a^2 + b^2 = 1`.\n2. Symmetry/Case Analysis: Since the inequality involves $|a - b|$, we can split into cases $a \\ge b$ and $b \\ge a$. By symmetry, let's consider $a \\ge b$.\n3. Transformation:\n   $ab + a - b \\le 1$\n   $a - b \\le 1 - ab$\n   Since $a^2 + b^2 = 1$, we know $1 - ab = \\frac{1}{2}(a^2 + b^2 + 1 - 2ab + 1 - 1) ...$ Actually, consider squaring if both sides are non-negative.\n   Is $1 - ab \\ge 0$? Since $a^2 + b^2 = 1$, $|a|, |b| \\le 1$, so $|ab| \\le 1/2$. Thus $1 - ab \\ge 1/2 > 0$.\n   $(a - b)^2 \\le (1 - ab)^2$\n   $a^2 - 2ab + b^2 \\le 1 - 2ab + a^2b^2$\n   $1 - 2ab \\le 1 - 2ab + a^2b^2$\n   $0 \\le a^2b^2$, which is always true.\n4. Tactic Plan:\n   - Use `abs_le` or case analysis on `a - b`.\n   - In both cases, rearrange to $a-b \\le 1-ab$ and $b-a \\le 1-ab$.\n   - Note that $1-ab \\ge 0$ because $2ab \\le a^2+b^2=1$.\n   - Square both sides or use the identity $(1-ab)^2 - (a-b)^2 = 1 - 2ab + a^2b^2 - (a^2 - 2ab + b^2) = 1 - (a^2+b^2) + a^2b^2 = a^2b^2 \\ge 0$.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  have h_ab : a * b ≤ 1 / 2 := by\n    have h := two_mul_le_add_sq a b\n    rw [h₀] at h\n    linarith\n  have h_one_sub_ab : 0 ≤ 1 - a * b := by linarith\n  rw [le_sub_iff_add_le'.symm]\n  apply abs_le.mpr\n  constructor\n  · -- a * b - 1 ≤ a - b\n    have h_diff : (1 - a * b)^2 - (b - a)^2 = a^2 * b^2 := by\n      calc (1 - a * b)^2 - (b - a)^2\n        _ = 1 - 2 * a * b + a^2 * b^2 - (b^2 - 2 * a * b + a^2) := by ring\n        _ = 1 - (a^2 + b^2) + a^2 * b^2 := by ring\n        _ = 1 - 1 + a^2 * b^2 := by rw [h₀]\n        _ = a^2 * b^2 := by ring\n    have h_sq : (b - a)^2 ≤ (1 - a * b)^2 := by\n      rw [← sub_nonneg, h_diff]\n      exact sq_nonneg (a * b)\n    exact neg_le_of_abs_le (abs_le_abs_of_sq_le h_sq h_one_sub_ab)\n  · -- a - b ≤ 1 - a * b\n    have h_diff : (1 - a * b)^2 - (a - b)^2 = a^2 * b^2 := by\n      calc (1 - a * b)^2 - (a - b)^2\n        _ = 1 - 2 * a * b + a^2 * b^2 - (a^2 - 2 * a * b + b^2) := by ring\n        _ = 1 - (a^2 + b^2) + a^2 * b^2 := by ring\n        _ = 1 - 1 + a^2 * b^2 := by rw [h₀]\n        _ = a^2 * b^2 := by ring\n    have h_sq : (a - b)^2 ≤ (1 - a * b)^2 := by\n      rw [← sub_nonneg, h_diff]\n      exact sq_nonneg (a * b)\n    exact abs_le_of_sq_le h_sq h_one_sub_ab\n\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h_ab : a * b ≤ 1 / 2 := by\n    have h := two_mul_le_add_sq a b\n    rw [h₀] at h\n    linarith\n  have h_one_sub_ab : 0 ≤ 1 - a * b := by linarith\n  rw [le_sub_iff_add_le'.symm]\n  apply abs_le.mpr\n  constructor\n  · -- a * b - 1 ≤ a - b\n    have h_diff : (1 - a * b)^2 - (b - a)^2 = a^2 * b^2 := by\n      calc (1 - a * b)^2 - (b - a)^2\n        _ = 1 - 2 * a * b + a^2 * b^2 - (b^2 - 2 * a * b + a^2) := by ring\n        _ = 1 - (a^2 + b^2) + a^2 * b^2 := by ring\n        _ = 1 - 1 + a^2 * b^2 := by rw [h₀]\n        _ = a^2 * b^2 := by ring\n    have h_sq : (b - a)^2 ≤ (1 - a * b)^2 := by\n      rw [← sub_nonneg, h_diff]\n      exact sq_nonneg (a * b)\n    exact neg_le_of_abs_le (abs_le_abs_of_sq_le h_sq h_one_sub_ab)\n  · -- a - b ≤ 1 - a * b\n    have h_diff : (1 - a * b)^2 - (a - b)^2 = a^2 * b^2 := by\n      calc (1 - a * b)^2 - (a - b)^2\n        _ = 1 - 2 * a * b + a^2 * b^2 - (a^2 - 2 * a * b + b^2) := by ring\n        _ = 1 - (a^2 + b^2) + a^2 * b^2 := by ring\n        _ = 1 - 1 + a^2 * b^2 := by rw [h₀]\n        _ = a^2 * b^2 := by ring\n    have h_sq : (a - b)^2 ≤ (1 - a * b)^2 := by\n      rw [← sub_nonneg, h_diff]\n      exact sq_nonneg (a * b)\n    exact abs_le_of_sq_le h_sq h_one_sub_ab",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  \n    have h_ab : a * b ≤ 1 / 2 := by\n      have h := two_mul_le_add_sq a b\n      rw [h₀] at h\n      linarith\n    have h_one_sub_ab : 0 ≤ 1 - a * b := by linarith\n    rw [le_sub_iff_add_le'.symm]\n    apply abs_le.mpr\n    constructor\n    · -- a * b - 1 ≤ a - b\n      have h_diff : (1 - a * b)^2 - (b - a)^2 = a^2 * b^2 := by\n        calc (1 - a * b)^2 - (b - a)^2\n          _ = 1 - 2 * a * b + a^2 * b^2 - (b^2 - 2 * a * b + a^2) := by ring\n          _ = 1 - (a^2 + b^2) + a^2 * b^2 := by ring\n          _ = 1 - 1 + a^2 * b^2 := by rw [h₀]\n          _ = a^2 * b^2 := by ring\n      have h_sq : (b - a)^2 ≤ (1 - a * b)^2 := by\n        rw [← sub_nonneg, h_diff]\n        exact sq_nonneg (a * b)\n      exact neg_le_of_abs_le (abs_le_abs_of_sq_le h_sq h_one_sub_ab)\n    · -- a - b ≤ 1 - a * b\n      have h_diff : (1 - a * b)^2 - (a - b)^2 = a^2 * b^2 := by\n        calc (1 - a * b)^2 - (a - b)^2\n          _ = 1 - 2 * a * b + a^2 * b^2 - (a^2 - 2 * a * b + b^2) := by ring\n          _ = 1 - (a^2 + b^2) + a^2 * b^2 := by ring\n          _ = 1 - 1 + a^2 * b^2 := by rw [h₀]\n          _ = a^2 * b^2 := by ring\n      have h_sq : (a - b)^2 ≤ (1 - a * b)^2 := by\n        rw [← sub_nonneg, h_diff]\n        exact sq_nonneg (a * b)\n      exact abs_le_of_sq_le h_sq h_one_sub_ab\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  \n    have h_ab : a * b ≤ 1 / 2 := by\n      have h := two_mul_le_add_sq a b\n      rw [h₀] at h\n      linarith\n    have h_one_sub_ab : 0 ≤ 1 - a * b := by linarith\n    rw [le_sub_iff_add_le'.symm]\n    apply abs_le.mpr\n    constructor\n    · -- a * b - 1 ≤ a - b\n      have h_diff : (1 - a * b)^2 - (b - a)^2 = a^2 * b^2 := by\n        calc (1 - a * b)^2 - (b - a)^2\n          _ = 1 - 2 * a * b + a^2 * b^2 - (b^2 - 2 * a * b + a^2) := by ring\n          _ = 1 - (a^2 + b^2) + a^2 * b^2 := by ring\n          _ = 1 - 1 + a^2 * b^2 := by rw [h₀]\n          _ = a^2 * b^2 := by ring\n      have h_sq : (b - a)^2 ≤ (1 - a * b)^2 := by\n        rw [← sub_nonneg, h_diff]\n        exact sq_nonneg (a * b)\n      exact neg_le_of_abs_le (abs_le_abs_of_sq_le h_sq h_one_sub_ab)\n    · -- a - b ≤ 1 - a * b\n      have h_diff : (1 - a * b)^2 - (a - b)^2 = a^2 * b^2 := by\n        calc (1 - a * b)^2 - (a - b)^2\n          _ = 1 - 2 * a * b + a^2 * b^2 - (a^2 - 2 * a * b + b^2) := by ring\n          _ = 1 - (a^2 + b^2) + a^2 * b^2 := by ring\n          _ = 1 - 1 + a^2 * b^2 := by rw [h₀]\n          _ = a^2 * b^2 := by ring\n      have h_sq : (a - b)^2 ≤ (1 - a * b)^2 := by\n        rw [← sub_nonneg, h_diff]\n        exact sq_nonneg (a * b)\n      exact abs_le_of_sq_le h_sq h_one_sub_ab\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  \n    have h_ab : a * b ≤ 1 / 2 := by\n      have h := two_mul_le_add_sq a b\n      rw [h₀] at h\n      linarith\n    have h_one_sub_ab : 0 ≤ 1 - a * b := by linarith\n    rw [le_sub_iff_add_le'.symm]\n    apply abs_le.mpr\n    constructor\n    · -- a * b - 1 ≤ a - b\n      have h_diff : (1 - a * b)^2 - (b - a)^2 = a^2 * b^2 := by\n        calc (1 - a * b)^2 - (b - a)^2\n          _ = 1 - 2 * a * b + a^2 * b^2 - (b^2 - 2 * a * b + a^2) := by ring\n          _ = 1 - (a^2 + b^2) + a^2 * b^2 := by ring\n          _ = 1 - 1 + a^2 * b^2 := by rw [h₀]\n          _ = a^2 * b^2 := by ring\n      have h_sq : (b - a)^2 ≤ (1 - a * b)^2 := by\n        rw [← sub_nonneg, h_diff]\n        sorry\n      sorry\n    · -- a - b ≤ 1 - a * b\n      have h_diff : (1 - a * b)^2 - (a - b)^2 = a^2 * b^2 := by\n        calc (1 - a * b)^2 - (a - b)^2\n          _ = 1 - 2 * a * b + a^2 * b^2 - (a^2 - 2 * a * b + b^2) := by ring\n          _ = 1 - (a^2 + b^2) + a^2 * b^2 := by ring\n          _ = 1 - 1 + a^2 * b^2 := by rw [h₀]\n          _ = a^2 * b^2 := by ring\n      have h_sq : (a - b)^2 ≤ (1 - a * b)^2 := by\n        rw [← sub_nonneg, h_diff]\n        sorry\n      sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.8666666666666667,
+        "r_dep": 0.0,
+        "Q_value": 0.8666666666666667
+      }
+    },
+    {
+      "id": "action_3",
+      "internal_id": "A_ab1601",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\nThe objective is to prove $ab + |a - b| \\le 1$ given $a^2 + b^2 = 1$.\n1. Necessary Hypotheses: `h₀ : a^2 + b^2 = 1`.\n2. Symmetry: The expression $ab + |a - b|$ is symmetric in $a$ and $b$ (note $|a-b| = |b-a|$). Without loss of generality, assume $a \\ge b$.\n3. Case Analysis:\n   If $a \\ge b$, the goal is $ab + a - b \\le 1$.\n   Rearranging: $ab + a - b - 1 \\le 0 \\iff a(b+1) - (b+1) \\le 0 \\iff (a-1)(b+1) \\le 0$.\n4. Check Constraints:\n   Since $a^2 + b^2 = 1$, we know $|a| \\le 1$ and $|b| \\le 1$.\n   Thus $a \\le 1 \\implies a - 1 \\le 0$.\n   Also $b \\ge -1 \\implies b + 1 \\ge 0$.\n   The product of a non-positive and a non-negative number is non-positive.\n5. Absolute Value: $ab + |a - b| = ab + \\max(a-b, b-a) = \\max(ab+a-b, ab+b-a)$.\n   We need to show both $ab+a-b \\le 1$ and $ab+b-a \\le 1$.\n   $ab+a-b-1 = (a-1)(b+1) \\le 0$ as $a \\le 1$ and $b \\ge -1$.\n   $ab+b-a-1 = (b-1)(a+1) \\le 0$ as $b \\le 1$ and $a \\ge -1$.\n6. Use `abs_le` and simple factorizations.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  have ha : abs a ≤ 1 := abs_le_one_iff_sq_le_one.mpr (by nlinarith)\n  have hb : abs b ≤ 1 := abs_le_one_iff_sq_le_one.mpr (by nlinarith)\n  rw [abs_le]\n  constructor\n  · -- a * b + (a - b) ≤ 1\n    have h1 : a * b + a - b - 1 = (a - 1) * (b + 1) := by ring\n    rw [← sub_nonpos, h1]\n    apply mul_nonpos_of_nonpos_of_nonneg\n    · linarith [abs_le.mp ha]\n    · linarith [abs_le.mp hb]\n  · -- -1 ≤ a * b + (a - b) <=> - (a * b + a - b) ≤ 1\n    -- This is not quite right because the target is a * b + |a - b| ≤ 1.\n    -- The standard `abs_le` is for `|x| ≤ y`. Here we have `x + |y| ≤ z`.\n    -- Let's use `abs_sub_le_iff` or manual case analysis.\n    clear ha hb\n    rw [le_sub_iff_add_le', abs_le]\n    constructor\n    · -- a - b ≤ 1 - a * b\n      have : 1 - a * b - (a - b) = (1 - a) * (1 + b) := by ring\n      rw [← sub_nonneg, this]\n      apply mul_nonneg\n      · have : a^2 ≤ 1 := by nlinarith\n        exact sub_nonneg.mpr (abs_le_one_iff_sq_le_one.mp this).right\n      · have : b^2 ≤ 1 := by nlinarith\n        exact (neg_le_iff_add_nonneg.mp (abs_le_one_iff_sq_le_one.mp this).left)\n    · -- -(1 - a * b) ≤ a - b  => a * b - 1 ≤ a - b => a * b - a + b - 1 ≤ 0\n      have : a * b - a + b - 1 = (a + 1) * (b - 1) := by ring\n      rw [neg_le_sub_iff_le_add, ← sub_nonpos, this]\n      apply mul_nonpos_of_nonneg_of_nonpos\n      · have : a^2 ≤ 1 := by nlinarith\n        exact (neg_le_iff_add_nonneg.mp (abs_le_one_iff_sq_le_one.mp this).left)\n      · have : b^2 ≤ 1 := by nlinarith\n        exact sub_nonpos.mpr (abs_le_one_iff_sq_le_one.mp this).right\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have ha : abs a ≤ 1 := abs_le_one_iff_sq_le_one.mpr (by nlinarith)\n  have hb : abs b ≤ 1 := abs_le_one_iff_sq_le_one.mpr (by nlinarith)\n  rw [abs_le]\n  constructor\n  · -- a * b + (a - b) ≤ 1\n    have h1 : a * b + a - b - 1 = (a - 1) * (b + 1) := by ring\n    rw [← sub_nonpos, h1]\n    apply mul_nonpos_of_nonpos_of_nonneg\n    · linarith [abs_le.mp ha]\n    · linarith [abs_le.mp hb]\n  · -- -1 ≤ a * b + (a - b) <=> - (a * b + a - b) ≤ 1\n    -- This is not quite right because the target is a * b + |a - b| ≤ 1.\n    -- The standard `abs_le` is for `|x| ≤ y`. Here we have `x + |y| ≤ z`.\n    -- Let's use `abs_sub_le_iff` or manual case analysis.\n    clear ha hb\n    rw [le_sub_iff_add_le', abs_le]\n    constructor\n    · -- a - b ≤ 1 - a * b\n      have : 1 - a * b - (a - b) = (1 - a) * (1 + b) := by ring\n      rw [← sub_nonneg, this]\n      apply mul_nonneg\n      · have : a^2 ≤ 1 := by nlinarith\n        exact sub_nonneg.mpr (abs_le_one_iff_sq_le_one.mp this).right\n      · have : b^2 ≤ 1 := by nlinarith\n        exact (neg_le_iff_add_nonneg.mp (abs_le_one_iff_sq_le_one.mp this).left)\n    · -- -(1 - a * b) ≤ a - b  => a * b - 1 ≤ a - b => a * b - a + b - 1 ≤ 0\n      have : a * b - a + b - 1 = (a + 1) * (b - 1) := by ring\n      rw [neg_le_sub_iff_le_add, ← sub_nonpos, this]\n      apply mul_nonpos_of_nonneg_of_nonpos\n      · have : a^2 ≤ 1 := by nlinarith\n        exact (neg_le_iff_add_nonneg.mp (abs_le_one_iff_sq_le_one.mp this).left)\n      · have : b^2 ≤ 1 := by nlinarith\n        exact sub_nonpos.mpr (abs_le_one_iff_sq_le_one.mp this).right",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  \n    have ha : abs a ≤ 1 := abs_le_one_iff_sq_le_one.mpr (by nlinarith)\n    have hb : abs b ≤ 1 := abs_le_one_iff_sq_le_one.mpr (by nlinarith)\n    rw [abs_le]\n    constructor\n    · -- a * b + (a - b) ≤ 1\n      have h1 : a * b + a - b - 1 = (a - 1) * (b + 1) := by ring\n      rw [← sub_nonpos, h1]\n      apply mul_nonpos_of_nonpos_of_nonneg\n      · linarith [abs_le.mp ha]\n      · linarith [abs_le.mp hb]\n    · -- -1 ≤ a * b + (a - b) <=> - (a * b + a - b) ≤ 1\n      -- This is not quite right because the target is a * b + |a - b| ≤ 1.\n      -- The standard `abs_le` is for `|x| ≤ y`. Here we have `x + |y| ≤ z`.\n      -- Let's use `abs_sub_le_iff` or manual case analysis.\n      clear ha hb\n      rw [le_sub_iff_add_le', abs_le]\n      constructor\n      · -- a - b ≤ 1 - a * b\n        have : 1 - a * b - (a - b) = (1 - a) * (1 + b) := by ring\n        rw [← sub_nonneg, this]\n        apply mul_nonneg\n        · have : a^2 ≤ 1 := by nlinarith\n          exact sub_nonneg.mpr (abs_le_one_iff_sq_le_one.mp this).right\n        · have : b^2 ≤ 1 := by nlinarith\n          exact (neg_le_iff_add_nonneg.mp (abs_le_one_iff_sq_le_one.mp this).left)\n      · -- -(1 - a * b) ≤ a - b  => a * b - 1 ≤ a - b => a * b - a + b - 1 ≤ 0\n        have : a * b - a + b - 1 = (a + 1) * (b - 1) := by ring\n        rw [neg_le_sub_iff_le_add, ← sub_nonpos, this]\n        apply mul_nonpos_of_nonneg_of_nonpos\n        · have : a^2 ≤ 1 := by nlinarith\n          exact (neg_le_iff_add_nonneg.mp (abs_le_one_iff_sq_le_one.mp this).left)\n        · have : b^2 ≤ 1 := by nlinarith\n          exact sub_nonpos.mpr (abs_le_one_iff_sq_le_one.mp this).right\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_sqineq_unitcircatbpabsamblt1 (a b : ℝ) (h₀ : a ^ 2 + b ^ 2 = 1) :\n  a * b + abs (a - b) ≤ 1 := by\n  \n    have ha : abs a ≤ 1 := abs_le_one_iff_sq_le_one.mpr (by nlinarith)\n    have hb : abs b ≤ 1 := abs_le_one_iff_sq_le_one.mpr (by nlinarith)\n    rw [abs_le]\n    constructor\n    · -- a * b + (a - b) ≤ 1\n      have h1 : a * b + a - b - 1 = (a - 1) * (b + 1) := by ring\n      rw [← sub_nonpos, h1]\n      apply mul_nonpos_of_nonpos_of_nonneg\n      · linarith [abs_le.mp ha]\n      · linarith [abs_le.mp hb]\n    · -- -1 ≤ a * b + (a - b) <=> - (a * b + a - b) ≤ 1\n      -- This is not quite right because the target is a * b + |a - b| ≤ 1.\n      -- The standard `abs_le` is for `|x| ≤ y`. Here we have `x + |y| ≤ z`.\n      -- Let's use `abs_sub_le_iff` or manual case analysis.\n      clear ha hb\n      rw [le_sub_iff_add_le', abs_le]\n      constructor\n      · -- a - b ≤ 1 - a * b\n        have : 1 - a * b - (a - b) = (1 - a) * (1 + b) := by ring\n        rw [← sub_nonneg, this]\n        apply mul_nonneg\n        · have : a^2 ≤ 1 := by nlinarith\n          exact sub_nonneg.mpr (abs_le_one_iff_sq_le_one.mp this).right\n        · have : b^2 ≤ 1 := by nlinarith\n          exact (neg_le_iff_add_nonneg.mp (abs_le_one_iff_sq_le_one.mp this).left)\n      · -- -(1 - a * b) ≤ a - b  => a * b - 1 ≤ a - b => a * b - a + b - 1 ≤ 0\n        have : a * b - a + b - 1 = (a + 1) * (b - 1) := by ring\n        rw [neg_le_sub_iff_le_add, ← sub_nonpos, this]\n        apply mul_nonpos_of_nonneg_of_nonpos\n        · have : a^2 ≤ 1 := by nlinarith\n          exact (neg_le_iff_add_nonneg.mp (abs_le_one_iff_sq_le_one.mp this).left)\n        · have : b^2 ≤ 1 := by nlinarith\n          exact sub_nonpos.mpr (abs_le_one_iff_sq_le_one.mp this).right\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 1.0,
+        "Q_value": 1.0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "state_0",
+      "target": "action_0",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_1",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_2",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_3",
+      "relation": "expanded_to"
+    }
+  ]
+}
