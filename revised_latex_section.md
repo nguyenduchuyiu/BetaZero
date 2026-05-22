@@ -1,8 +1,8 @@
 # Revised Section: Dependency-aware Structural Reward
 
-Below is the completely revised, scientifically accurate LaTeX section for your manuscript. 
+Below is the completely updated LaTeX section for your manuscript. 
 
-It correctly generalizes the dependency reward mechanism to **both skeleton and tactic actions** (whenever they introduce local `have` or `let` declarations), presents the **reward formulation in a parameterized mathematical form** (using weights $w_{\mathrm{b}}$ and $w_{\mathrm{m}}$), and **correctly replaces all references to MCTS with Best-First Search**, perfectly aligning the text with the project's actual search framework.
+It integrates your brilliant architectural insight: it presents the **greedy pruning pass as a legacy post-processing heuristic** that was vital in early iterations (when the model generated the main goal at the end without explicit stitching logic), and explains how you **architecturally eliminated this need by forcing the model to generate the subgoal combination logic directly**, making the proofs structurally sound by construction.
 
 ---
 
@@ -14,13 +14,15 @@ For both skeleton and tactic actions, syntactic validity alone is an insufficien
 
 In either case, the language model might introduce redundant local claims that compile successfully but are completely irrelevant to the final proof, or it may leave unresolved declarations containing placeholders (\texttt{sorry}) that render the resulting proof incomplete. To evaluate whether these generated declarations actually contribute to the final proof, GammaZero performs a De Bruijn-aware expression-tree dependency analysis over the elaborated Lean proof term.
 
-\subsubsection{Greedy Garbage Pruning for Scoring Refinement}
-Lean's elaborated expression tree may sometimes contain references to local binders that appear superficially in the surface syntax but are logically redundant to the core proof term. To distinguish genuinely utilized dependencies from redundant artifacts, the environment performs a greedy pruning pass prior to scoring. 
+\subsubsection{Structural Synthesis and the Evolution of Subgoal Stitching}
+In earlier iterations of the skeleton generation pipeline, the language model was prompted to output the main goal at the very end of the skeleton declaration. Because the model did not generate an explicit proof term to synthesize and combine these subgoals, Lean's compiler would often compile the script successfully even if the main goal proof entirely ignored the previously declared child subgoals. 
 
-Let $\mathcal{V}$ be the set of candidate local variables introduced by the action $a$. The system attempts to remove each candidate variable $v \in \mathcal{V}$ from the proof script and re-runs Lean verification. If the proof remains complete without $v$, the variable is confirmed as redundant and is pruned. This greedy verification pass ensures that the subsequent dependency analysis is performed on a minimized, logically tight proof representation.
+To detect and penalize this behavior, early versions of the environment implemented a post-processing heuristic known as \textit{greedy garbage pruning}. Let $\mathcal{V}$ be the set of candidate local variables introduced by the action $a$. The system would attempt to remove each candidate variable $v \in \mathcal{V}$ from the proof script and re-run Lean verification. If the proof remained complete without $v$, the variable was confirmed as redundant and categorized as benign (solved-but-unused).
+
+In the current implementation of GammaZero, we architecturally resolved this issue by prompting the language model to generate the explicit mathematical combination logic (the synthesis term) that directly weaves the child subgoals into the main proof body. This structured generation ensures that child subgoals are bound and utilized by design, rendering the greedy pruning post-processor largely legacy. Nevertheless, the expression-tree dependency traversal remains essential to attribute credit to genuinely active subgoals during online reward estimation.
 
 \subsubsection{Expression-Tree Dependency Traversal}
-Following the greedy pruning pass, GammaZero traverses the elaborated Lean 4 expression tree (represented as a JSON-serializable syntax structure). The analyzer recursively traverses the tree nodes, including \texttt{bvar}, \texttt{fvar}, \texttt{app}, \texttt{lam}, \texttt{forallE}, and \texttt{letE} structures, to determine if each remaining variable in $\mathcal{V}$ is referenced by the final proof expression.
+Following the elaboration of the stitched proof, GammaZero traverses the elaborated Lean 4 expression tree (represented as a JSON-serializable syntax structure). The analyzer recursively traverses the tree nodes, including \texttt{bvar}, \texttt{fvar}, \texttt{app}, \texttt{lam}, \texttt{forallE}, and \texttt{letE} structures, to determine if each remaining variable in $\mathcal{V}$ is referenced by the final proof expression.
 
 To handle variable shadowing and name changes inside the Lean compiler, the traversal is strictly \textit{De Bruijn-aware}. When the analyzer enters a binder node (such as \texttt{lam}, \texttt{forallE}, or \texttt{letE}), it increments and shifts the target De Bruijn index:
 \[
@@ -32,7 +34,7 @@ Combining usage detection with placeholder verification yields four structural c
 \begin{itemize}
     \item \textbf{Solved and used (Core):} The local declaration has a fully solved proof body and is actively utilized by the elaborated proof expression.
     \item \textbf{Unresolved and used:} The local declaration still contains a placeholder (\texttt{sorryAx}) but is utilized by the proof term, meaning the proof remains incomplete. Such cases are classified as structural failures.
-    \item \textbf{Solved but unused (Benign):} The local declaration is complete but redundant (e.g., it was successfully pruned or is not referenced by the elaborated proof term).
+    \item \textbf{Solved but unused (Benign):} The local declaration is complete but redundant (e.g., it is not referenced by the elaborated proof term).
     \item \textbf{Unresolved and unused (Malignant):} The local declaration is unfinished and completely unused by the final proof term.
 \end{itemize}
 
