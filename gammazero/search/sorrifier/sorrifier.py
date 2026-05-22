@@ -7,10 +7,11 @@ replacing faulty tactics with the `sorry` axiom and deleting orphaned code.
 Architecture:
 1. AST-Guided Truncation: Uses Lean's AST to precisely locate tactic boundaries.
 2. Boss-Hunting Fallback: Searches upward for parent blocks and clears all children.
-3. Deadlock Breaker: Force-deletes lines that cause infinite loops.
+3. Deadlock Breaker: Structurally prunes dependent local proof slices.
 """
 
 from __future__ import annotations
+import re
 import sys
 import datetime
 from typing import Tuple, List, Dict, Optional, TextIO
@@ -20,7 +21,7 @@ from tqdm import tqdm
 from gammazero.env import Lean4ServerScheduler
 
 BLOCK_STARTERS = (
-    "have", "·", ".", "cases ", "cases' ", "induction ", 
+    "have", "·", ".", "cases ", "cases' ", "rcases ", "induction ", 
     "induction' ", "rintro ", "intro ", "calc", "match", 
     "lemma", "theorem", "def", "example"
 )
@@ -61,6 +62,25 @@ class Sorrifier:
                 self._log_fp.write("\n")
             self._log_fp.flush()
 
+    def log(self, text: str) -> None:
+        tqdm.write(text)
+        self._log(text)
+
+    def _log_diff(self, original: str, new: str) -> None:
+        import difflib
+        orig_lines = original.splitlines()
+        new_lines = new.splitlines()
+        diff = list(difflib.unified_diff(
+            orig_lines, 
+            new_lines, 
+            fromfile="before_patch", 
+            tofile="after_patch", 
+            lineterm=""
+        ))
+        if diff:
+            diff_text = "\n".join(diff)
+            self.log(f"--- Code Diff (Changes made in this cycle) ---\n{diff_text}\n----------------------------------------------")
+
     # ==========================================
     # MAIN LOOP
     # ==========================================
@@ -94,18 +114,27 @@ class Sorrifier:
                             pass
                     err_line = self._normalize_line_number(err_line)
 
+                    original_state = self.current_content
+
                     # Kích hoạt Boss-Hunting nếu code không suy suyển (Oscillation)
                     if self.current_content in seen_states:
                         pbar.set_description(f"Loop detected @ L{err_line}")
+                        self.log(f"\n[LOOP DETECTED] Code oscillation detected on L{err_line}. Triggering Boss-Hunter fallback...")
+                        self.log(f"--- Oscillating Code State ---\n{self.current_content}\n-----------------------------")
                         try:
                             self._resolve_infinite_loop(err_line)
                         except IndexError as e:
                             return self._force_full_sorrify()
+                        
+                        if self.current_content != original_state:
+                            self._log_diff(original_state, self.current_content)
+                            
                         pbar.update(1)
                         continue
 
                     seen_states.add(self.current_content)
                     pbar.set_postfix_str(f"{'Fatal' if is_fatal else 'Unsolved'} @ L{err_line}")
+                    self.log(f"\n[Cycle {cycle}] Error at L{err_line} ({'Fatal' if is_fatal else 'Unsolved'}): {err_msg[:200]}")
 
                     try:
                         success = self._apply_normal_fix(err_line, is_fatal, err_msg)
@@ -114,6 +143,9 @@ class Sorrifier:
                         
                     if not success:
                         return self._force_full_sorrify()
+
+                    if self.current_content != original_state:
+                        self._log_diff(original_state, self.current_content)
 
                     pbar.update(1)
 
@@ -145,6 +177,7 @@ class Sorrifier:
         
         if boss_idx != -1:
             boss_line = lines[boss_idx]
+            self.log(f"[Boss-Hunter] Found parent block starter at L{boss_idx+1}: '{boss_line.strip()}'")
             boss_indent = len(boss_line) - len(boss_line.lstrip())
             
             # 2. Replace parent block body with sorry, retain declaration
@@ -195,12 +228,31 @@ class Sorrifier:
             
         self.current_content = self._clean_redundant_sorries(lines)
         
-        # 4. Deadlock Breaker: FORCE DELETE
+        # 4. Deadlock Breaker: NEVER force-delete a single line.
+        # If no mutation happened, perform structural pruning instead.
         if self.current_content == original_content:
-            # tqdm.write(f"Fallback didn't mutate code! Force deleting error line {err_line}.")
-            if err_line - 1 < len(lines):
-                lines[err_line - 1] = ""
-            self.current_content = self._clean_redundant_sorries(lines)
+            self.log(f"[Boss-Hunter] Fallback didn't mutate code. Structural pruning at L{err_line}.")
+
+            line = lines[err_line - 1] if 0 <= err_line - 1 < len(lines) else ""
+
+            if self._is_local_have_line(line):
+                lines = self._delete_local_decl_and_dependents(lines, err_line - 1, insert_sorry=True)
+                self.current_content = self._clean_redundant_sorries(lines)
+                return
+
+            # If current line is inside a local have, find nearest enclosing have by indentation.
+            curr_indent = self._indent(line) if line else 0
+            for i in range(err_line - 2, -1, -1):
+                if not lines[i].strip():
+                    continue
+
+                if self._indent(lines[i]) < curr_indent and self._is_local_have_line(lines[i]):
+                    lines = self._delete_local_decl_and_dependents(lines, i, insert_sorry=True)
+                    self.current_content = self._clean_redundant_sorries(lines)
+                    return
+
+            # Last resort: full sorrify, not single-line deletion.
+            self.current_content = self._force_full_sorrify()
 
     def _apply_normal_fix(self, error_line: int, is_fatal: bool, err_msg: str) -> bool:
         lines = self.current_content.splitlines()
@@ -211,7 +263,7 @@ class Sorrifier:
         if line_content in TRIVIAL_TACTICS:
             lines[error_line - 1] = ""
             self._last_action_msg = f"Removed failing trivial tactic '{line_content}' at L{error_line}"
-            # tqdm.write(self._last_action_msg)
+            self.log(f"[Fix] {self._last_action_msg}")
             self.current_content = self._clean_redundant_sorries(lines)
             return True
 
@@ -220,7 +272,17 @@ class Sorrifier:
 
         def emergency_fallback():
             msg = f"AST parsing failed/No valid node at L{error_line}. Applying basic single-line replacement."
-            # tqdm.write(msg)
+            self.log(f"[AST Fallback] {msg}")
+            if is_fatal and self._is_local_have_line(lines[error_line - 1]) and self._is_header_or_elab_error(lines[error_line - 1], err_msg):
+                name = self._extract_defined_name(lines[error_line - 1])
+                self._last_action_msg = (
+                    f"Deleted bad local declaration"
+                    f"{f' `{name}`' if name else ''} and dependent sibling blocks"
+                )
+                self.log(f"[Fix] {self._last_action_msg}")
+                pruned = self._delete_local_decl_and_dependents(lines, error_line - 1, insert_sorry=True)
+                self.current_content = self._clean_redundant_sorries(pruned)
+                return True
             indent = len(lines[error_line - 1]) - len(lines[error_line - 1].lstrip())
             lines[error_line - 1] = " " * indent + "sorry"
             self.current_content = "\n".join(lines) + "\n"
@@ -234,39 +296,74 @@ class Sorrifier:
             target = min(valid_nodes, key=lambda x: x["end_line"] - x["start_line"])
             L_start, L_end = target["start_line"], target["end_line"]
             start_line_str = lines[L_start - 1]
+            indent = self._indent(start_line_str)
             
             is_orphan_error = "no goals" in err_msg.lower() or "goals accomplished" in err_msg.lower()
-            
-            # --- Tách mảng và xóa (Thay vì comment) ---
-            new_lines = lines[:L_start - 1]
-            indent = len(start_line_str) - len(start_line_str.lstrip())
-            
+
+            # NEW 1: local have header/type error.
+            # Do not produce `have bad_statement := by sorry`.
+            # Delete this have and all dependent sibling blocks instead.
+            if self._is_local_have_line(start_line_str) and self._is_header_or_elab_error(start_line_str, err_msg):
+                name = self._extract_defined_name(start_line_str)
+                self._last_action_msg = (
+                    f"Deleted bad local declaration"
+                    f"{f' `{name}`' if name else ''} and dependent sibling blocks"
+                )
+                self.log(f"[Fix] {self._last_action_msg}")
+                lines = self._delete_local_decl_and_dependents(lines, L_start - 1, insert_sorry=True)
+                self.current_content = self._clean_redundant_sorries(lines)
+                return True
+
+            # NEW 2: orphan/no-goals should remove a whole syntactic block, not just one line.
             if is_orphan_error:
-                # XÓA SẠCH
-                self._last_action_msg = f"Removed orphaned tactic [{target['kind']}] L{L_start}..L{L_end}"
+                self._last_action_msg = f"Removed orphaned block [{target['kind']}] L{L_start}..L{L_end}"
+                self.log(f"[Fix] {self._last_action_msg}")
+                new_lines = lines[:L_start - 1]
                 new_lines.extend(lines[L_end:])
-                
-            elif self._is_block_starter(start_line_str) and ":=" in start_line_str:
-                # XÓA BODY (Hollow out)
+                self.current_content = self._clean_redundant_sorries(new_lines)
+                return True
+
+            # NEW 3: branch tactic replacement must also delete following bullets.
+            if self._is_branching_tactic_line(start_line_str):
+                self._last_action_msg = f"Replaced branching tactic and removed bullet branches L{L_start}.."
+                self.log(f"[Fix] {self._last_action_msg}")
+
+                branch_end = self._consume_following_bullet_branches(
+                    lines,
+                    L_end,
+                    bullet_indent=indent,
+                )
+
+                new_lines = lines[:L_start - 1]
+                new_lines.append(" " * indent + "sorry")
+                new_lines.extend(lines[branch_end:])
+                self.current_content = self._clean_redundant_sorries(new_lines)
+                return True
+
+            # OLD behavior, but keep it only for theorem/lemma/def or safe block body.
+            new_lines = lines[:L_start - 1]
+
+            if self._is_block_starter(start_line_str) and ":=" in start_line_str:
+                # For local have, only hollow body if the header itself is valid.
+                # Header-error have was already handled above.
                 self._last_action_msg = f"Hollowed out block [{target['kind']}] starting at L{L_start}"
                 clean_header = start_line_str.split(":=")[0] + ":= by sorry"
                 new_lines.append(clean_header)
                 new_lines.extend(lines[L_end:])
                 
             else:
-                # THAY BẰNG SORRY
                 self._last_action_msg = f"Replaced leaf tactic [{target['kind']}] L{L_start}..L{L_end}"
                 new_lines.append(" " * indent + "sorry")
                 new_lines.extend(lines[L_end:])
                 
-            # tqdm.write(self._last_action_msg)
-            self.current_content = "\n".join(new_lines) + "\n"
+            self.log(f"[Fix] {self._last_action_msg}")
+            self.current_content = self._clean_redundant_sorries(new_lines)
                 
         # 3. Xử lý Chưa chứng minh xong (Unsolved Goals)
-        else: 
+        else:
             scopes = ["declaration", "tactichave", "tacticcases", "tacticmatch", "tacticlet"]
             valid_nodes = [b for b in enclosing if any(s in b["kind"].lower() for s in scopes)]
-            
+
             if not valid_nodes:
                 valid_nodes = [b for b in enclosing if "seq" in b["kind"].lower() or "bytactic" in b["kind"].lower()]
                 if not valid_nodes: return emergency_fallback()
@@ -275,24 +372,42 @@ class Sorrifier:
                 target = min(valid_nodes, key=lambda x: x["end_line"] - x["start_line"])
 
             L_start, L_end = target["start_line"], target["end_line"]
-            
-            # Default fallback indent
-            parent_indent = len(lines[L_start - 1]) - len(lines[L_start - 1].lstrip())
-            indent = parent_indent + 2 
-            
-            for i in range(L_start, L_end): 
+
+            # Prefer patching the final tactic that caused many remaining goals.
+            last_idx = L_end - 1
+            if 0 <= last_idx < len(lines):
+                last_line = lines[last_idx]
+                if self._is_multi_goal_tactic_line(last_line):
+                    indent = self._indent(last_line)
+                    self._last_action_msg = f"Replaced multi-goal tactic with all_goals sorry at L{L_end}"
+                    self.log(f"[Fix] {self._last_action_msg}")
+
+                    new_lines = lines[:last_idx]
+                    new_lines.append(" " * indent + "all_goals sorry")
+                    new_lines.extend(lines[L_end:])
+
+                    self.current_content = self._clean_redundant_sorries(new_lines)
+                    return True
+
+            # Otherwise close every remaining goal in this tactic scope at once.
+            parent_indent = self._indent(lines[L_start - 1])
+            indent = parent_indent + 2
+
+            for i in range(L_start, L_end):
                 line = lines[i]
                 if line.strip() and not line.strip().startswith("--"):
-                    indent = len(line) - len(line.lstrip())
+                    indent = self._indent(line)
                     break
 
-            self._last_action_msg = f"Closed scope [{target['kind']}] at L{L_end} (Indent: {indent})"
-            
+            self._last_action_msg = f"Closed all remaining goals in scope [{target['kind']}] at L{L_end} (Indent: {indent})"
+            self.log(f"[Fix] {self._last_action_msg}")
+
             new_lines = lines[:L_end]
-            new_lines.append(" " * indent + "sorry")
+            new_lines.append(" " * indent + "all_goals sorry")
             new_lines.extend(lines[L_end:])
-            
-            self.current_content = "\n".join(new_lines) + "\n"
+
+            self.current_content = self._clean_redundant_sorries(new_lines)
+            return True
 
         self.current_content = self._clean_redundant_sorries(self.current_content.splitlines())
         return True
@@ -300,6 +415,234 @@ class Sorrifier:
     # ==========================================
     # HELPERS
     # ==========================================
+    def _indent(self, line: str) -> int:
+        return len(line) - len(line.lstrip())
+
+    def _is_same_or_child_indent(self, lines: list[str], idx: int, base_indent: int) -> bool:
+        if not lines[idx].strip():
+            return True
+        return self._indent(lines[idx]) >= base_indent
+
+    def _block_end_by_indent(self, lines: list[str], start_idx: int) -> int:
+        """
+        Returns exclusive end index of a Lean block using indentation.
+        The block includes following lines with greater indentation.
+        """
+        base = self._indent(lines[start_idx])
+        j = start_idx + 1
+
+        while j < len(lines):
+            if not lines[j].strip():
+                j += 1
+                continue
+
+            if self._indent(lines[j]) > base:
+                j += 1
+                continue
+
+            break
+
+        return j
+
+    def _extract_defined_name(self, line: str) -> str | None:
+        s = line.strip()
+
+        # have h : P := by ...
+        m = re.match(r"have\s+([A-Za-z_][A-Za-z0-9_']*)\b", s)
+        if m:
+            return m.group(1)
+
+        # let x := ...
+        m = re.match(r"let\s+([A-Za-z_][A-Za-z0-9_']*)\b", s)
+        if m:
+            return m.group(1)
+
+        return None
+
+    def _mentions_any_name(self, text: str, names: set[str]) -> bool:
+        for name in names:
+            if re.search(rf"(?<![A-Za-z0-9_']){re.escape(name)}(?![A-Za-z0-9_'])", text):
+                return True
+        return False
+
+    def _is_local_have_line(self, line: str) -> bool:
+        return line.strip().startswith("have ")
+
+    def _is_header_or_elab_error(self, line: str, err_msg: str) -> bool:
+        """
+        True when `sorry` cannot hide the error because the error is in the
+        local declaration statement/header, not in the proof body.
+        """
+        s = line.strip()
+        msg = err_msg.lower()
+
+        if not s.startswith("have "):
+            return False
+
+        # Strong signal: already sorrified body but same fatal error remains.
+        if ":= by sorry" in s:
+            return True
+
+        header_error_markers = (
+            "failed to synthesize instance",
+            "type mismatch",
+            "application type mismatch",
+            "failed to elaborate",
+            "unknown constant",
+            "function expected",
+            "invalid field",
+            "invalid projection",
+            "numerals are polymorphic",
+        )
+
+        return any(marker in msg for marker in header_error_markers)
+
+    def _delete_local_decl_and_dependents(
+        self,
+        lines: list[str],
+        decl_idx: int,
+        insert_sorry: bool = True,
+    ) -> list[str]:
+        """
+        Delete a bad local declaration and its following local proof slice.
+
+        Example:
+          have h_bad : BAD := by ...
+          rw [h_bad]
+          have h2 : ... := by ... h_bad ...
+          exact ... h2 ...
+
+        becomes:
+          sorry
+
+        This does NOT edit Lean expressions. It only prunes proof structure.
+        Once the replacement `sorry` closes the current goal, following sibling
+        tactics in the same local sequence would otherwise become orphaned.
+        """
+        base_indent = self._indent(lines[decl_idx])
+        killed: set[str] = set()
+
+        first_name = self._extract_defined_name(lines[decl_idx])
+        if first_name:
+            killed.add(first_name)
+
+        delete_ranges: list[tuple[int, int]] = []
+
+        # Delete the bad declaration block itself.
+        first_end = self._block_end_by_indent(lines, decl_idx)
+        delete_ranges.append((decl_idx, first_end))
+
+        i = first_end
+        while i < len(lines):
+            if not lines[i].strip():
+                i += 1
+                continue
+
+            ind = self._indent(lines[i])
+
+            # Leaving the local sibling scope.
+            if ind < base_indent:
+                break
+
+            # Only prune sibling-level blocks. Children belong to their parent block.
+            if ind > base_indent:
+                i += 1
+                continue
+
+            block_end = self._block_end_by_indent(lines, i)
+
+            defined = self._extract_defined_name(lines[i])
+            if defined:
+                killed.add(defined)
+
+            delete_ranges.append((i, block_end))
+            i = block_end
+
+        out: list[str] = []
+        cursor = 0
+
+        for k, (start, end) in enumerate(delete_ranges):
+            out.extend(lines[cursor:start])
+
+            # Insert one sorry exactly at the first cut position.
+            if k == 0 and insert_sorry:
+                out.append(" " * base_indent + "sorry")
+
+            cursor = end
+
+        out.extend(lines[cursor:])
+        return out
+
+    def _consume_following_bullet_branches(
+        self,
+        lines: list[str],
+        start_idx: int,
+        bullet_indent: int,
+    ) -> int:
+        """
+        Consume consecutive Lean bullet branches after a branching tactic.
+        `start_idx` is the first line after the replaced branching tactic.
+        """
+        i = start_idx
+
+        while i < len(lines):
+            if not lines[i].strip():
+                i += 1
+                continue
+
+            ind = self._indent(lines[i])
+            s = lines[i].strip()
+
+            if ind == bullet_indent and s.startswith("·"):
+                i += 1
+
+                # consume this branch body
+                while i < len(lines):
+                    if not lines[i].strip():
+                        i += 1
+                        continue
+
+                    ind2 = self._indent(lines[i])
+                    s2 = lines[i].strip()
+
+                    # next sibling bullet
+                    if ind2 == bullet_indent and s2.startswith("·"):
+                        break
+
+                    # left the branch group
+                    if ind2 <= bullet_indent:
+                        return i
+
+                    i += 1
+
+                continue
+
+            break
+
+        return i
+
+    def _is_branching_tactic_line(self, line: str) -> bool:
+        s = line.strip()
+        return (
+            s.startswith("rcases ")
+            or s.startswith("cases ")
+            or s.startswith("cases' ")
+            or s.startswith("induction ")
+            or s.startswith("induction' ")
+        )
+
+    def _is_multi_goal_tactic_line(self, line: str) -> bool:
+        s = line.strip()
+        return (
+            s.startswith("interval_cases ")
+            or s.startswith("cases ")
+            or s.startswith("cases' ")
+            or s.startswith("rcases ")
+            or s.startswith("induction ")
+            or s.startswith("induction' ")
+            or "<;>" in s
+        )
+
     def _get_lean_errors(self) -> Tuple[List[Tuple[int, str]], List[Tuple[int, str]]]:
         """Sử dụng API bất đồng bộ để không block luồng chạy song song."""
         req_ids = self.repl_verifier.submit_all_request(
@@ -382,4 +725,3 @@ class Sorrifier:
         if not any(stripped.startswith(cmd) for cmd in BLOCK_STARTERS): return False
         if stripped.startswith("have") and ":=" not in stripped: return False
         return True
-

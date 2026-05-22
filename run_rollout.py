@@ -195,4 +195,4 @@ if __name__ == "__main__":
     main()
 
 # Example usage:
-# python3 run_rollout.py --config configs/ --lean-dir problems/ --out-json outputs/ --policy
+# python3 run_rollout.py --config configs/api.yaml --lean-dir problems/problems/miniF2F-test --out-json outputs/ --policy
