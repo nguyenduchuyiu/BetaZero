@@ -86,50 +86,61 @@ def analyze():
         })
         
     # Write full detailed report to markdown
-    report_path = "/workspace/npthai/BetaZero/scratch/test_rollout_tokens_report.md"
-    with open(report_path, "w") as f:
-        f.write("# Gemini 3 Flash miniF2F-test Rollout Performance & Node Stats\n\n")
-        f.write(f"**Total Problems:** {total_problems}\n")
-        f.write(f"**Total Solved:** {total_solved} / {total_problems} (**{total_solved/total_problems*100:.2f}%**)\n")
-        f.write(f"- **Direct Solved at Root (Depth 0):** {direct_solved} / {total_problems} (**{direct_solved/total_problems*100:.2f}%**)\n")
-        f.write(f"- **Hierarchical Solved (Skeleton Depth >= 1):** {hierarchical_solved} / {total_problems} (**{hierarchical_solved/total_problems*100:.2f}%**)\n\n")
+    report_content = []
+    report_content.append("# Gemini 3 Flash miniF2F-test Rollout Performance & Node Stats (Full 244-Problem Set)\n\n")
+    report_content.append(f"**Total Problems:** {total_problems}\n")
+    report_content.append(f"**Total Solved:** {total_solved} / {total_problems} (**{total_solved/total_problems*100:.2f}%**)\n")
+    report_content.append(f"- **Direct Solved at Root (Depth 0):** {direct_solved} / {total_problems} (**{direct_solved/total_problems*100:.2f}%**)\n")
+    report_content.append(f"- **Hierarchical Solved (Skeleton Depth >= 1):** {hierarchical_solved} / {total_problems} (**{hierarchical_solved/total_problems*100:.2f}%**)\n\n")
+    
+    # Averages
+    avg_nodes_solved = sum(r["total_nodes"] for r in results if r["solved"]) / max(1, total_solved)
+    avg_nodes_failed = sum(r["total_nodes"] for r in results if not r["solved"]) / max(1, total_problems - total_solved)
+    avg_tokens_solved = sum(r["est_tokens"] for r in results if r["solved"]) / max(1, total_solved)
+    avg_tokens_failed = sum(r["est_tokens"] for r in results if not r["solved"]) / max(1, total_problems - total_solved)
+    total_tokens_all = sum(r["est_tokens"] for r in results)
+    
+    report_content.append("## 1. Summary Averages\n\n")
+    report_content.append("| Metrics | Solved Problems | Failed Problems | All Combined |\n")
+    report_content.append("| :--- | :---: | :---: | :---: |\n")
+    report_content.append(f"| **Average Total Nodes** | {avg_nodes_solved:.1f} | {avg_nodes_failed:.1f} | {sum(r['total_nodes'] for r in results)/total_problems:.1f} |\n")
+    report_content.append(f"| **Average Tactic Nodes** | {sum(r['tactic_nodes'] for r in results if r['solved'])/max(1, total_solved):.1f} | {sum(r['tactic_nodes'] for r in results if not r['solved'])/max(1, total_problems - total_solved):.1f} | {sum(r['tactic_nodes'] for r in results)/total_problems:.1f} |\n")
+    report_content.append(f"| **Average Skeleton Nodes** | {sum(r['skeleton_nodes'] for r in results if r['solved'])/max(1, total_solved):.1f} | {sum(r['skeleton_nodes'] for r in results if not r['solved'])/max(1, total_problems - total_solved):.1f} | {sum(r['skeleton_nodes'] for r in results)/total_problems:.1f} |\n")
+    report_content.append(f"| **Average Est. Output Tokens** | {avg_tokens_solved:,.0f} | {avg_tokens_failed:,.0f} | {total_tokens_all/total_problems:,.0f} |\n")
+    report_content.append(f"| **Total Output Tokens Generated** | - | - | **{total_tokens_all:,}** |\n\n")
+    
+    report_content.append("## 2. Direct Root Solves vs Hierarchical Solves Breakdown\n\n")
+    report_content.append(f"### Direct Solves at Root (Depth 0) — {direct_solved} Problems\n")
+    report_content.append("These problems were solved by directly applying tactic steps on the root goal, without requiring skeleton decomposition:\n\n")
+    for i, r in enumerate([x for x in results if x["is_direct"]], 1):
+        report_content.append(f"{i}. `{r['name']}` ({r['total_nodes']} nodes, {r['est_tokens']:,} output tokens)\n")
         
-        # Averages
-        avg_nodes_solved = sum(r["total_nodes"] for r in results if r["solved"]) / max(1, total_solved)
-        avg_nodes_failed = sum(r["total_nodes"] for r in results if not r["solved"]) / max(1, total_problems - total_solved)
-        avg_tokens_solved = sum(r["est_tokens"] for r in results if r["solved"]) / max(1, total_solved)
-        avg_tokens_failed = sum(r["est_tokens"] for r in results if not r["solved"]) / max(1, total_problems - total_solved)
-        total_tokens_all = sum(r["est_tokens"] for r in results)
+    report_content.append(f"\n### Hierarchical Solves (Depth >= 1) — {hierarchical_solved} Problems\n")
+    report_content.append("These problems were solved using GammaZero's signature nested skeleton proof decomposition search:\n\n")
+    for i, r in enumerate([x for x in results if x["solved"] and not x["is_direct"]], 1):
+        report_content.append(f"{i}. `{r['name']}` ({r['total_nodes']} nodes, {r['skeleton_nodes']} skeletons, {r['est_tokens']:,} output tokens)\n")
         
-        f.write("## 1. Summary Averages\n\n")
-        f.write("| Metrics | Solved Problems | Failed Problems | All Combined |\n")
-        f.write("| :--- | :---: | :---: | :---: |\n")
-        f.write(f"| **Average Total Nodes** | {avg_nodes_solved:.1f} | {avg_nodes_failed:.1f} | {sum(r['total_nodes'] for r in results)/total_problems:.1f} |\n")
-        f.write(f"| **Average Tactic Nodes** | {sum(r['tactic_nodes'] for r in results if r['solved'])/max(1, total_solved):.1f} | {sum(r['tactic_nodes'] for r in results if not r['solved'])/max(1, total_problems - total_solved):.1f} | {sum(r['tactic_nodes'] for r in results)/total_problems:.1f} |\n")
-        f.write(f"| **Average Skeleton Nodes** | {sum(r['skeleton_nodes'] for r in results if r['solved'])/max(1, total_solved):.1f} | {sum(r['skeleton_nodes'] for r in results if not r['solved'])/max(1, total_problems - total_solved):.1f} | {sum(r['skeleton_nodes'] for r in results)/total_problems:.1f} |\n")
-        f.write(f"| **Average Est. Output Tokens** | {avg_tokens_solved:,.0f} | {avg_tokens_failed:,.0f} | {total_tokens_all/total_problems:,.0f} |\n")
-        f.write(f"| **Total Output Tokens Generated** | - | - | **{total_tokens_all:,}** |\n\n")
-        
-        f.write("## 2. Direct Root Solves vs Hierarchical Solves Breakdown\n\n")
-        f.write(f"### Direct Solves at Root (Depth 0) — {direct_solved} Problems\n")
-        f.write("These problems were solved by directly applying tactic steps on the root goal, without requiring skeleton decomposition:\n\n")
-        for i, r in enumerate([x for x in results if x["is_direct"]], 1):
-            f.write(f"{i}. `{r['name']}` ({r['total_nodes']} nodes, {r['est_tokens']:,} output tokens)\n")
-            
-        f.write(f"\n### Hierarchical Solves (Depth >= 1) — {hierarchical_solved} Problems\n")
-        f.write("These problems were solved using GammaZero's signature nested skeleton proof decomposition search:\n\n")
-        for i, r in enumerate([x for x in results if x["solved"] and not x["is_direct"]], 1):
-            f.write(f"{i}. `{r['name']}` ({r['total_nodes']} nodes, {r['skeleton_nodes']} skeletons, {r['est_tokens']:,} output tokens)\n")
-            
-        f.write("\n## 3. Detailed Problem Statistics\n\n")
-        f.write("| No. | Problem Name | Status | Total Nodes | Tactic Nodes | Skeleton Nodes | Est. Output Tokens |\n")
-        f.write("| :---: | :--- | :---: | :---: | :---: | :---: | :---: |\n")
-        for i, r in enumerate(results, 1):
-            if r["solved"]:
-                status_str = "**SOLVED (Direct)**" if r["is_direct"] else "**SOLVED (Hierarchical)**"
-            else:
-                status_str = "FAILED"
-            f.write(f"| {i} | `{r['name']}` | {status_str} | {r['total_nodes']} | {r['tactic_nodes']} | {r['skeleton_nodes']} | {r['est_tokens']:,} |\n")
+    report_content.append("\n## 3. Detailed Problem Statistics\n\n")
+    report_content.append("| No. | Problem Name | Status | Total Nodes | Tactic Nodes | Skeleton Nodes | Est. Output Tokens |\n")
+    report_content.append("| :---: | :--- | :---: | :---: | :---: | :---: | :---: |\n")
+    for i, r in enumerate(results, 1):
+        if r["solved"]:
+            status_str = "**SOLVED (Direct)**" if r["is_direct"] else "**SOLVED (Hierarchical)**"
+        else:
+            status_str = "FAILED"
+        report_content.append(f"| {i} | `{r['name']}` | {status_str} | {r['total_nodes']} | {r['tactic_nodes']} | {r['skeleton_nodes']} | {r['est_tokens']:,} |\n")
+
+    full_text = "".join(report_content)
+    
+    # Save to both paths
+    paths = [
+        "/workspace/npthai/BetaZero/scratch/test_rollout_tokens_report.md",
+        "/workspace/npthai/BetaZero/test_rollout_tokens_report.md",
+        "/home/npthai/.gemini/antigravity/brain/5a1fc07e-dc22-4f49-bac2-0c1f69b4f581/test_rollout_tokens_report.md"
+    ]
+    for p in paths:
+        with open(p, "w", encoding="utf-8") as f:
+            f.write(full_text)
 
     print(f"Total Solved: {total_solved} / {total_problems} ({total_solved/total_problems*100:.2f}%)")
     print(f"Direct Solved (Depth 0): {direct_solved} / {total_problems} ({direct_solved/total_problems*100:.2f}%)")

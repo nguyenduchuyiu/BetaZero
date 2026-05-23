@@ -745,7 +745,10 @@ class Sorrifier:
         # print(f"[REPL] verify_lean_code executed in {result.get('verify_time', 0):.4f} seconds")
 
         if result.get("system_errors"):
-            raise RuntimeError(f"Lean verification timed out or crashed: {result['system_errors'][:200]}")
+            sys_err = result["system_errors"]
+            if "TIMED OUT" in sys_err or "timed out" in sys_err.lower():
+                raise TimeoutError("Lean time out")
+            raise RuntimeError(f"Lean verification timed out or crashed: {sys_err[:200]}")
 
         fatal_errors: List[Tuple[int, str]] = []
         unsolved_goals: List[Tuple[int, str]] = []
