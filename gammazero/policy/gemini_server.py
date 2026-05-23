@@ -39,11 +39,17 @@ class GeminiAPIServer:
 
     def _get_gemini_response(self, prompt: str) -> dict | None:
         try:
-            # Disable thinking as requested: 'không thinking'            
+            # Create a thread-local client to avoid connection pool sharing deadlocks across threads,
+            # and set a robust 120-second request timeout (120,000 ms)
+            client = genai.Client(
+                api_key=self.api_key,
+                http_options=types.HttpOptions(timeout=120_000)
+            )
+            
             if os.getenv("DEBUG_GEMINI"):
                 print(f"DEBUG: Calling Gemini with max_output_tokens={self.max_tokens}")
             
-            response = self.client.models.generate_content(
+            response = client.models.generate_content(
                 model=self.model,
                 contents=prompt,
                 config=types.GenerateContentConfig(
@@ -51,7 +57,6 @@ class GeminiAPIServer:
                     temperature=self.temperature,
                     thinking_config=types.ThinkingConfig(thinking_budget=0)
                 )
-                
             )
             
             finish_reason = ""
@@ -69,7 +74,7 @@ class GeminiAPIServer:
                 text = "".join(p.text for p in response.candidates[0].content.parts if p.text)
             return {"text": text, "finish_reason": finish_reason}
         except Exception as e:
-            print(f"Lỗi gọi Gemini API: {e}")
+            print(f"Lỗi gọi Gemini API: {e}", flush=True)
             return None
 
     def sample(

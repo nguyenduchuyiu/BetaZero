@@ -1,0 +1,1623 @@
+{
+  "problem": "problems/miniF2F-test/mathd_algebra_11.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 15:38:56",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 0,
+    "completed_count": 0,
+    "solved": false
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we first analyze the given equation to find the relationship between $a$ and $b$.\n\n**Proof Sketch:**\n1.  **Isolate $a$ in terms of $b$:** Starting from the equation $\\frac{4a + 3b}{a - 2b} = 5$, we multiply both sides by the denominator $(a - 2b)$, assuming $a - 2b \\neq 0$.\n    $$4a + 3b = 5(a - 2b)$$\n    $$4a + 3b = 5a - 10b$$\n    $$13b = a$$\n2.  **Verify non-zero denominators:** If $a = 13b$, then the original denominator $a - 2b = 13b - 2b = 11b$. For the expression to be defined, we must have $b \\neq 0$. If $b = 0$, then $a = 0$, making the expression $0/0$ (undefined), so we assume $b \\neq 0$.\n3.  **Substitute $a$ into the target expression:** Substitute $a = 13b$ into $\\frac{a + 11b}{a - b}$:\n    $$\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$$\n4.  **Simplify:** Since $b \\neq 0$, the $b$ terms cancel out:\n    $$\\frac{24b}{12b} = \\frac{24}{12} = 2$$\n\nThe following Lean code implements this logic.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we deal with the case where a - 2b = 0. \n  -- If a - 2b = 0, then the division in h₂ is conventionally 0 in Lean, \n  -- but 0 = 5 is a contradiction.\n  have h_den1 : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero, div_zero] at h₂\n    norm_num at h₂\n  \n  -- Clear the denominator in the hypothesis\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    exact (div_eq_iff h_den1).mp h₂\n  \n  -- Solve for a in terms of b\n  have h_a : a = 13 * b := by\n    linear_combination h_eq\n  \n  -- Check the second denominator\n  have h_den2 : a - b ≠ 0 := by\n    rw [h_a]\n    intro h_zero\n    have h_b : b = 0 := by linarith\n    rw [h_b] at h_a\n    simp [h_a, h_b] at h_den1\n  \n  -- Substitute and simplify the goal\n  rw [h_a]\n  field_simp [h_den2]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we deal with the case where a - 2b = 0. \n  -- If a - 2b = 0, then the division in h₂ is conventionally 0 in Lean, \n  -- but 0 = 5 is a contradiction.\n  have h_den1 : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero, div_zero] at h₂\n    norm_num at h₂\n  \n  -- Clear the denominator in the hypothesis\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    exact (div_eq_iff h_den1).mp h₂\n  \n  -- Solve for a in terms of b\n  have h_a : a = 13 * b := by\n    linear_combination h_eq\n  \n  -- Check the second denominator\n  have h_den2 : a - b ≠ 0 := by\n    rw [h_a]\n    intro h_zero\n    have h_b : b = 0 := by linarith\n    rw [h_b] at h_a\n    simp [h_a, h_b] at h_den1\n  \n  -- Substitute and simplify the goal\n  rw [h_a]\n  field_simp [h_den2]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 16
+            },
+            "endPos": {
+              "line": 15,
+              "column": 24
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a / 0\nin the target expression\n  (4 * a + 3 * b) / 0 = 5\n\na b : ℚ\nh₂ : (4 * a + 3 * b) / 0 = 5\nh_zero : a - 2 * b = 0\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 4
+            },
+            "endPos": {
+              "line": 24,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_den1 : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\n⊢ a * Nat.rawCast 2 - b * 26 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 75
+            },
+            "endPos": {
+              "line": 37,
+              "column": 6
+            },
+            "data": "unsolved goals\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_den1 : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a : a = 13 * b\nh_den2 : a - b ≠ 0\n⊢ b * b⁻¹ * 24 = 24"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.0954818725585938
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we first analyze the given equation and then manipulate the goal expression.\n\n### Proof Sketch\n1.  **Analyze the given equation**:\n    Given $\\frac{4a + 3b}{a - 2b} = 5$.\n    Multiply both sides by $(a - 2b)$ (assuming $a \\neq 2b$) to get $4a + 3b = 5(a - 2b)$.\n    Distributing the right side yields $4a + 3b = 5a - 10b$.\n    Rearranging terms gives $a = 13b$.\n\n2.  **Substitute into the target expression**:\n    We want to calculate $X = \\frac{a + 11b}{a - b}$.\n    Substitute $a = 13b$ into the expression:\n    $X = \\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$.\n    Assuming $b \\neq 0$, we get $X = 2$.\n\n3.  **Handle potential division by zero**:\n    The given equation implies $a - 2b \\neq 0$. If $b = 0$, then $a = 13(0) = 0$, which would make the denominator $a - 2b = 0$, a contradiction. Thus $b \\neq 0$.\n    If $b \\neq 0$, then $a - b = 13b - b = 12b \\neq 0$, so the target expression is well-defined.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Extract the relationship between a and b from h₂\n  -- First, we note that the denominator a - 2*b must be non-zero.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero, div_zero] at h₂\n    norm_num at h₂\n  \n  -- Clear the fraction\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_denom).mp h₂\n  \n  -- Simplify to find a in terms of b\n  have h_a : a = 13 * b := by\n    linarith [h_eq]\n  \n  -- Step 2: Show that b cannot be 0, otherwise a - 2b would be 0\n  have hb : b ≠ 0 := by\n    intro hb_zero\n    subst hb_zero\n    simp at h_a\n    subst h_a\n    simp at h_denom\n\n  -- Step 3: Evaluate the target expression\n  rw [h_a]\n  have h_denom2 : 13 * b - b ≠ 0 := by\n    ring_nf\n    exact mul_ne_zero (by norm_num) hb\n  \n  field_simp [h_denom2]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Extract the relationship between a and b from h₂\n  -- First, we note that the denominator a - 2*b must be non-zero.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero, div_zero] at h₂\n    norm_num at h₂\n  \n  -- Clear the fraction\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_denom).mp h₂\n  \n  -- Simplify to find a in terms of b\n  have h_a : a = 13 * b := by\n    linarith [h_eq]\n  \n  -- Step 2: Show that b cannot be 0, otherwise a - 2b would be 0\n  have hb : b ≠ 0 := by\n    intro hb_zero\n    subst hb_zero\n    simp at h_a\n    subst h_a\n    simp at h_denom\n\n  -- Step 3: Evaluate the target expression\n  rw [h_a]\n  have h_denom2 : 13 * b - b ≠ 0 := by\n    ring_nf\n    exact mul_ne_zero (by norm_num) hb\n  \n  field_simp [h_denom2]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 16
+            },
+            "endPos": {
+              "line": 14,
+              "column": 24
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a / 0\nin the target expression\n  (4 * a + 3 * b) / 0 = 5\n\na b : ℚ\nh₂ : (4 * a + 3 * b) / 0 = 5\nh_zero : a - 2 * b = 0\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 36
+            },
+            "endPos": {
+              "line": 36,
+              "column": 38
+            },
+            "data": "Application type mismatch: The argument\n  hb\nhas type\n  b ≠ 0\nbut is expected to have type\n  Nat.rawCast 12 ≠ 0\nin the application\n  mul_ne_zero ?m.208 hb"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 23
+            },
+            "endPos": {
+              "line": 36,
+              "column": 34
+            },
+            "data": "unsolved goals\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a : a = 13 * b\nhb : b ≠ 0\n⊢ ¬b = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3894975185394287
+      }
+    },
+    {
+      "index": 3,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a + 11b) / (a - b) = 2$ given $(4a + 3b) / (a - 2b) = 5$, we follow these steps:\n\n### Proof Sketch\n1.  **Clear the denominator** in the given equation: $4a + 3b = 5(a - 2b)$.\n2.  **Simplify and solve for $a$**:\n    *   $4a + 3b = 5a - 10b$\n    *   Subtract $4a$ and add $10b$ to both sides to get $a = 13b$.\n3.  **Check for Division by Zero**:\n    *   If $b = 0$, then $a = 0$, which makes the original denominator $a - 2b = 0$, a contradiction. Thus $b \\neq 0$.\n    *   Since $a = 13b$ and $b \\neq 0$, the target denominator $a - b = 12b$ is non-zero.\n4.  **Substitute $a = 13b$** into the target expression:\n    *   $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b} = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we establish the relationship between a and b by clearing the denominator\n  have h_den1 : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    exact (by norm_num : (0 : ℚ) ≠ 5) h₂\n\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    exact (div_eq_iff h_den1).mp h₂\n\n  -- Simplify the equation to solve for a\n  have h_a : a = 13 * b := by\n    linarith\n\n  -- Now we substitute a = 13 * b into the target expression\n  -- First check that the target denominator is non-zero\n  have h_den2 : a - b ≠ 0 := by\n    rw [h_a]\n    intro h_zero\n    have hb : b = 0 := by linarith\n    have ha : a = 0 := by rw [hb]; linarith\n    -- If both are zero, the original denominator was zero, which we ruled out\n    exact h_den1 (by rw [ha, hb]; linarith)\n\n  -- Calculate the target fraction\n  rw [h_a]\n  field_simp [h_den2]\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we establish the relationship between a and b by clearing the denominator\n  have h_den1 : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    exact (by norm_num : (0 : ℚ) ≠ 5) h₂\n\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    exact (div_eq_iff h_den1).mp h₂\n\n  -- Simplify the equation to solve for a\n  have h_a : a = 13 * b := by\n    linarith\n\n  -- Now we substitute a = 13 * b into the target expression\n  -- First check that the target denominator is non-zero\n  have h_den2 : a - b ≠ 0 := by\n    rw [h_a]\n    intro h_zero\n    have hb : b = 0 := by linarith\n    have ha : a = 0 := by rw [hb]; linarith\n    -- If both are zero, the original denominator was zero, which we ruled out\n    exact h_den1 (by rw [ha, hb]; linarith)\n\n  -- Calculate the target fraction\n  rw [h_a]\n  field_simp [h_den2]\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 30
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 30
+            },
+            "endPos": {
+              "line": 30,
+              "column": 32
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  b\nin the target expression\n  a = 0\n\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_den1 : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a : a = 13 * b\nh_zero : 13 * b - b = 0\nhb : b = 0\n⊢ a = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 2
+            },
+            "endPos": {
+              "line": 37,
+              "column": 10
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_den1 : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a : a = 13 * b\nh_den2 : a - b ≠ 0\na✝ : b * (13 + 11) / b < (13 - 1) * 2\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.1422231197357178
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Isolate $a$ in terms of $b$**: Start with the given equation $\\frac{4a + 3b}{a - 2b} = 5$. Multiply both sides by $(a - 2b)$ to get $4a + 3b = 5(a - 2b)$, assuming $a - 2b \\neq 0$.\n2.  **Simplify**: Expand the right side to get $4a + 3b = 5a - 10b$. Rearranging the terms yields $a = 13b$.\n3.  **Substitute**: Substitute $a = 13b$ into the target expression $\\frac{a + 11b}{a - b}$.\n4.  **Evaluate**: The expression becomes $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b} = 2$, provided $b \\neq 0$.\n5.  **Handle division by zero**: If $b = 0$, then $a = 13(0) = 0$, which would make the original denominator $a - 2b = 0$, violating the existence of the first fraction. Thus $b$ cannot be zero.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Check that the denominator is not zero for the initial equation\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h\n    rw [h, div_zero] at h₂\n    norm_num at h₂\n  \n  -- Clear the fraction\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_denom).mp h₂\n  \n  -- Solve for a in terms of b\n  have h_a : a = 13 * b := by\n    linear_combination h_eq\n  \n  -- Ensure denominator of goal is not zero\n  have h_b_ne_zero : b ≠ 0 := by\n    intro hb\n    rw [hb, mul_zero] at h_a\n    rw [h_a, hb, sub_self] at h_denom\n    exact h_denom rfl\n  \n  -- Substitute a = 13b into the goal\n  rw [h_a]\n  have h_num : 13 * b + 11 * b = 24 * b := by ring\n  have h_den : 13 * b - b = 12 * b := by ring\n  rw [h_num, h_den]\n  \n  -- Final calculation\n  field_simp [h_b_ne_zero]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Check that the denominator is not zero for the initial equation\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h\n    rw [h, div_zero] at h₂\n    norm_num at h₂\n  \n  -- Clear the fraction\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_denom).mp h₂\n  \n  -- Solve for a in terms of b\n  have h_a : a = 13 * b := by\n    linear_combination h_eq\n  \n  -- Ensure denominator of goal is not zero\n  have h_b_ne_zero : b ≠ 0 := by\n    intro hb\n    rw [hb, mul_zero] at h_a\n    rw [h_a, hb, sub_self] at h_denom\n    exact h_denom rfl\n  \n  -- Substitute a = 13b into the goal\n  rw [h_a]\n  have h_num : 13 * b + 11 * b = 24 * b := by ring\n  have h_den : 13 * b - b = 12 * b := by ring\n  rw [h_num, h_den]\n  \n  -- Final calculation\n  field_simp [h_b_ne_zero]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 11
+            },
+            "endPos": {
+              "line": 13,
+              "column": 19
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a / 0\nin the target expression\n  (4 * a + 3 * b) / 0 = 5\n\na b : ℚ\nh₂ : (4 * a + 3 * b) / 0 = 5\nh : a - 2 * b = 0\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 4
+            },
+            "endPos": {
+              "line": 21,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\n⊢ a * Nat.rawCast 2 - b * 26 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 17
+            },
+            "endPos": {
+              "line": 27,
+              "column": 25
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a - ?a\nin the target expression\n  0 - 2 * 0 ≠ 0\n\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : 0 - 2 * 0 ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a : a = 0\nhb : b = 0\n⊢ False"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2491462230682373
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n1.  **Isolate the relationship between $a$ and $b$**: Starting from the given equation $\\frac{4a + 3b}{a - 2b} = 5$, we clear the denominator (assuming $a - 2b \\neq 0$) to get $4a + 3b = 5(a - 2b)$.\n2.  **Solve for $a$ in terms of $b$**: Expanding the right side gives $4a + 3b = 5a - 10b$. Rearranging terms yields $a = 13b$.\n3.  **Check consistency**: If $a = 13b$, the denominator $a - 2b$ becomes $11b$. For the original equation to be well-defined, $b \\neq 0$. If $b=0$, then $a=0$, which makes the expression undefined ($0/0$). Thus, we implicitly treat $b \\neq 0$.\n4.  **Substitute into the target expression**: Substitute $a = 13b$ into $\\frac{a + 11b}{a - b}$. This results in $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b} = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Handle the case where a - 2b = 0\n  -- If a - 2b = 0, then (4a + 3b) / 0 = 5, which in Lean's Rat division means 0 = 5, a contradiction.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero, div_zero] at h₂\n    norm_num at h₂\n  \n  -- Step 2: Clear the denominator and solve for a\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rwa [div_eq_iff h_denom] at h₂\n  \n  -- Simplify to find a = 13b\n  have h_a_eq_13b : a = 13 * b := by\n    linarith\n  \n  -- Step 3: Handle the case where b = 0\n  -- If b = 0, then a = 13(0) = 0. But a - 2b must be non-zero.\n  have h_b_ne_zero : b ≠ 0 := by\n    intro h_b_zero\n    rw [h_b_zero] at h_a_eq_13b\n    simp [h_b_zero, h_a_eq_13b] at h_denom\n\n  -- Step 4: Substitute a = 13b into the goal\n  rw [h_a_eq_13b]\n  have h_denom_final : 13 * b - b ≠ 0 := by\n    linarith\n  field_simp [h_denom_final]\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Handle the case where a - 2b = 0\n  -- If a - 2b = 0, then (4a + 3b) / 0 = 5, which in Lean's Rat division means 0 = 5, a contradiction.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero, div_zero] at h₂\n    norm_num at h₂\n  \n  -- Step 2: Clear the denominator and solve for a\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rwa [div_eq_iff h_denom] at h₂\n  \n  -- Simplify to find a = 13b\n  have h_a_eq_13b : a = 13 * b := by\n    linarith\n  \n  -- Step 3: Handle the case where b = 0\n  -- If b = 0, then a = 13(0) = 0. But a - 2b must be non-zero.\n  have h_b_ne_zero : b ≠ 0 := by\n    intro h_b_zero\n    rw [h_b_zero] at h_a_eq_13b\n    simp [h_b_zero, h_a_eq_13b] at h_denom\n\n  -- Step 4: Substitute a = 13b into the goal\n  rw [h_a_eq_13b]\n  have h_denom_final : 13 * b - b ≠ 0 := by\n    linarith\n  field_simp [h_denom_final]\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 16
+            },
+            "endPos": {
+              "line": 14,
+              "column": 24
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a / 0\nin the target expression\n  (4 * a + 3 * b) / 0 = 5\n\na b : ℚ\nh₂ : (4 * a + 3 * b) / 0 = 5\nh_zero : a - 2 * b = 0\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 4
+            },
+            "endPos": {
+              "line": 35,
+              "column": 12
+            },
+            "data": "linarith failed to find a contradiction\ncase h\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a_eq_13b : a = 13 * b\nh_b_ne_zero : b ≠ 0\na✝ : 13 * b - b = 0\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.930457353591919
+      }
+    },
+    {
+      "index": 6,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we start with the given equation and isolate the relationship between $a$ and $b$.\n\n**Proof Sketch:**\n1.  **Isolate $a$ in terms of $b$:** From the equation $\\frac{4a + 3b}{a - 2b} = 5$, we multiply both sides by $(a - 2b)$ (assuming $a - 2b \\neq 0$) to get $4a + 3b = 5(a - 2b)$.\n2.  **Simplify:** Expanding the right side gives $4a + 3b = 5a - 10b$. Rearranging terms yields $a = 13b$.\n3.  **Check Denominators:** We must ensure $a - 2b \\neq 0$ and $a - b \\neq 0$. Since $a = 13b$, $a - 2b = 11b$ and $a - b = 12b$. For the original expression to be defined, $b$ cannot be zero. If $b=0$, then $a=0$, which makes the original fraction $0/0$, so we can assume $b \\neq 0$.\n4.  **Substitute:** Substitute $a = 13b$ into the target expression:\n    $\\frac{a + 11b}{a - b} = \\frac{13b + 11b}{13b - b} = \\frac{24b}{12b} = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we need to ensure the denominator is not zero to manipulate the equation\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp at h₂\n  \n  -- Clear the denominator in the hypothesis\n  have h₁ : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    exact (div_eq_iff h_denom).mp h₂\n  \n  -- Solve for a in terms of b\n  have h_a : a = 13 * b := by\n    linear_combination h₁\n  \n  -- Substitute a = 13b into the target expression\n  rw [h_a]\n  \n  -- Check denominator of the target expression\n  have h_denom₂ : 13 * b - b ≠ 0 := by\n    intro h_zero\n    have hb : b = 0 := by linarith\n    rw [hb] at h_a\n    have ha : a = 0 := by linarith\n    rw [ha, hb] at h_denom\n    simp at h_denom\n    \n  -- Final simplification\n  field_simp [h_denom₂]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we need to ensure the denominator is not zero to manipulate the equation\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp at h₂\n  \n  -- Clear the denominator in the hypothesis\n  have h₁ : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    exact (div_eq_iff h_denom).mp h₂\n  \n  -- Solve for a in terms of b\n  have h_a : a = 13 * b := by\n    linear_combination h₁\n  \n  -- Substitute a = 13b into the target expression\n  rw [h_a]\n  \n  -- Check denominator of the target expression\n  have h_denom₂ : 13 * b - b ≠ 0 := by\n    intro h_zero\n    have hb : b = 0 := by linarith\n    rw [hb] at h_a\n    have ha : a = 0 := by linarith\n    rw [ha, hb] at h_denom\n    simp at h_denom\n    \n  -- Final simplification\n  field_simp [h_denom₂]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 14
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 4
+            },
+            "endPos": {
+              "line": 22,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh₁ : 4 * a + 3 * b = 5 * (a - 2 * b)\n⊢ a * Nat.rawCast 2 - b * 26 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 75
+            },
+            "endPos": {
+              "line": 38,
+              "column": 6
+            },
+            "data": "unsolved goals\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh₁ : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a : a = 13 * b\nh_denom₂ : 13 * b - b ≠ 0\n⊢ b * b⁻¹ * 24 = 24"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.9431190490722656
+      }
+    },
+    {
+      "index": 7,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a + 11b) / (a - b) = 2$ given the equation $\\frac{4a + 3b}{a - 2b} = 5$, we follow these steps:\n\n1.  **Isolate the relationship between $a$ and $b$**: Starting from $\\frac{4a + 3b}{a - 2b} = 5$, we multiply both sides by $(a - 2b)$ (assuming $a \\neq 2b$) to get $4a + 3b = 5(a - 2b)$.\n2.  **Solve for $a$**: Simplifying the equation gives $4a + 3b = 5a - 10b$. Rearranging terms yields $a = 13b$.\n3.  **Check for Division by Zero**: We must ensure $a - 2b \\neq 0$ (from the hypothesis) and $a - b \\neq 0$ (for the target expression). Since $a = 13b$, $a - 2b = 11b$ and $a - b = 12b$. If $b = 0$, then $a = 0$, which makes the initial expression $0/0$ (undefined). Thus, we assume $b \\neq 0$.\n4.  **Substitute into the target expression**: Replace $a$ with $13b$ in the expression $\\frac{a + 11b}{a - b}$:\n    $$\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b} = 2$$\n    The $b$ terms cancel out, resulting in 2.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Handle the denominator a - 2b ≠ 0\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [Rat.div_zero] at h₂\n    norm_num at h₂\n  \n  -- Step 2: Clear the denominator in the hypothesis\n  have h_linear : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    exact (div_eq_iff h_denom).mp h₂\n  \n  -- Step 3: Simplify to find the relationship between a and b\n  have h_rel : a = 13 * b := by\n    linear_combination h_linear\n  \n  -- Step 4: Ensure the denominator a - b is not zero\n  -- If b were 0, then a = 13*0 = 0, but a-2b ≠ 0\n  have hb : b ≠ 0 := by\n    intro hb_zero\n    rw [hb_zero] at h_rel\n    simp at h_rel\n    subst h_rel hb_zero\n    simp at h_denom\n  \n  have h_denom2 : a - b ≠ 0 := by\n    rw [h_rel]\n    ring_nf\n    exact mul_ne_zero (by norm_num) hb\n    \n  -- Step 5: Substitute a = 13b into the final expression\n  rw [h_rel]\n  ring_nf\n  field_simp [hb]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Handle the denominator a - 2b ≠ 0\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [Rat.div_zero] at h₂\n    norm_num at h₂\n  \n  -- Step 2: Clear the denominator in the hypothesis\n  have h_linear : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    exact (div_eq_iff h_denom).mp h₂\n  \n  -- Step 3: Simplify to find the relationship between a and b\n  have h_rel : a = 13 * b := by\n    linear_combination h_linear\n  \n  -- Step 4: Ensure the denominator a - b is not zero\n  -- If b were 0, then a = 13*0 = 0, but a-2b ≠ 0\n  have hb : b ≠ 0 := by\n    intro hb_zero\n    rw [hb_zero] at h_rel\n    simp at h_rel\n    subst h_rel hb_zero\n    simp at h_denom\n  \n  have h_denom2 : a - b ≠ 0 := by\n    rw [h_rel]\n    ring_nf\n    exact mul_ne_zero (by norm_num) hb\n    \n  -- Step 5: Substitute a = 13b into the final expression\n  rw [h_rel]\n  ring_nf\n  field_simp [hb]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 15
+            },
+            "endPos": {
+              "line": 14,
+              "column": 27
+            },
+            "data": "Unknown constant `Rat.div_zero`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 34
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 4
+            },
+            "endPos": {
+              "line": 23,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh_linear : 4 * a + 3 * b = 5 * (a - 2 * b)\n⊢ a * Nat.rawCast 2 - b * 26 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 36
+            },
+            "endPos": {
+              "line": 37,
+              "column": 38
+            },
+            "data": "Application type mismatch: The argument\n  hb\nhas type\n  b ≠ 0\nbut is expected to have type\n  Nat.rawCast 12 ≠ 0\nin the application\n  mul_ne_zero ?m.202 hb"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 23
+            },
+            "endPos": {
+              "line": 37,
+              "column": 34
+            },
+            "data": "unsolved goals\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh_linear : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_rel : a = 13 * b\nhb : b ≠ 0\n⊢ ¬b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 75
+            },
+            "endPos": {
+              "line": 43,
+              "column": 6
+            },
+            "data": "unsolved goals\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh_linear : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_rel : a = 13 * b\nhb : b ≠ 0\nh_denom2 : a - b ≠ 0\n⊢ Nat.rawCast 2 = 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3619062900543213
+      }
+    },
+    {
+      "index": 8,
+      "status": "FAILED",
+      "raw_text": "To solve the theorem `mathd_algebra_11`, we follow these steps:\n\n### Proof Sketch\n1.  **Isolate $a$ in terms of $b$**: Starting from the given equation $\\frac{4a + 3b}{a - 2b} = 5$, we multiply both sides by $(a - 2b)$ to get $4a + 3b = 5(a - 2b)$. \n2.  **Simplify**: Expanding the right side gives $4a + 3b = 5a - 10b$. Rearranging terms yields $a = 13b$.\n3.  **Check for Division by Zero**: We must ensure $a - 2b \\neq 0$ (given) and $a - b \\neq 0$ (implied). If $a = 13b$, then $a - 2b = 11b$ and $a - b = 12b$. Since the original fraction is defined, $b$ cannot be $0$, which ensures $a - b \\neq 0$.\n4.  **Substitute into target expression**: Substitute $a = 13b$ into $\\frac{a + 11b}{a - b}$. This gives $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$.\n5.  **Calculate**: Simplifying the fraction $\\frac{24b}{12b}$ results in $2$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Clear the denominator from h₂\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    norm_num at h₂\n  \n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← h₂]\n    exact (div_eq_iff h_denom).mp rfl\n\n  -- Step 2: Solve for a in terms of b\n  have h_a_eq : a = 13 * b := by\n    linarith [h_eq]\n\n  -- Step 3: Ensure denominator of goal is not zero\n  have h_b_ne_zero : b ≠ 0 := by\n    intro hb\n    subst hb\n    simp at h_denom\n    exact h_denom rfl\n\n  have h_denom_goal : a - b ≠ 0 := by\n    rw [h_a_eq]\n    linarith [h_b_ne_zero]\n\n  -- Step 4: Substitute and simplify\n  field_simp [h_denom_goal]\n  rw [h_a_eq]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Clear the denominator from h₂\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    norm_num at h₂\n  \n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← h₂]\n    exact (div_eq_iff h_denom).mp rfl\n\n  -- Step 2: Solve for a in terms of b\n  have h_a_eq : a = 13 * b := by\n    linarith [h_eq]\n\n  -- Step 3: Ensure denominator of goal is not zero\n  have h_b_ne_zero : b ≠ 0 := by\n    intro hb\n    subst hb\n    simp at h_denom\n    exact h_denom rfl\n\n  have h_denom_goal : a - b ≠ 0 := by\n    rw [h_a_eq]\n    linarith [h_b_ne_zero]\n\n  -- Step 4: Substitute and simplify\n  field_simp [h_denom_goal]\n  rw [h_a_eq]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 30
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 18
+            },
+            "endPos": {
+              "line": 30,
+              "column": 21
+            },
+            "data": "Application type mismatch: The argument\n  rfl\nhas type\n  ?m.178 = ?m.178\nbut is expected to have type\n  a = 0\nin the application\n  h_denom rfl"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 4
+            },
+            "endPos": {
+              "line": 34,
+              "column": 26
+            },
+            "data": "linarith failed to find a contradiction\ncase h\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a_eq : a = 13 * b\nh_b_ne_zero : b ≠ 0\na✝ : 13 * b - b = 0\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6227247714996338
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Isolate variables**: Start with the equation $\\frac{4a + 3b}{a - 2b} = 5$.\n2.  **Eliminate the fraction**: Multiply both sides by $(a - 2b)$, yielding $4a + 3b = 5(a - 2b)$.\n3.  **Solve for $a$ in terms of $b$**: Expand the right side to get $4a + 3b = 5a - 10b$. Rearranging terms gives $a = 13b$.\n4.  **Handle division by zero constraints**: Note that for the initial equation to be defined, $a \\neq 2b$. If $a = 13b$, this implies $13b \\neq 2b$, which means $b \\neq 0$.\n5.  **Substitute into the target expression**: Substitute $a = 13b$ into $\\frac{a + 11b}{a - b}$. This gives $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$.\n6.  **Simplify**: Since $b \\neq 0$, the expression simplifies to $\\frac{24}{12} = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we deal with the denominator of the hypothesis\n  have h_den : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    norm_num at h₂\n  \n  -- Clear the fraction in the hypothesis\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_den).mp h₂\n  \n  -- Solve for a in terms of b\n  have h_a : a = 13 * b := by\n    linarith [h_eq]\n  \n  -- Substitute a = 13b into the target expression\n  rw [h_a]\n  \n  -- We need to ensure the denominator is non-zero\n  have h_b_nz : b ≠ 0 := by\n    intro hb\n    rw [hb] at h_a\n    simp at h_a\n    -- If a=0 and b=0, then a-2b=0, contradicting h_den\n    subst a hb\n    simp at h_den\n\n  -- Simplify the resulting expression\n  have h_num : 13 * b + 11 * b = 24 * b := by ring\n  have h_den_final : 13 * b - b = 12 * b := by ring\n  \n  rw [h_num, h_den_final]\n  refine (div_eq_iff ?_).mpr ?_\n  · linarith\n  · ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we deal with the denominator of the hypothesis\n  have h_den : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    norm_num at h₂\n  \n  -- Clear the fraction in the hypothesis\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_den).mp h₂\n  \n  -- Solve for a in terms of b\n  have h_a : a = 13 * b := by\n    linarith [h_eq]\n  \n  -- Substitute a = 13b into the target expression\n  rw [h_a]\n  \n  -- We need to ensure the denominator is non-zero\n  have h_b_nz : b ≠ 0 := by\n    intro hb\n    rw [hb] at h_a\n    simp at h_a\n    -- If a=0 and b=0, then a-2b=0, contradicting h_den\n    subst a hb\n    simp at h_den\n\n  -- Simplify the resulting expression\n  have h_num : 13 * b + 11 * b = 24 * b := by ring\n  have h_den_final : 13 * b - b = 12 * b := by ring\n  \n  rw [h_num, h_den_final]\n  refine (div_eq_iff ?_).mpr ?_\n  · linarith\n  · ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 30
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 42,
+              "column": 4
+            },
+            "endPos": {
+              "line": 42,
+              "column": 12
+            },
+            "data": "linarith failed to find a contradiction\ncase refine_1.h\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_den : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a : a = 13 * b\nh_b_nz : b ≠ 0\nh_num : 13 * b + 11 * b = 24 * b\nh_den_final : 13 * b - b = 12 * b\na✝ : 12 * b = 0\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.33150243759155273
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Isolate the relationship between $a$ and $b$**: We start with the equation $\\frac{4a + 3b}{a - 2b} = 5$. By multiplying both sides by $(a - 2b)$, we obtain $4a + 3b = 5(a - 2b)$.\n2.  **Simplify the expression**: Expanding the right side gives $4a + 3b = 5a - 10b$. Rearranging terms to solve for $a$ in terms of $b$, we subtract $4a$ from both sides and add $10b$ to both sides, yielding $a = 13b$.\n3.  **Check for Division by Zero**: We must ensure $a - 2b \\neq 0$ for the initial equation and $a - b \\neq 0$ for the final expression. If $b = 0$, then $a = 13(0) = 0$, but substituting $a=0, b=0$ into the first equation leads to division by zero, which contradicts the existence of the value 5. Thus, $b \\neq 0$. Consequently, $a - b = 13b - b = 12b \\neq 0$.\n4.  **Evaluate the target expression**: Substitute $a = 13b$ into $\\frac{a + 11b}{a - b}$:\n    $$\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b} = 2$$\n\nHere is the complete Lean 4 code:\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Clear the denominator from the hypothesis\n  have h_den : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [division_by_zero] at h₂\n    exact (by norm_num : (0 : ℚ) ≠ 5) h₂\n  \n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← h₂]\n    exact (div_eq_iff h_den).mp rfl\n\n  -- Step 2: Solve for a in terms of b\n  have h_a_eq : a = 13 * b := by\n    linear_combination h_eq\n\n  -- Step 3: Handle the case where b = 0\n  -- If b = 0, then a = 0, which makes the original denominator 0, a contradiction.\n  have hb : b ≠ 0 := by\n    intro h_b_zero\n    subst h_b_zero\n    simp at h_a_eq\n    subst h_a_eq\n    simp at h_den\n\n  -- Step 4: Substitute a = 13b into the final expression\n  rw [h_a_eq]\n  have h_den2 : 13 * b - b ≠ 0 := by\n    simp [hb]\n  field_simp [h_den2]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Clear the denominator from the hypothesis\n  have h_den : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [division_by_zero] at h₂\n    exact (by norm_num : (0 : ℚ) ≠ 5) h₂\n  \n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← h₂]\n    exact (div_eq_iff h_den).mp rfl\n\n  -- Step 2: Solve for a in terms of b\n  have h_a_eq : a = 13 * b := by\n    linear_combination h_eq\n\n  -- Step 3: Handle the case where b = 0\n  -- If b = 0, then a = 0, which makes the original denominator 0, a contradiction.\n  have hb : b ≠ 0 := by\n    intro h_b_zero\n    subst h_b_zero\n    simp at h_a_eq\n    subst h_a_eq\n    simp at h_den\n\n  -- Step 4: Substitute a = 13b into the final expression\n  rw [h_a_eq]\n  have h_den2 : 13 * b - b ≠ 0 := by\n    simp [hb]\n  field_simp [h_den2]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 15
+            },
+            "endPos": {
+              "line": 14,
+              "column": 31
+            },
+            "data": "Unknown identifier `division_by_zero`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 38
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 4
+            },
+            "endPos": {
+              "line": 23,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_den : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\n⊢ a * Nat.rawCast 2 - b * 26 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 34
+            },
+            "endPos": {
+              "line": 37,
+              "column": 13
+            },
+            "data": "unsolved goals\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_den : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a_eq : a = 13 * b\nhb : b ≠ 0\n⊢ ¬13 * b - b = 0"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 37,
+              "column": 10
+            },
+            "endPos": {
+              "line": 37,
+              "column": 12
+            },
+            "data": "This simp argument is unused:\n  hb\n\nHint: Omit it from the simp argument list.\n  simp ̵[̵h̵b̵]̵\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.17371368408203125
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Isolate $a$ in terms of $b$**: Starting from the equation $\\frac{4a + 3b}{a - 2b} = 5$, we assume $a \\neq 2b$ to clear the denominator. Multiplying both sides by $(a - 2b)$ yields $4a + 3b = 5(a - 2b)$.\n2.  **Solve for $a$**: Expanding the right side gives $4a + 3b = 5a - 10b$. Rearranging terms ($3b + 10b = 5a - 4a$) results in $a = 13b$.\n3.  **Substitute into the target expression**: Replace $a$ with $13b$ in the expression $\\frac{a + 11b}{a - b}$. This gives $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$.\n4.  **Handle potential division by zero**: If $b = 0$, then $a = 13(0) = 0$. However, the original equation involves division by $a - 2b$. If $a=0$ and $b=0$, the denominator $a-2b$ is zero, which contradicts the existence of the value $5$. Thus, $b$ must be non-zero.\n5.  **Simplify**: With $b \\neq 0$, the expression $\\frac{24b}{12b}$ simplifies to $2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Clear the denominator in h₂.\n  -- Note: (a - 2 * b) cannot be zero because the division equals 5.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp [div_zero] at h₂\n  \n  have h_linear : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rwa [div_eq_iff h_denom] at h₂\n    \n  -- Step 2: Solve for a in terms of b.\n  have h_a_eq : a = 13 * b := by\n    linarith\n    \n  -- Step 3: Check for division by zero in the goal.\n  -- If b = 0, then a = 0, which makes a - 2b = 0, contradicting h_denom.\n  have h_b_ne_zero : b ≠ 0 := by\n    intro hb\n    have ha : a = 0 := by rw [h_a_eq, hb, mul_zero]\n    exact h_denom (by linarith)\n    \n  have h_denom_goal : a - b ≠ 0 := by\n    rw [h_a_eq]\n    linarith\n    \n  -- Step 4: Substitute and simplify.\n  rw [h_a_eq]\n  field_simp [h_b_ne_zero]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Clear the denominator in h₂.\n  -- Note: (a - 2 * b) cannot be zero because the division equals 5.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp [div_zero] at h₂\n  \n  have h_linear : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rwa [div_eq_iff h_denom] at h₂\n    \n  -- Step 2: Solve for a in terms of b.\n  have h_a_eq : a = 13 * b := by\n    linarith\n    \n  -- Step 3: Check for division by zero in the goal.\n  -- If b = 0, then a = 0, which makes a - 2b = 0, contradicting h_denom.\n  have h_b_ne_zero : b ≠ 0 := by\n    intro hb\n    have ha : a = 0 := by rw [h_a_eq, hb, mul_zero]\n    exact h_denom (by linarith)\n    \n  have h_denom_goal : a - b ≠ 0 := by\n    rw [h_a_eq]\n    linarith\n    \n  -- Step 4: Substitute and simplify.\n  rw [h_a_eq]\n  field_simp [h_b_ne_zero]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 25
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 4
+            },
+            "endPos": {
+              "line": 33,
+              "column": 12
+            },
+            "data": "linarith failed to find a contradiction\ncase h\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh_linear : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a_eq : a = 13 * b\nh_b_ne_zero : b ≠ 0\na✝ : 13 * b - b = 0\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.9524588584899902
+      }
+    },
+    {
+      "index": 12,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we start with the given equation and solve for one variable in terms of the other.\n\n**Proof Sketch:**\n1.  **Isolate relationship between $a$ and $b$:** From the equation $\\frac{4a + 3b}{a - 2b} = 5$, we multiply both sides by $(a - 2b)$ (assuming $a - 2b \\neq 0$) to get $4a + 3b = 5(a - 2b)$.\n2.  **Simplify:** Distributing the 5 gives $4a + 3b = 5a - 10b$.\n3.  **Rearrange:** Moving terms involving $a$ to one side and $b$ to the other results in $13b = a$.\n4.  **Substitute:** Substitute $a = 13b$ into the target expression $\\frac{a + 11b}{a - b}$.\n5.  **Evaluate:** This yields $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b} = 2$, provided $b \\neq 0$.\n6.  **Handle Division by Zero:** If $b = 0$, then $a = 13(0) = 0$. However, substituting $a=0, b=0$ into the original equation results in $0/0$, which is undefined (or by Lean's division convention, $0 = 5$, a contradiction). Thus $b \\neq 0$ and $a - b \\neq 0$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Clear the denominator of the hypothesis\n  -- Note: If a - 2*b = 0, then (4*a + 3*b) / 0 = 0 in Lean, which contradicts h₂ = 5.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_z\n    rw [h_z, div_zero] at h₂\n    norm_num at h₂\n  \n  -- Step 2: Extract the linear relationship between a and b\n  have h_lin : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_denom).mp h₂\n  simp at h_lin\n  -- 4a + 3b = 5a - 10b  => a = 13b\n  have h_a : a = 13 * b := by linarith\n  \n  -- Step 3: Check if the target denominator is non-zero\n  have h_target_denom : a - b ≠ 0 := by\n    rw [h_a]\n    simp\n    intro h_bz\n    -- If b = 0, then a = 0, which violates h_denom\n    rw [h_bz] at h_a\n    simp at h_a\n    rw [h_a, h_bz] at h_denom\n    simp at h_denom\n  \n  -- Step 4: Substitute a = 13b into the target expression\n  rw [h_a]\n  field_simp [h_target_denom]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Clear the denominator of the hypothesis\n  -- Note: If a - 2*b = 0, then (4*a + 3*b) / 0 = 0 in Lean, which contradicts h₂ = 5.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_z\n    rw [h_z, div_zero] at h₂\n    norm_num at h₂\n  \n  -- Step 2: Extract the linear relationship between a and b\n  have h_lin : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_denom).mp h₂\n  simp at h_lin\n  -- 4a + 3b = 5a - 10b  => a = 13b\n  have h_a : a = 13 * b := by linarith\n  \n  -- Step 3: Check if the target denominator is non-zero\n  have h_target_denom : a - b ≠ 0 := by\n    rw [h_a]\n    simp\n    intro h_bz\n    -- If b = 0, then a = 0, which violates h_denom\n    rw [h_bz] at h_a\n    simp at h_a\n    rw [h_a, h_bz] at h_denom\n    simp at h_denom\n  \n  -- Step 4: Substitute a = 13b into the target expression\n  rw [h_a]\n  field_simp [h_target_denom]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 13
+            },
+            "endPos": {
+              "line": 14,
+              "column": 21
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a / 0\nin the target expression\n  (4 * a + 3 * b) / 0 = 5\n\na b : ℚ\nh₂ : (4 * a + 3 * b) / 0 = 5\nh_z : a - 2 * b = 0\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 8
+            },
+            "endPos": {
+              "line": 29,
+              "column": 12
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  13 * b - b\nin the target expression\n  a = 13 * b\n\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh_lin : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a : a = 13 * b\nh_bz : 13 * b - b = 0\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 75
+            },
+            "endPos": {
+              "line": 37,
+              "column": 6
+            },
+            "data": "unsolved goals\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh_lin : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a : a = 13 * b\nh_target_denom : a - b ≠ 0\n⊢ b * b⁻¹ * 24 = 24"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.7473523616790771
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n### Proof Sketch\n1.  **Isolate $a$ in terms of $b$:** Start with the given equation $\\frac{4a + 3b}{a - 2b} = 5$. Multiply both sides by $(a - 2b)$ to get $4a + 3b = 5(a - 2b)$.\n2.  **Simplify:** Expand the right side: $4a + 3b = 5a - 10b$. Rearranging terms gives $a = 13b$.\n3.  **Check for Division by Zero:** We must ensure $a - 2b \\neq 0$ (given by the domain of the initial fraction) and $a - b \\neq 0$. Since $a = 13b$, $a - 2b = 11b$ and $a - b = 12b$. For the first fraction to exist, $b$ cannot be $0$.\n4.  **Substitute into the Goal:** Substitute $a = 13b$ into the expression $\\frac{a + 11b}{a - b}$.\n5.  **Evaluate:** $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$. Since $b \\neq 0$, the expression simplifies to $\\frac{24}{12} = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we extract the linear relationship between a and b.\n  -- The denominator (a - 2b) must be non-zero for the hypothesis to hold.\n  have h_denom1 : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    contradiction\n\n  -- Multiply both sides by (a - 2b) to clear the fraction\n  have h_linear : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← h₂]\n    exact div_mul_cancel₀ (4 * a + 3 * b) h_denom1\n\n  -- Simplify the linear equation to solve for a\n  -- 4a + 3b = 5a - 10b => a = 13b\n  have ha : a = 13 * b := by\n    linarith\n\n  -- Now we check the denominator of the goal expression\n  have hb : b ≠ 0 := by\n    intro hb0\n    subst hb0\n    simp [ha] at h_denom1\n\n  have h_denom2 : a - b ≠ 0 := by\n    rw [ha]\n    linarith\n\n  -- Substitute a = 13b into the target expression\n  rw [ha]\n  field_simp [h_denom2]\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we extract the linear relationship between a and b.\n  -- The denominator (a - 2b) must be non-zero for the hypothesis to hold.\n  have h_denom1 : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    contradiction\n\n  -- Multiply both sides by (a - 2b) to clear the fraction\n  have h_linear : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← h₂]\n    exact div_mul_cancel₀ (4 * a + 3 * b) h_denom1\n\n  -- Simplify the linear equation to solve for a\n  -- 4a + 3b = 5a - 10b => a = 13b\n  have ha : a = 13 * b := by\n    linarith\n\n  -- Now we check the denominator of the goal expression\n  have hb : b ≠ 0 := by\n    intro hb0\n    subst hb0\n    simp [ha] at h_denom1\n\n  have h_denom2 : a - b ≠ 0 := by\n    rw [ha]\n    linarith\n\n  -- Substitute a = 13b into the target expression\n  rw [ha]\n  field_simp [h_denom2]\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 30
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 4
+            },
+            "endPos": {
+              "line": 21,
+              "column": 50
+            },
+            "data": "Type mismatch\n  div_mul_cancel₀ (4 * a + 3 * b) h_denom1\nhas type\n  (4 * a + 3 * b) / (a - 2 * b) * (a - 2 * b) = 4 * a + 3 * b\nbut is expected to have type\n  4 * a + 3 * b = (4 * a + 3 * b) / (a - 2 * b) * (a - 2 * b)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 4
+            },
+            "endPos": {
+              "line": 36,
+              "column": 12
+            },
+            "data": "linarith failed to find a contradiction\ncase h\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom1 : a - 2 * b ≠ 0\nh_linear : 4 * a + 3 * b = 5 * (a - 2 * b)\nha : a = 13 * b\nhb : b ≠ 0\na✝ : 13 * b - b = 0\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.9326381683349609
+      }
+    },
+    {
+      "index": 14,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we analyze the given linear equation and solve for the relationship between $a$ and $b$.\n\n**Proof Sketch:**\n1.  **Simplify the given equation:** Start with $\\frac{4a + 3b}{a - 2b} = 5$. \n2.  **Clear the denominator:** Multiply both sides by $a - 2b$ to get $4a + 3b = 5(a - 2b)$. Note that the denominator $a - 2b$ cannot be zero for the initial expression to be defined.\n3.  **Solve for $a$ in terms of $b$:** Expanding the equation gives $4a + 3b = 5a - 10b$. Rearranging terms yields $a = 13b$.\n4.  **Handle the denominator $a-2b \\neq 0$:** If $a = 13b$, then $a - 2b = 11b$. For the original equation to hold, $11b$ must be non-zero, implying $b \\neq 0$.\n5.  **Evaluate the target expression:** Substitute $a = 13b$ into $\\frac{a + 11b}{a - b}$.\n    $$\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$$\n6.  **Final Result:** Since $b \\neq 0$, the expression simplifies to $\\frac{24}{12} = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Clear the denominator in h₂\n  -- First, check that a - 2*b cannot be 0\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp at h₂\n  \n  -- Multiply by the denominator\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_denom).mp h₂\n  \n  -- Step 2: Solve for a in terms of b\n  simp [mul_sub] at h_eq\n  have ha : a = 13 * b := by linarith\n  \n  -- Step 3: Check that b ≠ 0 and a - b ≠ 0\n  have hb : b ≠ 0 := by\n    intro hb_zero\n    rw [hb_zero] at ha\n    simp at ha\n    -- If a=0 and b=0, then a-2b=0, which contradicts h_denom\n    have h_contra : a - 2 * b = 0 := by rw [ha, hb_zero]; simp\n    exact h_denom h_contra\n    \n  have h_denom2 : a - b ≠ 0 := by\n    rw [ha]\n    linarith\n    \n  -- Step 4: Substitute and simplify the goal\n  rw [ha]\n  field_simp [h_denom2]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Clear the denominator in h₂\n  -- First, check that a - 2*b cannot be 0\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp at h₂\n  \n  -- Multiply by the denominator\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_denom).mp h₂\n  \n  -- Step 2: Solve for a in terms of b\n  simp [mul_sub] at h_eq\n  have ha : a = 13 * b := by linarith\n  \n  -- Step 3: Check that b ≠ 0 and a - b ≠ 0\n  have hb : b ≠ 0 := by\n    intro hb_zero\n    rw [hb_zero] at ha\n    simp at ha\n    -- If a=0 and b=0, then a-2b=0, which contradicts h_denom\n    have h_contra : a - 2 * b = 0 := by rw [ha, hb_zero]; simp\n    exact h_denom h_contra\n    \n  have h_denom2 : a - b ≠ 0 := by\n    rw [ha]\n    linarith\n    \n  -- Step 4: Substitute and simplify the goal\n  rw [ha]\n  field_simp [h_denom2]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 14
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 4
+            },
+            "endPos": {
+              "line": 35,
+              "column": 12
+            },
+            "data": "linarith failed to find a contradiction\ncase h\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * a - 5 * (2 * b)\nha : a = 13 * b\nhb : b ≠ 0\na✝ : 13 * b - b = 0\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.546248197555542
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we first analyze the given equation and then manipulate the expression to be evaluated.\n\n### Proof Sketch:\n1.  **Analyze the given equation**: We start with $(4a + 3b) / (a - 2b) = 5$. \n2.  **Isolate $a$ and $b$**: Multiplying both sides by $(a - 2b)$ (assuming $a - 2b \\neq 0$) gives $4a + 3b = 5(a - 2b)$.\n3.  **Simplify**: Expanding the right side gives $4a + 3b = 5a - 10b$. Rearranging terms yields $a = 13b$.\n4.  **Substitute into target expression**: We want to evaluate $(a + 11b) / (a - b)$. Substituting $a = 13b$ gives $(13b + 11b) / (13b - b) = 24b / 12b$.\n5.  **Finalize**: Since $b$ cannot be zero (otherwise $a$ would be zero, leading to a zero denominator in the original expression), the ratio simplifies to $24/12 = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Handle the denominator a - 2b != 0\n  have h_denom : a - 2*b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    contradiction\n\n  -- Step 2: Clear the fraction in the hypothesis\n  have h₁ : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    exact (div_eq_iff h_denom).mp h₂\n\n  -- Step 3: Solve for a in terms of b\n  -- 4a + 3b = 5a - 10b => a = 13b\n  have h_a : a = 13 * b := by\n    linarith\n\n  -- Step 4: Handle potential zero denominator in goal\n  have h_b_ne_zero : b ≠ 0 := by\n    intro hb\n    rw [hb, mul_zero] at h_a\n    rw [h_a, hb] at h_denom\n    simp at h_denom\n\n  have h_denom_goal : a - b ≠ 0 := by\n    rw [h_a]\n    linarith\n\n  -- Step 5: Substitute and simplify target expression\n  rw [h_a]\n  field_simp [h_denom_goal]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Handle the denominator a - 2b != 0\n  have h_denom : a - 2*b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    contradiction\n\n  -- Step 2: Clear the fraction in the hypothesis\n  have h₁ : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    exact (div_eq_iff h_denom).mp h₂\n\n  -- Step 3: Solve for a in terms of b\n  -- 4a + 3b = 5a - 10b => a = 13b\n  have h_a : a = 13 * b := by\n    linarith\n\n  -- Step 4: Handle potential zero denominator in goal\n  have h_b_ne_zero : b ≠ 0 := by\n    intro hb\n    rw [hb, mul_zero] at h_a\n    rw [h_a, hb] at h_denom\n    simp at h_denom\n\n  have h_denom_goal : a - b ≠ 0 := by\n    rw [h_a]\n    linarith\n\n  -- Step 5: Substitute and simplify target expression\n  rw [h_a]\n  field_simp [h_denom_goal]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 30
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 4
+            },
+            "endPos": {
+              "line": 35,
+              "column": 12
+            },
+            "data": "linarith failed to find a contradiction\ncase h\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh₁ : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a : a = 13 * b\nh_b_ne_zero : b ≠ 0\na✝ : 13 * b - b = 0\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6725897789001465
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we first manipulate the given equation to find the relationship between $a$ and $b$.\n\n**Proof Sketch:**\n1.  Start with the equation $\\frac{4a + 3b}{a - 2b} = 5$.\n2.  Multiply both sides by $(a - 2b)$ to get $4a + 3b = 5(a - 2b)$, assuming $a - 2b \\neq 0$.\n3.  Expand and simplify: $4a + 3b = 5a - 10b$, which implies $a = 13b$.\n4.  Substitute $a = 13b$ into the expression $\\frac{a + 11b}{a - b}$.\n5.  The expression becomes $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$.\n6.  Simplify the fraction to get $2$, provided $b \\neq 0$. Note that if $b = 0$, then $a = 0$, which makes the initial denominator $a - 2b = 0$, a contradiction.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we show that a - 2b cannot be zero.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    exact Int.zero_ne_five h₂\n\n  -- Now multiply both sides of h₂ by (a - 2b) to eliminate the fraction\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← div_eq_iff h_denom]\n    exact h₂\n\n  -- Simplify h_eq to find a in terms of b\n  have h_a_eq_13b : a = 13 * b := by\n    linarith\n\n  -- Substitute a = 13b into the target expression\n  rw [h_a_eq_13b]\n\n  -- Check if the denominator (13b - b) is zero\n  have h_b_ne_zero : b ≠ 0 := by\n    intro h_b_zero\n    rw [h_b_zero] at h_a_eq_13b\n    simp at h_a_eq_13b\n    -- If a = 0 and b = 0, then a - 2b = 0, which contradicts h_denom\n    have h_a_minus_2b_zero : a - 2 * b = 0 := by\n      rw [h_a_eq_13b, h_b_zero]\n      simp\n    exact h_denom h_a_minus_2b_zero\n\n  -- Final calculation\n  field_simp [h_b_ne_zero]\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we show that a - 2b cannot be zero.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    exact Int.zero_ne_five h₂\n\n  -- Now multiply both sides of h₂ by (a - 2b) to eliminate the fraction\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← div_eq_iff h_denom]\n    exact h₂\n\n  -- Simplify h_eq to find a in terms of b\n  have h_a_eq_13b : a = 13 * b := by\n    linarith\n\n  -- Substitute a = 13b into the target expression\n  rw [h_a_eq_13b]\n\n  -- Check if the denominator (13b - b) is zero\n  have h_b_ne_zero : b ≠ 0 := by\n    intro h_b_zero\n    rw [h_b_zero] at h_a_eq_13b\n    simp at h_a_eq_13b\n    -- If a = 0 and b = 0, then a - 2b = 0, which contradicts h_denom\n    have h_a_minus_2b_zero : a - 2 * b = 0 := by\n      rw [h_a_eq_13b, h_b_zero]\n      simp\n    exact h_denom h_a_minus_2b_zero\n\n  -- Final calculation\n  field_simp [h_b_ne_zero]\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 30
+            },
+            "data": "`simp` made no progress"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.7685399055480957
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Isolate the relationship between $a$ and $b$**: Start with the given equation $\\frac{4a + 3b}{a - 2b} = 5$. Multiply both sides by the denominator $(a - 2b)$ to eliminate the fraction.\n2.  **Simplify the linear equation**: Expanding the right side gives $4a + 3b = 5a - 10b$. Rearranging terms leads to $a = 13b$.\n3.  **Substitution**: Substitute $a = 13b$ into the expression we want to evaluate: $\\frac{a + 11b}{a - b}$.\n4.  **Final Calculation**: Replacing $a$ gives $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$. As long as $b \\neq 0$ (which is implied by the existence of the original fraction), this simplifies to $2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- From the given equation, deduce that the denominator is non-zero\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h\n    rw [h] at h₂\n    simp only [div_zero] at h₂\n    norm_num at h₂\n  \n  -- Clear the denominator to find a relationship between a and b\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_denom).mp h₂\n  \n  -- Simplify the equation to get a in terms of b\n  have h_a : a = 13 * b := by\n    linear_combination h_eq\n  \n  -- Now we evaluate the target expression\n  -- First, show that the denominator of the target is non-zero\n  have h_denom₂ : a - b ≠ 0 := by\n    rw [h_a]\n    intro h\n    have h_b : b = 0 := by linarith\n    rw [h_b] at h_a\n    rw [h_a, h_b] at h_denom\n    simp at h_denom\n  \n  -- Use substitution to prove the final identity\n  rw [h_a]\n  field_simp [h_denom₂]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- From the given equation, deduce that the denominator is non-zero\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h\n    rw [h] at h₂\n    simp only [div_zero] at h₂\n    norm_num at h₂\n  \n  -- Clear the denominator to find a relationship between a and b\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_denom).mp h₂\n  \n  -- Simplify the equation to get a in terms of b\n  have h_a : a = 13 * b := by\n    linear_combination h_eq\n  \n  -- Now we evaluate the target expression\n  -- First, show that the denominator of the target is non-zero\n  have h_denom₂ : a - b ≠ 0 := by\n    rw [h_a]\n    intro h\n    have h_b : b = 0 := by linarith\n    rw [h_b] at h_a\n    rw [h_a, h_b] at h_denom\n    simp at h_denom\n  \n  -- Use substitution to prove the final identity\n  rw [h_a]\n  field_simp [h_denom₂]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 30
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 4
+            },
+            "endPos": {
+              "line": 22,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\n⊢ a * Nat.rawCast 2 - b * 26 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 75
+            },
+            "endPos": {
+              "line": 37,
+              "column": 6
+            },
+            "data": "unsolved goals\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a : a = 13 * b\nh_denom₂ : a - b ≠ 0\n⊢ b * b⁻¹ * 24 = 24"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6665875911712646
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "To prove that $\\frac{a + 11b}{a - b} = 2$ given the equation $\\frac{4a + 3b}{a - 2b} = 5$, we follow these steps:\n\n### Proof Sketch:\n1.  **Isolate the relationship between $a$ and $b$**: Start with the given equation $\\frac{4a + 3b}{a - 2b} = 5$. Multiply both sides by $(a - 2b)$ (assuming $a - 2b \\neq 0$) to get $4a + 3b = 5(a - 2b)$.\n2.  **Simplify the linear equation**: Expand the right side: $4a + 3b = 5a - 10b$. Rearranging the terms gives $a = 13b$.\n3.  **Check for division by zero**: Substitute $a = 13b$ into the denominators. For $a-2b$, we get $13b-2b = 11b$. For $a-b$, we get $13b-b = 12b$. Since the original equation exists, $11b \\neq 0$, which implies $b \\neq 0$ and consequently $a-b \\neq 0$.\n4.  **Substitute into the target expression**: Replace $a$ with $13b$ in the expression $\\frac{a + 11b}{a - b}$:\n    $$\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$$\n5.  **Final Calculation**: Since $b \\neq 0$, we can cancel $b$ to get $\\frac{24}{12} = 2$.\n\n---\n\n### Lean 4 Code:\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we need to ensure the denominator a - 2b is not zero.\n  -- This is implicit in the definition of division in Lean, but the equation\n  -- h₂ only holds useful information if a - 2b ≠ 0.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero, div_zero] at h₂\n    norm_num at h₂\n  \n  -- Clear the denominator in h₂\n  have h₃ : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← h₂]\n    exact div_mul_cancel₀ (4 * a + 3 * b) h_denom\n  \n  -- Simplify to find the relationship between a and b\n  have h_rel : a = 13 * b := by\n    linarith\n  \n  -- Now address the denominator of the goal: a - b ≠ 0\n  have h_b_nonzero : b ≠ 0 := by\n    intro hb\n    rw [hb, mul_zero] at h_rel\n    rw [h_rel, hb, sub_zero] at h_denom\n    exact h_denom rfl\n  \n  have h_goal_denom : a - b ≠ 0 := by\n    rw [h_rel]\n    linarith\n  \n  -- Substitute a = 13b into the final expression\n  rw [h_rel]\n  field_simp [h_goal_denom]\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we need to ensure the denominator a - 2b is not zero.\n  -- This is implicit in the definition of division in Lean, but the equation\n  -- h₂ only holds useful information if a - 2b ≠ 0.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero, div_zero] at h₂\n    norm_num at h₂\n  \n  -- Clear the denominator in h₂\n  have h₃ : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← h₂]\n    exact div_mul_cancel₀ (4 * a + 3 * b) h_denom\n  \n  -- Simplify to find the relationship between a and b\n  have h_rel : a = 13 * b := by\n    linarith\n  \n  -- Now address the denominator of the goal: a - b ≠ 0\n  have h_b_nonzero : b ≠ 0 := by\n    intro hb\n    rw [hb, mul_zero] at h_rel\n    rw [h_rel, hb, sub_zero] at h_denom\n    exact h_denom rfl\n  \n  have h_goal_denom : a - b ≠ 0 := by\n    rw [h_rel]\n    linarith\n  \n  -- Substitute a = 13b into the final expression\n  rw [h_rel]\n  field_simp [h_goal_denom]\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 16
+            },
+            "endPos": {
+              "line": 15,
+              "column": 24
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a / 0\nin the target expression\n  (4 * a + 3 * b) / 0 = 5\n\na b : ℚ\nh₂ : (4 * a + 3 * b) / 0 = 5\nh_zero : a - 2 * b = 0\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 4
+            },
+            "endPos": {
+              "line": 21,
+              "column": 49
+            },
+            "data": "Type mismatch\n  div_mul_cancel₀ (4 * a + 3 * b) h_denom\nhas type\n  (4 * a + 3 * b) / (a - 2 * b) * (a - 2 * b) = 4 * a + 3 * b\nbut is expected to have type\n  4 * a + 3 * b = (4 * a + 3 * b) / (a - 2 * b) * (a - 2 * b)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 19
+            },
+            "endPos": {
+              "line": 31,
+              "column": 27
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a - 0\nin the target expression\n  0 - 2 * 0 ≠ 0\n\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : 0 - 2 * 0 ≠ 0\nh₃ : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_rel : a = 0\nhb : b = 0\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 4
+            },
+            "endPos": {
+              "line": 36,
+              "column": 12
+            },
+            "data": "linarith failed to find a contradiction\ncase h\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh₃ : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_rel : a = 13 * b\nh_b_nonzero : b ≠ 0\na✝ : 13 * b - b = 0\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6856021881103516
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Isolate variables**: Start with the given equation $\\frac{4a + 3b}{a - 2b} = 5$.\n2.  **Clear the denominator**: Multiply both sides by $(a - 2b)$, yielding $4a + 3b = 5(a - 2b)$.\n3.  **Simplify and Solve for $a$**: Expand the right side to get $4a + 3b = 5a - 10b$. Rearranging the terms gives $a = 13b$.\n4.  **Check for Division by Zero**: We must ensure $a - 2b \\neq 0$ for the initial equation to be defined. If $a = 13b$, then $a - 2b = 11b$. Since the fraction is defined as $5$, we must have $b \\neq 0$. This implies $a - b = 13b - b = 12b \\neq 0$.\n5.  **Substitute into the Goal**: Substitute $a = 13b$ into the expression $\\frac{a + 11b}{a - b}$.\n6.  **Calculate**: $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b} = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we need to handle the case where the denominator might be zero.\n  -- From the existence of the fraction h₂, we know a - 2b ≠ 0.\n  have h_den : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    norm_num at h₂\n\n  -- Clear the denominator in the given equation\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    exact (eq_div_iff h_den).mp h₂\n\n  -- Simplify to find the relationship between a and b\n  -- 4a + 3b = 5a - 10b  =>  13b = a\n  have h_a : a = 13 * b := by\n    linarith\n\n  -- Ensure the target denominator is non-zero\n  have h_den2 : a - b ≠ 0 := by\n    rw [h_a]\n    intro h_zero\n    have h_b : b = 0 := by linarith\n    rw [h_b] at h_a\n    have h_a0 : a = 0 := h_a\n    rw [h_a0, h_b] at h_den\n    simp at h_den\n\n  -- Substitute a = 13b into the target expression\n  rw [h_a]\n  field_simp [h_den2]\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we need to handle the case where the denominator might be zero.\n  -- From the existence of the fraction h₂, we know a - 2b ≠ 0.\n  have h_den : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    norm_num at h₂\n\n  -- Clear the denominator in the given equation\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    exact (eq_div_iff h_den).mp h₂\n\n  -- Simplify to find the relationship between a and b\n  -- 4a + 3b = 5a - 10b  =>  13b = a\n  have h_a : a = 13 * b := by\n    linarith\n\n  -- Ensure the target denominator is non-zero\n  have h_den2 : a - b ≠ 0 := by\n    rw [h_a]\n    intro h_zero\n    have h_b : b = 0 := by linarith\n    rw [h_b] at h_a\n    have h_a0 : a = 0 := h_a\n    rw [h_a0, h_b] at h_den\n    simp at h_den\n\n  -- Substitute a = 13b into the target expression\n  rw [h_a]\n  field_simp [h_den2]\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 30
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 32
+            },
+            "endPos": {
+              "line": 20,
+              "column": 34
+            },
+            "data": "Application type mismatch: The argument\n  h₂\nhas type\n  (4 * a + 3 * b) / (a - 2 * b) = 5\nbut is expected to have type\n  ?m.121 = ?m.119 / (a - 2 * b)\nin the application\n  (eq_div_iff h_den).mp h₂"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 25
+            },
+            "endPos": {
+              "line": 33,
+              "column": 28
+            },
+            "data": "Type mismatch\n  h_a\nhas type\n  a = 13 * 0\nbut is expected to have type\n  a = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 40,
+              "column": 2
+            },
+            "endPos": {
+              "line": 40,
+              "column": 10
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_den : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a : a = 13 * b\nh_den2 : a - b ≠ 0\na✝ : b * (13 + 11) / b < (13 - 1) * 2\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.7455265522003174
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we treat the given equation as a linear relationship between $a$ and $b$.\n\n1.  **Simplify the given equation**: Starting with $\\frac{4a + 3b}{a - 2b} = 5$, we cross-multiply to get $4a + 3b = 5(a - 2b)$.\n2.  **Solve for $a$ in terms of $b$**:\n    $4a + 3b = 5a - 10b \\implies 13b = a$.\n3.  **Handle potential division by zero**:\n    If $a = 13b$, the denominator of the premise $a - 2b$ becomes $11b$. For the expression to be defined, $b$ must be non-zero (if $b=0$, then $a=0$, and the original expression is undefined).\n4.  **Substitute $a = 13b$ into the target expression**:\n    $\\frac{a + 11b}{a - b} = \\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$.\n5.  **Calculate the final value**:\n    Since $b \\neq 0$, $\\frac{24b}{12b} = \\frac{24}{12} = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we determine the relationship between a and b from h₂.\n  -- We must ensure the denominator a - 2*b is not zero.\n  have h_den : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    contradiction\n\n  -- Cross-multiply to solve for a.\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← h₂]\n    exact (div_eq_iff h_den).mp rfl\n\n  -- Simplify the equation: 4a + 3b = 5a - 10b => a = 13b\n  have h_a_val : a = 13 * b := by\n    linarith\n\n  -- Now substitute a = 13b into the target expression.\n  -- Ensure the denominator a - b is not zero.\n  have h_b_ne_zero : b ≠ 0 := by\n    intro h_b0\n    rw [h_b0] at h_a_val\n    simp at h_a_val\n    rw [h_a_val, h_b0] at h_den\n    simp at h_den\n\n  have h_den2 : a - b ≠ 0 := by\n    rw [h_a_val]\n    linarith\n\n  -- Final calculation\n  rw [h_a_val]\n  field_simp [h_den2]\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we determine the relationship between a and b from h₂.\n  -- We must ensure the denominator a - 2*b is not zero.\n  have h_den : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    contradiction\n\n  -- Cross-multiply to solve for a.\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← h₂]\n    exact (div_eq_iff h_den).mp rfl\n\n  -- Simplify the equation: 4a + 3b = 5a - 10b => a = 13b\n  have h_a_val : a = 13 * b := by\n    linarith\n\n  -- Now substitute a = 13b into the target expression.\n  -- Ensure the denominator a - b is not zero.\n  have h_b_ne_zero : b ≠ 0 := by\n    intro h_b0\n    rw [h_b0] at h_a_val\n    simp at h_a_val\n    rw [h_a_val, h_b0] at h_den\n    simp at h_den\n\n  have h_den2 : a - b ≠ 0 := by\n    rw [h_a_val]\n    linarith\n\n  -- Final calculation\n  rw [h_a_val]\n  field_simp [h_den2]\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 30
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 4
+            },
+            "endPos": {
+              "line": 38,
+              "column": 12
+            },
+            "data": "linarith failed to find a contradiction\ncase h\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_den : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a_val : a = 13 * b\nh_b_ne_zero : b ≠ 0\na✝ : 13 * b - b = 0\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6985299587249756
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we treat the given equation as a linear relationship between $a$ and $b$.\n\n**Proof Sketch:**\n1.  **Analyze the premise:** Given $\\frac{4a + 3b}{a - 2b} = 5$.\n2.  Multiply both sides by $(a - 2b)$ to get $4a + 3b = 5(a - 2b)$. Note that $a - 2b \\neq 0$ is implied for the fraction to be well-defined.\n3.  Distribute and simplify: $4a + 3b = 5a - 10b$.\n4.  Rearrange terms to isolate $a$ in terms of $b$: $13b = a$.\n5.  **Substitute into the goal:** We want to evaluate $\\frac{a + 11b}{a - b}$.\n6.  Substitute $a = 13b$: $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$.\n7.  Assuming $b \\neq 0$, the expression simplifies to $\\frac{24}{12} = 2$.\n8.  Handle the edge case $b = 0$: If $b = 0$, then $a = 13(0) = 0$. However, the original denominator $a - 2b$ would be $0$, which contradicts the existence of the fraction (represented here by the division operator properties in fields). In Lean's division on fields, division by zero is defined, but standard practice in these problems assumes non-zero denominators. Here, the algebra $a = 13b$ leads directly to the result.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, isolate a in terms of b.\n  -- To handle potential division by zero, we check the case a - 2b = 0\n  have h_den : a - 2*b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp [div_zero] at h₂\n  \n  -- Use the denominator to clear the fraction\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← h₂]\n    exact div_eq_iff h_den |>.mp rfl\n    \n  -- Simplify the equation to find a = 13b\n  have h_a_eq : a = 13 * b := by\n    linarith [h_eq]\n    \n  -- Now substitute a = 13b into the target expression\n  rw [h_a_eq]\n  \n  -- Check denominator of the target\n  have h_den2 : 13 * b - b ≠ 0 := by\n    intro h_zero\n    have h_b : b = 0 := by linarith\n    have h_a : a = 0 := by linarith\n    rw [h_a, h_b] at h_den\n    simp at h_den\n    \n  -- Final calculation\n  field_simp [h_den2]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, isolate a in terms of b.\n  -- To handle potential division by zero, we check the case a - 2b = 0\n  have h_den : a - 2*b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp [div_zero] at h₂\n  \n  -- Use the denominator to clear the fraction\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← h₂]\n    exact div_eq_iff h_den |>.mp rfl\n    \n  -- Simplify the equation to find a = 13b\n  have h_a_eq : a = 13 * b := by\n    linarith [h_eq]\n    \n  -- Now substitute a = 13b into the target expression\n  rw [h_a_eq]\n  \n  -- Check denominator of the target\n  have h_den2 : 13 * b - b ≠ 0 := by\n    intro h_zero\n    have h_b : b = 0 := by linarith\n    have h_a : a = 0 := by linarith\n    rw [h_a, h_b] at h_den\n    simp at h_den\n    \n  -- Final calculation\n  field_simp [h_den2]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 25
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 75
+            },
+            "endPos": {
+              "line": 39,
+              "column": 6
+            },
+            "data": "unsolved goals\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_den : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a_eq : a = 13 * b\nh_den2 : 13 * b - b ≠ 0\n⊢ b * b⁻¹ * 24 = 24"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.8806488513946533
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we first manipulate the given equation to find the relationship between $a$ and $b$.\n\n**Proof Sketch:**\n1.  **Isolate the relationship between $a$ and $b$**: Start with the equation $\\frac{4a + 3b}{a - 2b} = 5$.\n2.  Multiply both sides by $(a - 2b)$ to get $4a + 3b = 5(a - 2b)$.\n3.  Expand the right side: $4a + 3b = 5a - 10b$.\n4.  Rearrange terms to isolate $a$: $3b + 10b = 5a - 4a$, which simplifies to $13b = a$.\n5.  **Substitute into the target expression**: We want to evaluate $\\frac{a + 11b}{a - b}$.\n6.  Substitute $a = 13b$ into the expression: $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$.\n7.  As long as $b \\neq 0$ (which is guaranteed because if $b=0$, then $a=0$, making the original denominator zero), the $b$ terms cancel out, resulting in $\\frac{24}{12} = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we deal with the denominator of h₂. \n  -- If a - 2b = 0, the division is undefined (or equals 0 in Lean's default division, \n  -- but the hypothesis implies it equals 5, so it cannot be 0).\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero, div_zero] at h₂\n    norm_num at h₂\n\n  -- Cross-multiply to solve for a in terms of b\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_denom).mp h₂\n  simp [mul_sub] at h_eq\n  \n  -- Rearrange to find a = 13b\n  have h_a : a = 13 * b := by linarith\n\n  -- Now handle the goal. Check the denominator is not zero.\n  have h_denom₂ : a - b ≠ 0 := by\n    rw [h_a]\n    intro h_zero\n    have : 12 * b = 0 := by linarith\n    have b_zero : b = 0 := by exact mul_eq_zero_iff.mp this |>.resolve_left (by norm_num)\n    have a_zero : a = 0 := by rw [b_zero] at h_a; exact h_a\n    simp [a_zero, b_zero] at h_denom\n  \n  -- Substitute a = 13b into the target expression\n  rw [h_a]\n  field_simp [h_denom₂]\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we deal with the denominator of h₂. \n  -- If a - 2b = 0, the division is undefined (or equals 0 in Lean's default division, \n  -- but the hypothesis implies it equals 5, so it cannot be 0).\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero, div_zero] at h₂\n    norm_num at h₂\n\n  -- Cross-multiply to solve for a in terms of b\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_denom).mp h₂\n  simp [mul_sub] at h_eq\n  \n  -- Rearrange to find a = 13b\n  have h_a : a = 13 * b := by linarith\n\n  -- Now handle the goal. Check the denominator is not zero.\n  have h_denom₂ : a - b ≠ 0 := by\n    rw [h_a]\n    intro h_zero\n    have : 12 * b = 0 := by linarith\n    have b_zero : b = 0 := by exact mul_eq_zero_iff.mp this |>.resolve_left (by norm_num)\n    have a_zero : a = 0 := by rw [b_zero] at h_a; exact h_a\n    simp [a_zero, b_zero] at h_denom\n  \n  -- Substitute a = 13b into the target expression\n  rw [h_a]\n  field_simp [h_denom₂]\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 16
+            },
+            "endPos": {
+              "line": 15,
+              "column": 24
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a / 0\nin the target expression\n  (4 * a + 3 * b) / 0 = 5\n\na b : ℚ\nh₂ : (4 * a + 3 * b) / 0 = 5\nh_zero : a - 2 * b = 0\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 36
+            },
+            "endPos": {
+              "line": 30,
+              "column": 54
+            },
+            "data": "Unknown identifier `mul_eq_zero_iff.mp`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 50
+            },
+            "endPos": {
+              "line": 31,
+              "column": 59
+            },
+            "data": "Type mismatch\n  h_a\nhas type\n  a = 13 * 0\nbut is expected to have type\n  a = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 2
+            },
+            "endPos": {
+              "line": 37,
+              "column": 10
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * a - 5 * (2 * b)\nh_a : a = 13 * b\nh_denom₂ : a - b ≠ 0\na✝ : b * (13 + 11) / b < (13 - 1) * 2\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.9826648235321045
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "To solve the theorem `mathd_algebra_11`, we follow these steps:\n\n### Proof Sketch\n1.  **Isolate the relationship between $a$ and $b$**: Start from the given equation $\\frac{4a + 3b}{a - 2b} = 5$.\n2.  **Clear the denominator**: Multiply both sides by $(a - 2b)$ to get $4a + 3b = 5(a - 2b)$.\n3.  **Simplify the linear equation**: Expand the right side to get $4a + 3b = 5a - 10b$. Rearranging the terms yields $a = 13b$.\n4.  **Handle the target expression**: Substitute $a = 13b$ into the target expression $\\frac{a + 11b}{a - b}$.\n5.  **Simplify the target**: This gives $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b} = 2$.\n6.  **Edge Case (Division by zero)**: We must ensure that the denominators $a - 2b$ and $a - b$ are non-zero. From $a = 13b$, if $b = 0$, then $a = 0$, which makes the initial denominator $a - 2b = 0$, a contradiction. Thus $b \\neq 0$, which ensures $a - b = 12b \\neq 0$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we need to ensure the denominator is not zero to manipulate h₂\n  have h_den : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    norm_num at h₂\n\n  -- Multiply both sides of h₂ by (a - 2 * b)\n  have h₃ : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_den).mp h₂\n  \n  -- Simplify the equation to find a relation between a and b\n  have h_rel : a = 13 * b := by\n    linear_combination h₃\n  \n  -- Substitute a = 13 * b into the denominator of the goal\n  have h_den_goal : a - b ≠ 0 := by\n    rw [h_rel]\n    intro h_zero\n    have h_b : b = 0 := by linarith\n    rw [h_b] at h_rel\n    have h_a : a = 0 := by linarith\n    rw [h_a, h_b] at h_den\n    simp at h_den\n    \n  -- Final evaluation\n  rw [h_rel]\n  field_simp [h_den_goal]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we need to ensure the denominator is not zero to manipulate h₂\n  have h_den : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    norm_num at h₂\n\n  -- Multiply both sides of h₂ by (a - 2 * b)\n  have h₃ : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_den).mp h₂\n  \n  -- Simplify the equation to find a relation between a and b\n  have h_rel : a = 13 * b := by\n    linear_combination h₃\n  \n  -- Substitute a = 13 * b into the denominator of the goal\n  have h_den_goal : a - b ≠ 0 := by\n    rw [h_rel]\n    intro h_zero\n    have h_b : b = 0 := by linarith\n    rw [h_b] at h_rel\n    have h_a : a = 0 := by linarith\n    rw [h_a, h_b] at h_den\n    simp at h_den\n    \n  -- Final evaluation\n  rw [h_rel]\n  field_simp [h_den_goal]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 30
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 4
+            },
+            "endPos": {
+              "line": 22,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_den : a - 2 * b ≠ 0\nh₃ : 4 * a + 3 * b = 5 * (a - 2 * b)\n⊢ a * Nat.rawCast 2 - b * 26 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 75
+            },
+            "endPos": {
+              "line": 37,
+              "column": 6
+            },
+            "data": "unsolved goals\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_den : a - 2 * b ≠ 0\nh₃ : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_rel : a = 13 * b\nh_den_goal : a - b ≠ 0\n⊢ b * b⁻¹ * 24 = 24"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.82891845703125
+      }
+    },
+    {
+      "index": 24,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n### Proof Sketch\n1.  **Isolate the relationship between $a$ and $b$**: Start with the given equation $\\frac{4a + 3b}{a - 2b} = 5$.\n2.  **Clear the denominator**: Multiply both sides by $(a - 2b)$, assuming $a - 2b \\neq 0$. This yields $4a + 3b = 5(a - 2b)$.\n3.  **Simplify**: Expanding the right side gives $4a + 3b = 5a - 10b$. Rearranging terms to one side leads to $a = 13b$.\n4.  **Substitute into the target expression**: Substitute $a = 13b$ into $\\frac{a + 11b}{a - b}$.\n5.  **Evaluate**: The expression becomes $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b} = 2$.\n6.  **Handle division by zero**: The initial equation implies $a - 2b \\neq 0$. If $b=0$, then $a=0$, making the original expression undefined ($0/0$). Thus $b \\neq 0$, which ensures $a-b = 12b \\neq 0$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we extract the linear relationship between a and b.\n  -- The denominator a - 2b cannot be zero for the hypothesis to hold.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    norm_num at h₂\n\n  -- Multiply by the denominator to clear the fraction\n  have h_mul := field_simp_eq.mp h₂\n  \n  -- Simplify the equation to find a in terms of b\n  -- 4a + 3b = 5(a - 2b) => 4a + 3b = 5a - 10b => a = 13b\n  have h_a_eq : a = 13 * b := by\n    linear_combination h_mul\n  \n  -- Now we check the denominator of the goal: a - b\n  -- Since a = 13b, a - b = 12b. If b = 0, then a = 0, making h_denom false.\n  have h_b_ne_zero : b ≠ 0 := by\n    intro hb\n    rw [hb, mul_zero] at h_a_eq\n    rw [h_a_eq, hb] at h_denom\n    simp at h_denom\n\n  have h_target_denom : a - b ≠ 0 := by\n    rw [h_a_eq]\n    ring_nf\n    exact mul_ne_zero (by norm_num) h_b_ne_zero\n\n  -- Finally, substitute a = 13b into the target expression\n  rw [h_a_eq]\n  field_simp [h_target_denom]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we extract the linear relationship between a and b.\n  -- The denominator a - 2b cannot be zero for the hypothesis to hold.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    norm_num at h₂\n\n  -- Multiply by the denominator to clear the fraction\n  have h_mul := field_simp_eq.mp h₂\n  \n  -- Simplify the equation to find a in terms of b\n  -- 4a + 3b = 5(a - 2b) => 4a + 3b = 5a - 10b => a = 13b\n  have h_a_eq : a = 13 * b := by\n    linear_combination h_mul\n  \n  -- Now we check the denominator of the goal: a - b\n  -- Since a = 13b, a - b = 12b. If b = 0, then a = 0, making h_denom false.\n  have h_b_ne_zero : b ≠ 0 := by\n    intro hb\n    rw [hb, mul_zero] at h_a_eq\n    rw [h_a_eq, hb] at h_denom\n    simp at h_denom\n\n  have h_target_denom : a - b ≠ 0 := by\n    rw [h_a_eq]\n    ring_nf\n    exact mul_ne_zero (by norm_num) h_b_ne_zero\n\n  -- Finally, substitute a = 13b into the target expression\n  rw [h_a_eq]\n  field_simp [h_target_denom]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 30
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 16
+            },
+            "endPos": {
+              "line": 19,
+              "column": 32
+            },
+            "data": "Unknown identifier `field_simp_eq.mp`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 75
+            },
+            "endPos": {
+              "line": 42,
+              "column": 6
+            },
+            "data": "unsolved goals\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\n⊢ (a + 11 * b) / (a - b) = 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.15145230293273926
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "To prove the given theorem, we follow these steps:\n\n### Proof Sketch\n1.  **Isolate the relationship between $a$ and $b$**: Start from the given equation $\\frac{4a + 3b}{a - 2b} = 5$.\n2.  **Clear denominators**: Multiply both sides by $a - 2b$ (assuming $a - 2b \\neq 0$) to get $4a + 3b = 5(a - 2b)$.\n3.  **Solve for $a$ in terms of $b$**: Expanding the right side gives $4a + 3b = 5a - 10b$. Rearranging terms yields $a = 13b$.\n4.  **Verify non-zero denominators**: Check that if $a = 13b$, then $a - 2b = 11b$ and $a - b = 12b$. For the original expression to be defined, $b$ must be non-zero (if $b=0$, then $a=0$, and the original fraction is undefined).\n5.  **Substitute into the target expression**: Substitute $a = 13b$ into $\\frac{a + 11b}{a - b}$. This gives $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$.\n6.  **Simplify**: Assuming $b \\neq 0$, the expression simplifies to $\\frac{24}{12} = 2$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Handle the case where the denominator is zero. \n  -- If a - 2b = 0, then the division in h₂ would imply 5 = 0 (by Lean's division by zero convention),\n  -- which is impossible.\n  have h_denom1 : a - 2 * b ≠ 0 := by\n    intro h_z\n    rw [h_z, div_zero] at h₂\n    norm_num at h₂\n\n  -- Step 2: Clear the denominator in h₂.\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    exact (div_eq_iff h_denom1).mp h₂\n\n  -- Step 3: Simplify the equation to relate a and b.\n  have h_a : a = 13 * b := by\n    linarith\n\n  -- Step 4: Handle the denominator of the goal.\n  -- If b = 0, then a = 0, but a - 2b ≠ 0, so b cannot be 0.\n  have hb : b ≠ 0 := by\n    intro hb0\n    rw [hb0, mul_zero] at h_a\n    subst hb0 h_a\n    simp at h_denom1\n\n  have h_denom2 : a - b ≠ 0 := by\n    rw [h_a]\n    linarith\n\n  -- Step 5: Substitute a = 13b into the final expression and simplify.\n  rw [h_a]\n  field_simp [h_denom2]\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Handle the case where the denominator is zero. \n  -- If a - 2b = 0, then the division in h₂ would imply 5 = 0 (by Lean's division by zero convention),\n  -- which is impossible.\n  have h_denom1 : a - 2 * b ≠ 0 := by\n    intro h_z\n    rw [h_z, div_zero] at h₂\n    norm_num at h₂\n\n  -- Step 2: Clear the denominator in h₂.\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    exact (div_eq_iff h_denom1).mp h₂\n\n  -- Step 3: Simplify the equation to relate a and b.\n  have h_a : a = 13 * b := by\n    linarith\n\n  -- Step 4: Handle the denominator of the goal.\n  -- If b = 0, then a = 0, but a - 2b ≠ 0, so b cannot be 0.\n  have hb : b ≠ 0 := by\n    intro hb0\n    rw [hb0, mul_zero] at h_a\n    subst hb0 h_a\n    simp at h_denom1\n\n  have h_denom2 : a - b ≠ 0 := by\n    rw [h_a]\n    linarith\n\n  -- Step 5: Substitute a = 13b into the final expression and simplify.\n  rw [h_a]\n  field_simp [h_denom2]\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 13
+            },
+            "endPos": {
+              "line": 15,
+              "column": 21
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a / 0\nin the target expression\n  (4 * a + 3 * b) / 0 = 5\n\na b : ℚ\nh₂ : (4 * a + 3 * b) / 0 = 5\nh_z : a - 2 * b = 0\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 4
+            },
+            "endPos": {
+              "line": 36,
+              "column": 12
+            },
+            "data": "linarith failed to find a contradiction\ncase h\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom1 : a - 2 * b ≠ 0\nh_eq : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a : a = 13 * b\nhb : b ≠ 0\na✝ : 13 * b - b = 0\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4809741973876953
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "To solve this problem, we start by manipulating the given equation to find a relationship between $a$ and $b$.\n\n**Proof Sketch:**\n1.  **Simplify the given equation:** Start with $\\frac{4a + 3b}{a - 2b} = 5$.\n2.  Multiply both sides by $(a - 2b)$ (assuming $a - 2b \\neq 0$) to get $4a + 3b = 5(a - 2b)$.\n3.  Expand the right side: $4a + 3b = 5a - 10b$.\n4.  Rearrange terms to isolate $a$: Subtract $4a$ from both sides and add $10b$ to both sides. This yields $13b = a$.\n5.  **Substitute into the target expression:** We want to evaluate $\\frac{a + 11b}{a - b}$.\n6.  Substitute $a = 13b$ into the expression: $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$.\n7.  Simplify the fraction: $\\frac{24b}{12b} = 2$.\n8.  **Edge Case Check:** Ensure the denominators $a-2b$ and $a-b$ are non-zero. Since $a=13b$, $a-2b = 11b$ and $a-b = 12b$. If $b=0$, then $a=0$, which makes the original expression $\\frac{0}{0}$ (undefined). Thus $b \\neq 0$ is implicitly required for the hypothesis to hold.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- From (4a + 3b) / (a - 2b) = 5, we derive the relationship between a and b.\n  -- First, we must ensure the denominator is not zero for the multiplication.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    norm_num at h₂\n\n  -- Multiply both sides by (a - 2b)\n  have h₃ : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← h₂, div_mul_cancel₀ _ h_denom]\n\n  -- Simplify to find a in terms of b\n  have h_a : a = 13 * b := by\n    linear_combination h₃\n\n  -- Now we evaluate the target expression (a + 11b) / (a - b)\n  -- Substitute a = 13b\n  rw [h_a]\n\n  -- Ensure the new denominator is not zero\n  have h_denom₂ : 13 * b - b ≠ 0 := by\n    intro h_zero\n    have h_b : b = 0 := by\n      rw [show 13 * b - b = 12 * b from by ring] at h_zero\n      exact eq_zero_of_mul_eq_zero (by norm_num) h_zero\n    -- If b = 0, then a = 0, which contradicts h_denom\n    rw [h_b] at h_a\n    rw [h_a, h_b] at h_denom\n    simp at h_denom\n\n  -- Calculate the final value\n  field_simp [h_denom₂]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- From (4a + 3b) / (a - 2b) = 5, we derive the relationship between a and b.\n  -- First, we must ensure the denominator is not zero for the multiplication.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    norm_num at h₂\n\n  -- Multiply both sides by (a - 2b)\n  have h₃ : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← h₂, div_mul_cancel₀ _ h_denom]\n\n  -- Simplify to find a in terms of b\n  have h_a : a = 13 * b := by\n    linear_combination h₃\n\n  -- Now we evaluate the target expression (a + 11b) / (a - b)\n  -- Substitute a = 13b\n  rw [h_a]\n\n  -- Ensure the new denominator is not zero\n  have h_denom₂ : 13 * b - b ≠ 0 := by\n    intro h_zero\n    have h_b : b = 0 := by\n      rw [show 13 * b - b = 12 * b from by ring] at h_zero\n      exact eq_zero_of_mul_eq_zero (by norm_num) h_zero\n    -- If b = 0, then a = 0, which contradicts h_denom\n    rw [h_b] at h_a\n    rw [h_a, h_b] at h_denom\n    simp at h_denom\n\n  -- Calculate the final value\n  field_simp [h_denom₂]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 30
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 4
+            },
+            "endPos": {
+              "line": 24,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh₃ : 4 * a + 3 * b = 5 * (a - 2 * b)\n⊢ a * Nat.rawCast 2 - b * 26 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 12
+            },
+            "endPos": {
+              "line": 35,
+              "column": 34
+            },
+            "data": "Unknown identifier `eq_zero_of_mul_eq_zero`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 75
+            },
+            "endPos": {
+              "line": 43,
+              "column": 6
+            },
+            "data": "unsolved goals\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh₃ : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a : a = 13 * b\nh_denom₂ : 13 * b - b ≠ 0\n⊢ b * b⁻¹ * 24 = 24"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.29526329040527344
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a + 11b) / (a - b) = 2$ given $(4a + 3b) / (a - 2b) = 5$, we follow these steps:\n\n### Proof Sketch\n1.  **Isolate $a$ in terms of $b$**: Start from the given equation $\\frac{4a + 3b}{a - 2b} = 5$.\n    *   Multiply both sides by $(a - 2b)$ (assuming $a \\neq 2b$) to get $4a + 3b = 5(a - 2b)$.\n    *   Expand the right side: $4a + 3b = 5a - 10b$.\n    *   Rearrange terms to isolate $a$: $3b + 10b = 5a - 4a$, which simplifies to $13b = a$.\n2.  **Verify non-zero denominators**: \n    *   If $b=0$, then $a=0$, which makes the original expression $0/0$ (undefined). Assuming the problem implies defined expressions, we check the target denominator $a - b = 13b - b = 12b$. For this to be non-zero, $b \\neq 0$.\n3.  **Substitute into the target expression**:\n    *   Substitute $a = 13b$ into $\\frac{a + 11b}{a - b}$.\n    *   Numerator: $13b + 11b = 24b$.\n    *   Denominator: $13b - b = 12b$.\n    *   The fraction becomes $\\frac{24b}{12b}$, which simplifies to $2$ provided $b \\neq 0$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we need to handle the case where the denominator might be zero\n  -- The expression (4a + 3b) / (a - 2b) implies a - 2b ≠ 0\n  have h_denom1 : a - 2 * b ≠ 0 := by\n    intro h\n    rw [h, div_zero] at h₂\n    exact (by norm_num : (0 : ℚ) ≠ 5) h₂\n\n  -- Now solve for a in terms of b\n  have ha : a = 13 * b := by\n    field_simp [h_denom1] at h₂\n    linarith\n\n  -- Substitute a = 13b into the target expression\n  rw [ha]\n\n  -- Check that the new denominator is non-zero\n  -- If b were zero, then a would be zero, making a - 2b = 0, which we already excluded.\n  have hb : b ≠ 0 := by\n    intro hb_zero\n    subst hb_zero\n    simp at h_denom1\n    exact h_denom1 ha\n\n  -- Final simplification\n  field_simp [hb]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we need to handle the case where the denominator might be zero\n  -- The expression (4a + 3b) / (a - 2b) implies a - 2b ≠ 0\n  have h_denom1 : a - 2 * b ≠ 0 := by\n    intro h\n    rw [h, div_zero] at h₂\n    exact (by norm_num : (0 : ℚ) ≠ 5) h₂\n\n  -- Now solve for a in terms of b\n  have ha : a = 13 * b := by\n    field_simp [h_denom1] at h₂\n    linarith\n\n  -- Substitute a = 13b into the target expression\n  rw [ha]\n\n  -- Check that the new denominator is non-zero\n  -- If b were zero, then a would be zero, making a - 2b = 0, which we already excluded.\n  have hb : b ≠ 0 := by\n    intro hb_zero\n    subst hb_zero\n    simp at h_denom1\n    exact h_denom1 ha\n\n  -- Final simplification\n  field_simp [hb]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 11
+            },
+            "endPos": {
+              "line": 14,
+              "column": 19
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a / 0\nin the target expression\n  (4 * a + 3 * b) / 0 = 5\n\na b : ℚ\nh₂ : (4 * a + 3 * b) / 0 = 5\nh : a - 2 * b = 0\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 4
+            },
+            "endPos": {
+              "line": 20,
+              "column": 12
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℚ\nh_denom1 : a - 2 * b ≠ 0\nh₂ : (4 * a + 3 * b) / (a - b * 2) = 5\na✝ : a < 13 * b\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 19
+            },
+            "endPos": {
+              "line": 31,
+              "column": 21
+            },
+            "data": "Application type mismatch: The argument\n  ha\nhas type\n  a = 13 * 0\nbut is expected to have type\n  a = 0\nin the application\n  h_denom1 ha"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.38999342918395996
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "To solve for the expression $(a + 11b) / (a - b)$ given the equation $(4a + 3b) / (a - 2b) = 5$, we follow these steps:\n\n### Proof Sketch\n1.  **Isolate the relationship between $a$ and $b$:** Start with the equation $\\frac{4a + 3b}{a - 2b} = 5$. Multiply both sides by $(a - 2b)$ (assuming $a - 2b \\neq 0$) to get $4a + 3b = 5(a - 2b)$.\n2.  **Simplify the linear equation:** Expanding the right side gives $4a + 3b = 5a - 10b$. Rearranging terms to solve for $a$ in terms of $b$ yields $a = 13b$.\n3.  **Substitute $a = 13b$ into the target expression:** Substitute $13b$ for $a$ in $\\frac{a + 11b}{a - b}$. This gives $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$.\n4.  **Simplify:** Assuming $b \\neq 0$, the $b$ terms cancel out, leaving $\\frac{24}{12} = 2$.\n5.  **Handle Division by Zero:** We must verify that $a - 2b \\neq 0$ and $a - b \\neq 0$. If $b=0$, then $a=0$, which makes the original denominator $a-2b=0$, rendering the initial hypothesis undefined. Thus, $b$ must be non-zero, and consequently $a-b = 12b \\neq 0$.\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we need to show that a - 2b ≠ 0 for the division in h₂ to be valid.\n  -- In Lean, division by zero is defined, but we typically need the denominator \n  -- to be non-zero to manipulate fractions.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero, div_zero] at h₂\n    norm_num at h₂\n  \n  -- Cross-multiply to clear the denominator in the hypothesis.\n  have h_mul := (eq_div_iff h_denom).mp h₂\n  \n  -- Expand and solve for a in terms of b.\n  have h_a : a = 13 * b := by\n    linarith\n  \n  -- Now address the target expression.\n  -- Check that the new denominator a - b is not zero.\n  have h_denom₂ : a - b ≠ 0 := by\n    rw [h_a]\n    intro h_zero\n    have : 12 * b = 0 := by linarith\n    have : b = 0 := by linarith\n    rw [this] at h_a\n    have : a = 0 := by linarith\n    -- If a=0 and b=0, then a - 2b = 0, which contradicts h_denom.\n    subst this\n    subst ‹b = 0›\n    simp at h_denom\n\n  -- Substitute a = 13b into the goal.\n  rw [h_a]\n  field_simp [h_denom₂]\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we need to show that a - 2b ≠ 0 for the division in h₂ to be valid.\n  -- In Lean, division by zero is defined, but we typically need the denominator \n  -- to be non-zero to manipulate fractions.\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero, div_zero] at h₂\n    norm_num at h₂\n  \n  -- Cross-multiply to clear the denominator in the hypothesis.\n  have h_mul := (eq_div_iff h_denom).mp h₂\n  \n  -- Expand and solve for a in terms of b.\n  have h_a : a = 13 * b := by\n    linarith\n  \n  -- Now address the target expression.\n  -- Check that the new denominator a - b is not zero.\n  have h_denom₂ : a - b ≠ 0 := by\n    rw [h_a]\n    intro h_zero\n    have : 12 * b = 0 := by linarith\n    have : b = 0 := by linarith\n    rw [this] at h_a\n    have : a = 0 := by linarith\n    -- If a=0 and b=0, then a - 2b = 0, which contradicts h_denom.\n    subst this\n    subst ‹b = 0›\n    simp at h_denom\n\n  -- Substitute a = 13b into the goal.\n  rw [h_a]\n  field_simp [h_denom₂]\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 16
+            },
+            "endPos": {
+              "line": 15,
+              "column": 24
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a / 0\nin the target expression\n  (4 * a + 3 * b) / 0 = 5\n\na b : ℚ\nh₂ : (4 * a + 3 * b) / 0 = 5\nh_zero : a - 2 * b = 0\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 40
+            },
+            "endPos": {
+              "line": 19,
+              "column": 42
+            },
+            "data": "Application type mismatch: The argument\n  h₂\nhas type\n  (4 * a + 3 * b) / (a - 2 * b) = 5\nbut is expected to have type\n  ?m.89 = ?m.87 / (a - 2 * b)\nin the application\n  (eq_div_iff h_denom).mp h₂"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.12940764427185059
+      }
+    },
+    {
+      "index": 29,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Isolate the relationship between $a$ and $b$**: Starting from the given equation $\\frac{4a + 3b}{a - 2b} = 5$, we multiply both sides by $(a - 2b)$ to eliminate the denominator.\n2.  **Simplify**: $4a + 3b = 5(a - 2b)$ simplifies to $4a + 3b = 5a - 10b$.\n3.  **Express $a$ in terms of $b$**: Rearranging the terms gives $13b = a$.\n4.  **Substitute into the target expression**: Replace $a$ with $13b$ in the expression $\\frac{a + 11b}{a - b}$.\n5.  **Final Calculation**: This yields $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b} = 2$.\n6.  **Division by Zero check**: Ensure that $a - 2b \\neq 0$ (implied by the existence of the first fraction) and $a - b \\neq 0$ (verified by $a = 13b$ and the fact that $b$ cannot be $0$, otherwise $a$ would be $0$ and the first denominator would be $0$).\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, handle the denominator of the hypothesis\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h\n    rw [h] at h₂\n    simp at h₂\n  \n  -- Clear the denominator in the hypothesis\n  have h₁ : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    exact (div_eq_iff h_denom).mp h₂\n    \n  -- Simplify the equation to find a in terms of b\n  have h_a : a = 13 * b := by\n    linarith\n    \n  -- Substitute a = 13b into the target expression\n  rw [h_a]\n  \n  -- Check that the denominator is not zero\n  have h_denom₂ : 13 * b - b ≠ 0 := by\n    intro h\n    have h_b : b = 0 := by linarith\n    rw [h_b] at h_a\n    have h_a0 : a = 0 := by linarith\n    rw [h_a0, h_b] at h_denom\n    simp at h_denom\n    \n  -- Final simplification\n  field_simp [h_denom₂]\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, handle the denominator of the hypothesis\n  have h_denom : a - 2 * b ≠ 0 := by\n    intro h\n    rw [h] at h₂\n    simp at h₂\n  \n  -- Clear the denominator in the hypothesis\n  have h₁ : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    exact (div_eq_iff h_denom).mp h₂\n    \n  -- Simplify the equation to find a in terms of b\n  have h_a : a = 13 * b := by\n    linarith\n    \n  -- Substitute a = 13b into the target expression\n  rw [h_a]\n  \n  -- Check that the denominator is not zero\n  have h_denom₂ : 13 * b - b ≠ 0 := by\n    intro h\n    have h_b : b = 0 := by linarith\n    rw [h_b] at h_a\n    have h_a0 : a = 0 := by linarith\n    rw [h_a0, h_b] at h_denom\n    simp at h_denom\n    \n  -- Final simplification\n  field_simp [h_denom₂]\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 14
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 2
+            },
+            "endPos": {
+              "line": 38,
+              "column": 10
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_denom : a - 2 * b ≠ 0\nh₁ : 4 * a + 3 * b = 5 * (a - 2 * b)\nh_a : a = 13 * b\nh_denom₂ : 13 * b - b ≠ 0\na✝ : b * (13 + 11) / b < (13 - 1) * 2\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.7514328956604004
+      }
+    },
+    {
+      "index": 30,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we analyze the given linear equation relating $a$ and $b$.\n\n**Proof Sketch:**\n1.  **Linear Relation:** Start with the equation $\\frac{4a + 3b}{a - 2b} = 5$.\n2.  **Clear Denominator:** Multiply both sides by $(a - 2b)$ (assuming $a - 2b \\neq 0$) to get $4a + 3b = 5(a - 2b)$.\n3.  **Solve for $a$:** Distributing the right side gives $4a + 3b = 5a - 10b$. Rearranging terms yields $a = 13b$.\n4.  **Substitution:** Substitute $a = 13b$ into the target expression $\\frac{a + 11b}{a - b}$.\n5.  **Simplify:** The expression becomes $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$.\n6.  **Result:** Assuming $b \\neq 0$ (which follows from $a - 2b \\neq 0$ and $a = 13b$), the $b$ terms cancel out, leaving $\\frac{24}{12} = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Analyze the denominator of h₂ to ensure it's non-zero\n  have h_den : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    norm_num at h₂\n\n  -- Step 2: Extract the relationship between a and b\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_den).mp h₂\n  simp only [mul_sub, mul_comm] at h_eq\n  have h_a : a = 13 * b := by linarith\n\n  -- Step 3: Handle the target denominator\n  have h_den2 : a - b ≠ 0 := by\n    rw [h_a]\n    intro h_zero\n    have h_b : b = 0 := by linarith\n    have h_a0 : a = 0 := by rw [h_a, h_b]; norm_num\n    rw [h_a0, h_b] at h_den\n    simp at h_den\n\n  -- Step 4: Substitute and solve\n  rw [h_a]\n  field_simp [h_den2]\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Analyze the denominator of h₂ to ensure it's non-zero\n  have h_den : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    norm_num at h₂\n\n  -- Step 2: Extract the relationship between a and b\n  have h_eq : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_den).mp h₂\n  simp only [mul_sub, mul_comm] at h_eq\n  have h_a : a = 13 * b := by linarith\n\n  -- Step 3: Handle the target denominator\n  have h_den2 : a - b ≠ 0 := by\n    rw [h_a]\n    intro h_zero\n    have h_b : b = 0 := by linarith\n    have h_a0 : a = 0 := by rw [h_a, h_b]; norm_num\n    rw [h_a0, h_b] at h_den\n    simp at h_den\n\n  -- Step 4: Substitute and solve\n  rw [h_a]\n  field_simp [h_den2]\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 30
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 2
+            },
+            "endPos": {
+              "line": 34,
+              "column": 10
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_den : a - 2 * b ≠ 0\nh_eq : a * 4 + b * 3 = (a - b * 2) * 5\nh_a : a = 13 * b\nh_den2 : a - b ≠ 0\na✝ : b * (13 + 11) / b < (13 - 1) * 2\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 19,
+              "column": 13
+            },
+            "endPos": {
+              "line": 19,
+              "column": 20
+            },
+            "data": "This simp argument is unused:\n  mul_sub\n\nHint: Omit it from the simp argument list.\n  simp only [mul_s̵u̵b̵,̵ ̵m̵u̵l̵_̵comm] at h_eq\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.6623203754425049
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Isolate $a$ in terms of $b$**: Starting from the given equation $\\frac{4a + 3b}{a - 2b} = 5$, we multiply both sides by $(a - 2b)$ (assuming $a - 2b \\neq 0$). This yields $4a + 3b = 5(a - 2b)$.\n2.  **Solve for $a$**: Simplifying the RHS gives $4a + 3b = 5a - 10b$. Subtracting $4a$ and adding $10b$ to both sides results in $a = 13b$.\n3.  **Check for Division by Zero**: If $b = 0$, then $a = 0$, which makes the denominators in the original problem zero. Thus, we assume $b \\neq 0$. If $b \\neq 0$, then $a - 2b = 11b \\neq 0$ and $a - b = 12b \\neq 0$.\n4.  **Substitute into the target expression**: Substitute $a = 13b$ into $\\frac{a + 11b}{a - b}$. This gives $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b}$.\n5.  **Simplify**: $\\frac{24b}{12b} = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Handle the denominator of the hypothesis\n  have h_den : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [Rat.div_zero] at h₂\n    norm_num at h₂\n  \n  -- Step 2: Clear the fraction in the hypothesis\n  have h₃ : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← h₂]\n    exact div_eq_iff h_den |>.mp rfl\n  \n  -- Step 3: Solve for a in terms of b\n  have h_a : a = 13 * b := by\n    linear_combination h₃\n  \n  -- Step 4: Check that the denominator of the target is not zero\n  have hb_ne_zero : b ≠ 0 := by\n    intro h_b_zero\n    rw [h_b_zero] at h_a\n    simp at h_a\n    rw [h_a, h_b_zero] at h_den\n    simp at h_den\n  \n  have h_den_target : a - b ≠ 0 := by\n    rw [h_a]\n    intro h_z\n    have : 12 * b = 0 := by linear_combination h_z\n    simp [hb_ne_zero] at this\n\n  -- Step 5: Substitute a = 13b into the target and simplify\n  rw [h_a]\n  field_simp [hb_ne_zero]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- Step 1: Handle the denominator of the hypothesis\n  have h_den : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [Rat.div_zero] at h₂\n    norm_num at h₂\n  \n  -- Step 2: Clear the fraction in the hypothesis\n  have h₃ : 4 * a + 3 * b = 5 * (a - 2 * b) := by\n    rw [← h₂]\n    exact div_eq_iff h_den |>.mp rfl\n  \n  -- Step 3: Solve for a in terms of b\n  have h_a : a = 13 * b := by\n    linear_combination h₃\n  \n  -- Step 4: Check that the denominator of the target is not zero\n  have hb_ne_zero : b ≠ 0 := by\n    intro h_b_zero\n    rw [h_b_zero] at h_a\n    simp at h_a\n    rw [h_a, h_b_zero] at h_den\n    simp at h_den\n  \n  have h_den_target : a - b ≠ 0 := by\n    rw [h_a]\n    intro h_z\n    have : 12 * b = 0 := by linear_combination h_z\n    simp [hb_ne_zero] at this\n\n  -- Step 5: Substitute a = 13b into the target and simplify\n  rw [h_a]\n  field_simp [hb_ne_zero]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 15
+            },
+            "endPos": {
+              "line": 14,
+              "column": 27
+            },
+            "data": "Unknown constant `Rat.div_zero`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 34
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 4
+            },
+            "endPos": {
+              "line": 24,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_den : a - 2 * b ≠ 0\nh₃ : 4 * a + 3 * b = 5 * (a - 2 * b)\n⊢ a * Nat.rawCast 2 - b * 26 = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3868751525878906
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we first analyze the given equation to find the relationship between $a$ and $b$.\n\n**Proof Sketch:**\n1.  **Isolate $a$ in terms of $b$:**\n    The given equation is $\\frac{4a + 3b}{a - 2b} = 5$.\n    Multiply both sides by $(a - 2b)$ (assuming $a - 2b \\neq 0$):\n    $4a + 3b = 5(a - 2b)$\n    $4a + 3b = 5a - 10b$\n    Subtracting $4a$ from both sides and adding $10b$ gives:\n    $13b = a$.\n2.  **Verify non-zero denominators:**\n    If $a = 13b$, then $a - 2b = 11b$ and $a - b = 12b$.\n    Since the original expression $\\frac{4a + 3b}{a - 2b}$ is defined, $a - 2b$ cannot be zero, implying $b \\neq 0$. Thus, $a - b = 12b$ is also non-zero.\n3.  **Substitute into the target expression:**\n    Substitute $a = 13b$ into $\\frac{a + 11b}{a - b}$:\n    $\\frac{13b + 11b}{13b - b} = \\frac{24b}{12b} = 2$.\n\n**Lean 4 Code:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we handle the case where the denominator might be zero.\n  -- The expression (4a+3b)/(a-2b) implies a - 2b ≠ 0.\n  have h_den : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    exact (by norm_num : (0 : ℚ) ≠ 5) h₂\n\n  -- Multiply out the denominator in h₂\n  have h₃ : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_den).mp h₂\n  \n  -- Solve for a in terms of b\n  have ha : a = 13 * b := by\n    linear_combination h₃\n  \n  -- Check denominator of the target\n  have h_den2 : a - b ≠ 0 := by\n    rw [ha]\n    intro h_zero\n    have hb : b = 0 := by linarith\n    rw [hb] at h_den\n    simp at h_den\n  \n  -- Substitute a = 13b into the final expression\n  rw [ha]\n  field_simp [h_den2]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_11 (a b : ℚ)\n  (h₂ : (4 * a + 3 * b) / (a - 2 * b) = 5) : (a + 11 * b) / (a - b) = 2 := by\n  -- First, we handle the case where the denominator might be zero.\n  -- The expression (4a+3b)/(a-2b) implies a - 2b ≠ 0.\n  have h_den : a - 2 * b ≠ 0 := by\n    intro h_zero\n    rw [h_zero] at h₂\n    simp only [div_zero] at h₂\n    exact (by norm_num : (0 : ℚ) ≠ 5) h₂\n\n  -- Multiply out the denominator in h₂\n  have h₃ : 4 * a + 3 * b = 5 * (a - 2 * b) := (div_eq_iff h_den).mp h₂\n  \n  -- Solve for a in terms of b\n  have ha : a = 13 * b := by\n    linear_combination h₃\n  \n  -- Check denominator of the target\n  have h_den2 : a - b ≠ 0 := by\n    rw [ha]\n    intro h_zero\n    have hb : b = 0 := by linarith\n    rw [hb] at h_den\n    simp at h_den\n  \n  -- Substitute a = 13b into the final expression\n  rw [ha]\n  field_simp [h_den2]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 30
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 4
+            },
+            "endPos": {
+              "line": 23,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_den : a - 2 * b ≠ 0\nh₃ : 4 * a + 3 * b = 5 * (a - 2 * b)\n⊢ a * Nat.rawCast 2 - b * 26 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 29
+            },
+            "endPos": {
+              "line": 31,
+              "column": 17
+            },
+            "data": "unsolved goals\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh₃ : 4 * a + 3 * b = 5 * (a - 2 * b)\nha : a = 13 * b\nh_zero : 13 * b - b = 0\nhb : b = 0\nh_den : ¬a = 0\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 75
+            },
+            "endPos": {
+              "line": 36,
+              "column": 6
+            },
+            "data": "unsolved goals\na b : ℚ\nh₂ : (4 * a + 3 * b) / (a - 2 * b) = 5\nh_den : a - 2 * b ≠ 0\nh₃ : 4 * a + 3 * b = 5 * (a - 2 * b)\nha : a = 13 * b\nh_den2 : a - b ≠ 0\n⊢ b * b⁻¹ * 24 = 24"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5140540599822998
+      }
+    }
+  ]
+}

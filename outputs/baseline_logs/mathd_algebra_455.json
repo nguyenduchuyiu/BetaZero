@@ -1,0 +1,1969 @@
+{
+  "problem": "problems/miniF2F-test/mathd_algebra_455.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 15:48:23",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 2,
+    "completed_count": 2,
+    "solved": true
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "To prove $f(1) = 3$ given $f(x+1) = 2f(x)$ and $f(5) = 48$:\n\n1.  **Iterative formula**: The recurrence relation $f(x+1) = 2f(x)$ implies that $f(x) = f(1) \\cdot 2^{x-1}$ for all $x \\in \\mathbb{N}^+$.\n2.  **Base case and induction**: \n    - For $x=1$, $f(1) = f(1) \\cdot 2^0 = f(1)$.\n    - Assuming $f(k) = f(1) \\cdot 2^{k-1}$, then $f(k+1) = 2 \\cdot f(k) = 2 \\cdot (f(1) \\cdot 2^{k-1}) = f(1) \\cdot 2^k$.\n3.  **Application**: Using $f(5) = 48$, we substitute $x=5$ into our general formula:\n    $48 = f(5) = f(1) \\cdot 2^{5-1} = f(1) \\cdot 2^4 = f(1) \\cdot 16$.\n4.  **Solve**: Dividing both sides by 16 gives $f(1) = 48 / 16 = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We first establish the general form f(n) = f(1) * 2^(n-1)\n  have h_general : ∀ (n : ℕ+), f n = f 1 * 2^(n.val - 1) := by\n    intro n\n    induction n using PNat.recOn with\n    | base => simp\n    | ind k ih =>\n      rw [h₀ k]\n      rw [ih]\n      have h_pos : k.val ≥ 1 := k.prop\n      rw [PNat.add_coe, PNat.one_coe]\n      simp [Nat.add_sub_cancel]\n      ring_nf\n      rw [pow_succ]\n      ring\n\n  -- Apply the general form to f 5\n  have h_f5 := h_general 5\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  -- Solve for f 1\n  linear_combination h_f5 / 16\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We first establish the general form f(n) = f(1) * 2^(n-1)\n  have h_general : ∀ (n : ℕ+), f n = f 1 * 2^(n.val - 1) := by\n    intro n\n    induction n using PNat.recOn with\n    | base => simp\n    | ind k ih =>\n      rw [h₀ k]\n      rw [ih]\n      have h_pos : k.val ≥ 1 := k.prop\n      rw [PNat.add_coe, PNat.one_coe]\n      simp [Nat.add_sub_cancel]\n      ring_nf\n      rw [pow_succ]\n      ring\n\n  -- Apply the general form to f 5\n  have h_f5 := h_general 5\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  -- Solve for f 1\n  linear_combination h_f5 / 16",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 18
+            },
+            "data": "Invalid alternative name `base`: Expected `one` or `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 4
+            },
+            "endPos": {
+              "line": 26,
+              "column": 10
+            },
+            "data": "Invalid alternative name `ind`: Expected `one` or `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 13
+            },
+            "data": "Alternative `one` has not been provided"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 13
+            },
+            "data": "Alternative `succ` has not been provided"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 2
+            },
+            "endPos": {
+              "line": 33,
+              "column": 20
+            },
+            "data": "ring failed, ring expressions not equal\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\nh_general : ∀ (n : ℕ+), f n = f 1 * 2 ^ (↑n - 1)\nh_f5 : 48 = f 1 * 16\n⊢ f 1 + f 1 * 16 / 16 = 6"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.08286714553833008
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "To solve for $f(1)$, we use the recurrence relation $f(x+1) = 2 \\cdot f(x)$. This implies that $f$ is a geometric sequence where $f(n) = f(1) \\cdot 2^{n-1}$. \n\n**Proof Sketch:**\n1.  From the recurrence $f(x+1) = 2f(x)$, we can prove by induction on $n$ that $f(n) = f(1) \\cdot 2^{n-1}$ for any $n \\in \\mathbb{N}^+$.\n2.  Specifically, for $n=5$, we have $f(5) = f(1) \\cdot 2^{5-1} = f(1) \\cdot 2^4 = f(1) \\cdot 16$.\n3.  Given $f(5) = 48$, we have the equation $48 = f(1) \\cdot 16$.\n4.  Dividing both sides by 16 yields $f(1) = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We prove by induction that f(n) = f(1) * 2^(n-1)\n  have h_geom : ∀ n : ℕ, f ⟨n + 1, n.succ_pos⟩ = f 1 * 2^n := by\n    intro n\n    induction n with\n    | zero => simp\n    | succ k ih =>\n      -- f(k + 2) = f((k + 1) + 1)\n      let current : ℕ+ := ⟨k + 1, k.succ_pos⟩\n      have step := h₀ current\n      have : current + 1 = ⟨k + 2, (k + 1).succ_pos⟩ := rfl\n      rw [this] at step\n      rw [step, ih]\n      ring\n\n  -- Apply the formula to n = 4 (which corresponds to f(5))\n  have h5 := h_geom 4\n  norm_num at h5\n  -- h5 is f 5 = f 1 * 16\n  rw [h₁] at h5\n  -- 48 = f 1 * 16\n  exact (Nat.mul_right_inj (by norm_num)).mp h5.symm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We prove by induction that f(n) = f(1) * 2^(n-1)\n  have h_geom : ∀ n : ℕ, f ⟨n + 1, n.succ_pos⟩ = f 1 * 2^n := by\n    intro n\n    induction n with\n    | zero => simp\n    | succ k ih =>\n      -- f(k + 2) = f((k + 1) + 1)\n      let current : ℕ+ := ⟨k + 1, k.succ_pos⟩\n      have step := h₀ current\n      have : current + 1 = ⟨k + 2, (k + 1).succ_pos⟩ := rfl\n      rw [this] at step\n      rw [step, ih]\n      ring\n\n  -- Apply the formula to n = 4 (which corresponds to f(5))\n  have h5 := h_geom 4\n  norm_num at h5\n  -- h5 is f 5 = f 1 * 16\n  rw [h₁] at h5\n  -- 48 = f 1 * 16\n  exact (Nat.mul_right_inj (by norm_num)).mp h5.symm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 28
+            },
+            "endPos": {
+              "line": 33,
+              "column": 39
+            },
+            "data": "unsolved goals\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\nh_geom : ∀ (n : ℕ), f ⟨n + 1, ⋯⟩ = f 1 * 2 ^ n\nh5 : 48 = f 1 * 16\n⊢ ¬?m.123 = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.09607410430908203
+      }
+    },
+    {
+      "index": 3,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe that the recurrence relation $f(x+1) = 2 \\cdot f(x)$ defines a geometric sequence. By induction, we can show that $f(x) = f(1) \\cdot 2^{x-1}$ for any positive integer $x$. Specifically, for $x=5$, the formula gives $f(5) = f(1) \\cdot 2^4 = f(1) \\cdot 16$. Given that $f(5) = 48$, we have $48 = f(1) \\cdot 16$, which implies $f(1) = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(n) = f(1) * 2^(n-1)\n  have h_geom : ∀ (n : ℕ), f (n + 1 : ℕ+) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k + 2) = 2 * f(k + 1)\n      have h_step : f (k + 2 : ℕ+) = 2 * f (k + 1 : ℕ+) := by\n        -- rewrite k+2 as (k+1)+1 to use h₀\n        have h_succ : (k + 2 : ℕ+) = (k + 1 : ℕ+) + 1 := rfl\n        rw [h_succ, h₀]\n      rw [h_step, ih]\n      ring\n  -- Apply the general form to f(5)\n  -- Note: 5 as a PNat is (4 + 1 : ℕ+)\n  have h_f5 : f 5 = f 1 * 2^4 := by\n    have h_cast : (5 : ℕ+) = (4 + 1 : ℕ+) := rfl\n    rw [h_cast]\n    exact h_geom 4\n  -- Use the given value f 5 = 48\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  -- Solve 48 = f(1) * 16 for f(1)\n  exact Nat.eq_of_mul_eq_mul_right (by norm_num) h_f5\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(n) = f(1) * 2^(n-1)\n  have h_geom : ∀ (n : ℕ), f (n + 1 : ℕ+) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k + 2) = 2 * f(k + 1)\n      have h_step : f (k + 2 : ℕ+) = 2 * f (k + 1 : ℕ+) := by\n        -- rewrite k+2 as (k+1)+1 to use h₀\n        have h_succ : (k + 2 : ℕ+) = (k + 1 : ℕ+) + 1 := rfl\n        rw [h_succ, h₀]\n      rw [h_step, ih]\n      ring\n  -- Apply the general form to f(5)\n  -- Note: 5 as a PNat is (4 + 1 : ℕ+)\n  have h_f5 : f 5 = f 1 * 2^4 := by\n    have h_cast : (5 : ℕ+) = (4 + 1 : ℕ+) := rfl\n    rw [h_cast]\n    exact h_geom 4\n  -- Use the given value f 5 = 48\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  -- Solve 48 = f(1) * 16 for f(1)\n  exact Nat.eq_of_mul_eq_mul_right (by norm_num) h_f5",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 30
+            },
+            "endPos": {
+              "line": 14,
+              "column": 35
+            },
+            "data": "Type mismatch\n  n + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase zero\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\n⊢ f (sorry ()) = f 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 23
+            },
+            "endPos": {
+              "line": 19,
+              "column": 28
+            },
+            "data": "Type mismatch\n  k + 2\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 44
+            },
+            "endPos": {
+              "line": 19,
+              "column": 49
+            },
+            "data": "Type mismatch\n  k + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 23
+            },
+            "endPos": {
+              "line": 21,
+              "column": 28
+            },
+            "data": "Type mismatch\n  k + 2\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 38
+            },
+            "endPos": {
+              "line": 21,
+              "column": 43
+            },
+            "data": "Type mismatch\n  k + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 36
+            },
+            "endPos": {
+              "line": 35,
+              "column": 47
+            },
+            "data": "unsolved goals\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\nh_geom : ∀ (n : ℕ), f sorry = f 1 * 2 ^ n\nh_f5 : 48 = f 1 * 16\n⊢ 0 < ?m.160"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.29717183113098145
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "To prove that $f(1) = 3$ given $f(x+1) = 2f(x)$ and $f(5) = 48$, we follow these steps:\n\n### Proof Sketch\n1. **Identify the functional form**: The recurrence relation $f(x+1) = 2 \\cdot f(x)$ describes a geometric sequence where each term is twice the previous term.\n2. **Derive the general formula**: By induction, for any $n \\in \\mathbb{N}^+$, $f(n) = f(1) \\cdot 2^{n-1}$.\n3. **Substitute the known value**: Apply the formula for $n=5$. We are given $f(5) = 48$.\n4. **Calculate**:\n   $$f(5) = f(1) \\cdot 2^{5-1} = f(1) \\cdot 2^4 = f(1) \\cdot 16$$\n   Equating this to the given value:\n   $$16 \\cdot f(1) = 48$$\n5. **Solve**: Dividing both sides by 16 yields $f(1) = 3$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(n) = f(1) * 2^(n-1)\n  have h_gen : ∀ n : ℕ, f (PNat.mk (n + 1) (Nat.succ_pos n)) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k+2) = 2 * f(k+1)\n      let k_pnat : ℕ+ := PNat.mk (k + 1) (Nat.succ_pos k)\n      have h_step := h₀ k_pnat\n      have h_succ : k_pnat + 1 = PNat.mk (k + 2) (Nat.succ_pos (k + 1)) := rfl\n      rw [h_succ] at h_step\n      rw [h_step, ih]\n      ring\n\n  -- Use n = 4 to find f(5)\n  let n4 := 4\n  have h5_val : PNat.mk (4 + 1) (Nat.succ_pos 4) = 5 := rfl\n  have h_f5 := h_gen 4\n  rw [h5_val] at h_f5\n  \n  -- Substitute f(5) = 48 and solve\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  -- 48 = f(1) * 16 => f(1) = 3\n  symm\n  exact (Nat.mul_right_inj (show 16 > 0 by norm_num)).mp (by rw [← h_f5]; norm_num)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(n) = f(1) * 2^(n-1)\n  have h_gen : ∀ n : ℕ, f (PNat.mk (n + 1) (Nat.succ_pos n)) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k+2) = 2 * f(k+1)\n      let k_pnat : ℕ+ := PNat.mk (k + 1) (Nat.succ_pos k)\n      have h_step := h₀ k_pnat\n      have h_succ : k_pnat + 1 = PNat.mk (k + 2) (Nat.succ_pos (k + 1)) := rfl\n      rw [h_succ] at h_step\n      rw [h_step, ih]\n      ring\n\n  -- Use n = 4 to find f(5)\n  let n4 := 4\n  have h5_val : PNat.mk (4 + 1) (Nat.succ_pos 4) = 5 := rfl\n  have h_f5 := h_gen 4\n  rw [h5_val] at h_f5\n  \n  -- Substitute f(5) = 48 and solve\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  -- 48 = f(1) * 16 => f(1) = 3\n  symm\n  exact (Nat.mul_right_inj (show 16 > 0 by norm_num)).mp (by rw [← h_f5]; norm_num)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 27
+            },
+            "endPos": {
+              "line": 14,
+              "column": 34
+            },
+            "data": "Unknown constant `PNat.mk`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase zero\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\n⊢ f (sorry ()) = f 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 25
+            },
+            "endPos": {
+              "line": 19,
+              "column": 32
+            },
+            "data": "Unknown constant `PNat.mk`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 33
+            },
+            "endPos": {
+              "line": 21,
+              "column": 40
+            },
+            "data": "Unknown constant `PNat.mk`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 16
+            },
+            "endPos": {
+              "line": 28,
+              "column": 23
+            },
+            "data": "Unknown constant `PNat.mk`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.06304812431335449
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "To solve for $f(1)$, we use the recursive definition $f(x+1) = 2 f(x)$ to establish a general closed-form expression for $f(n)$ in terms of $f(1)$.\n\n**Proof Sketch:**\n1.  **Induction:** We show that for any $n \\in \\mathbb{N}^+$, $f(n) = f(1) \\cdot 2^{n-1}$. This is done by induction on $n$.\n2.  **Base Case:** $f(1) = f(1) \\cdot 2^0$ is trivial.\n3.  **Inductive Step:** If $f(n) = f(1) \\cdot 2^{n-1}$, then $f(n+1) = 2 \\cdot f(n) = 2 \\cdot (f(1) \\cdot 2^{n-1}) = f(1) \\cdot 2^n$.\n4.  **Application:** We are given $f(5) = 48$. Using our formula:\n    $f(5) = f(1) \\cdot 2^{5-1} = f(1) \\cdot 2^4 = f(1) \\cdot 16$.\n5.  **Solving:** Substituting the given value, $48 = f(1) \\cdot 16$. Dividing by 16 yields $f(1) = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We prove by induction that f n = f 1 * 2^(n-1)\n  have h_general : ∀ n : ℕ, f (PNat.natPred (n + 1) + 1) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · rewrite [Nat.succ_eq_add_one]\n      -- Use the recurrence relation\n      rw [h₀, ih]\n      ring\n  -- Specialize to n = 4, which corresponds to f 5\n  have h_f5 := h_general 4\n  norm_num at h_f5\n  -- Substitute f 5 = 48\n  rw [h₁] at h_f5\n  -- Solve for f 1\n  exact Nat.eq_of_mul_eq_mul_right (by norm_num) h_f5.symm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We prove by induction that f n = f 1 * 2^(n-1)\n  have h_general : ∀ n : ℕ, f (PNat.natPred (n + 1) + 1) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · rewrite [Nat.succ_eq_add_one]\n      -- Use the recurrence relation\n      rw [h₀, ih]\n      ring\n  -- Specialize to n = 4, which corresponds to f 5\n  have h_f5 := h_general 4\n  norm_num at h_f5\n  -- Substitute f 5 = 48\n  rw [h₁] at h_f5\n  -- Solve for f 1\n  exact Nat.eq_of_mul_eq_mul_right (by norm_num) h_f5.symm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 45
+            },
+            "endPos": {
+              "line": 14,
+              "column": 50
+            },
+            "data": "Type mismatch\n  n + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase zero\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\n⊢ f (sorry ()) = f 1"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.07942819595336914
+      }
+    },
+    {
+      "index": 6,
+      "status": "FAILED",
+      "raw_text": "To prove $f(1) = 3$ given $f(x+1) = 2f(x)$ and $f(5) = 48$:\n\n1.  **Inductive formula**: The recurrence $f(x+1) = 2f(x)$ implies $f(x) = f(1) \\cdot 2^{x-1}$ for all $x \\in \\mathbb{N}^+$.\n2.  **Base case analysis**: Specifically, for $x=5$, we have $f(5) = f(1) \\cdot 2^{5-1} = f(1) \\cdot 2^4 = f(1) \\cdot 16$.\n3.  **Substitution**: Given $f(5) = 48$, we substitute this into the formula to get $48 = f(1) \\cdot 16$.\n4.  **Solve for $f(1)$**: Dividing both sides by 16 yields $f(1) = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We prove by induction that f(n) = f(1) * 2^(n-1)\n  have h_general : ∀ (n : ℕ+), f n = f 1 * 2^(n.1 - 1) := by\n    intro n\n    induction n using PNat.recOn with\n    | basic => simp\n    | step n ih =>\n      rw [h₀ n]\n      rw [ih]\n      have hn : (n + 1 : ℕ+).1 = n.1 + 1 := rfl\n      rw [hn]\n      simp only [add_tsub_cancel_right]\n      rw [Nat.pow_succ, ← mul_assoc, mul_comm 2]\n  -- Apply the general formula to n = 5\n  have h5 := h_general 5\n  rw [h₁] at h5\n  norm_num at h5\n  -- Solve 48 = f(1) * 16 for f(1)\n  exact Nat.eq_of_mul_eq_mul_right (by norm_num) h5\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We prove by induction that f(n) = f(1) * 2^(n-1)\n  have h_general : ∀ (n : ℕ+), f n = f 1 * 2^(n.1 - 1) := by\n    intro n\n    induction n using PNat.recOn with\n    | basic => simp\n    | step n ih =>\n      rw [h₀ n]\n      rw [ih]\n      have hn : (n + 1 : ℕ+).1 = n.1 + 1 := rfl\n      rw [hn]\n      simp only [add_tsub_cancel_right]\n      rw [Nat.pow_succ, ← mul_assoc, mul_comm 2]\n  -- Apply the general formula to n = 5\n  have h5 := h_general 5\n  rw [h₁] at h5\n  norm_num at h5\n  -- Solve 48 = f(1) * 16 for f(1)\n  exact Nat.eq_of_mul_eq_mul_right (by norm_num) h5",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 19
+            },
+            "data": "Invalid alternative name `basic`: Expected `one` or `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 4
+            },
+            "endPos": {
+              "line": 24,
+              "column": 48
+            },
+            "data": "Invalid alternative name `step`: Expected `one` or `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 13
+            },
+            "data": "Alternative `one` has not been provided"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 13
+            },
+            "data": "Alternative `succ` has not been provided"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 36
+            },
+            "endPos": {
+              "line": 30,
+              "column": 47
+            },
+            "data": "unsolved goals\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\nh_general : ∀ (n : ℕ+), f n = f 1 * 2 ^ (↑n - 1)\nh5 : 48 = f 1 * 2 ^ (↑5 - 1)\n⊢ 0 < ?m.71"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.09297680854797363
+      }
+    },
+    {
+      "index": 7,
+      "status": "FAILED",
+      "raw_text": "To prove $f(1) = 3$ given $f(x+1) = 2f(x)$ and $f(5) = 48$:\n\n1.  **Iterative Expansion**: The functional equation $f(x+1) = 2f(x)$ implies that $f$ is a geometric sequence. Specifically, for any $n \\in \\mathbb{N}^+$, $f(n) = f(1) \\cdot 2^{n-1}$.\n2.  **Substitution**: Plug in the known value $x = 5$. This gives $f(5) = f(1) \\cdot 2^{5-1} = f(1) \\cdot 2^4$.\n3.  **Calculation**: We are given $f(5) = 48$. Since $2^4 = 16$, the equation becomes $48 = f(1) \\cdot 16$.\n4.  **Solve**: Dividing both sides by 16 yields $f(1) = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Use induction to show f(n) = f(1) * 2^(n-1)\n  have h_geom : ∀ n : ℕ, f (n + 1 : ℕ+) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · have h_step := h₀ (k + 1 : ℕ+)\n      -- rewrite n + 1 case using n case\n      have : (k + 1 + 1 : ℕ+) = (k + 1 : ℕ+) + 1 := by\n        apply PNat.ext; simp [Add.add, PNat.add]\n      rw [this, h_step, ih]\n      ring\n  -- Apply the general form to f(5)\n  have h_f5 := h_geom 4\n  have h_5_pnat : (5 : ℕ+) = (4 + 1 : ℕ+) := by apply PNat.ext; simp\n  rw [← h_5_pnat, h₁] at h_f5\n  -- 48 = f(1) * 16 => f(1) = 3\n  norm_num at h_f5\n  omega\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Use induction to show f(n) = f(1) * 2^(n-1)\n  have h_geom : ∀ n : ℕ, f (n + 1 : ℕ+) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · have h_step := h₀ (k + 1 : ℕ+)\n      -- rewrite n + 1 case using n case\n      have : (k + 1 + 1 : ℕ+) = (k + 1 : ℕ+) + 1 := by\n        apply PNat.ext; simp [Add.add, PNat.add]\n      rw [this, h_step, ih]\n      ring\n  -- Apply the general form to f(5)\n  have h_f5 := h_geom 4\n  have h_5_pnat : (5 : ℕ+) = (4 + 1 : ℕ+) := by apply PNat.ext; simp\n  rw [← h_5_pnat, h₁] at h_f5\n  -- 48 = f(1) * 16 => f(1) = 3\n  norm_num at h_f5\n  omega",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 28
+            },
+            "endPos": {
+              "line": 14,
+              "column": 33
+            },
+            "data": "Type mismatch\n  n + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase zero\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\n⊢ f (sorry ()) = f 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 25
+            },
+            "endPos": {
+              "line": 18,
+              "column": 30
+            },
+            "data": "Type mismatch\n  k + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 14
+            },
+            "endPos": {
+              "line": 20,
+              "column": 23
+            },
+            "data": "Type mismatch\n  k + 1 + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 33
+            },
+            "endPos": {
+              "line": 20,
+              "column": 38
+            },
+            "data": "Type mismatch\n  k + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 14
+            },
+            "endPos": {
+              "line": 21,
+              "column": 22
+            },
+            "data": "Unknown constant `PNat.ext`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 24
+            },
+            "endPos": {
+              "line": 21,
+              "column": 48
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 54
+            },
+            "endPos": {
+              "line": 26,
+              "column": 62
+            },
+            "data": "Unknown constant `PNat.ext`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 64
+            },
+            "endPos": {
+              "line": 26,
+              "column": 68
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2675514221191406
+      }
+    },
+    {
+      "index": 8,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe that the recurrence relation $f(x+1) = 2f(x)$ implies that the function $f$ follows a geometric progression with common ratio 2. Specifically, by induction, we can show that $f(n) = f(1) \\cdot 2^{n-1}$ for any positive integer $n$. Given $f(5) = 48$, we substitute $n=5$ into our general formula to get $48 = f(1) \\cdot 2^{5-1}$. Simplifying the exponent gives $48 = f(1) \\cdot 2^4$, and since $2^4 = 16$, we have $48 = 16 \\cdot f(1)$. Dividing both sides by 16 yields $f(1) = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish a general formula for f(n) using induction\n  have h_gen : ∀ n : ℕ, f (n + 1 : ℕ+) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k + 2) = 2 * f(k + 1)\n      have h_step := h₀ (k + 1 : ℕ+)\n      -- Replace k+1+1 with k+2 in the PNat domain\n      have h_succ : (k + 1 : ℕ+) + 1 = (k + 2 : ℕ+) := rfl\n      rw [h_succ] at h_step\n      rw [h_step, ih]\n      ring\n  -- Apply the formula to n = 4, so that n + 1 = 5\n  have h_f5 := h_gen 4\n  have h_five : (4 + 1 : ℕ+) = 5 := rfl\n  rw [h_five] at h_f5\n  -- Use the given value f 5 = 48\n  rw [h₁] at h_f5\n  -- 48 = f 1 * 16, therefore f 1 = 3\n  norm_num at h_f5\n  symm\n  exact Nat.eq_of_mul_eq_mul_right (by norm_num) h_f5\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish a general formula for f(n) using induction\n  have h_gen : ∀ n : ℕ, f (n + 1 : ℕ+) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k + 2) = 2 * f(k + 1)\n      have h_step := h₀ (k + 1 : ℕ+)\n      -- Replace k+1+1 with k+2 in the PNat domain\n      have h_succ : (k + 1 : ℕ+) + 1 = (k + 2 : ℕ+) := rfl\n      rw [h_succ] at h_step\n      rw [h_step, ih]\n      ring\n  -- Apply the formula to n = 4, so that n + 1 = 5\n  have h_f5 := h_gen 4\n  have h_five : (4 + 1 : ℕ+) = 5 := rfl\n  rw [h_five] at h_f5\n  -- Use the given value f 5 = 48\n  rw [h₁] at h_f5\n  -- 48 = f 1 * 16, therefore f 1 = 3\n  norm_num at h_f5\n  symm\n  exact Nat.eq_of_mul_eq_mul_right (by norm_num) h_f5",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 27
+            },
+            "endPos": {
+              "line": 14,
+              "column": 32
+            },
+            "data": "Type mismatch\n  n + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase zero\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\n⊢ f (sorry ()) = f 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 25
+            },
+            "endPos": {
+              "line": 19,
+              "column": 30
+            },
+            "data": "Type mismatch\n  k + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 21
+            },
+            "endPos": {
+              "line": 21,
+              "column": 26
+            },
+            "data": "Type mismatch\n  k + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 40
+            },
+            "endPos": {
+              "line": 21,
+              "column": 45
+            },
+            "data": "Type mismatch\n  k + 2\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.16212677955627441
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "To prove that $f(1) = 3$ given $f(x+1) = 2f(x)$ and $f(5) = 48$, we follow these steps:\n\n### Proof Sketch\n1. **Identify the functional form**: The relation $f(x+1) = 2f(x)$ defines a geometric sequence. By induction, we can show that $f(n) = f(1) \\cdot 2^{n-1}$ for all $n \\in \\mathbb{N}^+$.\n2. **Apply the specific value**: We are given $f(5) = 48$. Substituting $n=5$ into our formula gives:\n   $$f(5) = f(1) \\cdot 2^{5-1}$$\n   $$48 = f(1) \\cdot 2^4$$\n3. **Solve for $f(1)$**:\n   $$48 = f(1) \\cdot 16$$\n   $$f(1) = 48 / 16 = 3$$\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general formula f(n) = f(1) * 2^(n-1)\n  have h_general : ∀ n : ℕ, f (PNat.mk (n + 1) (by simp)) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k+2) = 2 * f(k+1)\n      have h_step := h₀ (PNat.mk (k + 1) (by simp))\n      simp [h_step, ih]\n      ring\n  \n  -- Use the formula for n = 4, which corresponds to f(5)\n  have h_f5 := h_general 4\n  -- PNat.mk (4 + 1) _ is 5\n  have h_f5_val : f 5 = f 1 * 16 := by\n    convert h_f5\n    norm_num\n  \n  -- Substitute f(5) = 48\n  rw [h₁] at h_f5_val\n  -- 48 = f(1) * 16 => f(1) = 3\n  apply Nat.eq_of_mul_eq_mul_right (show 16 > 0 by norm_num)\n  rw [← h_f5_val]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general formula f(n) = f(1) * 2^(n-1)\n  have h_general : ∀ n : ℕ, f (PNat.mk (n + 1) (by simp)) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k+2) = 2 * f(k+1)\n      have h_step := h₀ (PNat.mk (k + 1) (by simp))\n      simp [h_step, ih]\n      ring\n  \n  -- Use the formula for n = 4, which corresponds to f(5)\n  have h_f5 := h_general 4\n  -- PNat.mk (4 + 1) _ is 5\n  have h_f5_val : f 5 = f 1 * 16 := by\n    convert h_f5\n    norm_num\n  \n  -- Substitute f(5) = 48\n  rw [h₁] at h_f5_val\n  -- 48 = f(1) * 16 => f(1) = 3\n  apply Nat.eq_of_mul_eq_mul_right (show 16 > 0 by norm_num)\n  rw [← h_f5_val]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 31
+            },
+            "endPos": {
+              "line": 14,
+              "column": 38
+            },
+            "data": "Unknown constant `PNat.mk`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase zero\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\n⊢ f (sorry ()) = f 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 25
+            },
+            "endPos": {
+              "line": 19,
+              "column": 32
+            },
+            "data": "Unknown constant `PNat.mk`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 4
+            },
+            "endPos": {
+              "line": 21,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase succ\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\nk : ℕ\nih : f sorry = f 1 * 2 ^ k\nh_step : f (sorry + 1) = 2 * f sorry\n⊢ f 1 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 36
+            },
+            "endPos": {
+              "line": 28,
+              "column": 12
+            },
+            "data": "unsolved goals\ncase h.e'_2.h.e'_1\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\nh_general : ∀ (n : ℕ), f sorry = f 1 * 2 ^ n\nh_f5 : f sorry = f 1 * 2 ^ 4\n⊢ 5 = sorry ()"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 2
+            },
+            "endPos": {
+              "line": 35,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 20,
+              "column": 12
+            },
+            "endPos": {
+              "line": 20,
+              "column": 18
+            },
+            "data": "This simp argument is unused:\n  h_step\n\nHint: Omit it from the simp argument list.\n  simp [h̵_̵s̵t̵e̵p̵,̵ ̵ih]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.2661004066467285
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "To prove that $f(1) = 3$ given $f(x+1) = 2 \\cdot f(x)$ and $f(5) = 48$:\n\n### Proof Sketch\n1.  **Observe the recurrence**: The functional equation $f(x+1) = 2 \\cdot f(x)$ defines a geometric sequence where each term is twice the previous term.\n2.  **General formula**: By induction, for any $n \\in \\mathbb{N}^+$, $f(n) = f(1) \\cdot 2^{n-1}$.\n3.  **Apply given value**: Plug $n=5$ into the formula: $f(5) = f(1) \\cdot 2^{5-1} = f(1) \\cdot 2^4 = f(1) \\cdot 16$.\n4.  **Solve for $f(1)$**: We are given $f(5) = 48$. Thus, $48 = f(1) \\cdot 16$. Dividing both sides by $16$ yields $f(1) = 3$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Define the relationship f(n) = f(1) * 2^(n-1)\n  have h_geom : ∀ (n : ℕ), f (n + 1 : ℕ+) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k+2) = f((k+1)+1)\n      let k_plus_one : ℕ+ := ⟨k + 1, Nat.succ_pos k⟩\n      have h_step := h₀ k_plus_one\n      rw [ih]\n      have : (k_plus_one + 1 : ℕ+) = (⟨k + 2, Nat.succ_pos (k + 1)⟩ : ℕ+) := rfl\n      rw [this] at h_step\n      rw [h_step]\n      ring\n  \n  -- Apply for n = 4, so n + 1 = 5\n  have h_f5 := h_geom 4\n  have h_val : (4 + 1 : ℕ+) = 5 := rfl\n  rw [h_val] at h_f5\n  \n  -- Substitute f(5) = 48\n  rw [h₁] at h_f5\n  -- 48 = f(1) * 2^4 = f(1) * 16\n  norm_num at h_f5\n  \n  -- Solve for f(1)\n  exact Nat.eq_of_mul_eq_mul_right (by norm_num) h_f5.symm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Define the relationship f(n) = f(1) * 2^(n-1)\n  have h_geom : ∀ (n : ℕ), f (n + 1 : ℕ+) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k+2) = f((k+1)+1)\n      let k_plus_one : ℕ+ := ⟨k + 1, Nat.succ_pos k⟩\n      have h_step := h₀ k_plus_one\n      rw [ih]\n      have : (k_plus_one + 1 : ℕ+) = (⟨k + 2, Nat.succ_pos (k + 1)⟩ : ℕ+) := rfl\n      rw [this] at h_step\n      rw [h_step]\n      ring\n  \n  -- Apply for n = 4, so n + 1 = 5\n  have h_f5 := h_geom 4\n  have h_val : (4 + 1 : ℕ+) = 5 := rfl\n  rw [h_val] at h_f5\n  \n  -- Substitute f(5) = 48\n  rw [h₁] at h_f5\n  -- 48 = f(1) * 2^4 = f(1) * 16\n  norm_num at h_f5\n  \n  -- Solve for f(1)\n  exact Nat.eq_of_mul_eq_mul_right (by norm_num) h_f5.symm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 30
+            },
+            "endPos": {
+              "line": 14,
+              "column": 35
+            },
+            "data": "Type mismatch\n  n + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase zero\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\n⊢ f (sorry ()) = f 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 10
+            },
+            "endPos": {
+              "line": 24,
+              "column": 16
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ⟨k + 2, ⋯⟩\nin the target expression\n  f 1 * 2 ^ k = f 1 * 2 ^ (k + 1)\n\ncase succ\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\nk : ℕ\nih : f sorry = f 1 * 2 ^ k\nk_plus_one : ℕ+ := ⟨k + 1, ⋯⟩\nh_step : f ⟨k + 2, ⋯⟩ = 2 * f k_plus_one\nthis : k_plus_one + 1 = ⟨k + 2, ⋯⟩\n⊢ f 1 * 2 ^ k = f 1 * 2 ^ (k + 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.09002971649169922
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we use the recursive definition $f(n+1) = 2f(n)$ to derive a general closed-form expression for $f(n)$.\n\n**Proof Sketch:**\n1.  **Recurrence to closed form:** From $f(x+1) = 2f(x)$, we recognize that $f$ is a geometric progression. For any $n \\in \\mathbb{N}^+$, we have $f(n) = f(1) \\cdot 2^{n-1}$.\n2.  **Substitution:** We are given $f(5) = 48$. Using the closed form, $f(5) = f(1) \\cdot 2^{5-1} = f(1) \\cdot 2^4$.\n3.  **Calculation:** Since $2^4 = 16$, we have $16 \\cdot f(1) = 48$.\n4.  **Conclusion:** Dividing both sides by 16 yields $f(1) = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the closed form f(n) = f(1) * 2^(n-1)\n  have h_geom : ∀ n : ℕ, f (n + 1 : ℕ+) = f 1 * 2^n := by\n    intro n\n    induction n with\n    | zero => \n      simp\n    | succ k ih =>\n      -- f(k+2) = f((k+1) + 1)\n      have h_step := h₀ (⟨k + 1, Nat.succ_pos k⟩ : ℕ+)\n      simp at h_step\n      rw [h_step, ih]\n      ring\n\n  -- Apply the closed form to n = 4, which corresponds to f(5)\n  have h_f5 := h_geom 4\n  -- Note: (4 + 1 : ℕ+) is 5\n  have h_five : (4 + 1 : ℕ+) = 5 := rfl\n  rw [h_five, h₁] at h_f5\n  \n  -- Now we have 48 = f(1) * 2^4\n  -- 48 = f(1) * 16\n  norm_num at h_f5\n  \n  -- Solve for f(1)\n  omega\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the closed form f(n) = f(1) * 2^(n-1)\n  have h_geom : ∀ n : ℕ, f (n + 1 : ℕ+) = f 1 * 2^n := by\n    intro n\n    induction n with\n    | zero => \n      simp\n    | succ k ih =>\n      -- f(k+2) = f((k+1) + 1)\n      have h_step := h₀ (⟨k + 1, Nat.succ_pos k⟩ : ℕ+)\n      simp at h_step\n      rw [h_step, ih]\n      ring\n\n  -- Apply the closed form to n = 4, which corresponds to f(5)\n  have h_f5 := h_geom 4\n  -- Note: (4 + 1 : ℕ+) is 5\n  have h_five : (4 + 1 : ℕ+) = 5 := rfl\n  rw [h_five, h₁] at h_f5\n  \n  -- Now we have 48 = f(1) * 2^4\n  -- 48 = f(1) * 16\n  norm_num at h_f5\n  \n  -- Solve for f(1)\n  omega",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 28
+            },
+            "endPos": {
+              "line": 14,
+              "column": 33
+            },
+            "data": "Type mismatch\n  n + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 11
+            },
+            "endPos": {
+              "line": 18,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase zero\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\n⊢ f (sorry ()) = f 1"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.07409262657165527
+      }
+    },
+    {
+      "index": 12,
+      "status": "FAILED",
+      "raw_text": "To solve this problem, we observe that the functional equation $f(x+1) = 2 \\cdot f(x)$ defines a geometric sequence where each term is twice the previous term. Consequently, for any positive integer $n$, the term $f(n)$ can be expressed in terms of $f(1)$ as $f(n) = f(1) \\cdot 2^{n-1}$. \n\nSpecifically, for $n=5$, we have $f(5) = f(1) \\cdot 2^{5-1} = f(1) \\cdot 2^4 = f(1) \\cdot 16$. Given that $f(5) = 48$, we can set up the equation $16 \\cdot f(1) = 48$. Dividing both sides by 16 yields $f(1) = 3$.\n\nIn the Lean implementation, we use the `iterate` tactic or a simple induction argument to relate $f(5)$ back to $f(1)$ using the given recurrence relation.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We use the recurrence f(x+1) = 2 * f(x) to express f(5) in terms of f(1)\n  have h2 : f 2 = 2 * f 1 := by exact h₀ 1\n  have h3 : f 3 = 2 * f 2 := by exact h₀ 2\n  have h4 : f 4 = 2 * f 3 := by exact h₀ 3\n  have h5 : f 5 = 2 * f 4 := by exact h₀ 4\n  \n  -- Substitute the steps to get f(5) = 16 * f(1)\n  rw [h5, h4, h3, h2] at h₁\n  -- Now we have 2 * (2 * (2 * (2 * f 1))) = 48\n  -- This simplifies to 16 * f 1 = 48\n  norm_num at h₁\n  -- Divide by 16 to conclude f 1 = 3\n  exact Nat.eq_of_mul_eq_mul_left (by norm_num) h₁\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We use the recurrence f(x+1) = 2 * f(x) to express f(5) in terms of f(1)\n  have h2 : f 2 = 2 * f 1 := by exact h₀ 1\n  have h3 : f 3 = 2 * f 2 := by exact h₀ 2\n  have h4 : f 4 = 2 * f 3 := by exact h₀ 3\n  have h5 : f 5 = 2 * f 4 := by exact h₀ 4\n  \n  -- Substitute the steps to get f(5) = 16 * f(1)\n  rw [h5, h4, h3, h2] at h₁\n  -- Now we have 2 * (2 * (2 * (2 * f 1))) = 48\n  -- This simplifies to 16 * f 1 = 48\n  norm_num at h₁\n  -- Divide by 16 to conclude f 1 = 3\n  exact Nat.eq_of_mul_eq_mul_left (by norm_num) h₁",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 35
+            },
+            "endPos": {
+              "line": 25,
+              "column": 46
+            },
+            "data": "unsolved goals\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : 2 * (2 * (2 * (2 * f 1))) = 48\nh2 : f 2 = 2 * f 1\nh3 : f 3 = 2 * f 2\nh4 : f 4 = 2 * f 3\nh5 : f 5 = 2 * f 4\n⊢ 0 < ?m.119"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.06718182563781738
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "To prove $f(1) = 3$ given the functional relation $f(x+1) = 2f(x)$ and $f(5) = 48$:\n\n1.  **Iterative Expansion**: The recurrence relation $f(x+1) = 2f(x)$ implies that $f(x)$ follows a geometric progression with common ratio 2. Specifically, $f(n) = f(1) \\cdot 2^{n-1}$ for any $n \\in \\mathbb{N}^+$.\n2.  **Substitution**: Given $f(5) = 48$, we substitute $n = 5$ into the general form:\n    $f(5) = f(1) \\cdot 2^{5-1} = f(1) \\cdot 2^4 = f(1) \\cdot 16$.\n3.  **Solve for $f(1)$**:\n    $48 = f(1) \\cdot 16 \\implies f(1) = \\frac{48}{16} = 3$.\n\nIn Lean, we apply the recurrence step-by-step or use induction/rewriting to relate $f(5)$ to $f(1)$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Calculate f(5) in terms of f(1) using the recurrence relation h₀\n  have h2 : f 5 = 2 * f 4 := by exact h₀ 4\n  have h3 : f 4 = 2 * f 3 := by exact h₀ 3\n  have h4 : f 3 = 2 * f 2 := by exact h₀ 2\n  have h5 : f 2 = 2 * f 1 := by exact h₀ 1\n  \n  -- Substitute backwards from h1\n  rw [h2, h3, h4, h5] at h1\n  -- Now h1 is: 2 * (2 * (2 * (2 * f 1))) = 48\n  -- Simplify the multiplication\n  norm_num at h1\n  -- h1 is now: 16 * f 1 = 48\n  -- Solve for f 1\n  exact Nat.eq_of_mul_eq_mul_left (by norm_num) h1\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Calculate f(5) in terms of f(1) using the recurrence relation h₀\n  have h2 : f 5 = 2 * f 4 := by exact h₀ 4\n  have h3 : f 4 = 2 * f 3 := by exact h₀ 3\n  have h4 : f 3 = 2 * f 2 := by exact h₀ 2\n  have h5 : f 2 = 2 * f 1 := by exact h₀ 1\n  \n  -- Substitute backwards from h1\n  rw [h2, h3, h4, h5] at h1\n  -- Now h1 is: 2 * (2 * (2 * (2 * f 1))) = 48\n  -- Simplify the multiplication\n  norm_num at h1\n  -- h1 is now: 16 * f 1 = 48\n  -- Solve for f 1\n  exact Nat.eq_of_mul_eq_mul_left (by norm_num) h1",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 25
+            },
+            "endPos": {
+              "line": 20,
+              "column": 27
+            },
+            "data": "Unknown identifier `h1`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.04333376884460449
+      }
+    },
+    {
+      "index": 14,
+      "status": "SOLVED",
+      "raw_text": "To prove that $f(1) = 3$ given $f(x+1) = 2f(x)$ and $f(5) = 48$:\n\n### Proof Sketch\n1.  **Identify the general form**: The recurrence relation $f(x+1) = 2f(x)$ describes a geometric sequence with common ratio 2.\n2.  **Express $f(n)$ in terms of $f(1)$**: By induction or repeated application of the recurrence:\n    $f(2) = 2 f(1)$\n    $f(3) = 2 f(2) = 2^2 f(1)$\n    $f(4) = 2 f(3) = 2^3 f(1)$\n    $f(5) = 2 f(4) = 2^4 f(1) = 16 f(1)$.\n3.  **Solve for $f(1)$**: Substitute the given value $f(5) = 48$:\n    $16 f(1) = 48$\n    $f(1) = 48 / 16 = 3$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Calculate f(5) in terms of f(1) using h₀\n  have h2 : f 2 = 2 * f 1 := by\n    exact h₀ 1\n  have h3 : f 3 = 2 * f 2 := by\n    exact h₀ 2\n  have h4 : f 4 = 2 * f 3 := by\n    exact h₀ 3\n  have h5 : f 5 = 2 * f 4 := by\n    exact h₀ 4\n\n  -- Substitute backwards from f 5 to f 1\n  rw [h5, h4, h3, h2] at h₁\n  -- Now h₁ is: 2 * (2 * (2 * (2 * f 1))) = 48\n  -- This simplifies to 16 * f 1 = 48\n  have h_mul : 16 * f 1 = 48 := by\n    convert h₁ using 1\n    ring\n\n  -- Solve for f 1\n  exact Nat.eq_of_mul_eq_mul_left (by norm_num) h_mul\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Calculate f(5) in terms of f(1) using h₀\n  have h2 : f 2 = 2 * f 1 := by\n    exact h₀ 1\n  have h3 : f 3 = 2 * f 2 := by\n    exact h₀ 2\n  have h4 : f 4 = 2 * f 3 := by\n    exact h₀ 3\n  have h5 : f 5 = 2 * f 4 := by\n    exact h₀ 4\n\n  -- Substitute backwards from f 5 to f 1\n  rw [h5, h4, h3, h2] at h₁\n  -- Now h₁ is: 2 * (2 * (2 * (2 * f 1))) = 48\n  -- This simplifies to 16 * f 1 = 48\n  have h_mul : 16 * f 1 = 48 := by\n    convert h₁ using 1\n    ring\n\n  -- Solve for f 1\n  exact Nat.eq_of_mul_eq_mul_left (by norm_num) h_mul",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.05808901786804199
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "To prove $f(1) = 3$ given the functional equation $f(x+1) = 2f(x)$ and $f(5) = 48$:\n\n1.  **Iterate the recurrence**: From $f(x+1) = 2f(x)$, we can deduce that $f(x+n) = 2^n \\cdot f(x)$ for any positive integer $x$ and natural number $n$.\n2.  **Apply to the specific case**: Set $x = 1$ and $x + n = 5$. This implies $n = 4$.\n3.  **Relate $f(5)$ to $f(1)$**: Substitute these values into the derived formula: $f(5) = 2^4 \\cdot f(1)$.\n4.  **Solve for $f(1)$**: We know $f(5) = 48$ and $2^4 = 16$. Thus, $48 = 16 \\cdot f(1)$, which simplifies to $f(1) = 48 / 16 = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(x + n) = 2^n * f(x)\n  have h_gen : ∀ (x : ℕ+) (n : ℕ), f (x + n) = 2^n * f x := by\n    intro x n\n    induction n with\n    | zero => \n      simp\n    | succ k ih =>\n      -- Rewrite x + (k + 1) as (x + k) + 1 to use h₀\n      have h_step : x + (k + 1) = (x + k) + 1 := by\n        ext\n        simp [Nat.add_assoc]\n      rw [h_step, h₀]\n      rw [ih]\n      ring\n\n  -- Apply the general form to x = 1 and n = 4\n  -- Note: 1 + 4 = 5 in PNat\n  have h_final := h_gen 1 4\n  have h_five : (1 : ℕ+) + 4 = 5 := rfl\n  rw [h_five] at h_final\n  \n  -- Substitute f 5 = 48 and solve\n  rw [h₁] at h_final\n  norm_num at h_final\n  exact Nat.eq_of_mul_eq_mul_left (by norm_num) h_final.symm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(x + n) = 2^n * f(x)\n  have h_gen : ∀ (x : ℕ+) (n : ℕ), f (x + n) = 2^n * f x := by\n    intro x n\n    induction n with\n    | zero => \n      simp\n    | succ k ih =>\n      -- Rewrite x + (k + 1) as (x + k) + 1 to use h₀\n      have h_step : x + (k + 1) = (x + k) + 1 := by\n        ext\n        simp [Nat.add_assoc]\n      rw [h_step, h₀]\n      rw [ih]\n      ring\n\n  -- Apply the general form to x = 1 and n = 4\n  -- Note: 1 + 4 = 5 in PNat\n  have h_final := h_gen 1 4\n  have h_five : (1 : ℕ+) + 4 = 5 := rfl\n  rw [h_five] at h_final\n  \n  -- Substitute f 5 = 48 and solve\n  rw [h₁] at h_final\n  norm_num at h_final\n  exact Nat.eq_of_mul_eq_mul_left (by norm_num) h_final.symm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 38
+            },
+            "endPos": {
+              "line": 14,
+              "column": 43
+            },
+            "data": "Type mismatch\n  ↑x + n\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 11
+            },
+            "endPos": {
+              "line": 18,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase zero\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\nx : ℕ+\n⊢ f (sorry ()) = f x"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 8
+            },
+            "endPos": {
+              "line": 22,
+              "column": 11
+            },
+            "data": "No applicable extensionality theorem found for type\n  ℕ\n\nNote: Extensionality theorems can be registered by marking them with the `[ext]` attribute"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.14476704597473145
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "To prove $f(1) = 3$ given $f(x+1) = 2f(x)$ and $f(5) = 48$:\n1.  Notice that the recurrence relation $f(x+1) = 2f(x)$ describes a geometric sequence with common ratio 2.\n2.  By induction, we can show that $f(x) = f(1) \\cdot 2^{x-1}$ for any $x \\in \\mathbb{N}^+$.\n3.  Substitute $x=5$ into the general formula: $f(5) = f(1) \\cdot 2^{5-1} = f(1) \\cdot 2^4 = f(1) \\cdot 16$.\n4.  Given $f(5) = 48$, we have $48 = f(1) \\cdot 16$.\n5.  Solving for $f(1)$, we get $f(1) = 48 / 16 = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We prove by induction that f(n) = f(1) * 2^(n-1)\n  have h_gen : ∀ n : ℕ+, f n = f 1 * 2^(n.val - 1) := by\n    intro n\n    induction n using PNat.recOn with\n    | basic => \n      simp\n    | step n ih =>\n      rw [h₀ n]\n      rw [ih]\n      have h_pos : 1 ≤ n.val := n.prop\n      rw [PNat.add_coe, PNat.one_coe]\n      simp [Nat.add_sub_cancel]\n      rw [mul_assoc, ← pow_succ]\n      congr\n      omega\n  \n  -- Apply the general formula to f(5)\n  have h_f5 := h_gen 5\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  -- 48 = f 1 * 16 => f 1 = 3\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We prove by induction that f(n) = f(1) * 2^(n-1)\n  have h_gen : ∀ n : ℕ+, f n = f 1 * 2^(n.val - 1) := by\n    intro n\n    induction n using PNat.recOn with\n    | basic => \n      simp\n    | step n ih =>\n      rw [h₀ n]\n      rw [ih]\n      have h_pos : 1 ≤ n.val := n.prop\n      rw [PNat.add_coe, PNat.one_coe]\n      simp [Nat.add_sub_cancel]\n      rw [mul_assoc, ← pow_succ]\n      congr\n      omega\n  \n  -- Apply the general formula to f(5)\n  have h_f5 := h_gen 5\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  -- 48 = f 1 * 16 => f 1 = 3\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 18,
+              "column": 10
+            },
+            "data": "Invalid alternative name `basic`: Expected `one` or `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 27,
+              "column": 11
+            },
+            "data": "Invalid alternative name `step`: Expected `one` or `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 13
+            },
+            "data": "Alternative `one` has not been provided"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 13
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2647545337677002
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "To prove $f(1) = 3$ given $f(x+1) = 2f(x)$ and $f(5) = 48$:\n\n1.  **Iterate the recurrence**: The functional equation $f(x+1) = 2f(x)$ implies that $f(x)$ is a geometric sequence with common ratio 2.\n2.  **General Form**: Specifically, for any $n$, $f(n + 1) = 2^n \\cdot f(1)$.\n3.  **Apply to $x=5$**: Setting $n=4$ in the above relation, we get $f(5) = 2^4 \\cdot f(1)$.\n4.  **Solve for $f(1)$**: Since $f(5) = 48$ and $2^4 = 16$, we have $48 = 16 \\cdot f(1)$. Dividing both sides by 16 yields $f(1) = 3$.\n\nIn the Lean proof, we step through these evaluations explicitly using the given functional equation.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Evaluate f(5) step by step down to f(1) using h₀\n  have h2 : f 5 = 2 * f 4 := by exact h₀ 4\n  have h3 : f 4 = 2 * f 3 := by exact h₀ 3\n  have h4 : f 3 = 2 * f 2 := by exact h₀ 2\n  have h5 : f 2 = 2 * f 1 := by exact h₀ 1\n  -- Substitute back into h₁\n  rw [h2, h3, h4, h5] at h₁\n  -- Simplify the expression 2 * (2 * (2 * (2 * f 1))) = 16 * f 1\n  ring_nf at h₁\n  -- Solve 16 * f 1 = 48\n  exact Nat.eq_of_mul_eq_mul_left (by norm_num) h₁\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Evaluate f(5) step by step down to f(1) using h₀\n  have h2 : f 5 = 2 * f 4 := by exact h₀ 4\n  have h3 : f 4 = 2 * f 3 := by exact h₀ 3\n  have h4 : f 3 = 2 * f 2 := by exact h₀ 2\n  have h5 : f 2 = 2 * f 1 := by exact h₀ 1\n  -- Substitute back into h₁\n  rw [h2, h3, h4, h5] at h₁\n  -- Simplify the expression 2 * (2 * (2 * (2 * f 1))) = 16 * f 1\n  ring_nf at h₁\n  -- Solve 16 * f 1 = 48\n  exact Nat.eq_of_mul_eq_mul_left (by norm_num) h₁",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 35
+            },
+            "endPos": {
+              "line": 23,
+              "column": 46
+            },
+            "data": "unsolved goals\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh2 : f 5 = 2 * f 4\nh3 : f 4 = 2 * f 3\nh4 : f 3 = 2 * f 2\nh5 : f 2 = 2 * f 1\nh₁ : f 1 * 16 = 48\n⊢ 0 < ?m.123"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.13788604736328125
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "To prove $f(1) = 3$ given $f(x+1) = 2f(x)$ and $f(5) = 48$:\n\n1.  **Iterative Expansion**: The recurrence $f(x+1) = 2f(x)$ implies a general form for the sequence. Specifically, for any $n, k \\in \\mathbb{N}^+$, $f(n+k) = 2^k \\cdot f(n)$.\n2.  **Apply to Specific Values**: Let $n=1$ and $n+k=5$, which means $k=4$.\n3.  **Substitution**: From the recurrence, $f(5) = 2^4 \\cdot f(1)$.\n4.  **Solve for $f(1)$**:\n    *   $48 = 16 \\cdot f(1)$\n    *   $f(1) = 48 / 16$\n    *   $f(1) = 3$\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the relationship f(n+k) = 2^k * f(n)\n  have h_geom : ∀ (n : ℕ+) (k : ℕ), f (n + k : ℕ+) = 2^k * f n := by\n    intro n k\n    induction k with\n    | zero => \n      simp\n    | succ k ih =>\n      have h_step : (n + (k + 1) : ℕ+) = (n + k : ℕ+) + 1 := by\n        apply PNat.ext\n        simp [PNat.add_def]\n        omega\n      rw [h_step, h₀, ih]\n      ring\n\n  -- Apply the relationship for n=1 and k=4 to get f(5)\n  have h_f5 : f 5 = 2^4 * f 1 := by\n    have h_split : (5 : ℕ+) = (1 : ℕ+) + 4 := by\n      apply PNat.ext\n      simp [PNat.add_def]\n    rw [h_split]\n    exact h_geom 1 4\n\n  -- Substitute f(5) = 48 and solve\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  omega\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the relationship f(n+k) = 2^k * f(n)\n  have h_geom : ∀ (n : ℕ+) (k : ℕ), f (n + k : ℕ+) = 2^k * f n := by\n    intro n k\n    induction k with\n    | zero => \n      simp\n    | succ k ih =>\n      have h_step : (n + (k + 1) : ℕ+) = (n + k : ℕ+) + 1 := by\n        apply PNat.ext\n        simp [PNat.add_def]\n        omega\n      rw [h_step, h₀, ih]\n      ring\n\n  -- Apply the relationship for n=1 and k=4 to get f(5)\n  have h_f5 : f 5 = 2^4 * f 1 := by\n    have h_split : (5 : ℕ+) = (1 : ℕ+) + 4 := by\n      apply PNat.ext\n      simp [PNat.add_def]\n    rw [h_split]\n    exact h_geom 1 4\n\n  -- Substitute f(5) = 48 and solve\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  omega",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 39
+            },
+            "endPos": {
+              "line": 14,
+              "column": 44
+            },
+            "data": "Type mismatch\n  ↑n + k\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 11
+            },
+            "endPos": {
+              "line": 18,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase zero\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\nn : ℕ+\n⊢ f (sorry ()) = f n"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 21
+            },
+            "endPos": {
+              "line": 20,
+              "column": 32
+            },
+            "data": "Type mismatch\n  ↑n + (k + 1)\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 42
+            },
+            "endPos": {
+              "line": 20,
+              "column": 47
+            },
+            "data": "Type mismatch\n  ↑n + k\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 14
+            },
+            "endPos": {
+              "line": 21,
+              "column": 22
+            },
+            "data": "Unknown constant `PNat.ext`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 8
+            },
+            "endPos": {
+              "line": 22,
+              "column": 27
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 12
+            },
+            "endPos": {
+              "line": 30,
+              "column": 20
+            },
+            "data": "Unknown constant `PNat.ext`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 6
+            },
+            "endPos": {
+              "line": 31,
+              "column": 25
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.28982090950012207
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "To prove that $f(1) = 3$ given $f(x+1) = 2f(x)$ and $f(5) = 48$:\n\n### Proof Sketch\n1.  **General Form**: The recurrence relation $f(x+1) = 2f(x)$ implies that $f$ is a geometric sequence with common ratio 2. By induction, we can show that $f(n) = f(1) \\cdot 2^{n-1}$ for all $n \\in \\mathbb{N}^+$.\n2.  **Specific Case**: For $n = 5$, the formula gives $f(5) = f(1) \\cdot 2^{5-1} = f(1) \\cdot 2^4 = f(1) \\cdot 16$.\n3.  **Substitution**: Given $f(5) = 48$, we have the equation $48 = f(1) \\cdot 16$.\n4.  **Solve**: Dividing both sides by 16 yields $f(1) = 48 / 16 = 3$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Define the property that f(n) = f(1) * 2^(n-1)\n  have h_gen : ∀ n : ℕ, f ⟨n + 1, n.succ_pos⟩ = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k+2) = 2 * f(k+1)\n      let k_plus_1 : ℕ+ := ⟨k + 1, k.succ_pos⟩\n      have step := h₀ k_plus_1\n      -- Simplify k_plus_1 + 1 to k + 2\n      have h_succ : k_plus_1 + 1 = ⟨k + 2, by simp⟩ := rfl\n      rw [h_succ] at step\n      rw [step, ih]\n      ring\n  \n  -- Apply the general form to n = 4, which corresponds to f(5)\n  specialize h_gen 4\n  -- n + 1 = 5 when n = 4\n  have h_five : (⟨4 + 1, by simp⟩ : ℕ+) = 5 := rfl\n  rw [h_five] at h_gen\n  \n  -- Substitute f(5) = 48 and 2^4 = 16\n  rw [h₁] at h_gen\n  norm_num at h_gen\n  \n  -- Solve 48 = f(1) * 16 for f(1)\n  omega\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Define the property that f(n) = f(1) * 2^(n-1)\n  have h_gen : ∀ n : ℕ, f ⟨n + 1, n.succ_pos⟩ = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k+2) = 2 * f(k+1)\n      let k_plus_1 : ℕ+ := ⟨k + 1, k.succ_pos⟩\n      have step := h₀ k_plus_1\n      -- Simplify k_plus_1 + 1 to k + 2\n      have h_succ : k_plus_1 + 1 = ⟨k + 2, by simp⟩ := rfl\n      rw [h_succ] at step\n      rw [step, ih]\n      ring\n  \n  -- Apply the general form to n = 4, which corresponds to f(5)\n  specialize h_gen 4\n  -- n + 1 = 5 when n = 4\n  have h_five : (⟨4 + 1, by simp⟩ : ℕ+) = 5 := rfl\n  rw [h_five] at h_gen\n  \n  -- Substitute f(5) = 48 and 2^4 = 16\n  rw [h₁] at h_gen\n  norm_num at h_gen\n  \n  -- Solve 48 = f(1) * 16 for f(1)\n  omega",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 42
+            },
+            "endPos": {
+              "line": 30,
+              "column": 43
+            },
+            "data": "failed to synthesize instance of type class\n  OfNat { n // 0 < n } 5\nnumerals are polymorphic in Lean, but the numeral `5` cannot be used in a context where the expected type is\n  { n // 0 < n }\ndue to the absence of the instance above\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 47
+            },
+            "endPos": {
+              "line": 30,
+              "column": 50
+            },
+            "data": "Type mismatch\n  rfl\nhas type\n  ?m.126 = ?m.126\nbut is expected to have type\n  ⟨4 + 1, ⋯⟩ = 5"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.22809147834777832
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem $f(1)=3$ given $f(x+1)=2f(x)$ and $f(5)=48$, we use the properties of geometric sequences.\n\n### Proof Sketch\n1. **General Form**: The recurrence $f(x+1)=2f(x)$ implies that $f(x)$ is a geometric sequence with common ratio $2$.\n2. **Induction**: By induction on $n$, we can show that $f(1 + n) = 2^n \\cdot f(1)$ for any natural number $n$.\n3. **Specific Case**: For $x=5$, we can write $5 = 1 + 4$. Applying the derived formula gives $f(5) = 2^4 \\cdot f(1)$.\n4. **Substitution**: Substitute the known values $f(5) = 48$ and $2^4 = 16$.\n5. **Calculation**: $48 = 16 \\cdot f(1)$ implies $f(1) = 48 / 16 = 3$.\n\n### Lean 4 Code\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(1 + n) = 2^n * f(1) using induction on n.\n  have h_gen : ∀ (n : ℕ), f (PNat.add_nat 1 n) = 2^n * f 1 := by\n    intro n\n    induction' n with n ih\n    · simp\n    · -- x + (n + 1) is (x + n) + 1\n      rw [Nat.succ_eq_add_one, ← PNat.add_nat_add_nat, PNat.add_nat_one]\n      rw [h₀ (PNat.add_nat 1 n)]\n      rw [ih]\n      ring\n  \n  -- Since 5 = 1 + 4, we use n = 4 in our general formula.\n  have h_5 : f 5 = 2^4 * f 1 := by\n    -- 5 is PNat.add_nat 1 4\n    have h_eq : (5 : ℕ+) = PNat.add_nat 1 4 := rfl\n    rw [h_eq]\n    exact h_gen 4\n  \n  -- Substitute f 5 = 48 and 2^4 = 16\n  rw [h₁] at h_5\n  norm_num at h_5\n  \n  -- Solve 48 = 16 * f(1)\n  apply Nat.eq_of_mul_eq_mul_left (show 0 < 16 by norm_num)\n  exact h_5.symm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(1 + n) = 2^n * f(1) using induction on n.\n  have h_gen : ∀ (n : ℕ), f (PNat.add_nat 1 n) = 2^n * f 1 := by\n    intro n\n    induction' n with n ih\n    · simp\n    · -- x + (n + 1) is (x + n) + 1\n      rw [Nat.succ_eq_add_one, ← PNat.add_nat_add_nat, PNat.add_nat_one]\n      rw [h₀ (PNat.add_nat 1 n)]\n      rw [ih]\n      ring\n  \n  -- Since 5 = 1 + 4, we use n = 4 in our general formula.\n  have h_5 : f 5 = 2^4 * f 1 := by\n    -- 5 is PNat.add_nat 1 4\n    have h_eq : (5 : ℕ+) = PNat.add_nat 1 4 := rfl\n    rw [h_eq]\n    exact h_gen 4\n  \n  -- Substitute f 5 = 48 and 2^4 = 16\n  rw [h₁] at h_5\n  norm_num at h_5\n  \n  -- Solve 48 = 16 * f(1)\n  apply Nat.eq_of_mul_eq_mul_left (show 0 < 16 by norm_num)\n  exact h_5.symm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 29
+            },
+            "endPos": {
+              "line": 14,
+              "column": 41
+            },
+            "data": "Unknown constant `PNat.add_nat`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase zero\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\n⊢ f (sorry ()) = f 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 27
+            },
+            "endPos": {
+              "line": 27,
+              "column": 39
+            },
+            "data": "Unknown constant `PNat.add_nat`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1077120304107666
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "To prove $f(1) = 3$ given the recurrence $f(x+1) = 2f(x)$ and $f(5) = 48$:\n\n1.  **Identify the general form**: The recurrence relation $f(x+1) = 2f(x)$ describes a geometric sequence. Specifically, for any $n \\in \\mathbb{N}^+$, $f(n) = f(1) \\cdot 2^{n-1}$.\n2.  **Substitute the known value**: Given $f(5) = 48$, substitute $n=5$ into the general formula: $f(5) = f(1) \\cdot 2^{5-1}$.\n3.  **Solve for $f(1)$**: \n    $48 = f(1) \\cdot 2^4$\n    $48 = f(1) \\cdot 16$\n    $f(1) = 48 / 16 = 3$.\n\nIn Lean, we apply the recurrence repeatedly to relate $f(5)$ to $f(1)$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  have h2 : f 5 = 2 * f 4 := h₀ 4\n  have h3 : f 4 = 2 * f 3 := h₀ 3\n  have h4 : f 3 = 2 * f 2 := h₀ 2\n  have h5 : f 2 = 2 * f 1 := h₀ 1\n  rw [h2, h3, h4, h5] at h₁\n  -- h₁ : 2 * (2 * (2 * (2 * f 1))) = 48\n  norm_num at h₁\n  exact h₁\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  have h2 : f 5 = 2 * f 4 := h₀ 4\n  have h3 : f 4 = 2 * f 3 := h₀ 3\n  have h4 : f 3 = 2 * f 2 := h₀ 2\n  have h5 : f 2 = 2 * f 1 := h₀ 1\n  rw [h2, h3, h4, h5] at h₁\n  -- h₁ : 2 * (2 * (2 * (2 * f 1))) = 48\n  norm_num at h₁\n  exact h₁",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 2
+            },
+            "endPos": {
+              "line": 20,
+              "column": 10
+            },
+            "data": "Type mismatch\n  h₁\nhas type\n  2 * (2 * (2 * (2 * f 1))) = 48\nbut is expected to have type\n  f 1 = 3"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.08295869827270508
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "To solve for $f(1)$, we use the recursive property $f(x+1) = 2 \\cdot f(x)$. This implies that $f$ is a geometric sequence where $f(x) = f(1) \\cdot 2^{x-1}$ for any $x \\in \\mathbb{N}^+$.\n\n1.  **General Form**: By induction on $x$, we can prove that $f(x) = f(1) \\cdot 2^{x-1}$.\n2.  **Base Case**: For $x=1$, $f(1) = f(1) \\cdot 2^0$ is trivial.\n3.  **Inductive Step**: If $f(k) = f(1) \\cdot 2^{k-1}$, then $f(k+1) = 2 \\cdot f(k) = 2 \\cdot (f(1) \\cdot 2^{k-1}) = f(1) \\cdot 2^k$.\n4.  **Substitution**: Given $f(5) = 48$, we substitute $x=5$ into our formula: $48 = f(1) \\cdot 2^{5-1} = f(1) \\cdot 2^4 = f(1) \\cdot 16$.\n5.  **Solution**: Solving $16 \\cdot f(1) = 48$ yields $f(1) = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(n) = f(1) * 2^(n-1)\n  have h_gen : ∀ n : ℕ+, f n = f 1 * 2^(n.val - 1) := by\n    intro n\n    induction n using PNat.recOn with\n    | base => simp\n    | ind k ih =>\n      rw [h₀ k]\n      rw [ih]\n      have h_pos : k.val ≥ 1 := k.prop\n      rw [← mul_assoc, mul_comm 2]\n      congr\n      -- Handle the power of 2 exponent\n      have : (k + 1).val - 1 = (k.val - 1) + 1 := by\n        rw [PNat.add_coe, Nat.add_sub_cancel]\n        exact Nat.sub_add_cancel h_pos\n      rw [this, pow_succ]\n\n  -- Specialize for n = 5\n  have h_f5 := h_gen 5\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  -- Now we have 48 = f 1 * 16\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(n) = f(1) * 2^(n-1)\n  have h_gen : ∀ n : ℕ+, f n = f 1 * 2^(n.val - 1) := by\n    intro n\n    induction n using PNat.recOn with\n    | base => simp\n    | ind k ih =>\n      rw [h₀ k]\n      rw [ih]\n      have h_pos : k.val ≥ 1 := k.prop\n      rw [← mul_assoc, mul_comm 2]\n      congr\n      -- Handle the power of 2 exponent\n      have : (k + 1).val - 1 = (k.val - 1) + 1 := by\n        rw [PNat.add_coe, Nat.add_sub_cancel]\n        exact Nat.sub_add_cancel h_pos\n      rw [this, pow_succ]\n\n  -- Specialize for n = 5\n  have h_f5 := h_gen 5\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  -- Now we have 48 = f 1 * 16\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 18
+            },
+            "data": "Invalid alternative name `base`: Expected `one` or `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 4
+            },
+            "endPos": {
+              "line": 28,
+              "column": 25
+            },
+            "data": "Invalid alternative name `ind`: Expected `one` or `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 13
+            },
+            "data": "Alternative `one` has not been provided"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 13
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2804257869720459
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Understand the recurrence relation**: The function $f$ satisfies $f(x+1) = 2 \\cdot f(x)$ for all $x \\in \\mathbb{N}^+$. This implies that $f$ is a geometric sequence with a common ratio of $2$.\n2.  **Express $f(5)$ in terms of $f(1)$**:\n    *   $f(2) = 2 \\cdot f(1)$\n    *   $f(3) = 2 \\cdot f(2) = 2^2 \\cdot f(1)$\n    *   $f(4) = 2 \\cdot f(3) = 2^3 \\cdot f(1)$\n    *   $f(5) = 2 \\cdot f(4) = 2^4 \\cdot f(1)$\n3.  **Substitute the given value**: We are given $f(5) = 48$. Substituting this into the equation $f(5) = 16 \\cdot f(1)$ gives:\n    $$48 = 16 \\cdot f(1)$$\n4.  **Solve for $f(1)$**: Dividing both sides by 16, we get $f(1) = 3$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Calculate step by step from f(5) back to f(1)\n  have h2 : f 5 = 2 * f 4 := h₀ 4\n  have h3 : f 4 = 2 * f 3 := h₀ 3\n  have h4 : f 3 = 2 * f 2 := h₀ 2\n  have h5 : f 2 = 2 * f 1 := h₀ 1\n  \n  -- Substitute and simplify\n  rw [h2, h3, h4, h5] at h₁\n  -- h₁: 2 * (2 * (2 * (2 * f 1))) = 48\n  -- which simplifies to 16 * f 1 = 48\n  have h_mul : 16 * f 1 = 48 := by\n    ring_nf at h₁\n    exact h₁\n    \n  -- Solve for f 1\n  exact Nat.eq_of_mul_eq_mul_left (by norm_num) h_mul\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Calculate step by step from f(5) back to f(1)\n  have h2 : f 5 = 2 * f 4 := h₀ 4\n  have h3 : f 4 = 2 * f 3 := h₀ 3\n  have h4 : f 3 = 2 * f 2 := h₀ 2\n  have h5 : f 2 = 2 * f 1 := h₀ 1\n  \n  -- Substitute and simplify\n  rw [h2, h3, h4, h5] at h₁\n  -- h₁: 2 * (2 * (2 * (2 * f 1))) = 48\n  -- which simplifies to 16 * f 1 = 48\n  have h_mul : 16 * f 1 = 48 := by\n    ring_nf at h₁\n    exact h₁\n    \n  -- Solve for f 1\n  exact Nat.eq_of_mul_eq_mul_left (by norm_num) h_mul",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 4
+            },
+            "endPos": {
+              "line": 25,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₁\nhas type\n  f 1 * 16 = 48\nbut is expected to have type\n  16 * f 1 = 48"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.17299652099609375
+      }
+    },
+    {
+      "index": 24,
+      "status": "SOLVED",
+      "raw_text": "To prove $f(1) = 3$ given the recurrence $f(x+1) = 2 \\cdot f(x)$ and $f(5) = 48$:\n\n1.  **Recognize the Geometric Progression**: The recurrence relation $f(x+1) = 2 \\cdot f(x)$ for positive integers implies that $f(x) = f(1) \\cdot 2^{x-1}$.\n2.  **Apply the Boundary Condition**: We are given $f(5) = 48$.\n3.  **Substitution**: Substitute $x=5$ into our formula: $f(5) = f(1) \\cdot 2^{5-1} = f(1) \\cdot 2^4$.\n4.  **Solve for $f(1)$**: $48 = f(1) \\cdot 16$, which implies $f(1) = 48 / 16 = 3$.\n\nIn Lean, we can proceed by induction or by repeatedly applying the recurrence to relate $f(5)$ to $f(1)$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Calculate f(5) in terms of f(1) by unrolling the recurrence\n  have h2 : f 5 = 2 * f 4 := h₀ 4\n  have h3 : f 4 = 2 * f 3 := h₀ 3\n  have h4 : f 3 = 2 * f 2 := h₀ 2\n  have h5 : f 2 = 2 * f 1 := h₀ 1\n  -- Substitute backwards\n  rw [h5] at h4\n  rw [h4] at h3\n  rw [h3] at h2\n  -- Now f 5 = 2 * (2 * (2 * (2 * f 1)))\n  rw [h₁] at h2\n  norm_num at h2\n  -- We have 48 = 16 * f 1\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Calculate f(5) in terms of f(1) by unrolling the recurrence\n  have h2 : f 5 = 2 * f 4 := h₀ 4\n  have h3 : f 4 = 2 * f 3 := h₀ 3\n  have h4 : f 3 = 2 * f 2 := h₀ 2\n  have h5 : f 2 = 2 * f 1 := h₀ 1\n  -- Substitute backwards\n  rw [h5] at h4\n  rw [h4] at h3\n  rw [h3] at h2\n  -- Now f 5 = 2 * (2 * (2 * (2 * f 1)))\n  rw [h₁] at h2\n  norm_num at h2\n  -- We have 48 = 16 * f 1\n  linarith",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 24,
+              "column": 2
+            },
+            "endPos": {
+              "line": 24,
+              "column": 16
+            },
+            "data": "'norm_num at h2' tactic does nothing\n\nNote: This linter can be disabled with `set_option linter.unusedTactic false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.33599138259887695
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "To prove $f(1) = 3$ given $f(x+1) = 2f(x)$ and $f(5) = 48$:\n\n1.  **Iterative Expansion**: From the recurrence relation $f(x+1) = 2f(x)$, we can deduce by induction that $f(n) = 2^{n-m} f(m)$ for $n \\ge m$.\n2.  **Specific Case**: Apply this to $n=5$ and $m=1$. This gives $f(5) = 2^{5-1} f(1) = 2^4 f(1)$.\n3.  **Substitution**: Substitute the given value $f(5) = 48$, resulting in $48 = 16 \\cdot f(1)$.\n4.  **Solve**: Dividing both sides by 16 yields $f(1) = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(n) = 2^(n-1) * f(1)\n  have h_gen : ∀ (n : ℕ+), f n = 2^( (n : ℕ) - 1) * f 1 := by\n    intro n\n    induction' n using PNat.recOn with k ih\n    · simp\n    · rw [PNat.add_one, h₀]\n      rw [ih]\n      simp only [PNat.coe_add, PNat.coe_one, Nat.add_sub_cancel]\n      rw [Nat.pow_succ', mul_assoc]\n      congr\n  -- Apply the general form to f 5\n  have h_f5 := h_gen 5\n  simp only [PNat.coe_bit1, PNat.coe_bit0, PNat.coe_one] at h_f5\n  -- h_f5 is now: f 5 = 2^4 * f 1\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  -- 48 = 16 * f 1\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(n) = 2^(n-1) * f(1)\n  have h_gen : ∀ (n : ℕ+), f n = 2^( (n : ℕ) - 1) * f 1 := by\n    intro n\n    induction' n using PNat.recOn with k ih\n    · simp\n    · rw [PNat.add_one, h₀]\n      rw [ih]\n      simp only [PNat.coe_add, PNat.coe_one, Nat.add_sub_cancel]\n      rw [Nat.pow_succ', mul_assoc]\n      congr\n  -- Apply the general form to f 5\n  have h_f5 := h_gen 5\n  simp only [PNat.coe_bit1, PNat.coe_bit0, PNat.coe_one] at h_f5\n  -- h_f5 is now: f 5 = 2^4 * f 1\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  -- 48 = 16 * f 1\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 24
+            },
+            "endPos": {
+              "line": 18,
+              "column": 26
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f (?x + 1)\nin the target expression\n  f (↑k).succPNat = 2 ^ (↑(↑k).succPNat - 1) * f 1\n\ncase succ\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\nk : ℕ+\nih : f k = 2 ^ (↑k - 1) * f 1\n⊢ f (↑k).succPNat = 2 ^ (↑(↑k).succPNat - 1) * f 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 13
+            },
+            "endPos": {
+              "line": 25,
+              "column": 26
+            },
+            "data": "Unknown constant `PNat.coe_bit1`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 28
+            },
+            "endPos": {
+              "line": 25,
+              "column": 41
+            },
+            "data": "Unknown constant `PNat.coe_bit0`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 43
+            },
+            "endPos": {
+              "line": 25,
+              "column": 55
+            },
+            "data": "Unknown constant `PNat.coe_one`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.30188798904418945
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "To solve this problem, we observe that the recurrence relation $f(x+1) = 2 \\cdot f(x)$ defines a geometric progression for the function $f$. Specifically, $f(x) = f(1) \\cdot 2^{x-1}$ for all $x \\in \\mathbb{N}^+$. Given $f(5) = 48$, we substitute $x=5$ into the formula to get $48 = f(1) \\cdot 2^{5-1}$, which simplifies to $48 = f(1) \\cdot 16$. Solving for $f(1)$, we find $f(1) = 48 / 16 = 3$.\n\n**Proof Sketch:**\n1.  Establish a general formula for $f(x)$ by induction: $f(n) = f(1) \\cdot 2^{n-1}$.\n2.  Base case: $n=1$, $f(1) = f(1) \\cdot 2^0 = f(1) \\cdot 1$, which is true.\n3.  Inductive step: Assume $f(k) = f(1) \\cdot 2^{k-1}$. Then $f(k+1) = 2 \\cdot f(k) = 2 \\cdot (f(1) \\cdot 2^{k-1}) = f(1) \\cdot 2^k$.\n4.  Apply the formula for $n=5$: $f(5) = f(1) \\cdot 2^4$.\n5.  Substitute the given value $f(5) = 48$: $48 = f(1) \\cdot 16$.\n6.  Conclude $f(1) = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We prove by induction that f(n) = f(1) * 2^(n-1)\n  have h_gen : ∀ (n : ℕ), f (PNat.add_nat 1 n) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · rewrite [Nat.add_succ, ← PNat.coe_add_one, ← PNat.add_nat, h₀]\n      rewrite [ih]\n      ring\n  -- f 5 corresponds to n = 4 in our formula since 5 = 1 + 4\n  have h_f5 : f 5 = f 1 * 2^4 := by\n    have h_split : (5 : ℕ+) = PNat.add_nat 1 4 := rfl\n    rw [h_split]\n    exact h_gen 4\n  -- Substitute f 5 = 48 and 2^4 = 16\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  -- Solve for f 1\n  exact Nat.eq_of_mul_eq_mul_right (by norm_num) h_f5.symm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We prove by induction that f(n) = f(1) * 2^(n-1)\n  have h_gen : ∀ (n : ℕ), f (PNat.add_nat 1 n) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · rewrite [Nat.add_succ, ← PNat.coe_add_one, ← PNat.add_nat, h₀]\n      rewrite [ih]\n      ring\n  -- f 5 corresponds to n = 4 in our formula since 5 = 1 + 4\n  have h_f5 : f 5 = f 1 * 2^4 := by\n    have h_split : (5 : ℕ+) = PNat.add_nat 1 4 := rfl\n    rw [h_split]\n    exact h_gen 4\n  -- Substitute f 5 = 48 and 2^4 = 16\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  -- Solve for f 1\n  exact Nat.eq_of_mul_eq_mul_right (by norm_num) h_f5.symm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 29
+            },
+            "endPos": {
+              "line": 14,
+              "column": 41
+            },
+            "data": "Unknown constant `PNat.add_nat`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase zero\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\n⊢ f (sorry ()) = f 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 31
+            },
+            "endPos": {
+              "line": 18,
+              "column": 47
+            },
+            "data": "Unknown constant `PNat.coe_add_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 30
+            },
+            "endPos": {
+              "line": 23,
+              "column": 42
+            },
+            "data": "Unknown constant `PNat.add_nat`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.16270017623901367
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "To solve the theorem $f(1) = 3$ given $f(x+1) = 2f(x)$ and $f(5) = 48$ for $x \\in \\mathbb{N}^+$:\n\n### Proof Sketch:\n1.  **Iterative Relation**: From the recurrence $f(x+1) = 2f(x)$, we can deduce by induction that for any $n, k \\in \\mathbb{N}^+$, $f(n+k) = 2^k \\cdot f(n)$.\n2.  **Specific Case**: Setting $n = 1$ and $k = 4$, we have $f(1 + 4) = 2^4 \\cdot f(1)$, which simplifies to $f(5) = 16 \\cdot f(1)$.\n3.  **Substitution**: Given $f(5) = 48$, we substitute this into the equation: $48 = 16 \\cdot f(1)$.\n4.  **Solve**: Dividing both sides by 16 yields $f(1) = 3$.\n\n### Lean 4 Code:\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x : ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the relationship between f(n+k) and f(n)\n  have h_rec : ∀ (n : ℕ+) (k : ℕ), f (PNat.add_nat n k) = 2^k * f n := by\n    intro n k\n    induction k with\n    | zero => \n      simp [PNat.add_nat]\n    | succ k ih =>\n      -- Rewrite n + (k + 1) as (n + k) + 1 to use h₀\n      have h_step : PNat.add_nat n (k + 1) = (PNat.add_nat n k) + 1 := rfl\n      rw [h_step, h₀, ih]\n      ring\n\n  -- Apply the relation to n = 1 and k = 4\n  -- Note: 5 in PNat is 1 + 4\n  have h_5_eq : (5 : ℕ+) = PNat.add_nat 1 4 := rfl\n  have h_val := h_rec 1 4\n  rw [← h_5_eq, h₁] at h_val\n  \n  -- Now we have 48 = 2^4 * f 1\n  norm_num at h_val\n  -- 48 = 16 * f 1 => f 1 = 3\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x : ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the relationship between f(n+k) and f(n)\n  have h_rec : ∀ (n : ℕ+) (k : ℕ), f (PNat.add_nat n k) = 2^k * f n := by\n    intro n k\n    induction k with\n    | zero => \n      simp [PNat.add_nat]\n    | succ k ih =>\n      -- Rewrite n + (k + 1) as (n + k) + 1 to use h₀\n      have h_step : PNat.add_nat n (k + 1) = (PNat.add_nat n k) + 1 := rfl\n      rw [h_step, h₀, ih]\n      ring\n\n  -- Apply the relation to n = 1 and k = 4\n  -- Note: 5 in PNat is 1 + 4\n  have h_5_eq : (5 : ℕ+) = PNat.add_nat 1 4 := rfl\n  have h_val := h_rec 1 4\n  rw [← h_5_eq, h₁] at h_val\n  \n  -- Now we have 48 = 2^4 * f 1\n  norm_num at h_val\n  -- 48 = 16 * f 1 => f 1 = 3\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 38
+            },
+            "endPos": {
+              "line": 14,
+              "column": 50
+            },
+            "data": "Unknown constant `PNat.add_nat`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 12
+            },
+            "endPos": {
+              "line": 18,
+              "column": 24
+            },
+            "data": "Unknown constant `PNat.add_nat`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 11
+            },
+            "endPos": {
+              "line": 18,
+              "column": 25
+            },
+            "data": "unsolved goals\ncase zero\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\nn : ℕ+\n⊢ f (sorry ()) = f n"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 20
+            },
+            "endPos": {
+              "line": 21,
+              "column": 32
+            },
+            "data": "Unknown constant `PNat.add_nat`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 46
+            },
+            "endPos": {
+              "line": 21,
+              "column": 58
+            },
+            "data": "Unknown constant `PNat.add_nat`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 27
+            },
+            "endPos": {
+              "line": 27,
+              "column": 39
+            },
+            "data": "Unknown constant `PNat.add_nat`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.04121136665344238
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "To prove $f(1) = 3$, we utilize the given recurrence relation $f(x+1) = 2 f(x)$.\n\n**Proof Sketch:**\n1. From the recurrence $f(x+1) = 2 f(x)$, we can derive a general closed-form expression for $f(n)$ for any $n \\in \\mathbb{N}^+$. Specifically, $f(n) = f(1) \\cdot 2^{n-1}$.\n2. This can be formally proven by induction on $n$, or by expanding the recurrence backwards from $n$.\n3. Given $f(5) = 48$, we substitute $n=5$ into our closed-form: $f(5) = f(1) \\cdot 2^{5-1} = f(1) \\cdot 2^4$.\n4. Since $2^4 = 16$, we have $48 = f(1) \\cdot 16$.\n5. Dividing both sides by 16 yields $f(1) = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(n) = f(1) * 2^(n-1)\n  have h_gen : ∀ n : ℕ, f (PNat.mk (n + 1) (Nat.succ_pos n)) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k + 2) = 2 * f(k + 1)\n      have h_step : f (PNat.mk (k + 2) (Nat.succ_pos (k + 1))) = 2 * f (PNat.mk (k + 1) (Nat.succ_pos k)) := by\n        let x := PNat.mk (k + 1) (Nat.succ_pos k)\n        have h_succ : x + 1 = PNat.mk (k + 2) (Nat.succ_pos (k + 1)) := by\n          apply PNat.ext\n          simp [PNat.add_coe]\n        rw [← h_succ, h₀]\n      rw [h_step, ih]\n      ring\n\n  -- Use the general form for n = 4 (which corresponds to f(5))\n  have h_f5 := h_gen 4\n  -- Simplify PNat.mk (4 + 1) ... to 5\n  have h_const : PNat.mk (4 + 1) (Nat.succ_pos 4) = 5 := rfl\n  rw [h_const, h₁] at h_f5\n  -- Now we have 48 = f(1) * 2^4\n  norm_num at h_f5\n  -- 48 = f(1) * 16 => f(1) = 3\n  exact (Nat.eq_of_mul_eq_mul_right (by norm_num) h_f5).symm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(n) = f(1) * 2^(n-1)\n  have h_gen : ∀ n : ℕ, f (PNat.mk (n + 1) (Nat.succ_pos n)) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k + 2) = 2 * f(k + 1)\n      have h_step : f (PNat.mk (k + 2) (Nat.succ_pos (k + 1))) = 2 * f (PNat.mk (k + 1) (Nat.succ_pos k)) := by\n        let x := PNat.mk (k + 1) (Nat.succ_pos k)\n        have h_succ : x + 1 = PNat.mk (k + 2) (Nat.succ_pos (k + 1)) := by\n          apply PNat.ext\n          simp [PNat.add_coe]\n        rw [← h_succ, h₀]\n      rw [h_step, ih]\n      ring\n\n  -- Use the general form for n = 4 (which corresponds to f(5))\n  have h_f5 := h_gen 4\n  -- Simplify PNat.mk (4 + 1) ... to 5\n  have h_const : PNat.mk (4 + 1) (Nat.succ_pos 4) = 5 := rfl\n  rw [h_const, h₁] at h_f5\n  -- Now we have 48 = f(1) * 2^4\n  norm_num at h_f5\n  -- 48 = f(1) * 16 => f(1) = 3\n  exact (Nat.eq_of_mul_eq_mul_right (by norm_num) h_f5).symm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 27
+            },
+            "endPos": {
+              "line": 14,
+              "column": 34
+            },
+            "data": "Unknown constant `PNat.mk`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase zero\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\n⊢ f (sorry ()) = f 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 23
+            },
+            "endPos": {
+              "line": 19,
+              "column": 30
+            },
+            "data": "Unknown constant `PNat.mk`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 72
+            },
+            "endPos": {
+              "line": 19,
+              "column": 79
+            },
+            "data": "Unknown constant `PNat.mk`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 17
+            },
+            "endPos": {
+              "line": 20,
+              "column": 24
+            },
+            "data": "Unknown constant `PNat.mk`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 17
+            },
+            "endPos": {
+              "line": 31,
+              "column": 24
+            },
+            "data": "Unknown constant `PNat.mk`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1136023998260498
+      }
+    },
+    {
+      "index": 29,
+      "status": "FAILED",
+      "raw_text": "To prove $f(1) = 3$ given $f(x+1) = 2f(x)$ and $f(5) = 48$:\n\n1.  **Iterative Expansion**: Recognize that $f(x)$ is a geometric progression with common ratio 2.\n2.  **General Formula**: By induction or repeated application of the recurrence, $f(n) = f(1) \\cdot 2^{n-1}$ for $n \\in \\mathbb{N}^+$.\n3.  **Substitution**: Substitute $n = 5$ into the formula: $f(5) = f(1) \\cdot 2^{5-1} = f(1) \\cdot 2^4 = f(1) \\cdot 16$.\n4.  **Solve**: Given $f(5) = 48$, we have $48 = f(1) \\cdot 16$. Dividing both sides by 16 yields $f(1) = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(n) = f(1) * 2^(n-1)\n  have h_gen : ∀ n : ℕ, f (n + 1 : ℕ+) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k + 2) = 2 * f(k + 1)\n      have h_step : f (k + 1 + 1 : ℕ+) = 2 * f (k + 1 : ℕ+) := h₀ (k + 1 : ℕ+)\n      rw [h_step, ih]\n      ring\n  -- Apply the general form to n = 4 (which corresponds to f(5))\n  have h_f5 : f 5 = f 1 * 2^4 := by\n    -- 5 in PNat is (4 + 1 : ℕ+)\n    have h_5 : (5 : ℕ+) = (4 + 1 : ℕ+) := rfl\n    rw [h_5, h_gen 4]\n  -- Use h_f5 and h₁ to solve for f 1\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  -- 48 = f 1 * 16 => f 1 = 3\n  exact (Nat.mul_right_inj (by norm_num)).mp h_f5\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(n) = f(1) * 2^(n-1)\n  have h_gen : ∀ n : ℕ, f (n + 1 : ℕ+) = f 1 * 2^n := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k + 2) = 2 * f(k + 1)\n      have h_step : f (k + 1 + 1 : ℕ+) = 2 * f (k + 1 : ℕ+) := h₀ (k + 1 : ℕ+)\n      rw [h_step, ih]\n      ring\n  -- Apply the general form to n = 4 (which corresponds to f(5))\n  have h_f5 : f 5 = f 1 * 2^4 := by\n    -- 5 in PNat is (4 + 1 : ℕ+)\n    have h_5 : (5 : ℕ+) = (4 + 1 : ℕ+) := rfl\n    rw [h_5, h_gen 4]\n  -- Use h_f5 and h₁ to solve for f 1\n  rw [h₁] at h_f5\n  norm_num at h_f5\n  -- 48 = f 1 * 16 => f 1 = 3\n  exact (Nat.mul_right_inj (by norm_num)).mp h_f5",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 27
+            },
+            "endPos": {
+              "line": 14,
+              "column": 32
+            },
+            "data": "Type mismatch\n  n + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase zero\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\n⊢ f (sorry ()) = f 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 23
+            },
+            "endPos": {
+              "line": 19,
+              "column": 32
+            },
+            "data": "Type mismatch\n  k + 1 + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 48
+            },
+            "endPos": {
+              "line": 19,
+              "column": 53
+            },
+            "data": "Type mismatch\n  k + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 67
+            },
+            "endPos": {
+              "line": 19,
+              "column": 72
+            },
+            "data": "Type mismatch\n  k + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 28
+            },
+            "endPos": {
+              "line": 31,
+              "column": 39
+            },
+            "data": "unsolved goals\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\nh_gen : ∀ (n : ℕ), f sorry = f 1 * 2 ^ n\nh_f5 : 48 = f 1 * 16\n⊢ ¬?m.146 = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2115945816040039
+      }
+    },
+    {
+      "index": 30,
+      "status": "FAILED",
+      "raw_text": "To solve this theorem, we use the property that $f(x+1) = 2 \\cdot f(x)$ describes a geometric progression. Given $f(5) = 48$, we can express $f(5)$ in terms of $f(1)$ by repeatedly applying the recurrence relation: $f(5) = 2 \\cdot f(4) = 2^2 \\cdot f(3) = 2^3 \\cdot f(2) = 2^4 \\cdot f(1)$. Thus, $48 = 16 \\cdot f(1)$, which implies $f(1) = 3$.\n\n**Proof Sketch:**\n1. Use induction or repeated substitution to show that $f(n) = 2^{n-1} \\cdot f(1)$ for any $n : \\mathbb{N}^+$.\n2. Specifically, for $n=5$, we have $f(5) = 2^{5-1} \\cdot f(1) = 2^4 \\cdot f(1) = 16 \\cdot f(1)$.\n3. Given $f(5) = 48$, we set up the equation $16 \\cdot f(1) = 48$.\n4. Solve for $f(1)$ to get $f(1) = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(n) = 2^(n-1) * f(1)\n  have h_gen : ∀ (n : ℕ), f (n + 1 : ℕ+) = 2^n * f 1 := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k + 1 + 1) = 2 * f(k + 1)\n      have h_step : f (k + 1 + 1 : ℕ+) = 2 * f (k + 1 : ℕ+) := by\n        exact h₀ (k + 1 : ℕ+)\n      rw [h_step, ih]\n      ring_nf\n      simp [pow_succ]\n\n  -- Apply the general form to n = 4 to get f(5)\n  have h_f5 := h_gen 4\n  -- Note: 4 + 1 = 5 in PNat\n  have h_5 : (4 + 1 : ℕ+) = 5 := rfl\n  rw [h_5] at h_f5\n  \n  -- Substitute f(5) = 48\n  rw [h₁] at h_f5\n  -- 48 = 2^4 * f(1) => 48 = 16 * f(1)\n  norm_num at h_f5\n  -- Solve 48 = 16 * f(1)\n  exact Nat.eq_of_mul_eq_mul_left (by norm_num) h_f5.symm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(n) = 2^(n-1) * f(1)\n  have h_gen : ∀ (n : ℕ), f (n + 1 : ℕ+) = 2^n * f 1 := by\n    intro n\n    induction' n with k ih\n    · simp\n    · -- f(k + 1 + 1) = 2 * f(k + 1)\n      have h_step : f (k + 1 + 1 : ℕ+) = 2 * f (k + 1 : ℕ+) := by\n        exact h₀ (k + 1 : ℕ+)\n      rw [h_step, ih]\n      ring_nf\n      simp [pow_succ]\n\n  -- Apply the general form to n = 4 to get f(5)\n  have h_f5 := h_gen 4\n  -- Note: 4 + 1 = 5 in PNat\n  have h_5 : (4 + 1 : ℕ+) = 5 := rfl\n  rw [h_5] at h_f5\n  \n  -- Substitute f(5) = 48\n  rw [h₁] at h_f5\n  -- 48 = 2^4 * f(1) => 48 = 16 * f(1)\n  norm_num at h_f5\n  -- Solve 48 = 16 * f(1)\n  exact Nat.eq_of_mul_eq_mul_left (by norm_num) h_f5.symm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 29
+            },
+            "endPos": {
+              "line": 14,
+              "column": 34
+            },
+            "data": "Type mismatch\n  n + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase zero\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\n⊢ f (sorry ()) = f 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 23
+            },
+            "endPos": {
+              "line": 19,
+              "column": 32
+            },
+            "data": "Type mismatch\n  k + 1 + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 48
+            },
+            "endPos": {
+              "line": 19,
+              "column": 53
+            },
+            "data": "Type mismatch\n  k + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 18
+            },
+            "endPos": {
+              "line": 20,
+              "column": 23
+            },
+            "data": "Type mismatch\n  k + 1\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 6
+            },
+            "endPos": {
+              "line": 23,
+              "column": 21
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.21331214904785156
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1. **Identify the sequence type:** The functional equation $f(x+1) = 2 f(x)$ defines a geometric progression with common ratio 2.\n2. **General Term Formula:** By induction, for any $n \\in \\mathbb{N}^+$, $f(n) = f(1) \\cdot 2^{n-1}$.\n3. **Plug in known value:** Use $h_1$ ($f(5) = 48$) and the formula for $n=5$.\n4. **Solve for $f(1)$:**\n   $f(5) = f(1) \\cdot 2^{5-1} = f(1) \\cdot 2^4 = f(1) \\cdot 16$.\n   Thus, $48 = f(1) \\cdot 16$, which implies $f(1) = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Define the general term of the sequence\n  have h_gen : ∀ n : ℕ+, f n = f 1 * 2^( (n : ℕ) - 1 ) := by\n    intro n\n    induction n using PNat.recOn with\n    | h1 => simp\n    | hp p ih =>\n      rw [h₀]\n      rw [ih]\n      have h_pos : (p : ℕ) ≥ 1 := p.pos\n      rw [PNat.add_coe, PNat.one_coe]\n      rw [Nat.add_sub_cancel]\n      rw [pow_succ']\n      ring\n\n  -- Apply the general term to n = 5\n  have h_5 := h_gen 5\n  rw [h₁] at h_5\n  norm_num at h_5\n  -- Solve 48 = f 1 * 16 for f 1\n  exact Nat.eq_of_mul_eq_mul_right (by norm_num) h_5\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- Define the general term of the sequence\n  have h_gen : ∀ n : ℕ+, f n = f 1 * 2^( (n : ℕ) - 1 ) := by\n    intro n\n    induction n using PNat.recOn with\n    | h1 => simp\n    | hp p ih =>\n      rw [h₀]\n      rw [ih]\n      have h_pos : (p : ℕ) ≥ 1 := p.pos\n      rw [PNat.add_coe, PNat.one_coe]\n      rw [Nat.add_sub_cancel]\n      rw [pow_succ']\n      ring\n\n  -- Apply the general term to n = 5\n  have h_5 := h_gen 5\n  rw [h₁] at h_5\n  norm_num at h_5\n  -- Solve 48 = f 1 * 16 for f 1\n  exact Nat.eq_of_mul_eq_mul_right (by norm_num) h_5",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 16
+            },
+            "data": "Invalid alternative name `h1`: Expected `one` or `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 4
+            },
+            "endPos": {
+              "line": 25,
+              "column": 10
+            },
+            "data": "Invalid alternative name `hp`: Expected `one` or `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 13
+            },
+            "data": "Alternative `one` has not been provided"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 13
+            },
+            "data": "Alternative `succ` has not been provided"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 36
+            },
+            "endPos": {
+              "line": 32,
+              "column": 47
+            },
+            "data": "unsolved goals\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\nh_gen : ∀ (n : ℕ+), f n = f 1 * 2 ^ (↑n - 1)\nh_5 : 48 = f 1 * 16\n⊢ 0 < ?m.73"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.10049271583557129
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "To prove $f(1) = 3$, we observe that the recurrence $f(x+1) = 2 f(x)$ implies $f$ is a geometric sequence. Specifically, for any $n \\in \\mathbb{N}$, $f(1 + n) = 2^n \\cdot f(1)$. Given $f(5) = 48$, we can set $n=4$ to obtain $f(1 + 4) = 2^4 \\cdot f(1)$. This simplifies to $f(5) = 16 \\cdot f(1)$. Substituting the known value $48 = 16 \\cdot f(1)$ and dividing by $16$ yields $f(1) = 3$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(1 + n) = 2^n * f(1)\n  have h_geom : ∀ (n : ℕ), f (1 + n) = 2^n * f 1 := by\n    intro n\n    induction' n with n ih\n    · simp\n    · -- f(1 + (n+1)) = f((1 + n) + 1)\n      have h_step := h₀ (1 + n)\n      rw [h_step, ih]\n      -- 2 * (2^n * f 1) = 2^(n+1) * f 1\n      ring\n  -- Apply the general form to n = 4\n  have h_f5 := h_geom 4\n  -- Note that 1 + 4 = 5 as PNat\n  have h_add : (1 : ℕ+) + (4 : ℕ) = (5 : ℕ+) := by\n    apply PNat.ext\n    simp only [PNat.add_coe, PNat.one_coe]\n    norm_num\n  rw [h_add] at h_f5\n  -- Substitute f 5 = 48\n  rw [h₁] at h_f5\n  -- 48 = 2^4 * f 1 => 48 = 16 * f 1\n  norm_num at h_f5\n  -- Solve for f 1\n  linear_combination (1 / 16 : ℚ) * h_f5\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_455\n  (f : ℕ+ → ℕ)\n  (h₀: ∀ x:ℕ+, f (x + 1) = 2 * f (x))\n  (h₁: f 5 = 48) :\n  f 1 = 3 := by\n  -- We establish the general form f(1 + n) = 2^n * f(1)\n  have h_geom : ∀ (n : ℕ), f (1 + n) = 2^n * f 1 := by\n    intro n\n    induction' n with n ih\n    · simp\n    · -- f(1 + (n+1)) = f((1 + n) + 1)\n      have h_step := h₀ (1 + n)\n      rw [h_step, ih]\n      -- 2 * (2^n * f 1) = 2^(n+1) * f 1\n      ring\n  -- Apply the general form to n = 4\n  have h_f5 := h_geom 4\n  -- Note that 1 + 4 = 5 as PNat\n  have h_add : (1 : ℕ+) + (4 : ℕ) = (5 : ℕ+) := by\n    apply PNat.ext\n    simp only [PNat.add_coe, PNat.one_coe]\n    norm_num\n  rw [h_add] at h_f5\n  -- Substitute f 5 = 48\n  rw [h₁] at h_f5\n  -- 48 = 2^4 * f 1 => 48 = 16 * f 1\n  norm_num at h_f5\n  -- Solve for f 1\n  linear_combination (1 / 16 : ℚ) * h_f5",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 30
+            },
+            "endPos": {
+              "line": 14,
+              "column": 35
+            },
+            "data": "Type mismatch\n  1 + n\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase zero\nf : ℕ+ → ℕ\nh₀ : ∀ (x : ℕ+), f (x + 1) = 2 * f x\nh₁ : f 5 = 48\n⊢ f (sorry ()) = f 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 25
+            },
+            "endPos": {
+              "line": 19,
+              "column": 30
+            },
+            "data": "Type mismatch\n  1 + n\nhas type\n  ℕ\nbut is expected to have type\n  ℕ+"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 10
+            },
+            "endPos": {
+              "line": 27,
+              "column": 18
+            },
+            "data": "Unknown constant `PNat.ext`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 4
+            },
+            "endPos": {
+              "line": 28,
+              "column": 42
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.15956854820251465
+      }
+    }
+  ]
+}

@@ -1,0 +1,1670 @@
+{
+  "problem": "problems/miniF2F-test/induction_sum_1oktkp1.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 15:38:05",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 0,
+    "completed_count": 0,
+    "solved": false
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Identity Decomposition**: Observe that the summand can be simplified using partial fraction decomposition:\n    $$\\frac{1}{(k+1)(k+2)} = \\frac{1}{k+1} - \\frac{1}{k+2}$$\n2.  **Telescoping Sum**: Applying this identity to the summation $\\sum_{k=0}^{n-1} \\left( \\frac{1}{k+1} - \\frac{1}{k+2} \\right)$ results in a telescoping series.\n3.  **Simplification**: The terms cancel out, leaving only the first term ($k=0$) and the last term ($k=n-1$):\n    $$\\left( \\frac{1}{0+1} - \\frac{1}{1+1} \\right) + \\left( \\frac{1}{1+1} - \\frac{1}{2+1} \\right) + \\dots + \\left( \\frac{1}{n} - \\frac{1}{n+1} \\right) = 1 - \\frac{1}{n+1}$$\n4.  **Final Result**: Combine the terms:\n    $$1 - \\frac{1}{n+1} = \\frac{(n+1) - 1}{n+1} = \\frac{n}{n+1}$$\n5.  **Implementation**: Use `Finset.sum_range_reflect` or `Finset.sum_range_sub` to handle the telescoping sum in Lean.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  -- Use partial fraction decomposition: 1/((k+1)(k+2)) = 1/(k+1) - 1/(k+2)\n  have h_decomp : ∀ k, (1 : ℝ) / ((k + 1) * (k + 2)) = 1 / (k + 1) - 1 / (k + 2) := by\n    intro k\n    have h1 : (k : ℝ) + 1 ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero k\n    have h2 : (k : ℝ) + 2 ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero (k + 1)\n    field_simp [h1, h2]\n    ring\n\n  -- Apply the decomposition to the sum\n  rw [Finset.sum_congr rfl (fun k _ => h_decomp k)]\n  \n  -- The sum is telescoping\n  rw [Finset.sum_range_sub]\n  \n  -- Simplify the result: 1/(0+1) - 1/(n+1)\n  simp only [Nat.cast_zero, zero_add, div_one]\n  \n  -- Final algebraic manipulation: 1 - 1/(n+1) = n/(n+1)\n  have h_n_plus_1 : (n : ℝ) + 1 ≠ 0 := by\n    norm_cast\n    exact Nat.succ_ne_zero n\n  field_simp [h_n_plus_1]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  -- Use partial fraction decomposition: 1/((k+1)(k+2)) = 1/(k+1) - 1/(k+2)\n  have h_decomp : ∀ k, (1 : ℝ) / ((k + 1) * (k + 2)) = 1 / (k + 1) - 1 / (k + 2) := by\n    intro k\n    have h1 : (k : ℝ) + 1 ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero k\n    have h2 : (k : ℝ) + 2 ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero (k + 1)\n    field_simp [h1, h2]\n    ring\n\n  -- Apply the decomposition to the sum\n  rw [Finset.sum_congr rfl (fun k _ => h_decomp k)]\n  \n  -- The sum is telescoping\n  rw [Finset.sum_range_sub]\n  \n  -- Simplify the result: 1/(0+1) - 1/(n+1)\n  simp only [Nat.cast_zero, zero_add, div_one]\n  \n  -- Final algebraic manipulation: 1 - 1/(n+1) = n/(n+1)\n  have h_n_plus_1 : (n : ℝ) + 1 ≠ 0 := by\n    norm_cast\n    exact Nat.succ_ne_zero n\n  field_simp [h_n_plus_1]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 29
+            },
+            "endPos": {
+              "line": 15,
+              "column": 30
+            },
+            "data": "Application type mismatch: The argument\n  k\nhas type\n  ℝ\nbut is expected to have type\n  ℕ\nin the application\n  succ_ne_zero k"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 30
+            },
+            "endPos": {
+              "line": 18,
+              "column": 35
+            },
+            "data": "Type mismatch\n  k + 1\nhas type\n  ℝ\nbut is expected to have type\n  ℕ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 6
+            },
+            "endPos": {
+              "line": 23,
+              "column": 50
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ∑ k ∈ ?m.144, 1 / ((k + 1) * (k + 2))\nin the target expression\n  ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\n\nn : ℕ\nhn₀ : 0 < n\nh_decomp : ∀ (k : ℝ), 1 / ((k + 1) * (k + 2)) = 1 / (k + 1) - 1 / (k + 2)\n⊢ ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4474599361419678
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=1$):**\n    The sum is $\\sum_{k=0}^{0} \\frac{1}{(k+1)(k+2)} = \\frac{1}{(1)(2)} = \\frac{1}{2}$.\n    The right-hand side is $\\frac{1}{1+1} = \\frac{1}{2}$. Both sides match.\n\n2.  **Inductive Step:**\n    Assume the identity holds for $n$, i.e., $\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} = \\frac{n}{n+1}$.\n    We want to prove it for $n+1$: $\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\frac{n+1}{n+2}$.\n    By the definition of summation:\n    $\\sum_{k=0}^{n} \\dots = \\left(\\sum_{k=0}^{n-1} \\dots\\right) + \\frac{1}{(n+1)(n+2)}$.\n    Substituting the induction hypothesis:\n    $\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$.\n    Finding a common denominator:\n    $\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)} = \\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$.\n    This completes the induction.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    -- Field simplification to handle fractions\n    have h1 : (n : ℝ) + 1 ≠ 0 := by\n      norm_cast\n      exact n.succ_ne_zero\n    have h2 : (n : ℝ) + 2 ≠ 0 := by\n      norm_cast\n      exact n.succ.succ_ne_zero\n    field_simp [h1, h2]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    -- Field simplification to handle fractions\n    have h1 : (n : ℝ) + 1 ≠ 0 := by\n      norm_cast\n      exact n.succ_ne_zero\n    have h2 : (n : ℝ) + 2 ≠ 0 := by\n      norm_cast\n      exact n.succ.succ_ne_zero\n    field_simp [h1, h2]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 2
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 6
+            },
+            "endPos": {
+              "line": 18,
+              "column": 26
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 6
+            },
+            "endPos": {
+              "line": 21,
+              "column": 31
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 23,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nn✝ n : ℕ\nhn : succ 0 ≤ n\nih : ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\nh1 : ↑n + 1 ≠ 0\nh2 : ↑n + 2 ≠ 0\n⊢ 1 + ↑n * 2 + ↑n * ↑(1 + n) * 2 + ↑n ^ 2 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) =\n    ↑n * ↑(1 + n) * 3 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.39026498794555664
+      }
+    },
+    {
+      "index": 3,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Identity Decomposition**: Observe that the summand can be written using a partial fraction decomposition:\n    $\\frac{1}{(k+1)(k+2)} = \\frac{1}{k+1} - \\frac{1}{k+2}$.\n2.  **Telescoping Sum**: Applying the summation over $k \\in \\{0, \\dots, n-1\\}$, the sum telescopes:\n    $\\sum_{k=0}^{n-1} \\left( \\frac{1}{k+1} - \\frac{1}{k+2} \\right) = \\left( \\frac{1}{1} - \\frac{1}{2} \\right) + \\left( \\frac{1}{2} - \\frac{1}{3} \\right) + \\dots + \\left( \\frac{1}{n} - \\frac{1}{n+1} \\right)$.\n3.  **Simplification**: All intermediate terms cancel out, leaving:\n    $1 - \\frac{1}{n+1}$.\n4.  **Final Result**: Combine the terms into a single fraction:\n    $1 - \\frac{1}{n+1} = \\frac{(n+1) - 1}{n+1} = \\frac{n}{n+1}$.\n5.  **Implementation**: This logic is implemented in Lean using `Finset.sum_range_reflect` or `Finset.sum_range_sub`, or simply by induction. Below, we use the `induction` tactic.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with d hd ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    have h_denom : ((d : ℝ) + 1) * ((d : ℝ) + 1 + 1) ≠ 0 := by\n      have : 0 < (d : ℝ) + 1 := by exact add_pos_of_pos_of_nonneg (cast_pos.mpr hd) (by norm_num)\n      apply mul_ne_zero (ne_of_gt this) (ne_of_gt (by linarith))\n    field_simp [h_denom]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with d hd ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    have h_denom : ((d : ℝ) + 1) * ((d : ℝ) + 1 + 1) ≠ 0 := by\n      have : 0 < (d : ℝ) + 1 := by exact add_pos_of_pos_of_nonneg (cast_pos.mpr hd) (by norm_num)\n      apply mul_ne_zero (ne_of_gt this) (ne_of_gt (by linarith))\n    field_simp [h_denom]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 2
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 19,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nn d : ℕ\nhd : succ 0 ≤ d\nih : ∑ k ∈ range d, 1 / ((↑k + 1) * (↑k + 2)) = ↑d / (↑d + 1)\nh_denom : (↑d + 1) * (↑d + 1 + 1) ≠ 0\n⊢ 1 + ↑d * 2 + ↑d * ↑(1 + d) * 2 + ↑d ^ 2 + ↑d ^ 2 * ↑(1 + d) + ↑(1 + d) =\n    ↑d * ↑(1 + d) * 3 + ↑d ^ 2 * ↑(1 + d) + ↑(1 + d) * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5901601314544678
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=1$):** The sum ranges over $k \\in \\{0\\}$. The term is $1 / (1 \\cdot 2) = 1/2$. The right-hand side is $1 / (1+1) = 1/2$.\n2.  **Inductive Step:** Assume the identity holds for $n$. We want to show it holds for $n+1$.\n    The sum for $n+1$ is $\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} + \\frac{1}{(n+1)(n+2)}$.\n3.  By the inductive hypothesis, this is $\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$.\n4.  Combine the fractions: $\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)} = \\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$.\n5.  This matches the formula for $n+1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    field_simp [cast_add_one_ne_zero n]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    field_simp [cast_add_one_ne_zero n]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 2
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 16,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nn✝ n : ℕ\nhn : succ 0 ≤ n\nih : ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\n⊢ 1 + ↑n * 2 + ↑n * ↑(1 + n) * 2 + ↑n ^ 2 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) =\n    ↑n * ↑(1 + n) * 3 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3711256980895996
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Base Case ($n=1$):**\n    The sum is $\\sum_{k=0}^{0} \\frac{1}{(k+1)(k+2)} = \\frac{1}{1 \\cdot 2} = \\frac{1}{2}$.\n    The right-hand side is $\\frac{1}{1+1} = \\frac{1}{2}$. They match.\n\n2.  **Inductive Step:**\n    Assume the identity holds for $n$, i.e., $\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} = \\frac{n}{n+1}$.\n    We want to show $\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\frac{n+1}{n+2}$.\n    Separating the last term:\n    $\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\left(\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)}\\right) + \\frac{1}{(n+1)(n+2)}$.\n    By the induction hypothesis, this equals:\n    $\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$.\n\n3.  **Algebraic Simplification:**\n    Combine fractions: $\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)} = \\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$.\n    The result follows by induction.\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    -- Field simplification for Real numbers\n    have h1 : (n : ℝ) + 1 ≠ 0 := by norm_cast; linarith\n    have h2 : (n : ℝ) + 2 ≠ 0 := by norm_cast; linarith\n    field_simp [h1, h2]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    -- Field simplification for Real numbers\n    have h1 : (n : ℝ) + 1 ≠ 0 := by norm_cast; linarith\n    have h2 : (n : ℝ) + 2 ≠ 0 := by norm_cast; linarith\n    field_simp [h1, h2]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 2
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 47
+            },
+            "endPos": {
+              "line": 16,
+              "column": 55
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 47
+            },
+            "endPos": {
+              "line": 17,
+              "column": 55
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 19,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nn✝ n : ℕ\nhn : succ 0 ≤ n\nih : ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\nh1 : ↑n + 1 ≠ 0\nh2 : ↑n + 2 ≠ 0\n⊢ 1 + ↑n * 2 + ↑n * ↑(1 + n) * 2 + ↑n ^ 2 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) =\n    ↑n * ↑(1 + n) * 3 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.38263416290283203
+      }
+    },
+    {
+      "index": 6,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\nThe goal is to prove $\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} = \\frac{n}{n+1}$ for $n > 0$.\n1.  **Partial Fraction Decomposition**: Observe that $\\frac{1}{(k+1)(k+2)} = \\frac{1}{k+1} - \\frac{1}{k+2}$.\n2.  **Telescoping Sum**: Applying this identity, the sum becomes a telescoping sum:\n    $\\sum_{k=0}^{n-1} \\left( \\frac{1}{k+1} - \\frac{1}{k+2} \\right)$.\n3.  **Cancellation**: The sum expands as $(\\frac{1}{1} - \\frac{1}{2}) + (\\frac{1}{2} - \\frac{1}{3}) + \\dots + (\\frac{1}{n} - \\frac{1}{n+1})$.\n4.  **Result**: Most terms cancel out, leaving $1 - \\frac{1}{n+1} = \\frac{n+1-1}{n+1} = \\frac{n}{n+1}$.\n5.  **Formal Induction**: Alternatively, we use induction on $n$.\n    *   **Base case ($n=1$):** $\\frac{1}{1 \\cdot 2} = \\frac{1}{2}$, which matches $\\frac{1}{1+1}$.\n    *   **Inductive step:** Adding the term for $n$ to the sum for $n-1$, we simplify $\\frac{n-1}{n} + \\frac{1}{(n)(n+1)}$ to $\\frac{n}{n+1}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n using Nat.strong_induction_on with n ih\n  cases' n with n\n  · exfalso; exact Nat.lt_asymm hn₀ hn₀\n  · cases' n with n\n    · -- Base case: n = 1\n      simp\n    · -- Inductive step: n + 2\n      let m := n + 1\n      have hm₀ : 0 < m := Nat.succ_pos n\n      have : ∑ k in range (m + 1), 1 / ((k + 1 : ℝ) * (k + 2)) = \n             (∑ k in range m, 1 / ((k + 1 : ℝ) * (k + 2))) + 1 / ((m + 1 : ℝ) * (m + 2)) := \n        sum_range_succ _ m\n      rw [this, ih m (Nat.lt_succ_self m) hm₀]\n      have h_den1 : (m : ℝ) + 1 ≠ 0 := by \n        norm_cast; exact Nat.succ_ne_zero m\n      have h_den2 : (m : ℝ) + 2 ≠ 0 := by \n        norm_cast; exact Nat.succ_ne_zero (m + 1)\n      field_simp [h_den1, h_den2]\n      ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n using Nat.strong_induction_on with n ih\n  cases' n with n\n  · exfalso; exact Nat.lt_asymm hn₀ hn₀\n  · cases' n with n\n    · -- Base case: n = 1\n      simp\n    · -- Inductive step: n + 2\n      let m := n + 1\n      have hm₀ : 0 < m := Nat.succ_pos n\n      have : ∑ k in range (m + 1), 1 / ((k + 1 : ℝ) * (k + 2)) = \n             (∑ k in range m, 1 / ((k + 1 : ℝ) * (k + 2))) + 1 / ((m + 1 : ℝ) * (m + 2)) := \n        sum_range_succ _ m\n      rw [this, ih m (Nat.lt_succ_self m) hm₀]\n      have h_den1 : (m : ℝ) + 1 ≠ 0 := by \n        norm_cast; exact Nat.succ_ne_zero m\n      have h_den2 : (m : ℝ) + 2 ≠ 0 := by \n        norm_cast; exact Nat.succ_ne_zero (m + 1)\n      field_simp [h_den1, h_den2]\n      ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 16
+            },
+            "endPos": {
+              "line": 19,
+              "column": 19
+            },
+            "data": "unexpected token 'in'; expected ','"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase h.succ.zero\nih : ∀ m < 0 + 1, 0 < m → ∑ k ∈ range m, 1 / ((↑k + 1) * (↑k + 2)) = ↑m / (↑m + 1)\nhn₀ : 0 < 0 + 1\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 13
+            },
+            "endPos": {
+              "line": 19,
+              "column": 16
+            },
+            "data": "failed to synthesize instance of type class\n  AddCommMonoid (Sort ?u.2659)\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 16
+            },
+            "data": "unsolved goals\ncase this\nn : ℕ\nih : ∀ m < n + 1 + 1, 0 < m → ∑ k ∈ range m, 1 / ((↑k + 1) * (↑k + 2)) = ↑m / (↑m + 1)\nhn₀ : 0 < n + 1 + 1\nm : ℕ := n + 1\nhm₀ : 0 < m\n⊢ sorry\n\ncase h.succ.succ\nn : ℕ\nih : ∀ m < n + 1 + 1, 0 < m → ∑ k ∈ range m, 1 / ((↑k + 1) * (↑k + 2)) = ↑m / (↑m + 1)\nhn₀ : 0 < n + 1 + 1\nm : ℕ := n + 1\nhm₀ : 0 < m\nthis : sorry\n⊢ ∑ k ∈ range (n + 1 + 1), 1 / ((↑k + 1) * (↑k + 2)) = ↑(n + 1 + 1) / (↑(n + 1 + 1) + 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.09967279434204102
+      }
+    },
+    {
+      "index": 7,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=1$):** The sum ranges over $k \\in \\{0\\}$. The term is $1/(1 \\cdot 2) = 1/2$. The RHS is $1/(1+1) = 1/2$.\n2.  **Inductive Step:** Assume the identity holds for $n$. We want to show it holds for $n+1$.\n3.  The sum for $n+1$ is the sum for $n$ plus the term at $k=n$:\n    $$\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$$\n4.  Combine the fractions by finding a common denominator $(n+1)(n+2)$:\n    $$\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)}$$\n5.  Factor the numerator: $n^2 + 2n + 1 = (n+1)^2$.\n6.  Simplify: $\\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$.\n7.  This matches the RHS for $n+1$, completing the induction.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    -- algebraic simplification\n    have h1 : (n : ℝ) + 1 ≠ 0 := by \n      norm_cast\n      exact Nat.succ_ne_zero n\n    have h2 : (n : ℝ) + 2 ≠ 0 := by \n      norm_cast\n      exact Nat.succ_ne_zero (n + 1)\n    field_simp [h1, h2]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    -- algebraic simplification\n    have h1 : (n : ℝ) + 1 ≠ 0 := by \n      norm_cast\n      exact Nat.succ_ne_zero n\n    have h2 : (n : ℝ) + 2 ≠ 0 := by \n      norm_cast\n      exact Nat.succ_ne_zero (n + 1)\n    field_simp [h1, h2]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 2
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 6
+            },
+            "endPos": {
+              "line": 18,
+              "column": 30
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 6
+            },
+            "endPos": {
+              "line": 21,
+              "column": 36
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 23,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nn✝ n : ℕ\nhn : succ 0 ≤ n\nih : ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\nh1 : ↑n + 1 ≠ 0\nh2 : ↑n + 2 ≠ 0\n⊢ 1 + ↑n * 2 + ↑n * ↑(1 + n) * 2 + ↑n ^ 2 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) =\n    ↑n * ↑(1 + n) * 3 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.39307284355163574
+      }
+    },
+    {
+      "index": 8,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=1$):**\n    The sum is $\\sum_{k=0}^{0} \\frac{1}{(k+1)(k+2)} = \\frac{1}{(0+1)(0+2)} = \\frac{1}{2}$.\n    The right hand side is $\\frac{1}{1+1} = \\frac{1}{2}$.\n2.  **Inductive Step:**\n    Assume the identity holds for $n$. We show it holds for $n+1$.\n    $\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\left(\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)}\\right) + \\frac{1}{(n+1)(n+2)}$.\n    By the inductive hypothesis, this equals $\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$.\n    Combine the terms over a common denominator: $\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)}$.\n    Simplify the numerator: $\\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$.\n    This matches the target expression for $n+1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn hI\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, hI]\n    have hn_pos : (n : ℝ) + 1 ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero n\n    have hn_pos2 : (n : ℝ) + 2 ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero (n + 1)\n    field_simp [hn_pos, hn_pos2]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn hI\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, hI]\n    have hn_pos : (n : ℝ) + 1 ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero n\n    have hn_pos2 : (n : ℝ) + 2 ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero (n + 1)\n    field_simp [hn_pos, hn_pos2]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 2
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 6
+            },
+            "endPos": {
+              "line": 17,
+              "column": 30
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 6
+            },
+            "endPos": {
+              "line": 20,
+              "column": 36
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 22,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nn✝ n : ℕ\nhn : succ 0 ≤ n\nhI : ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\nhn_pos : ↑n + 1 ≠ 0\nhn_pos2 : ↑n + 2 ≠ 0\n⊢ 1 + ↑n * 2 + ↑n * ↑(1 + n) * 2 + ↑n ^ 2 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) =\n    ↑n * ↑(1 + n) * 3 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.445418119430542
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\nWe use induction on $n$.\n1.  **Base Case ($n=1$):** The sum is $\\sum_{k=0}^{0} \\frac{1}{(k+1)(k+2)} = \\frac{1}{1 \\cdot 2} = \\frac{1}{2}$. The right hand side is $\\frac{1}{1+1} = \\frac{1}{2}$. They match.\n2.  **Inductive Step:** Assume the identity holds for $n$. We show it holds for $n+1$:\n    $$\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} + \\frac{1}{(n+1)(n+2)}$$\n    By the inductive hypothesis:\n    $$= \\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$$\n    Combining the fractions with the common denominator $(n+1)(n+2)$:\n    $$= \\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)} = \\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$$\n    This matches the formula for $n+1$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp [Finset.sum_range_one]\n  | succ n hn ih =>\n    rw [Finset.sum_range_succ, ih]\n    -- Cast natural numbers to reals for field tactics\n    push_cast\n    have h1 : (n : ℝ) + 1 ≠ 0 := by\n      exact cast_add_one_ne_zero n\n    have h2 : (n : ℝ) + 2 ≠ 0 := by\n      exact cast_add_one_ne_zero (n + 1)\n    field_simp [h1, h2]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp [Finset.sum_range_one]\n  | succ n hn ih =>\n    rw [Finset.sum_range_succ, ih]\n    -- Cast natural numbers to reals for field tactics\n    push_cast\n    have h1 : (n : ℝ) + 1 ≠ 0 := by\n      exact cast_add_one_ne_zero n\n    have h2 : (n : ℝ) + 2 ≠ 0 := by\n      exact cast_add_one_ne_zero (n + 1)\n    field_simp [h1, h2]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 9
+            },
+            "endPos": {
+              "line": 12,
+              "column": 31
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 6
+            },
+            "endPos": {
+              "line": 20,
+              "column": 40
+            },
+            "data": "Type mismatch\n  cast_add_one_ne_zero (n + 1)\nhas type\n  ↑(n + 1) + 1 ≠ 0\nbut is expected to have type\n  ↑n + 2 ≠ 0"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 12,
+              "column": 10
+            },
+            "endPos": {
+              "line": 12,
+              "column": 30
+            },
+            "data": "This simp argument is unused:\n  Finset.sum_range_one\n\nHint: Omit it from the simp argument list.\n  simp ̵[̵F̵i̵n̵s̵e̵t̵.̵s̵u̵m̵_̵r̵a̵n̵g̵e̵_̵o̵n̵e̵]̵\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.577378511428833
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=1$):** The sum ranges over $k \\in \\{0\\}$, so the term is $\\frac{1}{(0+1)(0+2)} = \\frac{1}{2}$. The right side is $\\frac{1}{1+1} = \\frac{1}{2}$.\n2.  **Inductive Step:** Assume the identity holds for $n$. We want to show it holds for $n+1$.\n3.  The sum for $n+1$ is $\\sum_{k=0}^{n-1} \\dots + \\frac{1}{(n+1)(n+2)}$.\n4.  By the inductive hypothesis, this equals $\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$.\n5.  Find a common denominator: $\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)} = \\frac{(n+1)^2}{(n+1)(n+2)}$.\n6.  Cancel $(n+1)$ to get $\\frac{n+1}{n+2}$, which is the desired result for $n+1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    have h1 : (n : ℝ) + 1 ≠ 0 := by\n      exact cast_add_one_ne_zero n\n    have h2 : (n : ℝ) + 2 ≠ 0 := by\n      positivity\n    field_simp [h1, h2]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    have h1 : (n : ℝ) + 1 ≠ 0 := by\n      exact cast_add_one_ne_zero n\n    have h2 : (n : ℝ) + 2 ≠ 0 := by\n      positivity\n    field_simp [h1, h2]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 2
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 20,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nn✝ n : ℕ\nhn : succ 0 ≤ n\nih : ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\nh1 : ↑n + 1 ≠ 0\nh2 : ↑n + 2 ≠ 0\n⊢ 1 + ↑n * 2 + ↑n * ↑(1 + n) * 2 + ↑n ^ 2 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) =\n    ↑n * ↑(1 + n) * 3 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3605835437774658
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Identity Construction**: Observe that the summand can be decomposed using partial fraction decomposition:\n    $\\frac{1}{(k+1)(k+2)} = \\frac{1}{k+1} - \\frac{1}{k+2}$.\n2.  **Telescoping Sum**: Apply the property of telescoping sums to the decomposition:\n    $\\sum_{k=0}^{n-1} \\left( \\frac{1}{k+1} - \\frac{1}{k+2} \\right) = \\left( \\frac{1}{0+1} - \\frac{1}{1+1} \\right) + \\dots + \\left( \\frac{1}{(n-1)+1} - \\frac{1}{(n-1)+2} \\right)$.\n3.  **Simplification**: All intermediate terms cancel out, leaving only the first and last terms:\n    $1 - \\frac{1}{n+1}$.\n4.  **Algebraic Manipulation**: Combine the result into a single fraction:\n    $1 - \\frac{1}{n+1} = \\frac{n+1-1}{n+1} = \\frac{n}{n+1}$.\n5.  **Implementation**: Use `Finset.sum_range_reflect` or `Finset.sum_range_sub` (telescoping property) in Lean.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  have h_decomp (k : ℕ) : (1 : ℝ) / ((k + 1) * (k + 2)) = 1 / (k + 1) - 1 / (k + 2) := by\n    have h1 : (k : ℝ) + 1 ≠ 0 := by\n      norm_cast\n      exact succ_ne_zero k\n    have h2 : (k : ℝ) + 2 ≠ 0 := by\n      norm_cast\n      exact succ_ne_zero (k + 1)\n    field_simp\n    ring\n  rw [sum_congr rfl (fun k _ => h_decomp k)]\n  rw [sum_range_sub]\n  simp only [Nat.cast_zero, zero_add, one_div]\n  field_simp [Nat.cast_add_one_ne_zero n]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  have h_decomp (k : ℕ) : (1 : ℝ) / ((k + 1) * (k + 2)) = 1 / (k + 1) - 1 / (k + 2) := by\n    have h1 : (k : ℝ) + 1 ≠ 0 := by\n      norm_cast\n      exact succ_ne_zero k\n    have h2 : (k : ℝ) + 2 ≠ 0 := by\n      norm_cast\n      exact succ_ne_zero (k + 1)\n    field_simp\n    ring\n  rw [sum_congr rfl (fun k _ => h_decomp k)]\n  rw [sum_range_sub]\n  simp only [Nat.cast_zero, zero_add, one_div]\n  field_simp [Nat.cast_add_one_ne_zero n]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 6
+            },
+            "endPos": {
+              "line": 13,
+              "column": 26
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 6
+            },
+            "endPos": {
+              "line": 16,
+              "column": 32
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 6
+            },
+            "endPos": {
+              "line": 20,
+              "column": 19
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ∑ i ∈ range ?n, (?f (i + 1) - ?f i)\nin the target expression\n  ∑ k ∈ range n, (1 / (↑k + 1) - 1 / (↑k + 2)) = ↑n / (↑n + 1)\n\nn : ℕ\nhn₀ : 0 < n\nh_decomp : ∀ (k : ℕ), 1 / ((↑k + 1) * (↑k + 2)) = 1 / (↑k + 1) - 1 / (↑k + 2)\n⊢ ∑ k ∈ range n, (1 / (↑k + 1) - 1 / (↑k + 2)) = ↑n / (↑n + 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.17247319221496582
+      }
+    },
+    {
+      "index": 12,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case**: For $n = 1$, the sum is $\\frac{1}{(0+1)(0+2)} = \\frac{1}{2}$. The right-hand side is $\\frac{1}{1+1} = \\frac{1}{2}$.\n2.  **Inductive Step**: Assume the identity holds for $n$, i.e., $\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} = \\frac{n}{n+1}$.\n3.  We want to show it holds for $n+1$:\n    $\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\left(\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)}\\right) + \\frac{1}{(n+1)(n+2)}$.\n4.  By the induction hypothesis, this equals $\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$.\n5.  Find a common denominator: $\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)}$.\n6.  Simplify the numerator: $\\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$.\n7.  The identity holds for $n+1$ by induction.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n with\n  | zero =>\n    -- This case is excluded by hn₀\n    contradiction\n  | succ n ih =>\n    by_cases h : n = 0\n    · -- Base case: n = 1\n      subst h\n      simp\n    · -- Inductive step\n      have n_pos : 0 < n := Nat.pos_of_ne_zero h\n      rw [sum_range_succ, ih n_pos]\n      field_simp [cast_add_one_ne_zero n]\n      ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n with\n  | zero =>\n    -- This case is excluded by hn₀\n    contradiction\n  | succ n ih =>\n    by_cases h : n = 0\n    · -- Base case: n = 1\n      subst h\n      simp\n    · -- Inductive step\n      have n_pos : 0 < n := Nat.pos_of_ne_zero h\n      rw [sum_range_succ, ih n_pos]\n      field_simp [cast_add_one_ne_zero n]\n      ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 18,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase pos\nih : 0 < 0 → ∑ k ∈ range 0, 1 / ((↑k + 1) * (↑k + 2)) = ↑0 / (↑0 + 1)\nhn₀ : 0 < 0 + 1\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 23,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase neg\nn : ℕ\nih : 0 < n → ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\nhn₀ : 0 < n + 1\nh : ¬n = 0\nn_pos : 0 < n\n⊢ 1 + ↑n * 2 + ↑n * ↑(1 + n) * 2 + ↑n ^ 2 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) =\n    ↑n * ↑(1 + n) * 3 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.36544322967529297
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Partial Fraction Decomposition**: Observe that for any $k \\in \\mathbb{N}$, the term $\\frac{1}{(k+1)(k+2)}$ can be decomposed into $\\frac{1}{k+1} - \\frac{1}{k+2}$.\n2.  **Telescoping Sum**: Applying this decomposition to the sum, we get:\n    $$\\sum_{k=0}^{n-1} \\left( \\frac{1}{k+1} - \\frac{1}{k+2} \\right)$$\n3.  **Cancellation**: This is a telescoping sum. Most terms cancel out, leaving only the first part of the first term and the last part of the last term:\n    $$\\left( \\frac{1}{0+1} \\right) - \\left( \\frac{1}{(n-1)+2} \\right) = 1 - \\frac{1}{n+1}$$\n4.  **Simplification**: Simplify the result to a single fraction:\n    $$1 - \\frac{1}{n+1} = \\frac{n+1-1}{n+1} = \\frac{n}{n+1}$$\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  -- Use the telescoping sum property: 1/((k+1)(k+2)) = 1/(k+1) - 1/(k+2)\n  have h_decomp : ∀ k, (1 : ℝ) / ((k + 1) * (k + 2)) = 1 / (k + 1) - 1 / (k + 2) := by\n    intro k\n    have h1 : (k : ℝ) + 1 ≠ 0 := by exact cast_add_one_ne_zero k\n    have h2 : (k : ℝ) + 2 ≠ 0 := by exact cast_add_two_ne_zero k\n    field_simp [h1, h2]\n  \n  -- Apply decomposition to the sum\n  rw [sum_congr rfl (fun k _ => h_decomp k)]\n  \n  -- Use the telescoping sum lemma from Mathlib\n  rw [sum_range_sub]\n  \n  -- Simplify the resulting expression\n  simp only [Nat.cast_zero, zero_add, inv_one]\n  field_simp [cast_add_one_ne_zero n]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  -- Use the telescoping sum property: 1/((k+1)(k+2)) = 1/(k+1) - 1/(k+2)\n  have h_decomp : ∀ k, (1 : ℝ) / ((k + 1) * (k + 2)) = 1 / (k + 1) - 1 / (k + 2) := by\n    intro k\n    have h1 : (k : ℝ) + 1 ≠ 0 := by exact cast_add_one_ne_zero k\n    have h2 : (k : ℝ) + 2 ≠ 0 := by exact cast_add_two_ne_zero k\n    field_simp [h1, h2]\n  \n  -- Apply decomposition to the sum\n  rw [sum_congr rfl (fun k _ => h_decomp k)]\n  \n  -- Use the telescoping sum lemma from Mathlib\n  rw [sum_range_sub]\n  \n  -- Simplify the resulting expression\n  simp only [Nat.cast_zero, zero_add, inv_one]\n  field_simp [cast_add_one_ne_zero n]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 63
+            },
+            "endPos": {
+              "line": 13,
+              "column": 64
+            },
+            "data": "Application type mismatch: The argument\n  k\nhas type\n  ℝ\nbut is expected to have type\n  ℕ\nin the application\n  cast_add_one_ne_zero k"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 42
+            },
+            "endPos": {
+              "line": 14,
+              "column": 62
+            },
+            "data": "Unknown identifier `cast_add_two_ne_zero`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 84
+            },
+            "endPos": {
+              "line": 15,
+              "column": 23
+            },
+            "data": "unsolved goals\nn : ℕ\nhn₀ : 0 < n\nk : ℝ\nh1 : k + 1 ≠ 0\nh2 : k + 2 ≠ 0\n⊢ 1 = k + 2 - (k + 1)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 6
+            },
+            "endPos": {
+              "line": 18,
+              "column": 43
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ∑ k ∈ ?m.139, 1 / ((k + 1) * (k + 2))\nin the target expression\n  ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\n\nn : ℕ\nhn₀ : 0 < n\nh_decomp : ∀ (k : ℝ), 1 / ((k + 1) * (k + 2)) = 1 / (k + 1) - 1 / (k + 2)\n⊢ ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.16042184829711914
+      }
+    },
+    {
+      "index": 14,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=1$):** The sum ranges over $k \\in \\{0\\}$. The term is $1 / (1 \\cdot 2) = 1/2$. The right-hand side is $1 / (1 + 1) = 1/2$.\n2.  **Inductive Step:** Assume the statement holds for $n$. We want to show it for $n+1$.\n3.  The sum for $n+1$ is $\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} + \\frac{1}{(n+1)(n+2)}$.\n4.  By the induction hypothesis, this equals $\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$.\n5.  Combine the fractions: $\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)}$.\n6.  Simplify the numerator: $\\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$.\n7.  This matches the formula for $n+1$, completing the induction.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp\n  | step n hn ih =>\n    rw [Finset.sum_range_succ, ih]\n    field_simp [cast_add_one_ne_zero n]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp\n  | step n hn ih =>\n    rw [Finset.sum_range_succ, ih]\n    field_simp [cast_add_one_ne_zero n]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 16,
+              "column": 8
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 9
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 2
+            },
+            "endPos": {
+              "line": 10,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.05729842185974121
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Base Case ($n=1$):**\n    The sum is $\\sum_{k=0}^{0} \\frac{1}{(k+1)(k+2)} = \\frac{1}{1 \\cdot 2} = \\frac{1}{2}$.\n    The right-hand side is $\\frac{1}{1+1} = \\frac{1}{2}$. Both sides match.\n\n2.  **Inductive Step:**\n    Assume the identity holds for $n$, i.e., $\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} = \\frac{n}{n+1}$.\n    We want to show $\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\frac{n+1}{n+2}$.\n    By the property of sums:\n    $\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\left(\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)}\\right) + \\frac{1}{(n+1)(n+2)}$.\n    Applying the inductive hypothesis:\n    $\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)} = \\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)} = \\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$.\n\n3.  **Conclusion:**\n    The identity holds for all $n > 0$ by induction.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp\n  | step k hk ih =>\n    rw [sum_range_succ, ih]\n    -- Clean up the goal using field properties\n    field_simp [cast_add_one_ne_zero k]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp\n  | step k hk ih =>\n    rw [sum_range_succ, ih]\n    -- Clean up the goal using field properties\n    field_simp [cast_add_one_ne_zero k]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 17,
+              "column": 8
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 9
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 2
+            },
+            "endPos": {
+              "line": 10,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.06043124198913574
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Base Case ($n=1$):**\n    The sum is $\\sum_{k=0}^{0} \\frac{1}{(k+1)(k+2)} = \\frac{1}{(1)(2)} = \\frac{1}{2}$.\n    The RHS is $\\frac{1}{1+1} = \\frac{1}{2}$. Both sides match.\n\n2.  **Inductive Step:**\n    Assume $\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} = \\frac{n}{n+1}$ for some $n \\geq 1$.\n    We want to show $\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\frac{n+1}{n+2}$.\n    By the induction hypothesis:\n    $\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$.\n    Combining the fractions:\n    $\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)} = \\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$.\n\n3.  **Conclusion:**\n    The identity holds for all $n > 0$ by induction.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    -- Field simplification to handle fractions\n    have h1 : (n : ℝ) + 1 ≠ 0 := by\n      exact cast_add_one_ne_zero n\n    have h2 : (n : ℝ) + 2 ≠ 0 := by\n      positivity\n    field_simp [h1, h2]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    -- Field simplification to handle fractions\n    have h1 : (n : ℝ) + 1 ≠ 0 := by\n      exact cast_add_one_ne_zero n\n    have h2 : (n : ℝ) + 2 ≠ 0 := by\n      positivity\n    field_simp [h1, h2]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 2
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 21,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nn✝ n : ℕ\nhn : succ 0 ≤ n\nih : ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\nh1 : ↑n + 1 ≠ 0\nh2 : ↑n + 2 ≠ 0\n⊢ 1 + ↑n * 2 + ↑n * ↑(1 + n) * 2 + ↑n ^ 2 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) =\n    ↑n * ↑(1 + n) * 3 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4882676601409912
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Identity Construction**: Observe that the summand can be decomposed using partial fraction decomposition:\n    $\\frac{1}{(k+1)(k+2)} = \\frac{1}{k+1} - \\frac{1}{k+2}$.\n2.  **Telescoping Sum**: Apply the telescoping sum property to the range $k \\in \\{0, \\dots, n-1\\}$.\n    $\\sum_{k=0}^{n-1} \\left( \\frac{1}{k+1} - \\frac{1}{k+2} \\right) = \\left( \\frac{1}{0+1} - \\frac{1}{1+1} \\right) + \\dots + \\left( \\frac{1}{n-1+1} - \\frac{1}{n-1+2} \\right)$.\n3.  **Simplification**: All intermediate terms cancel out, leaving:\n    $1 - \\frac{1}{n+1}$.\n4.  **Final Algebra**: Combine the terms over a common denominator:\n    $1 - \\frac{1}{n+1} = \\frac{n+1-1}{n+1} = \\frac{n}{n+1}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  -- Use partial fraction decomposition: 1 / ((k+1)(k+2)) = 1/(k+1) - 1/(k+2)\n  have h_decomp : ∀ k, (1 : ℝ) / ((k + 1) * (k + 2)) = 1 / (k + 1) - 1 / (k + 2) := by\n    intro k\n    have h1 : (k : ℝ) + 1 ≠ 0 := by norm_cast; linarith\n    have h2 : (k : ℝ) + 2 ≠ 0 := by norm_cast; linarith\n    field_simp [h1, h2]\n  \n  -- Apply the decomposition to the sum\n  rw [sum_congr rfl (fun k _ => h_decomp k)]\n  \n  -- This is a telescoping sum\n  rw [sum_range_reflect (fun k => (1 : ℝ) / (k + 1)) n]\n  rw [sum_range_sub]\n  \n  -- Simplify the resulting terms\n  simp only [Nat.cast_zero, zero_add, inv_one]\n  field_simp [cast_add_one_ne_zero n]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  -- Use partial fraction decomposition: 1 / ((k+1)(k+2)) = 1/(k+1) - 1/(k+2)\n  have h_decomp : ∀ k, (1 : ℝ) / ((k + 1) * (k + 2)) = 1 / (k + 1) - 1 / (k + 2) := by\n    intro k\n    have h1 : (k : ℝ) + 1 ≠ 0 := by norm_cast; linarith\n    have h2 : (k : ℝ) + 2 ≠ 0 := by norm_cast; linarith\n    field_simp [h1, h2]\n  \n  -- Apply the decomposition to the sum\n  rw [sum_congr rfl (fun k _ => h_decomp k)]\n  \n  -- This is a telescoping sum\n  rw [sum_range_reflect (fun k => (1 : ℝ) / (k + 1)) n]\n  rw [sum_range_sub]\n  \n  -- Simplify the resulting terms\n  simp only [Nat.cast_zero, zero_add, inv_one]\n  field_simp [cast_add_one_ne_zero n]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 47
+            },
+            "endPos": {
+              "line": 13,
+              "column": 55
+            },
+            "data": "linarith failed to find a contradiction\ncase h\nn : ℕ\nhn₀ : 0 < n\nk : ℝ\na✝ : k + 1 = 0\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 47
+            },
+            "endPos": {
+              "line": 14,
+              "column": 55
+            },
+            "data": "linarith failed to find a contradiction\ncase h\nn : ℕ\nhn₀ : 0 < n\nk : ℝ\nh1 : k + 1 ≠ 0\na✝ : k + 2 = 0\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 84
+            },
+            "endPos": {
+              "line": 15,
+              "column": 23
+            },
+            "data": "unsolved goals\nn : ℕ\nhn₀ : 0 < n\nk : ℝ\nh1 : k + 1 ≠ 0\nh2 : k + 2 ≠ 0\n⊢ 1 = k + 2 - (k + 1)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 6
+            },
+            "endPos": {
+              "line": 18,
+              "column": 43
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ∑ k ∈ ?m.138, 1 / ((k + 1) * (k + 2))\nin the target expression\n  ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\n\nn : ℕ\nhn₀ : 0 < n\nh_decomp : ∀ (k : ℝ), 1 / ((k + 1) * (k + 2)) = 1 / (k + 1) - 1 / (k + 2)\n⊢ ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4967334270477295
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Base Case ($n=1$):**\n    The sum is $\\sum_{k=0}^{0} \\frac{1}{(k+1)(k+2)} = \\frac{1}{1 \\cdot 2} = \\frac{1}{2}$.\n    The right hand side is $\\frac{1}{1+1} = \\frac{1}{2}$. They match.\n2.  **Inductive Step:**\n    Assume $\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} = \\frac{n}{n+1}$.\n    We want to show $\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\frac{n+1}{n+2}$.\n    By the definition of the sum, the sum up to $n$ is the sum up to $n-1$ plus the term for $k=n$:\n    $\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$.\n3.  **Algebraic Simplification:**\n    Combine the fractions: $\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)}$.\n    Since $n^2 + 2n + 1 = (n+1)^2$, we have $\\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn hih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step: n -> n + 1\n    rw [Finset.sum_range_succ, hih]\n    -- Cast to ensure we are working with real division\n    field_simp [cast_add_one_ne_zero n]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn hih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step: n -> n + 1\n    rw [Finset.sum_range_succ, hih]\n    -- Cast to ensure we are working with real division\n    field_simp [cast_add_one_ne_zero n]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 2
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 17,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nn✝ n : ℕ\nhn : succ 0 ≤ n\nhih : ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\n⊢ 1 + ↑n * 2 + ↑n * ↑(1 + n) * 2 + ↑n ^ 2 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) =\n    ↑n * ↑(1 + n) * 3 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.48487019538879395
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=1$):** The sum consists of a single term $\\frac{1}{(0+1)(0+2)} = \\frac{1}{2}$. The right-hand side is $\\frac{1}{1+1} = \\frac{1}{2}$. The equation holds.\n2.  **Inductive Step:** Assume the identity holds for some $n \\geq 1$. We want to show it holds for $n+1$:\n    $$\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} + \\frac{1}{(n+1)(n+2)}$$\n3.  By the inductive hypothesis, the sum is $\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$.\n4.  Combine the terms using a common denominator $(n+1)(n+2)$:\n    $$\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)} = \\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$$\n5.  This matches the target expression for $n+1$, completing the proof.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp\n  | succ n hn ih =>\n    rw [Finset.sum_range_succ, ih]\n    have h1 : (n + 1 : ℝ) ≠ 0 := by\n      norm_cast\n      exact n.succ_ne_zero\n    have h2 : (n + 2 : ℝ) ≠ 0 := by\n      norm_cast\n      exact n.succ.succ_ne_zero\n    field_simp [h1, h2]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp\n  | succ n hn ih =>\n    rw [Finset.sum_range_succ, ih]\n    have h1 : (n + 1 : ℝ) ≠ 0 := by\n      norm_cast\n      exact n.succ_ne_zero\n    have h2 : (n + 2 : ℝ) ≠ 0 := by\n      norm_cast\n      exact n.succ.succ_ne_zero\n    field_simp [h1, h2]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 9
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 6
+            },
+            "endPos": {
+              "line": 17,
+              "column": 26
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 6
+            },
+            "endPos": {
+              "line": 20,
+              "column": 31
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 17
+            },
+            "endPos": {
+              "line": 22,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nn✝ n : ℕ\nhn : succ 0 ≤ n\nih : ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\nh1 : ↑n + 1 ≠ 0\nh2 : ↑n + 2 ≠ 0\n⊢ 1 + ↑n * 2 + ↑n * ↑(1 + n) * 2 + ↑n ^ 2 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) =\n    ↑n * ↑(1 + n) * 3 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5096397399902344
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "To prove the identity $\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} = \\frac{n}{n+1}$, we use the partial fraction decomposition:\n$$\\frac{1}{(k+1)(k+2)} = \\frac{1}{k+1} - \\frac{1}{k+2}$$\nThis transforms the sum into a telescoping sum:\n$$\\sum_{k=0}^{n-1} \\left( \\frac{1}{k+1} - \\frac{1}{k+2} \\right) = \\left(\\frac{1}{1} - \\frac{1}{2}\\right) + \\left(\\frac{1}{2} - \\frac{1}{3}\\right) + \\dots + \\left(\\frac{1}{n} - \\frac{1}{n+1}\\right)$$\nMost terms cancel out, leaving only $1 - \\frac{1}{n+1}$. Simplifying this yields $\\frac{n+1-1}{n+1} = \\frac{n}{n+1}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  -- Use telescoping sum property\n  have h_decomp : ∀ k, (1 : ℝ) / ((k + 1) * (k + 2)) = 1 / (k + 1) - 1 / (k + 2) := by\n    intro k\n    have h1 : (k : ℝ) + 1 ≠ 0 := by norm_cast; linarith\n    have h2 : (k : ℝ) + 2 ≠ 0 := by norm_cast; linarith\n    field_simp [h1, h2]\n  -- Apply the decomposition to the sum\n  rw [sum_congr rfl (fun k _ => h_decomp k)]\n  -- Use the sum_range_sub identity for telescoping sums\n  rw [sum_range_sub (fun k => 1 / (k + 1 : ℝ))]\n  -- Simplify the result\n  simp only [Nat.cast_zero, zero_add, div_one]\n  have h_n_pos : (n : ℝ) + 1 ≠ 0 := by norm_cast; linarith\n  field_simp [h_n_pos]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  -- Use telescoping sum property\n  have h_decomp : ∀ k, (1 : ℝ) / ((k + 1) * (k + 2)) = 1 / (k + 1) - 1 / (k + 2) := by\n    intro k\n    have h1 : (k : ℝ) + 1 ≠ 0 := by norm_cast; linarith\n    have h2 : (k : ℝ) + 2 ≠ 0 := by norm_cast; linarith\n    field_simp [h1, h2]\n  -- Apply the decomposition to the sum\n  rw [sum_congr rfl (fun k _ => h_decomp k)]\n  -- Use the sum_range_sub identity for telescoping sums\n  rw [sum_range_sub (fun k => 1 / (k + 1 : ℝ))]\n  -- Simplify the result\n  simp only [Nat.cast_zero, zero_add, div_one]\n  have h_n_pos : (n : ℝ) + 1 ≠ 0 := by norm_cast; linarith\n  field_simp [h_n_pos]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 47
+            },
+            "endPos": {
+              "line": 13,
+              "column": 55
+            },
+            "data": "linarith failed to find a contradiction\ncase h\nn : ℕ\nhn₀ : 0 < n\nk : ℝ\na✝ : k + 1 = 0\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 47
+            },
+            "endPos": {
+              "line": 14,
+              "column": 55
+            },
+            "data": "linarith failed to find a contradiction\ncase h\nn : ℕ\nhn₀ : 0 < n\nk : ℝ\nh1 : k + 1 ≠ 0\na✝ : k + 2 = 0\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 84
+            },
+            "endPos": {
+              "line": 15,
+              "column": 23
+            },
+            "data": "unsolved goals\nn : ℕ\nhn₀ : 0 < n\nk : ℝ\nh1 : k + 1 ≠ 0\nh2 : k + 2 ≠ 0\n⊢ 1 = k + 2 - (k + 1)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 6
+            },
+            "endPos": {
+              "line": 17,
+              "column": 43
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ∑ k ∈ ?m.138, 1 / ((k + 1) * (k + 2))\nin the target expression\n  ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\n\nn : ℕ\nhn₀ : 0 < n\nh_decomp : ∀ (k : ℝ), 1 / ((k + 1) * (k + 2)) = 1 / (k + 1) - 1 / (k + 2)\n⊢ ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.41081905364990234
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=1$):** The sum ranges over $k \\in \\{0\\}$. The term is $1 / (1 \\cdot 2) = 1/2$. The right-hand side is $1 / (1+1) = 1/2$.\n2.  **Inductive Step:** Assume the identity holds for $n$. We want to show it holds for $n+1$.\n3.  The sum for $n+1$ is $\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} + \\frac{1}{(n+1)(n+2)}$.\n4.  By the induction hypothesis, this equals $\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$.\n5.  Find a common denominator: $\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)}$.\n6.  Factor the numerator: $\\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$.\n7.  This matches the target expression for $n+1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp\n  | step n hn ih =>\n    rw [Finset.sum_range_succ, ih]\n    field_simp [cast_add_one_ne_zero n]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp\n  | step n hn ih =>\n    rw [Finset.sum_range_succ, ih]\n    field_simp [cast_add_one_ne_zero n]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 16,
+              "column": 8
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 9
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 2
+            },
+            "endPos": {
+              "line": 10,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.220489501953125
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Base Case**: For $n = 1$, the sum consists of one term: $\\frac{1}{(0+1)(0+2)} = \\frac{1}{2}$. The right-hand side is $\\frac{1}{1+1} = \\frac{1}{2}$. The identity holds.\n2.  **Inductive Step**: Assume the identity holds for some $n \\geq 1$. We want to show it holds for $n+1$:\n    $$\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\left(\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)}\\right) + \\frac{1}{(n+1)(n+2)}$$\n3.  Apply the inductive hypothesis:\n    $$\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$$\n4.  Combine the fractions by finding a common denominator $(n+1)(n+2)$:\n    $$\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)} = \\frac{(n+1)^2}{(n+1)(n+2)}$$\n5.  Simplify the expression:\n    $$\\frac{n+1}{n+2}$$\n    This matches the right-hand side for $n+1$, completing the induction.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp\n  | step n hn ih =>\n    rw [Finset.sum_range_succ, ih]\n    -- Convert to a single fraction\n    have h1 : (n + 1 : ℝ) ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero n\n    have h2 : (n + 2 : ℝ) ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero (n + 1)\n    field_simp [h1, h2]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp\n  | step n hn ih =>\n    rw [Finset.sum_range_succ, ih]\n    -- Convert to a single fraction\n    have h1 : (n + 1 : ℝ) ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero n\n    have h2 : (n + 2 : ℝ) ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero (n + 1)\n    field_simp [h1, h2]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 23,
+              "column": 8
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 9
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 2
+            },
+            "endPos": {
+              "line": 10,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.12931370735168457
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\nWe prove the identity by induction on $n$.\n1.  **Base Case ($n=1$):**\n    The sum is $\\sum_{k=0}^{0} \\frac{1}{(k+1)(k+2)} = \\frac{1}{(0+1)(0+2)} = \\frac{1}{2}$.\n    The RHS is $\\frac{1}{1+1} = \\frac{1}{2}$. The identity holds.\n2.  **Inductive Step:**\n    Assume the identity holds for $n$, i.e., $\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} = \\frac{n}{n+1}$.\n    We want to show $\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\frac{n+1}{n+2}$.\n    By the properties of sums:\n    $\\sum_{k=0}^{n} \\dots = \\left(\\sum_{k=0}^{n-1} \\dots\\right) + \\frac{1}{(n+1)(n+2)}$.\n    Applying the inductive hypothesis:\n    $\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)} = \\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)} = \\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$.\n    The identity holds for $n+1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp\n  | step m hm IH =>\n    rw [Finset.sum_range_succ, IH]\n    set m_r : ℝ := (m : ℝ)\n    have h1 : m_r + 1 ≠ 0 := by norm_cast; linarith\n    have h2 : m_r + 2 ≠ 0 := by norm_cast; linarith\n    field_simp [h1, h2]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp\n  | step m hm IH =>\n    rw [Finset.sum_range_succ, IH]\n    set m_r : ℝ := (m : ℝ)\n    have h1 : m_r + 1 ≠ 0 := by norm_cast; linarith\n    have h2 : m_r + 2 ≠ 0 := by norm_cast; linarith\n    field_simp [h1, h2]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 19,
+              "column": 8
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 9
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 2
+            },
+            "endPos": {
+              "line": 10,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.10613775253295898
+      }
+    },
+    {
+      "index": 24,
+      "status": "FAILED",
+      "raw_text": "To prove the identity $\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} = \\frac{n}{n+1}$ for $n > 0$, we use the method of partial fractions and mathematical induction.\n\n### Proof Sketch\n1.  **Base Case ($n=1$):**\n    The sum is $\\frac{1}{(0+1)(0+2)} = \\frac{1}{2}$. The right side is $\\frac{1}{1+1} = \\frac{1}{2}$. The base case holds.\n2.  **Inductive Step:**\n    Assume the identity holds for $n$. We show it holds for $n+1$:\n    $$\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\left(\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)}\\right) + \\frac{1}{(n+1)(n+2)}$$\n    By the induction hypothesis:\n    $$= \\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$$\n    Combine the terms over a common denominator $(n+1)(n+2)$:\n    $$= \\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)} = \\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$$\n    This matches the formula for $n+1$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    -- Field simplification to handle fractions\n    have h1 : (n : ℝ) + 1 ≠ 0 := by\n      norm_cast; exact n.succ_ne_zero\n    have h2 : (n : ℝ) + 2 ≠ 0 := by\n      norm_cast; exact n.succ.succ_ne_zero\n    field_simp [h1, h2]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    -- Field simplification to handle fractions\n    have h1 : (n : ℝ) + 1 ≠ 0 := by\n      norm_cast; exact n.succ_ne_zero\n    have h2 : (n : ℝ) + 2 ≠ 0 := by\n      norm_cast; exact n.succ.succ_ne_zero\n    field_simp [h1, h2]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 2
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 17
+            },
+            "endPos": {
+              "line": 17,
+              "column": 37
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 17
+            },
+            "endPos": {
+              "line": 19,
+              "column": 42
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 21,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nn✝ n : ℕ\nhn : succ 0 ≤ n\nih : ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\nh1 : ↑n + 1 ≠ 0\nh2 : ↑n + 2 ≠ 0\n⊢ 1 + ↑n * 2 + ↑n * ↑(1 + n) * 2 + ↑n ^ 2 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) =\n    ↑n * ↑(1 + n) * 3 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.32273340225219727
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Base Case ($n=1$):** The sum consists of a single term where $k=0$. The expression is $1 / (1 \\cdot 2) = 1/2$. The right side is $1 / (1 + 1) = 1/2$.\n2.  **Inductive Step:** Assume the statement holds for $n$ (where $n \\geq 1$). We want to show it holds for $n+1$.\n3.  **Expansion:** The sum for $n+1$ is the sum for $n$ plus the term for $k=n$.\n4.  **Substitution:** By the induction hypothesis, the sum for $n$ is $n / (n + 1)$. The term for $k=n$ is $1 / ((n+1)(n+2))$.\n5.  **Algebra:**\n    $$\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)} = \\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)} = \\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$$\n6.  This matches the expected result for $n+1$, completing the induction.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn hih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, hih]\n    field_simp [cast_add_one_ne_zero n]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn hih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, hih]\n    field_simp [cast_add_one_ne_zero n]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 2
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 16,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nn✝ n : ℕ\nhn : succ 0 ≤ n\nhih : ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\n⊢ 1 + ↑n * 2 + ↑n * ↑(1 + n) * 2 + ↑n ^ 2 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) =\n    ↑n * ↑(1 + n) * 3 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3173503875732422
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Base Case ($n=1$):**\n    The left side is $\\sum_{k=0}^{0} \\frac{1}{(k+1)(k+2)} = \\frac{1}{1 \\cdot 2} = \\frac{1}{2}$.\n    The right side is $\\frac{1}{1+1} = \\frac{1}{2}$. Both match.\n\n2.  **Inductive Step ($n \\to n+1$):**\n    Assume the identity holds for $n$. We want to show:\n    $\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\frac{n+1}{n+2}$.\n    By the definition of summation, the left side is:\n    $\\left(\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)}\\right) + \\frac{1}{(n+1)(n+2)}$.\n    Applying the induction hypothesis, we get:\n    $\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$.\n    Finding a common denominator:\n    $\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)} = \\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$.\n\n3.  **Conclusion:**\n    The result holds for all $n > 0$ by induction.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn hih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, hih]\n    -- Arithmetic manipulation\n    field_simp [cast_add_one_ne_zero n]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn hih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, hih]\n    -- Arithmetic manipulation\n    field_simp [cast_add_one_ne_zero n]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 2
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 17,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nn✝ n : ℕ\nhn : succ 0 ≤ n\nhih : ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\n⊢ 1 + ↑n * 2 + ↑n * ↑(1 + n) * 2 + ↑n ^ 2 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) =\n    ↑n * ↑(1 + n) * 3 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3181178569793701
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Partial Fraction Decomposition**: Observe that the summand can be decomposed as:\n    $$\\frac{1}{(k+1)(k+2)} = \\frac{1}{k+1} - \\frac{1}{k+2}$$\n2.  **Telescoping Sum**: Applying this identity to the summation $\\sum_{k=0}^{n-1} \\left( \\frac{1}{k+1} - \\frac{1}{k+2} \\right)$ results in a telescoping series:\n    $$\\left( \\frac{1}{1} - \\frac{1}{2} \\right) + \\left( \\frac{1}{2} - \\frac{1}{3} \\right) + \\dots + \\left( \\frac{1}{n} - \\frac{1}{n+1} \\right)$$\n3.  **Cancellation**: All intermediate terms cancel out, leaving only the first and last terms:\n    $$1 - \\frac{1}{n+1}$$\n4.  **Simplification**: Combine the terms over a common denominator:\n    $$1 - \\frac{1}{n+1} = \\frac{(n+1) - 1}{n+1} = \\frac{n}{n+1}$$\n5.  **Conclusion**: The identity holds for all $n > 0$ (and actually for $n=0$ as well, where both sides are 0).\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  -- Use the telescoping sum property\n  have h_decomp : ∀ k, (1 : ℝ) / ((k + 1) * (k + 2)) = 1 / (k + 1) - 1 / (k + 2) := by\n    intro k\n    have h1 : (k : ℝ) + 1 ≠ 0 := by exact cast_add_one_ne_zero k\n    have h2 : (k : ℝ) + 2 ≠ 0 := by exact cast_add_two_ne_zero k\n    field_simp [h1, h2]\n  \n  -- Apply the decomposition to the sum\n  rw [sum_congr rfl (fun k _ => h_decomp k)]\n  \n  -- Use the sum_range_sub method for telescoping sums\n  -- sum_{k=0}^{n-1} (f(k) - f(k+1)) = f(0) - f(n)\n  let f := fun (k : ℕ) => (1 : ℝ) / (k + 1)\n  have h_telescope : (∑ k ∈ range n, (f k - f (k + 1))) = f 0 - f n := \n    sum_range_sub f n\n  \n  -- Align the sum with the telescoping form and simplify\n  rw [h_telescope]\n  simp only [f, cast_zero, zero_add, div_one]\n  \n  -- Final algebraic simplification\n  have h_n_plus_one : (n : ℝ) + 1 ≠ 0 := by exact cast_add_one_ne_zero n\n  field_simp [h_n_plus_one]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  -- Use the telescoping sum property\n  have h_decomp : ∀ k, (1 : ℝ) / ((k + 1) * (k + 2)) = 1 / (k + 1) - 1 / (k + 2) := by\n    intro k\n    have h1 : (k : ℝ) + 1 ≠ 0 := by exact cast_add_one_ne_zero k\n    have h2 : (k : ℝ) + 2 ≠ 0 := by exact cast_add_two_ne_zero k\n    field_simp [h1, h2]\n  \n  -- Apply the decomposition to the sum\n  rw [sum_congr rfl (fun k _ => h_decomp k)]\n  \n  -- Use the sum_range_sub method for telescoping sums\n  -- sum_{k=0}^{n-1} (f(k) - f(k+1)) = f(0) - f(n)\n  let f := fun (k : ℕ) => (1 : ℝ) / (k + 1)\n  have h_telescope : (∑ k ∈ range n, (f k - f (k + 1))) = f 0 - f n := \n    sum_range_sub f n\n  \n  -- Align the sum with the telescoping form and simplify\n  rw [h_telescope]\n  simp only [f, cast_zero, zero_add, div_one]\n  \n  -- Final algebraic simplification\n  have h_n_plus_one : (n : ℝ) + 1 ≠ 0 := by exact cast_add_one_ne_zero n\n  field_simp [h_n_plus_one]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 63
+            },
+            "endPos": {
+              "line": 13,
+              "column": 64
+            },
+            "data": "Application type mismatch: The argument\n  k\nhas type\n  ℝ\nbut is expected to have type\n  ℕ\nin the application\n  cast_add_one_ne_zero k"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 42
+            },
+            "endPos": {
+              "line": 14,
+              "column": 62
+            },
+            "data": "Unknown identifier `cast_add_two_ne_zero`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 84
+            },
+            "endPos": {
+              "line": 15,
+              "column": 23
+            },
+            "data": "unsolved goals\nn : ℕ\nhn₀ : 0 < n\nk : ℝ\nh1 : k + 1 ≠ 0\nh2 : k + 2 ≠ 0\n⊢ 1 = k + 2 - (k + 1)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 6
+            },
+            "endPos": {
+              "line": 18,
+              "column": 43
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ∑ k ∈ ?m.139, 1 / ((k + 1) * (k + 2))\nin the target expression\n  ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\n\nn : ℕ\nhn₀ : 0 < n\nh_decomp : ∀ (k : ℝ), 1 / ((k + 1) * (k + 2)) = 1 / (k + 1) - 1 / (k + 2)\n⊢ ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1768651008605957
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\nWe use induction on $n$.\n1.  **Base Case ($n=1$):** The sum is $\\sum_{k=0}^{0} \\frac{1}{(k+1)(k+2)} = \\frac{1}{1 \\cdot 2} = \\frac{1}{2}$. The right hand side is $\\frac{1}{1+1} = \\frac{1}{2}$. They match.\n2.  **Inductive Step:** Assume the identity holds for $n$. We want to show it holds for $n+1$:\n    $$\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\left(\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)}\\right) + \\frac{1}{(n+1)(n+2)}$$\n    By the induction hypothesis, this is:\n    $$\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$$\n    Combining the fractions with a common denominator $(n+1)(n+2)$:\n    $$\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)} = \\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$$\n    This matches the formula for $n+1$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    push_cast\n    have h1 : (n : ℝ) + 1 ≠ 0 := by exact_mod_cast n.succ_ne_zero\n    have h2 : (n : ℝ) + 2 ≠ 0 := by exact_mod_cast (n + 2).succ_ne_zero\n    field_simp [h1, h2]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    push_cast\n    have h1 : (n : ℝ) + 1 ≠ 0 := by exact_mod_cast n.succ_ne_zero\n    have h2 : (n : ℝ) + 2 ≠ 0 := by exact_mod_cast (n + 2).succ_ne_zero\n    field_simp [h1, h2]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 2
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2798597812652588
+      }
+    },
+    {
+      "index": 29,
+      "status": "FAILED",
+      "raw_text": "To prove the identity $\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} = \\frac{n}{n+1}$, we use mathematical induction on $n$.\n\n### Proof Sketch\n1.  **Base Case ($n=1$):**\n    The sum is $\\frac{1}{(0+1)(0+2)} = \\frac{1}{2}$. The right-hand side is $\\frac{1}{1+1} = \\frac{1}{2}$. Both sides match.\n2.  **Inductive Step:**\n    Assume the identity holds for $n$. For $n+1$:\n    $$\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\left(\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)}\\right) + \\frac{1}{(n+1)(n+2)}$$\n    By the inductive hypothesis, this is:\n    $$\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$$\n    Combine the fractions:\n    $$\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)} = \\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$$\n    This matches the formula for $n+1$, completing the induction.\n\n### Lean 4 Code\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn hih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, hih]\n    -- Field simplification to handle fractions\n    have h1 : (n : ℝ) + 1 ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero n\n    have h2 : (n : ℝ) + 2 ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero (n + 1)\n    field_simp [h1, h2]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn hih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, hih]\n    -- Field simplification to handle fractions\n    have h1 : (n : ℝ) + 1 ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero n\n    have h2 : (n : ℝ) + 2 ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero (n + 1)\n    field_simp [h1, h2]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 2
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 6
+            },
+            "endPos": {
+              "line": 18,
+              "column": 30
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 6
+            },
+            "endPos": {
+              "line": 21,
+              "column": 36
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 23,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nn✝ n : ℕ\nhn : succ 0 ≤ n\nhih : ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\nh1 : ↑n + 1 ≠ 0\nh2 : ↑n + 2 ≠ 0\n⊢ 1 + ↑n * 2 + ↑n * ↑(1 + n) * 2 + ↑n ^ 2 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) =\n    ↑n * ↑(1 + n) * 3 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2733635902404785
+      }
+    },
+    {
+      "index": 30,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Base Case ($n=1$):**\n    The sum is $\\sum_{k=0}^{0} \\frac{1}{(k+1)(k+2)} = \\frac{1}{1 \\cdot 2} = \\frac{1}{2}$.\n    The right side is $\\frac{1}{1+1} = \\frac{1}{2}$. They match.\n\n2.  **Inductive Step:**\n    Assume $\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} = \\frac{n}{n+1}$ for some $n \\geq 1$.\n    We want to show $\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\frac{n+1}{n+2}$.\n    By the property of summations:\n    $\\sum_{k=0}^{n} \\dots = \\left(\\sum_{k=0}^{n-1} \\dots \\right) + \\frac{1}{(n+1)(n+2)}$.\n    Using the induction hypothesis:\n    $\\text{Sum} = \\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$.\n    Combine the fractions using the common denominator $(n+1)(n+2)$:\n    $\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)} = \\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$.\n\n3.  **Conclusion:**\n    The identity holds for all $n > 0$ by induction.\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    field_simp [cast_add_one_ne_zero n]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction' n, hn₀ using Nat.le_induction with n hn ih\n  · -- Base case: n = 1\n    simp\n  · -- Inductive step\n    rw [Finset.sum_range_succ, ih]\n    field_simp [cast_add_one_ne_zero n]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 2
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 16,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nn✝ n : ℕ\nhn : succ 0 ≤ n\nih : ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\n⊢ 1 + ↑n * 2 + ↑n * ↑(1 + n) * 2 + ↑n ^ 2 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) =\n    ↑n * ↑(1 + n) * 3 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2536890506744385
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=1$):** The sum ranges from $k=0$ to $k=0$. The single term is $1 / (1 \\cdot 2) = 1/2$. The formula gives $1 / (1 + 1) = 1/2$.\n2.  **Inductive Step:** Assume the identity holds for $n$. We want to show it holds for $n+1$:\n    $\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)} + \\frac{1}{(n+1)(n+2)}$.\n3.  By the induction hypothesis, this equals $\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$.\n4.  Combine the fractions: $\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)}$.\n5.  Factor the numerator: $\\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$.\n6.  This matches the target formula for $n+1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp\n  | succ n hn ih =>\n    rw [Finset.sum_range_succ, ih]\n    have h1 : (n + 1 : ℝ) ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero n\n    have h2 : (n + 2 : ℝ) ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero (n + 1)\n    field_simp [h1, h2]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp\n  | succ n hn ih =>\n    rw [Finset.sum_range_succ, ih]\n    have h1 : (n + 1 : ℝ) ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero n\n    have h2 : (n + 2 : ℝ) ≠ 0 := by\n      norm_cast\n      exact Nat.succ_ne_zero (n + 1)\n    field_simp [h1, h2]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 9
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 6
+            },
+            "endPos": {
+              "line": 17,
+              "column": 30
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 6
+            },
+            "endPos": {
+              "line": 20,
+              "column": 36
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 17
+            },
+            "endPos": {
+              "line": 22,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nn✝ n : ℕ\nhn : succ 0 ≤ n\nih : ∑ k ∈ range n, 1 / ((↑k + 1) * (↑k + 2)) = ↑n / (↑n + 1)\nh1 : ↑n + 1 ≠ 0\nh2 : ↑n + 2 ≠ 0\n⊢ 1 + ↑n * 2 + ↑n * ↑(1 + n) * 2 + ↑n ^ 2 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) =\n    ↑n * ↑(1 + n) * 3 + ↑n ^ 2 * ↑(1 + n) + ↑(1 + n) * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.24039053916931152
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Base Case ($n=1$):** The sum ranges from $k=0$ to $k=0$. The single term is $1 / (1 \\cdot 2) = 1/2$. The right side is $1 / (1 + 1) = 1/2$.\n2.  **Inductive Step:** Assume the identity holds for $n$. We want to show it holds for $n+1$:\n    $$\\sum_{k=0}^{n} \\frac{1}{(k+1)(k+2)} = \\frac{n+1}{n+2}$$\n3.  **Decomposition:** Split the sum of $n+1$ terms into the sum of $n$ terms plus the last term ($k=n$):\n    $$\\left(\\sum_{k=0}^{n-1} \\frac{1}{(k+1)(k+2)}\\right) + \\frac{1}{(n+1)(n+2)}$$\n4.  **Substitution:** By the inductive hypothesis:\n    $$\\frac{n}{n+1} + \\frac{1}{(n+1)(n+2)}$$\n5.  **Algebra:** Combine the fractions over a common denominator $(n+1)(n+2)$:\n    $$\\frac{n(n+2) + 1}{(n+1)(n+2)} = \\frac{n^2 + 2n + 1}{(n+1)(n+2)} = \\frac{(n+1)^2}{(n+1)(n+2)} = \\frac{n+1}{n+2}$$\n    This matches the target expression for $n+1$.\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp\n  | step n hn ih =>\n    rw [Finset.sum_range_succ, ih]\n    -- Convert to a single fraction\n    have h1 : (n + 1 : ℝ) ≠ 0 := by\n      norm_cast\n      exact n.succ_ne_zero\n    have h2 : (n + 2 : ℝ) ≠ 0 := by\n      norm_cast\n      exact n.succ.succ_ne_zero\n    field_simp [h1, h2]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_sum_1oktkp1 (n : ℕ) (hn₀: 0 < n):\n  (∑ k ∈ Finset.range n, (1 : ℝ) / ((k + 1) * (k + 2))) = n / (n + 1) := by\n  induction n, hn₀ using Nat.le_induction with\n  | base =>\n    simp\n  | step n hn ih =>\n    rw [Finset.sum_range_succ, ih]\n    -- Convert to a single fraction\n    have h1 : (n + 1 : ℝ) ≠ 0 := by\n      norm_cast\n      exact n.succ_ne_zero\n    have h2 : (n + 2 : ℝ) ≠ 0 := by\n      norm_cast\n      exact n.succ.succ_ne_zero\n    field_simp [h1, h2]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 23,
+              "column": 8
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 9
+            },
+            "endPos": {
+              "line": 12,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 2 = 1 + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 2
+            },
+            "endPos": {
+              "line": 10,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.11006355285644531
+      }
+    }
+  ]
+}

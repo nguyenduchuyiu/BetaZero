@@ -1,0 +1,1068 @@
+{
+  "problem": "problems/miniF2F-test/numbertheory_prmdvsneqnsqmodpeq0.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 16:08:30",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 1,
+    "completed_count": 1,
+    "solved": true
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "To prove that $p \\mid n \\iff n^2 \\equiv 0 \\pmod p$ for a prime $p$ and integer $n$:\n\n**Proof Sketch:**\n1. **Forward Direction ($\\Rightarrow$):** If $p \\mid n$, then there exists an integer $k$ such that $n = pk$. Squaring both sides gives $n^2 = p^2 k^2 = p(pk^2)$. Since $pk^2$ is an integer, $p \\mid n^2$, which implies $n^2 \\equiv 0 \\pmod p$.\n2. **Backward Direction ($\\Leftarrow$):** If $n^2 \\equiv 0 \\pmod p$, then $p \\mid n^2$. By the properties of prime numbers (specifically Euclid's Lemma), if a prime $p$ divides a product $ab$, it must divide $a$ or $b$. Applying this to $n^2 = n \\cdot n$, we conclude $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The definition of congruence modulo p is equivalent to p dividing the difference.\n  rw [Int.ModEq, zero_add]\n  -- We know n^2 ≡ 0 [ZMOD p] ↔ p ∣ n^2.\n  rw [Int.mod_eq_zero_iff_dvd]\n  -- Use the property that for a prime p, p | a * b implies p | a or p | b.\n  constructor\n  · intro h\n    exact dvd_pow h (by norm_num)\n  · intro h\n    exact h₀.dvd_of_dvd_pow h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The definition of congruence modulo p is equivalent to p dividing the difference.\n  rw [Int.ModEq, zero_add]\n  -- We know n^2 ≡ 0 [ZMOD p] ↔ p ∣ n^2.\n  rw [Int.mod_eq_zero_iff_dvd]\n  -- Use the property that for a prime p, p | a * b implies p | a or p | b.\n  constructor\n  · intro h\n    exact dvd_pow h (by norm_num)\n  · intro h\n    exact h₀.dvd_of_dvd_pow h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 25
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  0 + ?a\nin the target expression\n  ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p\n\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.02066779136657715
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem $p \\mid n \\iff n^2 \\equiv 0 \\pmod p$ for a prime $p$ and integer $n$:\n\n### Proof Sketch\n1.  **Forward direction ($\\implies$):** Assume $p \\mid n$. By the definition of divisibility, there exists $k \\in \\mathbb{Z}$ such that $n = p \\cdot k$. Squaring both sides gives $n^2 = p^2 \\cdot k^2 = p \\cdot (p \\cdot k^2)$. Thus, $p \\mid n^2$, which is equivalent to $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward direction ($\\impliedby$):** Assume $n^2 \\equiv 0 \\pmod p$. This means $p \\mid n^2$. By the property of prime numbers (Euclid's Lemma), if a prime $p$ divides a product $ab$, it must divide $a$ or $b$. Applying this to $n^2 = n \\cdot n$, we conclude $p \\mid n$ or $p \\mid n$. In both cases, $p \\mid n$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- n^2 ≡ 0 [ZMOD p] is equivalent to p ∣ n^2 in integers\n  rw [Int.ModEq.zero_iff]\n  constructor\n  · -- Case: p ∣ n → p ∣ n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Case: p ∣ n^2 → p ∣ n\n    intro h\n    -- Use prime property: p ∣ n * n → p ∣ n\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    rw [pow_two] at h\n    exact hp.dvd_or_dvd h |>.elim id id\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- n^2 ≡ 0 [ZMOD p] is equivalent to p ∣ n^2 in integers\n  rw [Int.ModEq.zero_iff]\n  constructor\n  · -- Case: p ∣ n → p ∣ n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Case: p ∣ n^2 → p ∣ n\n    intro h\n    -- Use prime property: p ∣ n * n → p ∣ n\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    rw [pow_two] at h\n    exact hp.dvd_or_dvd h |>.elim id id",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 6
+            },
+            "endPos": {
+              "line": 11,
+              "column": 24
+            },
+            "data": "Unknown constant `Int.ModEq.zero_iff`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 33
+            },
+            "endPos": {
+              "line": 21,
+              "column": 39
+            },
+            "data": "unsolved goals\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD ↑p]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.013924837112426758
+      }
+    },
+    {
+      "index": 3,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe that the congruence $n^2 \\equiv 0 \\pmod p$ is equivalent to the statement that $p$ divides $n^2$ in the integers.\n\n**Proof Sketch:**\n1.  **Forward direction ($\\Rightarrow$):** If $p \\mid n$, then there exists an integer $k$ such that $n = pk$. Squaring both sides gives $n^2 = p(pk^2)$, which implies $p \\mid n^2$. This is equivalent to $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward direction ($\\Leftarrow$):** If $n^2 \\equiv 0 \\pmod p$, then $p \\mid n^2$. Since $p$ is a prime number, the property of primality (Euclid's Lemma) states that if a prime divides a product, it must divide at least one of the factors. Thus, $p \\mid n \\cdot n$ implies $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The congruence n^2 ≡ 0 [ZMOD p] is equivalent to ↑p ∣ n^2\n  rw [Int.modEq_zero_iff_dvd]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n\n    intro h\n    -- Use the fact that p is prime and p | n * n\n    rw [pow_two] at h\n    exact (Nat.Prime.dvd_iff_dvd_int h₀).mp (Int.Prime.dvd_mul (Nat.prime_iff_int_prime.mp h₀) h).any\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The congruence n^2 ≡ 0 [ZMOD p] is equivalent to ↑p ∣ n^2\n  rw [Int.modEq_zero_iff_dvd]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n\n    intro h\n    -- Use the fact that p is prime and p | n * n\n    rw [pow_two] at h\n    exact (Nat.Prime.dvd_iff_dvd_int h₀).mp (Int.Prime.dvd_mul (Nat.prime_iff_int_prime.mp h₀) h).any",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 11
+            },
+            "endPos": {
+              "line": 20,
+              "column": 36
+            },
+            "data": "Unknown constant `Nat.Prime.dvd_iff_dvd_int`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.125396728515625
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem $\\forall n \\in \\mathbb{Z}, p \\in \\mathbb{N}, \\text{Prime}(p) \\implies (p \\mid n \\iff n^2 \\equiv 0 \\pmod p)$, we follow these steps:\n\n### Proof Sketch\n1.  **Forward Direction ($\\implies$):** If $p \\mid n$, then there exists an integer $k$ such that $n = pk$. Squaring both sides gives $n^2 = p^2 k^2 = p(pk^2)$. Since $pk^2$ is an integer, $p \\mid n^2$, which is equivalent to $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward Direction ($\\impliedby$):** If $n^2 \\equiv 0 \\pmod p$, then $p \\mid n^2$. By the properties of prime numbers (Euclid's Lemma), if a prime $p$ divides a product $ab$, then $p \\mid a$ or $p \\mid b$. Applying this to $n^2 = n \\cdot n$, we conclude that $p \\mid n$ or $p \\mid n$. In both cases, $p \\mid n$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- n^2 ≡ 0 [ZMOD p] is equivalent to p ∣ n^2 in integers\n  rw [Int.ModEq.zero_iff]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n\n    intro h\n    -- Use prime property: p | a * b => p | a or p | b\n    -- Note: Prime.dvd_of_dvd_pow requires Nat, but Int.Prime works for integers.\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    exact hp.dvd_of_dvd_pow h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- n^2 ≡ 0 [ZMOD p] is equivalent to p ∣ n^2 in integers\n  rw [Int.ModEq.zero_iff]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n\n    intro h\n    -- Use prime property: p | a * b => p | a or p | b\n    -- Note: Prime.dvd_of_dvd_pow requires Nat, but Int.Prime works for integers.\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    exact hp.dvd_of_dvd_pow h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 6
+            },
+            "endPos": {
+              "line": 11,
+              "column": 24
+            },
+            "data": "Unknown constant `Int.ModEq.zero_iff`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 33
+            },
+            "endPos": {
+              "line": 21,
+              "column": 29
+            },
+            "data": "unsolved goals\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD ↑p]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.01460123062133789
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe that $n^2 \\equiv 0 \\pmod p$ is equivalent to $p \\mid n^2$ in the integers. Using the property of prime numbers, if a prime $p$ divides a product $ab$, then $p$ must divide $a$ or $p$ must divide $b$. In this case, $p \\mid n \\cdot n$ implies $p \\mid n$. The converse is trivial: if $p \\mid n$, then $p \\mid n^2$.\n\n**Proof Sketch:**\n1. Rewrite the congruence $n^2 \\equiv 0 \\pmod p$ as $p \\mid n^2$ using the definition of modular congruence.\n2. For the forward direction ($\\implies$): If $p \\mid n$, then there exists $k$ such that $n = pk$. Thus $n^2 = p(pk^2)$, so $p \\mid n^2$.\n3. For the backward direction ($\\impliedby$): Since $p$ is prime and $p \\mid n^2$ (which is $n \\cdot n$), the property of prime divisibility (Euclid's Lemma) implies $p \\mid n$ or $p \\mid n$. In both cases, $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- Rewrite the congruence n^2 ≡ 0 [ZMOD p] as p ∣ n^2\n  rw [Int.ModEq, Int.zero_mod]\n  constructor\n  · -- Case: p ∣ n → n^2 % p = 0\n    intro h\n    -- Since p ∣ n, n^2 is a multiple of p^2, which is a multiple of p\n    have h_sq : ↑p ∣ n ^ 2 := by\n      exact dvd_pow h (by norm_num)\n    exact Int.dvd_iff_emod_eq_zero.mp h_sq\n  · -- Case: n^2 % p = 0 → p ∣ n\n    intro h\n    -- Convert back from mod to dvd\n    have h_sq : ↑p ∣ n ^ 2 := Int.dvd_iff_emod_eq_zero.mpr h\n    -- Since p is prime and p ∣ n * n, p ∣ n\n    rw [pow_two] at h_sq\n    exact (Nat.prime_iff_prime_int.mp h₀).dvd_or_dvd h_sq |>.elim id id\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- Rewrite the congruence n^2 ≡ 0 [ZMOD p] as p ∣ n^2\n  rw [Int.ModEq, Int.zero_mod]\n  constructor\n  · -- Case: p ∣ n → n^2 % p = 0\n    intro h\n    -- Since p ∣ n, n^2 is a multiple of p^2, which is a multiple of p\n    have h_sq : ↑p ∣ n ^ 2 := by\n      exact dvd_pow h (by norm_num)\n    exact Int.dvd_iff_emod_eq_zero.mp h_sq\n  · -- Case: n^2 % p = 0 → p ∣ n\n    intro h\n    -- Convert back from mod to dvd\n    have h_sq : ↑p ∣ n ^ 2 := Int.dvd_iff_emod_eq_zero.mpr h\n    -- Since p is prime and p ∣ n * n, p ∣ n\n    rw [pow_two] at h_sq\n    exact (Nat.prime_iff_prime_int.mp h₀).dvd_or_dvd h_sq |>.elim id id",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 29
+            },
+            "data": "Unknown constant `Int.zero_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 33
+            },
+            "endPos": {
+              "line": 25,
+              "column": 71
+            },
+            "data": "unsolved goals\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.01521754264831543
+      }
+    },
+    {
+      "index": 6,
+      "status": "FAILED",
+      "raw_text": "To prove that $p \\mid n \\iff n^2 \\equiv 0 \\pmod p$ for a prime $p$ and integer $n$:\n\n**Proof Sketch:**\n1.  **Forward direction ($\\Rightarrow$):** If $p \\mid n$, then there exists an integer $k$ such that $n = pk$. Squaring both sides gives $n^2 = p^2 k^2 = p(pk^2)$. Since $n^2$ is a multiple of $p$, $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward direction ($\\Leftarrow$):** If $n^2 \\equiv 0 \\pmod p$, then $p \\mid n^2$. Since $p$ is a prime number, by Euclid's Lemma (or the property of prime elements in the ring of integers), if a prime divides a product $ab$, it must divide at least one of the factors. Here $a = b = n$, so $p \\mid n \\cdot n$ implies $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The notation n ^ 2 ≡ 0 [ZMOD p] is equivalent to ↑p ∣ (n ^ 2 - 0)\n  rw [Int.ModEq, sub_zero]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n\n    intro h\n    -- Use prime property: p | a * b -> p | a or p | b\n    have h_prime : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    exact Prime.dvd_of_dvd_pow h_prime h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The notation n ^ 2 ≡ 0 [ZMOD p] is equivalent to ↑p ∣ (n ^ 2 - 0)\n  rw [Int.ModEq, sub_zero]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n\n    intro h\n    -- Use prime property: p | a * b -> p | a or p | b\n    have h_prime : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    exact Prime.dvd_of_dvd_pow h_prime h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 25
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a - 0\nin the target expression\n  ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p\n\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.015967369079589844
+      }
+    },
+    {
+      "index": 7,
+      "status": "FAILED",
+      "raw_text": "To prove that for an integer $n$ and a prime $p$, $p \\mid n$ is equivalent to $n^2 \\equiv 0 \\pmod p$:\n\n### Proof Sketch\n1.  **Forward Direction ($\\implies$):** Assume $p \\mid n$. Then $n = k \\cdot p$ for some integer $k$. Squaring both sides gives $n^2 = k^2 \\cdot p^2 = (k^2 \\cdot p) \\cdot p$. Thus, $p \\mid n^2$, which implies $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward Direction ($\\impliedby$):** Assume $n^2 \\equiv 0 \\pmod p$. This means $p \\mid n^2$. Since $p$ is a prime number, the property of primality (Euclid's Lemma) states that if $p \\mid a \\cdot b$, then $p \\mid a$ or $p \\mid b$. Applying this to $n^2 = n \\cdot n$, we get $p \\mid n$ or $p \\mid n$. In both cases, $p \\mid n$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- Use the definition of modular congruence to rewrite the RHS\n  rw [Int.ModEq.zero_iff]\n  constructor\n  · -- Case: p ∣ n → p ∣ n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Case: p ∣ n^2 → p ∣ n\n    intro h\n    -- Convert Nat.Prime to the prime property for integers\n    have h_prime : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    -- Use the property that if a prime divides a product, it divides one of the factors\n    exact Prime.dvd_of_dvd_pow h_prime h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- Use the definition of modular congruence to rewrite the RHS\n  rw [Int.ModEq.zero_iff]\n  constructor\n  · -- Case: p ∣ n → p ∣ n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Case: p ∣ n^2 → p ∣ n\n    intro h\n    -- Convert Nat.Prime to the prime property for integers\n    have h_prime : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    -- Use the property that if a prime divides a product, it divides one of the factors\n    exact Prime.dvd_of_dvd_pow h_prime h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 6
+            },
+            "endPos": {
+              "line": 11,
+              "column": 24
+            },
+            "data": "Unknown constant `Int.ModEq.zero_iff`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 33
+            },
+            "endPos": {
+              "line": 21,
+              "column": 40
+            },
+            "data": "unsolved goals\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD ↑p]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.01407933235168457
+      }
+    },
+    {
+      "index": 8,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem $\\forall n \\in \\mathbb{Z}, p \\in \\mathbb{N}, \\text{Prime}(p) \\implies (p \\mid n \\iff n^2 \\equiv 0 \\pmod p)$, we follow these steps:\n\n### Proof Sketch\n1.  **Forward Direction ($\\implies$):** If $p \\mid n$, then there exists some integer $k$ such that $n = pk$. Squaring both sides gives $n^2 = p^2 k^2 = p(pk^2)$. Since $pk^2$ is an integer, $p \\mid n^2$, which is equivalent to $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward Direction ($\\impliedby$):** If $n^2 \\equiv 0 \\pmod p$, then $p \\mid n^2$. Since $p$ is a prime number, we apply Euclid's Lemma (specifically, the property that if a prime divides a product $ab$, it must divide $a$ or $b$). In the case of $n^2 = n \\cdot n$, this implies $p \\mid n$ or $p \\mid n$. In either case, $p \\mid n$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- Rewrite the congruence condition to a divisibility condition in integers\n  rw [Int.ModEq.zero_iff]\n  constructor\n  · -- Case: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Case: p | n^2 => p | n\n    intro h\n    -- Use the fact that if a prime p divides n*n, it divides n.\n    -- In Lean, prime for Nat is used, so we use Int.Prime.dvd_pow or similar.\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int p).mp h₀\n    exact hp.dvd_of_dvd_pow h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- Rewrite the congruence condition to a divisibility condition in integers\n  rw [Int.ModEq.zero_iff]\n  constructor\n  · -- Case: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Case: p | n^2 => p | n\n    intro h\n    -- Use the fact that if a prime p divides n*n, it divides n.\n    -- In Lean, prime for Nat is used, so we use Int.Prime.dvd_pow or similar.\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int p).mp h₀\n    exact hp.dvd_of_dvd_pow h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 6
+            },
+            "endPos": {
+              "line": 11,
+              "column": 24
+            },
+            "data": "Unknown constant `Int.ModEq.zero_iff`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 33
+            },
+            "endPos": {
+              "line": 21,
+              "column": 29
+            },
+            "data": "unsolved goals\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD ↑p]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.014100074768066406
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "To prove the equivalence $\\text{integer } p \\mid n \\iff n^2 \\equiv 0 \\pmod p$ for a prime $p$:\n\n**Proof Sketch:**\n1.  **Forward Direction ($\\implies$):** Assume $p \\mid n$. Then $n = p \\cdot k$ for some integer $k$. Squaring both sides gives $n^2 = p^2 \\cdot k^2 = p \\cdot (p \\cdot k^2)$, which implies $p \\mid n^2$. By definition of modular congruence, $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward Direction ($\\impliedby$):** Assume $n^2 \\equiv 0 \\pmod p$. This means $p \\mid n^2$. Since $p$ is a prime number, the property of primality (Euclid's Lemma) states that if $p \\mid a \\cdot b$, then $p \\mid a$ or $p \\mid b$. Here $a = b = n$, so $p \\mid n \\cdot n$ implies $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  constructor\n  · -- Forward direction: p | n => n^2 ≡ 0 [ZMOD p]\n    intro h\n    obtain ⟨k, hk⟩ := h\n    use p * k ^ 2\n    rw [hk, pow_two]\n    ring\n  · -- Backward direction: n^2 ≡ 0 [ZMOD p] => p | n\n    intro h\n    -- n^2 ≡ 0 [ZMOD p] implies p | n^2 in Z\n    have h_div : (p : ℤ) ∣ n ^ 2 := by\n      rw [Int.ModEq] at h\n      simp at h\n      exact h\n    -- For a prime p, p | n * n implies p | n\n    rw [pow_two] at h_div\n    exact (Nat.Prime.dvd_mul (Int.prime_iff_natPrime.mpr h₀)).mp h_div\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  constructor\n  · -- Forward direction: p | n => n^2 ≡ 0 [ZMOD p]\n    intro h\n    obtain ⟨k, hk⟩ := h\n    use p * k ^ 2\n    rw [hk, pow_two]\n    ring\n  · -- Backward direction: n^2 ≡ 0 [ZMOD p] => p | n\n    intro h\n    -- n^2 ≡ 0 [ZMOD p] implies p | n^2 in Z\n    have h_div : (p : ℤ) ∣ n ^ 2 := by\n      rw [Int.ModEq] at h\n      simp at h\n      exact h\n    -- For a prime p, p | n * n implies p | n\n    rw [pow_two] at h_div\n    exact (Nat.Prime.dvd_mul (Int.prime_iff_natPrime.mpr h₀)).mp h_div",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 8
+            },
+            "endPos": {
+              "line": 14,
+              "column": 17
+            },
+            "data": "failed to synthesize instance of type class\n  HMul ℕ ℤ ?m.41\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 8
+            },
+            "endPos": {
+              "line": 14,
+              "column": 17
+            },
+            "data": "Type mismatch\n  p * k ^ 2\nhas type\n  ?m.41\nof sort `outParam (Type ?u.364)` but is expected to have type\n  n ^ 2 ≡ 0 [ZMOD ↑p]\nof sort `Prop`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 30
+            },
+            "endPos": {
+              "line": 26,
+              "column": 56
+            },
+            "data": "Unknown constant `Int.prime_iff_natPrime.mpr`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.054456472396850586
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem $p \\mid n \\iff n^2 \\equiv 0 \\pmod p$, we break it into two implications:\n\n1.  **Forward direction ($\\implies$):** If $p \\mid n$, then $n = pk$ for some integer $k$. Squaring both sides gives $n^2 = p^2 k^2$, which is clearly divisible by $p$. Thus $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward direction ($\\impliedby$):** If $n^2 \\equiv 0 \\pmod p$, then $p \\mid n^2$. Since $p$ is a prime number, by Euclid's Lemma ($p \\mid ab \\implies p \\mid a \\text{ or } p \\mid b$), $p \\mid n \\cdot n$ implies $p \\mid n$.\n\nIn Lean 4, we use properties of the `Int.ModEq` relation and `Int.Prime.dvd_mul` (or `Nat.Prime.dvd_iff_le` logic adapted to integers).\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- n^2 ≡ 0 [ZMOD p] is equivalent to p ∣ n^2\n  rw [Int.modEq_zero_iff_dvd]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n\n    intro h\n    -- Since p is prime and n^2 = n * n, p must divide n\n    rw [pow_two] at h\n    exact (Int.Prime.dvd_mul (Nat.prime_iff_prime_int.mp h₀) h).mp Or.inl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- n^2 ≡ 0 [ZMOD p] is equivalent to p ∣ n^2\n  rw [Int.modEq_zero_iff_dvd]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n\n    intro h\n    -- Since p is prime and n^2 = n * n, p must divide n\n    rw [pow_two] at h\n    exact (Int.Prime.dvd_mul (Nat.prime_iff_prime_int.mp h₀) h).mp Or.inl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 29
+            },
+            "endPos": {
+              "line": 20,
+              "column": 60
+            },
+            "data": "Application type mismatch: The argument\n  prime_iff_prime_int.mp h₀\nhas type\n  _root_.Prime ↑p\nbut is expected to have type\n  Nat.Prime ?m.44\nin the application\n  Int.Prime.dvd_mul (prime_iff_prime_int.mp h₀)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.02657341957092285
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe that the congruence $n^2 \\equiv 0 \\pmod p$ is equivalent to the divisibility $p \\mid n^2$ in the integers. Since $p$ is a prime, the property of primality (specifically Euclid's Lemma) states that if a prime divides a product, it must divide at least one of the factors. In the case of $n^2 = n \\cdot n$, this implies $p \\mid n$.\n\n**Proof Sketch:**\n1.  **Direction ($\\Rightarrow$):** If $p \\mid n$, then $n = k \\cdot p$ for some integer $k$. Then $n^2 = k^2 \\cdot p^2 = (k^2 \\cdot p) \\cdot p$, which implies $p \\mid n^2$, hence $n^2 \\equiv 0 \\pmod p$.\n2.  **Direction ($\\Leftarrow$):** If $n^2 \\equiv 0 \\pmod p$, then $p \\mid n^2$. By the property of prime numbers (Euclid's Lemma), if $p$ is prime and $p \\mid a \\cdot b$, then $p \\mid a$ or $p \\mid b$. Applying this to $n^2 = n \\cdot n$, we conclude $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The congruence n^2 ≡ 0 [ZMOD p] is equivalent to p ∣ n^2 in integers.\n  rw [Int.ModEq, sub_zero]\n  -- We use the property of primes in the ring of integers.\n  -- Int.Prime p is true because Nat.Prime p is given.\n  have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int p).mp h₀\n  constructor\n  · -- Case: p ∣ n => p ∣ n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Case: p ∣ n^2 => p ∣ n\n    intro h\n    -- By Euclid's Lemma for integers\n    exact Prime.dvd_of_dvd_pow hp h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The congruence n^2 ≡ 0 [ZMOD p] is equivalent to p ∣ n^2 in integers.\n  rw [Int.ModEq, sub_zero]\n  -- We use the property of primes in the ring of integers.\n  -- Int.Prime p is true because Nat.Prime p is given.\n  have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int p).mp h₀\n  constructor\n  · -- Case: p ∣ n => p ∣ n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Case: p ∣ n^2 => p ∣ n\n    intro h\n    -- By Euclid's Lemma for integers\n    exact Prime.dvd_of_dvd_pow hp h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 25
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a - 0\nin the target expression\n  ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p\n\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.014829635620117188
+      }
+    },
+    {
+      "index": 12,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe that the congruence $n^2 \\equiv 0 \\pmod p$ is equivalent to saying that the integer $p$ divides $n^2$. Since $p$ is a prime number, we use the fundamental property of primes (Euclid's Lemma): if a prime $p$ divides a product $ab$, then $p$ divides $a$ or $p$ divides $b$. In our case, $p \\mid n \\cdot n$ implies $p \\mid n$. The converse is trivial: if $p \\mid n$, then $p \\mid n^2$.\n\n**Proof Sketch:**\n1. Rewrite the congruence $n^2 \\equiv 0 \\pmod p$ as the divisibility statement $p \\mid n^2$ in the integers.\n2. Use the property that for any prime $p$ and integer $x$, $p \\mid x^k \\iff p \\mid x$.\n3. This is provided in Mathlib via `Prime.dvd_pow_iff`.\n4. Since `p` is a `Nat.Prime`, we use `Nat.prime_iff_prime_int` to treat it as a prime in $\\mathbb{Z}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The congruence n^2 ≡ 0 [ZMOD p] is equivalent to p ∣ n^2 in integers.\n  rw [Int.ModEq, Int.zero_mod]\n  -- We use the property that for a prime p, p ∣ n^k if and only if p ∣ n.\n  -- First, we need the fact that if p is a Nat.Prime, it is also prime in ℤ.\n  let h_prime_int : Prime (p : ℤ) := (Nat.prime_iff_prime_int p).mp h₀\n  -- Now apply the property for powers (k = 2).\n  exact ⟨fun h => dvd_pow h (by norm_num), fun h => h_prime_int.dvd_pow_iff.mp h⟩\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The congruence n^2 ≡ 0 [ZMOD p] is equivalent to p ∣ n^2 in integers.\n  rw [Int.ModEq, Int.zero_mod]\n  -- We use the property that for a prime p, p ∣ n^k if and only if p ∣ n.\n  -- First, we need the fact that if p is a Nat.Prime, it is also prime in ℤ.\n  let h_prime_int : Prime (p : ℤ) := (Nat.prime_iff_prime_int p).mp h₀\n  -- Now apply the property for powers (k = 2).\n  exact ⟨fun h => dvd_pow h (by norm_num), fun h => h_prime_int.dvd_pow_iff.mp h⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 29
+            },
+            "data": "Unknown constant `Int.zero_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 33
+            },
+            "endPos": {
+              "line": 16,
+              "column": 81
+            },
+            "data": "unsolved goals\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.018781661987304688
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe that the congruence $n^2 \\equiv 0 \\pmod p$ is equivalent to the divisibility $p \\mid n^2$ in integers. Using properties of prime numbers, specifically Euclid's Lemma, if a prime $p$ divides a product $ab$, it must divide $a$ or $b$. Applying this to $n \\cdot n$, we see that $p \\mid n^2$ implies $p \\mid n$. The converse is trivial: if $p \\mid n$, then $p \\mid n^2$.\n\n**Proof Sketch:**\n1.  Rewrite the congruence $n^2 \\equiv 0 \\pmod p$ as $p \\mid n^2$ using `Int.ModEq.zero_iff`.\n2.  Direction $(\\to)$: If $p \\mid n$, then $n = pk$ for some $k$. Thus $n^2 = p(pk^2)$, so $p \\mid n^2$.\n3.  Direction $(\\gets)$: If $p \\mid n^2$, since $p$ is prime, by the prime property (Euclid's Lemma for integers), $p \\mid n \\cdot n$ implies $p \\mid n$ or $p \\mid n$. In both cases, $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- Rewrite the congruence n^2 ≡ 0 [ZMOD p] as p ∣ n^2\n  rw [Int.ModEq.zero_iff]\n  constructor\n  · -- Forward direction: p ∣ n → p ∣ n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p ∣ n^2 → p ∣ n\n    intro h\n    -- Use the property that if a prime divides a product, it divides one of the factors\n    -- Here n^2 = n * n\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    rw [pow_two] at h\n    exact hp.dvd_or_dvd h |>.elim id id\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- Rewrite the congruence n^2 ≡ 0 [ZMOD p] as p ∣ n^2\n  rw [Int.ModEq.zero_iff]\n  constructor\n  · -- Forward direction: p ∣ n → p ∣ n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p ∣ n^2 → p ∣ n\n    intro h\n    -- Use the property that if a prime divides a product, it divides one of the factors\n    -- Here n^2 = n * n\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    rw [pow_two] at h\n    exact hp.dvd_or_dvd h |>.elim id id",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 6
+            },
+            "endPos": {
+              "line": 11,
+              "column": 24
+            },
+            "data": "Unknown constant `Int.ModEq.zero_iff`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 33
+            },
+            "endPos": {
+              "line": 22,
+              "column": 39
+            },
+            "data": "unsolved goals\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD ↑p]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.01405787467956543
+      }
+    },
+    {
+      "index": 14,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem $\\forall n \\in \\mathbb{Z}, p \\in \\mathbb{N}, \\text{Prime}(p) \\vdash p \\mid n \\iff n^2 \\equiv 0 \\pmod p$, we follow these steps:\n\n### Proof Sketch\n1.  **Forward Direction ($\\implies$):** Assume $p \\mid n$. This implies there exists some integer $k$ such that $n = p \\cdot k$. Squaring both sides gives $n^2 = p^2 \\cdot k^2$. Since $p^2 \\cdot k^2$ is a multiple of $p$ (specifically $p \\cdot (p \\cdot k^2)$), we have $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward Direction ($\\implied mbox{):}$** Assume $n^2 \\equiv 0 \\pmod p$. By definition of modular congruence, $p \\mid n^2$. Since $p$ is a prime number, we apply Euclid's Lemma (or the prime property of $p$ in the ring $\\mathbb{Z}$): if $p$ is prime and $p \\mid a \\cdot b$, then $p \\mid a$ or $p \\mid b$. Setting $a = b = n$, we conclude $p \\mid n$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- Use the definition of modular congruence: a ≡ b [ZMOD p] ↔ ↑p ∣ (a - b)\n  rw [Int.ModEq, sub_zero]\n  constructor\n  · -- Case: p ∣ n → p ∣ n^2\n    intro h\n    -- If p divides n, then p divides n * n\n    exact dvd_pow h (by norm_num)\n  · -- Case: p ∣ n^2 → p ∣ n\n    intro h\n    -- Since p is prime, p ∣ n * n implies p ∣ n (Euclid's Lemma)\n    exact (Nat.Prime.dvd_iff_not_coprime h₀).mp (fun h_not => \n      h_not (Int.prime_condition_iff_is_prime.mpr (Nat.prime_iff_prime_int.mp h₀) n n h))\n    -- Alternatively, using a more direct Mathlib lemma for prime divisibility:\n    -- exact (Nat.prime_iff_prime_int.mp h₀).dvd_of_dvd_pow h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- Use the definition of modular congruence: a ≡ b [ZMOD p] ↔ ↑p ∣ (a - b)\n  rw [Int.ModEq, sub_zero]\n  constructor\n  · -- Case: p ∣ n → p ∣ n^2\n    intro h\n    -- If p divides n, then p divides n * n\n    exact dvd_pow h (by norm_num)\n  · -- Case: p ∣ n^2 → p ∣ n\n    intro h\n    -- Since p is prime, p ∣ n * n implies p ∣ n (Euclid's Lemma)\n    exact (Nat.Prime.dvd_iff_not_coprime h₀).mp (fun h_not => \n      h_not (Int.prime_condition_iff_is_prime.mpr (Nat.prime_iff_prime_int.mp h₀) n n h))\n    -- Alternatively, using a more direct Mathlib lemma for prime divisibility:\n    -- exact (Nat.prime_iff_prime_int.mp h₀).dvd_of_dvd_pow h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 25
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a - 0\nin the target expression\n  ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p\n\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.01567673683166504
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe the equivalence through the properties of divisibility and prime elements in the ring of integers $\\mathbb{Z}$.\n\n**Proof Sketch:**\n1.  **Forward direction ($\\implies$):** If $p \\mid n$, then there exists an integer $k$ such that $n = pk$. Squaring both sides gives $n^2 = p^2 k^2 = p(p k^2)$. Since $p k^2$ is an integer, $p \\mid n^2$, which is equivalent to $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward direction ($\\impliedby$):** If $n^2 \\equiv 0 \\pmod p$, then $p \\mid n^2$. Since $p$ is a prime number, by Euclid's Lemma ($p \\mid ab \\implies p \\mid a \\lor p \\mid b$), $p \\mid n \\cdot n$ implies $p \\mid n$ or $p \\mid n$. In both cases, $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The definition of modular congruence n^2 ≡ 0 [ZMOD p] is p ∣ (n^2 - 0)\n  rw [Int.ModEq, Int.zero_mod]\n  constructor\n  · -- Forward direction: p ∣ n → p ∣ n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p ∣ n^2 → p ∣ n\n    intro h\n    -- Convert Nat.Prime to Int.Prime to apply prime property in ℤ\n    let h_prime : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    -- n^2 is n * n\n    have h_sq : n ^ 2 = n * n := by ring\n    rw [h_sq] at h\n    -- Use the prime property: p ∣ a * b → p ∣ a ∨ p ∣ b\n    apply h_prime.dvd_or_dvd h |>.elim\n    · intro h_n; exact h_n\n    · intro h_n; exact h_n\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The definition of modular congruence n^2 ≡ 0 [ZMOD p] is p ∣ (n^2 - 0)\n  rw [Int.ModEq, Int.zero_mod]\n  constructor\n  · -- Forward direction: p ∣ n → p ∣ n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p ∣ n^2 → p ∣ n\n    intro h\n    -- Convert Nat.Prime to Int.Prime to apply prime property in ℤ\n    let h_prime : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    -- n^2 is n * n\n    have h_sq : n ^ 2 = n * n := by ring\n    rw [h_sq] at h\n    -- Use the prime property: p ∣ a * b → p ∣ a ∨ p ∣ b\n    apply h_prime.dvd_or_dvd h |>.elim\n    · intro h_n; exact h_n\n    · intro h_n; exact h_n",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 29
+            },
+            "data": "Unknown constant `Int.zero_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 33
+            },
+            "endPos": {
+              "line": 26,
+              "column": 26
+            },
+            "data": "unsolved goals\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.021166563034057617
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe the following logic:\n\n**Proof Sketch:**\n1.  **Forward Direction ($\\implies$):** If $p \\mid n$, then there exists an integer $k$ such that $n = p \\cdot k$. Squaring both sides gives $n^2 = p^2 \\cdot k^2 = p \\cdot (p \\cdot k^2)$. Thus, $p \\mid n^2$, which implies $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward Direction ($\\implied m$):** If $n^2 \\equiv 0 \\pmod p$, then $p \\mid n^2$. Since $p$ is a prime number, the property of primality (Euclid's Lemma) states that if $p \\mid a \\cdot b$, then $p \\mid a$ or $p \\mid b$. Setting $a = b = n$, we conclude $p \\mid n$.\n\nThe Lean proof utilizes `Int.ModEq` definitions and the lemma `Int.Prime.dvd_pow_iff`, which simplifies the relationship between a prime dividing a power and the prime dividing the base.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- n^2 ≡ 0 [ZMOD p] is equivalent to p ∣ (n^2 - 0)\n  rw [Int.modEq_zero_iff_dvd]\n  -- Use the property that for a prime p, p ∣ n^k iff p ∣ n\n  constructor\n  · intro h\n    -- If p ∣ n, then p ∣ n * n\n    exact dvd_pow h (by norm_num)\n  · intro h\n    -- Using the property: p is prime and p ∣ n^2 implies p ∣ n\n    exact (Int.Prime.dvd_pow_iff (Nat.prime_iff_int_prime.mp h₀) (by norm_num)).mp h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- n^2 ≡ 0 [ZMOD p] is equivalent to p ∣ (n^2 - 0)\n  rw [Int.modEq_zero_iff_dvd]\n  -- Use the property that for a prime p, p ∣ n^k iff p ∣ n\n  constructor\n  · intro h\n    -- If p ∣ n, then p ∣ n * n\n    exact dvd_pow h (by norm_num)\n  · intro h\n    -- Using the property: p is prime and p ∣ n^2 implies p ∣ n\n    exact (Int.Prime.dvd_pow_iff (Nat.prime_iff_int_prime.mp h₀) (by norm_num)).mp h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 11
+            },
+            "endPos": {
+              "line": 19,
+              "column": 32
+            },
+            "data": "Unknown constant `Int.Prime.dvd_pow_iff`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.12299728393554688
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem $p \\mid n \\iff n^2 \\equiv 0 \\pmod p$ for an integer $n$ and prime $p$, we consider the two directions:\n\n1.  **Forward direction ($\\Rightarrow$):** If $p \\mid n$, then there exists an integer $k$ such that $n = pk$. Squaring both sides gives $n^2 = p^2 k^2 = p(pk^2)$. This implies $p \\mid n^2$, which is equivalent to $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward direction ($\\Leftarrow$):** If $n^2 \\equiv 0 \\pmod p$, then $p \\mid n^2$. By the property of prime numbers (Euclid's Lemma), if a prime $p$ divides a product $ab$, then $p$ divides $a$ or $p$ divides $b$. Here, $p \\mid n \\cdot n$, so $p \\mid n$ or $p \\mid n$, which simplifies to $p \\mid n$.\n\nIn Lean 4, we use the `Int.ModEq` definitions and the lemma `Int.Prime.dvd_pow_iff` from Mathlib, which generalizes Euclid's Lemma to powers.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The definition of n^2 ≡ 0 [ZMOD p] is ↑p ∣ (n^2 - 0)\n  rw [Int.ModEq, sub_zero]\n  -- Use the property of primes: p | n^k ↔ p | n\n  constructor\n  · intro h\n    -- If p | n, then p | n^2\n    exact dvd_pow h (by norm_num)\n  · intro h\n    -- Convert Nat.Prime to Int.Prime for the integer divisibility lemma\n    have hp : Int.Prime ↑p := (Int.prime_iff_natAbs_prime).mpr (by simp [h₀])\n    -- p | n^2 implies p | n for prime p\n    exact hp.dvd_of_dvd_pow h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The definition of n^2 ≡ 0 [ZMOD p] is ↑p ∣ (n^2 - 0)\n  rw [Int.ModEq, sub_zero]\n  -- Use the property of primes: p | n^k ↔ p | n\n  constructor\n  · intro h\n    -- If p | n, then p | n^2\n    exact dvd_pow h (by norm_num)\n  · intro h\n    -- Convert Nat.Prime to Int.Prime for the integer divisibility lemma\n    have hp : Int.Prime ↑p := (Int.prime_iff_natAbs_prime).mpr (by simp [h₀])\n    -- p | n^2 implies p | n for prime p\n    exact hp.dvd_of_dvd_pow h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 25
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a - 0\nin the target expression\n  ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p\n\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.016112327575683594
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe that the congruence $n^2 \\equiv 0 \\pmod p$ is equivalent to the statement that $p$ divides $n^2$ in the integers.\n\n**Proof Sketch:**\n1.  **Forward direction ($\\implies$):** If $p \\mid n$, then there exists an integer $k$ such that $n = pk$. Squaring both sides gives $n^2 = p^2 k^2 = p(p k^2)$, which implies $p \\mid n^2$. By definition of modular congruence, $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward direction ($\\impliedby$):** If $n^2 \\equiv 0 \\pmod p$, then $p \\mid n^2$. Since $p$ is a prime number, the property of primality (Euclid's Lemma) states that if $p$ divides a product $ab$, then $p \\mid a$ or $p \\mid b$. Applying this to $n \\cdot n$, we conclude that $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The congruence n^2 ≡ 0 [ZMOD p] is equivalent to p ∣ n^2 in integers.\n  rw [Int.ModEq, Int.zero_sub, dvd_neg]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n\n    intro h\n    -- Use the fact that if a prime p divides a product, it divides one of the factors.\n    -- In Lean, prime for Nat is used, so we use the Prime property of integers.\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    exact hp.dvd_of_dvd_pow h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The congruence n^2 ≡ 0 [ZMOD p] is equivalent to p ∣ n^2 in integers.\n  rw [Int.ModEq, Int.zero_sub, dvd_neg]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n\n    intro h\n    -- Use the fact that if a prime p divides a product, it divides one of the factors.\n    -- In Lean, prime for Nat is used, so we use the Prime property of integers.\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    exact hp.dvd_of_dvd_pow h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 29
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  0 - ?a\nin the target expression\n  ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p\n\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.022555828094482422
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "To prove the equivalence $p \\mid n \\iff n^2 \\equiv 0 \\pmod p$ for a prime $p$ and integer $n$:\n\n**Proof Sketch:**\n1.  **Forward direction ($\\implies$):** If $p \\mid n$, then there exists an integer $k$ such that $n = pk$. Squaring both sides gives $n^2 = p^2 k^2 = p(pk^2)$. Since $p$ divides $n^2$, it follows by definition that $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward direction ($\\impliedby$):** If $n^2 \\equiv 0 \\pmod p$, then $p \\mid n^2$. Since $p$ is a prime, the property of primality (Euclid's Lemma) states that if $p \\mid ab$, then $p \\mid a$ or $p \\mid b$. Applying this to $n^2 = n \\cdot n$, we conclude $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- n^2 ≡ 0 [ZMOD p] is equivalent to p ∣ n^2 in integers\n  rw [Int.ModEq.zero_iff]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n\n    intro h\n    -- Use the property that if a prime p divides a^k, then p divides a\n    exact Prime.dvd_of_dvd_pow (Nat.prime_iff_prime_int.mp h₀) h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- n^2 ≡ 0 [ZMOD p] is equivalent to p ∣ n^2 in integers\n  rw [Int.ModEq.zero_iff]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n\n    intro h\n    -- Use the property that if a prime p divides a^k, then p divides a\n    exact Prime.dvd_of_dvd_pow (Nat.prime_iff_prime_int.mp h₀) h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 6
+            },
+            "endPos": {
+              "line": 11,
+              "column": 24
+            },
+            "data": "Unknown constant `Int.ModEq.zero_iff`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 33
+            },
+            "endPos": {
+              "line": 19,
+              "column": 64
+            },
+            "data": "unsolved goals\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD ↑p]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.020810842514038086
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe that the congruence $n^2 \\equiv 0 \\pmod{p}$ is equivalent to saying that the integer $p$ divides $n^2$. Since $p$ is a prime number, we can apply the property of primality: if a prime $p$ divides a product $ab$, then it must divide $a$ or $b$. In this specific case, $p \\mid n \\cdot n$ implies $p \\mid n$. The converse is trivial: if $p \\mid n$, then $p \\mid n^2$.\n\n### Proof Sketch\n1.  **Definitions**: Rewrite the congruence $n^2 \\equiv 0 \\pmod{p}$ as the divisibility statement $p \\mid n^2$ using the definition of `Int.ModEq`.\n2.  **Forward direction ($\\implies$)**: If $p \\mid n$, then $n$ can be written as $pk$ for some integer $k$. Then $n^2 = p^2 k^2$, which is clearly divisible by $p$.\n3.  **Backward direction ($\\impliedby$)**: If $p \\mid n^2$, we use the fact that $p$ is a prime. In any GCD domain (and specifically for integers), if a prime divides $a \\cdot b$, it divides $a$ or $b$. Thus $p \\mid n \\cdot n \\implies p \\mid n$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- Rewrite the congruence as a divisibility statement\n  rw [Int.ModEq, Int.zero_mod, Int.mod_eq_zero_iff_dvd]\n  constructor\n  · -- Case: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Case: p | n^2 => p | n\n    intro h\n    -- Use the fact that if a prime p divides a product, it divides one of the factors\n    -- Here p is a natural prime, so it is also a prime in the ring of integers\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int p).mp h₀\n    exact Prime.dvd_of_dvd_pow hp h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- Rewrite the congruence as a divisibility statement\n  rw [Int.ModEq, Int.zero_mod, Int.mod_eq_zero_iff_dvd]\n  constructor\n  · -- Case: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Case: p | n^2 => p | n\n    intro h\n    -- Use the fact that if a prime p divides a product, it divides one of the factors\n    -- Here p is a natural prime, so it is also a prime in the ring of integers\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int p).mp h₀\n    exact Prime.dvd_of_dvd_pow hp h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 29
+            },
+            "data": "Unknown constant `Int.zero_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 33
+            },
+            "endPos": {
+              "line": 21,
+              "column": 35
+            },
+            "data": "unsolved goals\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.014307975769042969
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "To prove that $p \\mid n \\iff n^2 \\equiv 0 \\pmod p$ for a prime $p$ and integer $n$:\n\n**Proof Sketch:**\n1.  **Forward direction ($\\Rightarrow$):** If $p \\mid n$, then there exists an integer $k$ such that $n = pk$. Squaring both sides gives $n^2 = p^2 k^2 = p(pk^2)$. Since $p$ divides $n^2$, it follows that $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward direction ($\\Leftarrow$):** If $n^2 \\equiv 0 \\pmod p$, then by definition $p \\mid n^2$. Since $p$ is a prime number, the property of primality (Euclid's Lemma) states that if $p$ divides a product $ab$, then $p \\mid a$ or $p \\mid b$. Applying this to $n^2 = n \\cdot n$, we conclude that $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  constructor\n  · -- Forward direction: p ∣ n → n^2 ≡ 0 [ZMOD p]\n    intro h\n    rw [Int.ModEq, Int.zero_mod]\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: n^2 ≡ 0 [ZMOD p] → p ∣ n\n    intro h\n    rw [Int.ModEq, Int.zero_mod] at h\n    -- Use the fact that if a prime p divides n*n, then p divides n\n    exact (Nat.Prime.dvd_iff_not_coprime h₀).mp (fun h_not => \n      h₀.not_dvd_one (by\n        have h_prime_int : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n        have h_dvd := h_prime_int.dvd_of_dvd_pow h\n        -- Using Prime.dvd_of_dvd_pow directly is more efficient:\n        exact h_prime_int.dvd_of_dvd_pow h |> (fun _ => 0) -- placeholder for logic\n      ))\n    -- Refining the backward direction using Mathlib's Prime.dvd_of_dvd_pow\n    have h_prime_int : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    exact h_prime_int.dvd_of_dvd_pow h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  constructor\n  · -- Forward direction: p ∣ n → n^2 ≡ 0 [ZMOD p]\n    intro h\n    rw [Int.ModEq, Int.zero_mod]\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: n^2 ≡ 0 [ZMOD p] → p ∣ n\n    intro h\n    rw [Int.ModEq, Int.zero_mod] at h\n    -- Use the fact that if a prime p divides n*n, then p divides n\n    exact (Nat.Prime.dvd_iff_not_coprime h₀).mp (fun h_not => \n      h₀.not_dvd_one (by\n        have h_prime_int : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n        have h_dvd := h_prime_int.dvd_of_dvd_pow h\n        -- Using Prime.dvd_of_dvd_pow directly is more efficient:\n        exact h_prime_int.dvd_of_dvd_pow h |> (fun _ => 0) -- placeholder for logic\n      ))\n    -- Refining the backward direction using Mathlib's Prime.dvd_of_dvd_pow\n    have h_prime_int : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    exact h_prime_int.dvd_of_dvd_pow h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 19
+            },
+            "endPos": {
+              "line": 13,
+              "column": 31
+            },
+            "data": "Unknown constant `Int.zero_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 19
+            },
+            "endPos": {
+              "line": 17,
+              "column": 31
+            },
+            "data": "Unknown constant `Int.zero_mod`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.020440101623535156
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "To prove that $p \\mid n \\iff n^2 \\equiv 0 \\pmod{p}$ for a prime $p$ and integer $n$:\n\n**Proof Sketch:**\n1.  **Forward direction ($\\implies$):** If $p \\mid n$, then there exists an integer $k$ such that $n = pk$. Squaring both sides gives $n^2 = p^2k^2 = p(pk^2)$. Thus, $p \\mid n^2$, which is equivalent to $n^2 \\equiv 0 \\pmod{p}$.\n2.  **Backward direction ($\\impliedby$):** If $n^2 \\equiv 0 \\pmod{p}$, then $p \\mid n^2$. Since $p$ is a prime number, the property of primality (Euclid's Lemma) states that if $p \\mid ab$, then $p \\mid a$ or $p \\mid b$. Applying this to $n^2 = n \\cdot n$, we conclude $p \\mid n$ or $p \\mid n$, which simplifies to $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- n^2 ≡ 0 [ZMOD p] is equivalent to ↑p ∣ n^2 by definition\n  rw [Int.ModEq, sub_zero]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n (using Euclid's Lemma for primes)\n    intro h\n    -- Use prime property: p | n * n => p | n\n    exact (Nat.Prime.dvd_pow_iff h₀ (by norm_num)).mp h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- n^2 ≡ 0 [ZMOD p] is equivalent to ↑p ∣ n^2 by definition\n  rw [Int.ModEq, sub_zero]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n (using Euclid's Lemma for primes)\n    intro h\n    -- Use prime property: p | n * n => p | n\n    exact (Nat.Prime.dvd_pow_iff h₀ (by norm_num)).mp h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 25
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a - 0\nin the target expression\n  ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p\n\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.02212071418762207
+      }
+    },
+    {
+      "index": 23,
+      "status": "SOLVED",
+      "raw_text": "To prove the theorem, we observe that the congruence $n^2 \\equiv 0 \\pmod p$ is equivalent to the statement that $p$ divides $n^2$. Since $p$ is a prime number, by Euclid's Lemma, if a prime $p$ divides a product $ab$, it must divide $a$ or $b$. Applying this to $n^2 = n \\cdot n$, we conclude that $p \\mid n^2$ if and only if $p \\mid n$.\n\n**Proof Sketch:**\n1.  **Definitions:** The notation $n^2 \\equiv 0 \\pmod p$ in Lean for integers is defined as $n^2 \\equiv 0 \\pmod{\\uparrow p}$, which is equivalent to $\\uparrow p \\mid (n^2 - 0)$.\n2.  **Forward Direction ($\\Rightarrow$):** If $p \\mid n$, then $n = pk$ for some integer $k$. Thus $n^2 = p^2 k^2 = p(pk^2)$, which implies $p \\mid n^2$.\n3.  **Backward Direction ($\\Leftarrow$):** If $p \\mid n^2$, we use the property of prime numbers in the ring of integers. Since $p$ is a prime, $p \\mid n \\cdot n$ implies $p \\mid n$ or $p \\mid n$. In both cases, $p \\mid n$.\n4.  **Conclusion:** Both directions establish the logical equivalence.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The congruence n^2 ≡ 0 [ZMOD p] is equivalent to ↑p ∣ (n^2 - 0)\n  rw [Int.modEq_zero_iff_dvd]\n  -- We want to show ↑p ∣ n ↔ ↑p ∣ n^2\n  constructor\n  · -- Case: ↑p ∣ n → ↑p ∣ n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Case: ↑p ∣ n^2 → ↑p ∣ n\n    intro h\n    -- Since p is a prime, ↑p is a prime element in ℤ\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    -- A prime dividing a power divides the base\n    exact hp.dvd_of_dvd_pow h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The congruence n^2 ≡ 0 [ZMOD p] is equivalent to ↑p ∣ (n^2 - 0)\n  rw [Int.modEq_zero_iff_dvd]\n  -- We want to show ↑p ∣ n ↔ ↑p ∣ n^2\n  constructor\n  · -- Case: ↑p ∣ n → ↑p ∣ n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Case: ↑p ∣ n^2 → ↑p ∣ n\n    intro h\n    -- Since p is a prime, ↑p is a prime element in ℤ\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    -- A prime dividing a power divides the base\n    exact hp.dvd_of_dvd_pow h",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.034255266189575195
+      }
+    },
+    {
+      "index": 24,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe that the congruence $n^2 \\equiv 0 \\pmod p$ is equivalent to the divisibility condition $p \\mid n^2$ in the integers.\n\n**Proof Sketch:**\n1.  **Forward direction ($\\Rightarrow$):** If $p \\mid n$, then there exists an integer $k$ such that $n = pk$. Squaring both sides gives $n^2 = p^2 k^2 = p(pk^2)$, which implies $p \\mid n^2$, or $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward direction ($\\Leftarrow$):** If $n^2 \\equiv 0 \\pmod p$, then $p \\mid n^2$. Since $p$ is a prime number, the property of prime divisibility (Euclid's Lemma) states that if a prime divides a product, it must divide at least one of the factors. Thus, $p \\mid n \\cdot n$ implies $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The congruence n^2 ≡ 0 [ZMOD p] is equivalent to p | n^2 in integers.\n  rw [Int.ModEq, Int.zero_mod, ← Int.dvd_iff_mod_eq_zero]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n\n    intro h\n    -- Using the property that if a prime divides a product, it divides a factor.\n    -- In Lean, Nat.Prime p implies that p is a prime element in the ring of integers.\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    rw [pow_two] at h\n    exact hp.dvd_or_dvd h |>.elim id id\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The congruence n^2 ≡ 0 [ZMOD p] is equivalent to p | n^2 in integers.\n  rw [Int.ModEq, Int.zero_mod, ← Int.dvd_iff_mod_eq_zero]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n\n    intro h\n    -- Using the property that if a prime divides a product, it divides a factor.\n    -- In Lean, Nat.Prime p implies that p is a prime element in the ring of integers.\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    rw [pow_two] at h\n    exact hp.dvd_or_dvd h |>.elim id id",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 29
+            },
+            "data": "Unknown constant `Int.zero_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 33
+            },
+            "endPos": {
+              "line": 22,
+              "column": 39
+            },
+            "data": "unsolved goals\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.019261598587036133
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "To prove that $p \\mid n \\iff n^2 \\equiv 0 \\pmod p$ for a prime $p$ and integer $n$:\n\n### Proof Sketch\n1.  **Forward direction ($\\implies$):** If $p \\mid n$, then $n = p \\cdot k$ for some integer $k$. Then $n^2 = p^2 \\cdot k^2 = p \\cdot (p \\cdot k^2)$. Since $p$ divides $n^2$, it follows that $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward direction ($\\impliedby$):** If $n^2 \\equiv 0 \\pmod p$, then $p \\mid n^2$. By the property of prime numbers (Euclid's Lemma), if a prime $p$ divides a product $ab$, it must divide $a$ or $b$. Applying this to $n \\cdot n$, we conclude $p \\mid n$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- Use the definition of modular congruence: a ≡ b [ZMOD p] ↔ ↑p ∣ (a - b)\n  rw [Int.ModEq, sub_zero]\n  constructor\n  · -- Forward direction: p | n → p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 → p | n\n    intro h\n    -- Convert Nat.Prime to Int.Prime to apply Euclid's Lemma on integers\n    let p_prime_int : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    -- If a prime divides n * n, it divides n\n    apply p_prime_int.dvd_of_dvd_pow h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- Use the definition of modular congruence: a ≡ b [ZMOD p] ↔ ↑p ∣ (a - b)\n  rw [Int.ModEq, sub_zero]\n  constructor\n  · -- Forward direction: p | n → p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 → p | n\n    intro h\n    -- Convert Nat.Prime to Int.Prime to apply Euclid's Lemma on integers\n    let p_prime_int : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    -- If a prime divides n * n, it divides n\n    apply p_prime_int.dvd_of_dvd_pow h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 25
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a - 0\nin the target expression\n  ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p\n\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.018829345703125
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem $\\forall n \\in \\mathbb{Z}, p \\in \\mathbb{N}, \\text{Prime}(p) \\implies (p \\mid n \\iff n^2 \\equiv 0 \\pmod p)$, we follow these steps:\n\n### Proof Sketch\n1.  **Direction $(\\implies)$**: If $p \\mid n$, then there exists $k \\in \\mathbb{Z}$ such that $n = pk$. Squaring both sides gives $n^2 = p^2 k^2 = p(pk^2)$. Thus $p \\mid n^2$, which is equivalent to $n^2 \\equiv 0 \\pmod p$.\n2.  **Direction $(\\impliedby)$**: If $n^2 \\equiv 0 \\pmod p$, then $p \\mid n^2$. Since $p$ is a prime number, the property of primality (Euclid's Lemma) states that if $p \\mid ab$, then $p \\mid a$ or $p \\mid b$. Here $a = b = n$, so $p \\mid n \\cdot n$ implies $p \\mid n$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- n^2 ≡ 0 [ZMOD p] is by definition p ∣ (n^2 - 0)\n  rw [Int.ModEq, sub_zero]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n\n    intro h\n    -- Use the fact that if a prime p divides a product, it divides one of the factors\n    -- In Lean, Nat.Prime.dvd_of_dvd_pow or Prime.dvd_of_dvd_pow works.\n    -- We convert the prime p to an Int prime.\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    exact hp.dvd_of_dvd_pow h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- n^2 ≡ 0 [ZMOD p] is by definition p ∣ (n^2 - 0)\n  rw [Int.ModEq, sub_zero]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n\n    intro h\n    -- Use the fact that if a prime p divides a product, it divides one of the factors\n    -- In Lean, Nat.Prime.dvd_of_dvd_pow or Prime.dvd_of_dvd_pow works.\n    -- We convert the prime p to an Int prime.\n    have hp : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    exact hp.dvd_of_dvd_pow h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 25
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a - 0\nin the target expression\n  ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p\n\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.017152786254882812
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "To prove that $p \\mid n \\iff n^2 \\equiv 0 \\pmod{p}$ for a prime $p$ and integer $n$:\n\n**Proof Sketch:**\n1.  **Forward direction ($\\implies$):** If $p \\mid n$, then there exists an integer $k$ such that $n = pk$. Squaring both sides gives $n^2 = p^2k^2 = p(pk^2)$. Thus, $p \\mid n^2$, which is equivalent to $n^2 \\equiv 0 \\pmod{p}$.\n2.  **Backward direction ($\\impliedby$):** If $n^2 \\equiv 0 \\pmod{p}$, then $p \\mid n^2$. By Euclid's Lemma (since $p$ is prime), if a prime divides a product $ab$, it must divide $a$ or $b$. Applying this to $n \\cdot n$, we conclude $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The notation n^2 ≡ 0 [ZMOD p] is equivalent to ↑p ∣ (n^2 - 0)\n  rw [Int.ModEq, Int.zero_mod, ← Int.dvd_iff_mod_eq_zero]\n  constructor\n  · -- Case: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Case: p | n^2 => p | n\n    intro h\n    -- Since p is prime, p | n * n implies p | n\n    exact h₀.dvd_of_dvd_pow h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The notation n^2 ≡ 0 [ZMOD p] is equivalent to ↑p ∣ (n^2 - 0)\n  rw [Int.ModEq, Int.zero_mod, ← Int.dvd_iff_mod_eq_zero]\n  constructor\n  · -- Case: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Case: p | n^2 => p | n\n    intro h\n    -- Since p is prime, p | n * n implies p | n\n    exact h₀.dvd_of_dvd_pow h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 29
+            },
+            "data": "Unknown constant `Int.zero_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 33
+            },
+            "endPos": {
+              "line": 19,
+              "column": 29
+            },
+            "data": "unsolved goals\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.011821269989013672
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe that the congruence $n^2 \\equiv 0 \\pmod p$ is equivalent to saying that the integer $p$ divides $n^2$ in the ring of integers $\\mathbb{Z}$.\n\n**Proof Sketch:**\n1.  **Forward direction ($\\implies$):** If $p \\mid n$, then there exists an integer $k$ such that $n = pk$. Squaring both sides gives $n^2 = p^2 k^2$. Since $p^2 = p \\cdot p$, it follows that $p \\mid n^2$. This is equivalent to $n^2 \\equiv 0 \\pmod p$.\n2.  **Backward direction ($\\impliedby$):** If $n^2 \\equiv 0 \\pmod p$, then $p \\mid n^2$. Since $p$ is a prime number, the property of primality (Euclid's Lemma) states that if a prime divides a product of two integers, it must divide at least one of them. Here, $p \\mid n \\cdot n$, so $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The congruence n^2 ≡ 0 [ZMOD p] is by definition p ∣ (n^2 - 0)\n  rw [Int.ModEq, sub_zero]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n (using Euclid's Lemma for primes)\n    intro h\n    -- Since p is prime and p divides n * n, p must divide n\n    exact (Nat.Prime.dvd_iff_not_coprime h₀).mp (fun h_coprime =>\n      by\n        have h_pow := h_coprime.pow_left (n := 2)\n        have h_abs : Int.gcd n p = 1 := by\n          rw [Int.gcd_comm]\n          exact Int.gcd_eq_one_iff_coprime.mpr h_coprime\n        have p_dvd_n_sq : (p : ℤ) ∣ n ^ 2 := h\n        have p_not_dvd_n : ¬ (p : ℤ) ∣ n := by\n          intro h_p_dvd_n\n          have g_val := Int.gcd_eq_one_iff_coprime.mpr h_coprime\n          have h_p_dvd_p : (p : ℤ) ∣ (p : ℤ) := dvd_refl _\n          have h_common : (p : ℤ) ∣ (Int.gcd n p) := Int.dvd_gcd h_p_dvd_n h_p_dvd_p\n          rw [h_abs] at h_common\n          apply Nat.Prime.not_dvd_one h₀\n          exact Int.coe_nat_dvd.mp h_common\n        exact (Nat.Prime.dvd_mul h₀).mp (Int.coe_nat_dvd.mp h)\n    )\n    -- Alternative cleaner path using Mathlib's Prime.dvd_of_dvd_pow\n    apply (Nat.prime_iff_prime_int.mp h₀).dvd_of_dvd_pow h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The congruence n^2 ≡ 0 [ZMOD p] is by definition p ∣ (n^2 - 0)\n  rw [Int.ModEq, sub_zero]\n  constructor\n  · -- Forward direction: p | n => p | n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Backward direction: p | n^2 => p | n (using Euclid's Lemma for primes)\n    intro h\n    -- Since p is prime and p divides n * n, p must divide n\n    exact (Nat.Prime.dvd_iff_not_coprime h₀).mp (fun h_coprime =>\n      by\n        have h_pow := h_coprime.pow_left (n := 2)\n        have h_abs : Int.gcd n p = 1 := by\n          rw [Int.gcd_comm]\n          exact Int.gcd_eq_one_iff_coprime.mpr h_coprime\n        have p_dvd_n_sq : (p : ℤ) ∣ n ^ 2 := h\n        have p_not_dvd_n : ¬ (p : ℤ) ∣ n := by\n          intro h_p_dvd_n\n          have g_val := Int.gcd_eq_one_iff_coprime.mpr h_coprime\n          have h_p_dvd_p : (p : ℤ) ∣ (p : ℤ) := dvd_refl _\n          have h_common : (p : ℤ) ∣ (Int.gcd n p) := Int.dvd_gcd h_p_dvd_n h_p_dvd_p\n          rw [h_abs] at h_common\n          apply Nat.Prime.not_dvd_one h₀\n          exact Int.coe_nat_dvd.mp h_common\n        exact (Nat.Prime.dvd_mul h₀).mp (Int.coe_nat_dvd.mp h)\n    )\n    -- Alternative cleaner path using Mathlib's Prime.dvd_of_dvd_pow\n    apply (Nat.prime_iff_prime_int.mp h₀).dvd_of_dvd_pow h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 25
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a - 0\nin the target expression\n  ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p\n\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.020478010177612305
+      }
+    },
+    {
+      "index": 29,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe that the congruence $n^2 \\equiv 0 \\pmod p$ is equivalent to saying that the integer $p$ divides $n^2$. Since $p$ is a prime number, if $p$ divides a product of two integers (in this case $n \\cdot n$), it must divide at least one of the factors. This is a fundamental property of primes (Euclid's Lemma). Conversely, if $p$ divides $n$, it follows trivially that $p$ divides $n^2$.\n\n### Proof Sketch:\n1.  **Definitions**: The notation $n^2 \\equiv 0 \\pmod p$ is defined in Lean as $n^2 \\equiv 0 \\pmod{↑p}$, which is equivalent to $↑p \\mid (n^2 - 0)$, or simply $↑p \\mid n^2$.\n2.  **Direction (Forward)**: If $p \\mid n$, then $n = p \\cdot k$ for some integer $k$. Then $n^2 = p^2 \\cdot k^2 = p \\cdot (p \\cdot k^2)$, which implies $p \\mid n^2$.\n3.  **Direction (Backward)**: If $p \\mid n^2$, we use the property of prime numbers. Since $n^2 = n \\cdot n$, the property `Prime.dvd_mul` (or `Int.Prime.dvd_mul` for integers) states that if a prime divides $a \\cdot b$, it divides $a$ or $b$. Here $a = b = n$, so $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The congruence n^2 ≡ 0 [ZMOD p] is equivalent to ↑p ∣ n^2\n  rw [Int.ModEq, sub_zero]\n  -- Use the property of prime numbers regarding divisibility of products\n  constructor\n  · -- Case: ↑p ∣ n → ↑p ∣ n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Case: ↑p ∣ n^2 → ↑p ∣ n\n    intro h\n    -- Convert Nat.Prime to Int.Prime to apply divisibility rules on ℤ\n    have h_prime : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    exact Prime.dvd_of_dvd_pow h_prime h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The congruence n^2 ≡ 0 [ZMOD p] is equivalent to ↑p ∣ n^2\n  rw [Int.ModEq, sub_zero]\n  -- Use the property of prime numbers regarding divisibility of products\n  constructor\n  · -- Case: ↑p ∣ n → ↑p ∣ n^2\n    intro h\n    exact dvd_pow h (by norm_num)\n  · -- Case: ↑p ∣ n^2 → ↑p ∣ n\n    intro h\n    -- Convert Nat.Prime to Int.Prime to apply divisibility rules on ℤ\n    have h_prime : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    exact Prime.dvd_of_dvd_pow h_prime h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 25
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a - 0\nin the target expression\n  ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p\n\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.0163271427154541
+      }
+    },
+    {
+      "index": 30,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe that the congruence $n^2 \\equiv 0 \\pmod p$ is equivalent to saying that the integer $p$ divides $n^2$. Using the fundamental property of prime numbers (Euclid's Lemma), if a prime $p$ divides a product $ab$, it must divide $a$ or $b$. Applying this to $n \\cdot n$, we conclude that $p \\mid n^2$ if and only if $p \\mid n$.\n\n### Proof Sketch\n1.  **Definitions**: Rewrite the congruence $n^2 \\equiv 0 \\pmod p$ using the definition of divisibility: $n^2 \\equiv 0 \\pmod p \\iff p \\mid (n^2 - 0) \\iff p \\mid n^2$.\n2.  **Forward Direction ($\\implies$)**: If $p \\mid n$, then $n = pk$ for some integer $k$. Thus $n^2 = p^2 k^2 = p(pk^2)$, which implies $p \\mid n^2$.\n3.  **Backward Direction ($\\impliedby$)**: If $p \\mid n^2$, we use the property that for any prime $p$, $p \\mid ab \\implies p \\mid a \\lor p \\mid b$. Here $a = b = n$, so $p \\mid n \\cdot n \\implies p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- Rewrite the congruence as a divisibility statement\n  rw [Int.ModEq, sub_zero]\n  -- Rewrite n^2 as n * n\n  rw [pow_two]\n  constructor\n  · -- Forward direction: p | n => p | n * n\n    intro h\n    exact dvd_mul_of_dvd_left h n\n  · -- Backward direction: p | n * n => p | n (using primality)\n    intro h\n    -- Convert Nat.Prime to Int.Prime for the divisibility lemma\n    let h_prime : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    exact h_prime.dvd_split h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- Rewrite the congruence as a divisibility statement\n  rw [Int.ModEq, sub_zero]\n  -- Rewrite n^2 as n * n\n  rw [pow_two]\n  constructor\n  · -- Forward direction: p | n => p | n * n\n    intro h\n    exact dvd_mul_of_dvd_left h n\n  · -- Backward direction: p | n * n => p | n (using primality)\n    intro h\n    -- Convert Nat.Prime to Int.Prime for the divisibility lemma\n    let h_prime : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    exact h_prime.dvd_split h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 25
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a - 0\nin the target expression\n  ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p\n\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.012256622314453125
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem $p \\mid n \\iff n^2 \\equiv 0 \\pmod{p}$ for an integer $n$ and a prime $p$, we consider the two directions of the logical equivalence:\n\n1.  **Forward direction ($\\implies$):** If $p \\mid n$, then there exists an integer $k$ such that $n = pk$. Squaring both sides gives $n^2 = p^2 k^2 = p(p k^2)$, which implies $p \\mid n^2$. In modular arithmetic notation, this is $n^2 \\equiv 0 \\pmod{p}$.\n2.  **Backward direction ($\\impliedby$):** If $n^2 \\equiv 0 \\pmod{p}$, then $p \\mid n^2$. By the property of prime numbers (Euclid's Lemma), if a prime $p$ divides a product $ab$, it must divide $a$ or $b$. Here $a = b = n$, so $p \\mid n \\cdot n$ implies $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The notation n ^ 2 ≡ 0 [ZMOD p] is equivalent to ↑p ∣ (n ^ 2 - 0)\n  rw [Int.ModEq, Int.zero_mod]\n  constructor\n  · -- Case: p ∣ n → n^2 % p = 0\n    intro h\n    -- Since p ∣ n, n = p * k for some k\n    obtain ⟨k, rfl⟩ := h\n    -- Then n^2 = p * (p * k^2), which is divisible by p\n    rw [mul_pow, ← mul_assoc]\n    apply Int.mul_mod_right\n  · -- Case: n^2 % p = 0 → p ∣ n\n    intro h\n    -- n^2 % p = 0 means p ∣ n^2\n    have h_div : (p : ℤ) ∣ n * n := by\n      rw [← pow_two]\n      exact Int.dvd_of_mod_eq_zero h\n    -- By Euclid's Lemma for primes, p ∣ n*n implies p ∣ n\n    exact (Nat.Prime.dvd_mul h₀).mp h_div\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  -- The notation n ^ 2 ≡ 0 [ZMOD p] is equivalent to ↑p ∣ (n ^ 2 - 0)\n  rw [Int.ModEq, Int.zero_mod]\n  constructor\n  · -- Case: p ∣ n → n^2 % p = 0\n    intro h\n    -- Since p ∣ n, n = p * k for some k\n    obtain ⟨k, rfl⟩ := h\n    -- Then n^2 = p * (p * k^2), which is divisible by p\n    rw [mul_pow, ← mul_assoc]\n    apply Int.mul_mod_right\n  · -- Case: n^2 % p = 0 → p ∣ n\n    intro h\n    -- n^2 % p = 0 means p ∣ n^2\n    have h_div : (p : ℤ) ∣ n * n := by\n      rw [← pow_two]\n      exact Int.dvd_of_mod_eq_zero h\n    -- By Euclid's Lemma for primes, p ∣ n*n implies p ∣ n\n    exact (Nat.Prime.dvd_mul h₀).mp h_div",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 17
+            },
+            "endPos": {
+              "line": 11,
+              "column": 29
+            },
+            "data": "Unknown constant `Int.zero_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 33
+            },
+            "endPos": {
+              "line": 27,
+              "column": 41
+            },
+            "data": "unsolved goals\nn : ℤ\np : ℕ\nh₀ : Nat.Prime p\n⊢ ↑p ∣ n ↔ n ^ 2 % ↑p = 0 % ↑p"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.017609119415283203
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe that the congruence $n^2 \\equiv 0 \\pmod{p}$ is equivalent to saying that $p$ divides $n^2$ in the integers.\n\n**Proof Sketch:**\n1.  **Forward Direction ($\\implies$):** Assume $p \\mid n$. Then $n$ can be written as $pk$ for some integer $k$. Squaring both sides gives $n^2 = p^2k^2$, which is clearly divisible by $p$. Thus $n^2 \\equiv 0 \\pmod{p}$.\n2.  **Backward Direction ($\\impliedby$):** Assume $n^2 \\equiv 0 \\pmod{p}$, which means $p \\mid n^2$. Since $p$ is a prime number, the property of prime divisibility (Euclid's Lemma) states that if a prime divides a product $ab$, it must divide $a$ or $b$. Applying this to $n \\cdot n$, we conclude $p \\mid n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  constructor\n  · -- Forward direction: p | n => n^2 ≡ 0 [ZMOD p]\n    intro h\n    rw [Int.ModEq, Int.zero_mod]\n    apply Int.dvd_trans h\n    simp [pow_two, Int.mul_assoc]\n  · -- Backward direction: n^2 ≡ 0 [ZMOD p] => p | n\n    intro h\n    rw [Int.ModEq, Int.zero_mod] at h\n    -- Use the property that if a prime p divides n*n, then p divides n\n    exact Int.Prime.dvd_of_dvd_pow (Nat.prime_iff_prime_int.mp h₀) h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  constructor\n  · -- Forward direction: p | n => n^2 ≡ 0 [ZMOD p]\n    intro h\n    rw [Int.ModEq, Int.zero_mod]\n    apply Int.dvd_trans h\n    simp [pow_two, Int.mul_assoc]\n  · -- Backward direction: n^2 ≡ 0 [ZMOD p] => p | n\n    intro h\n    rw [Int.ModEq, Int.zero_mod] at h\n    -- Use the property that if a prime p divides n*n, then p divides n\n    exact Int.Prime.dvd_of_dvd_pow (Nat.prime_iff_prime_int.mp h₀) h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 19
+            },
+            "endPos": {
+              "line": 13,
+              "column": 31
+            },
+            "data": "Unknown constant `Int.zero_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 19
+            },
+            "endPos": {
+              "line": 18,
+              "column": 31
+            },
+            "data": "Unknown constant `Int.zero_mod`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.015068531036376953
+      }
+    }
+  ]
+}

@@ -1,0 +1,1247 @@
+{
+  "problem": "problems/miniF2F-test/induction_ineq_nsqlefactn.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 15:37:35",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 2,
+    "completed_count": 2,
+    "solved": true
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "To prove $n^2 \\le n!$ for $n \\ge 4$ by induction:\n1. **Base Case**: For $n=4$, $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2. **Inductive Step**: Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n   - Note $(k+1)! = (k+1) \\cdot k!$.\n   - By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1)k^2$.\n   - To show $(k+1)k^2 \\ge (k+1)^2$, it suffices to show $k^2 \\ge k+1$ for $k \\ge 4$.\n   - Since $k \\ge 4$, $k^2 \\ge 4k = k + 3k \\ge k + 12 > k + 1$.\n   - Thus $(k+1)! \\ge (k+1)k^2 \\ge (k+1)(k+1) = (k+1)^2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ with k hk ih\n  · -- Base case: n = 4\n    simp\n  · -- Inductive step: k -> k + 1\n    rw [factorial_succ, pow_two]\n    -- We want to show (k+1) * (k+1) ≤ (k+1) * k!\n    -- This is equivalent to showing k + 1 ≤ k!\n    have h1 : k + 1 ≤ k ^ 2 := by\n      have h2 : 4 ≤ k := hk\n      calc\n        k + 1 ≤ k + k := by rel [h2]\n        _ = 2 * k := by ring\n        _ ≤ k * k := by rel [h2]\n        _ = k ^ 2 := by ring\n    calc\n      (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n      _ ≤ (k + 1) * k ^ 2 := by rel [h1]\n      _ ≤ (k + 1) * k ! := by rel [ih]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ with k hk ih\n  · -- Base case: n = 4\n    simp\n  · -- Inductive step: k -> k + 1\n    rw [factorial_succ, pow_two]\n    -- We want to show (k+1) * (k+1) ≤ (k+1) * k!\n    -- This is equivalent to showing k + 1 ≤ k!\n    have h1 : k + 1 ≤ k ^ 2 := by\n      have h2 : 4 ≤ k := hk\n      calc\n        k + 1 ≤ k + k := by rel [h2]\n        _ = 2 * k := by ring\n        _ ≤ k * k := by rel [h2]\n        _ = k ^ 2 := by ring\n    calc\n      (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n      _ ≤ (k + 1) * k ^ 2 := by rel [h1]\n      _ ≤ (k + 1) * k ! := by rel [ih]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 31
+            },
+            "data": "Missing eliminator: An eliminator must be provided when multiple induction targets are specified and no default eliminator has been registered\n\nHint: Write `using <eliminator-name>` to specify an eliminator, or register a default eliminator with the attribute `[induction_eliminator]`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.021645545959472656
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Base Case ($n=4$):** Check $4^2 \\leq 4!$. Since $16 \\leq 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\leq k!$ for some $k \\geq 4$. We need to show $(k+1)^2 \\leq (k+1)!$.\n    *   Expand the right side: $(k+1)! = (k+1) \\cdot k!$.\n    *   Using the inductive hypothesis: $(k+1) \\cdot k! \\geq (k+1) \\cdot k^2$.\n    *   We want to show $(k+1)^2 \\leq (k+1) \\cdot k^2$.\n    *   Divide both sides by $(k+1)$ (which is positive): $k+1 \\leq k^2$.\n    *   This inequality $k^2 - k - 1 \\geq 0$ is true for all $k \\geq 4$. Specifically, since $k \\geq 4$, $k^2 = k \\cdot k \\geq 4k = k + 3k \\geq k + 12 > k + 1$.\n3.  **Conclusion:** By induction, the inequality holds for all $n \\geq 4$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k hk ih\n  · -- Base case: n = 4\n    simp\n  · -- Inductive step: k → k + 1\n    rw [Nat.factorial_succ, pow_two]\n    have h_k_ge : k + 1 ≤ k ^ 2 := by\n      have h1 : 4 ≤ k := hk\n      calc\n        k + 1 ≤ k + k := by rel [h1]\n        _ = 2 * k := by ring\n        _ ≤ k * k := by rel [h1]\n        _ = k ^ 2 := by ring\n    calc\n      (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n      _ ≤ (k + 1) * k ^ 2 := Nat.mul_le_mul_left (k + 1) h_k_ge\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k hk ih\n  · -- Base case: n = 4\n    simp\n  · -- Inductive step: k → k + 1\n    rw [Nat.factorial_succ, pow_two]\n    have h_k_ge : k + 1 ≤ k ^ 2 := by\n      have h1 : 4 ≤ k := hk\n      calc\n        k + 1 ≤ k + k := by rel [h1]\n        _ = 2 * k := by ring\n        _ ≤ k * k := by rel [h1]\n        _ = k ^ 2 := by ring\n    calc\n      (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n      _ ≤ (k + 1) * k ^ 2 := Nat.mul_le_mul_left (k + 1) h_k_ge\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 2
+            },
+            "endPos": {
+              "line": 11,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 16 ≤ 4!"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 28
+            },
+            "endPos": {
+              "line": 17,
+              "column": 36
+            },
+            "data": "rel failed, cannot prove goal by 'substituting' the listed relationships. The steps which could not be automatically justified were:\n1 ≤ k"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 24
+            },
+            "endPos": {
+              "line": 19,
+              "column": 32
+            },
+            "data": "rel failed, cannot prove goal by 'substituting' the listed relationships. The steps which could not be automatically justified were:\n2 ≤ k"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 6
+            },
+            "endPos": {
+              "line": 22,
+              "column": 37
+            },
+            "data": "invalid 'calc' step, left-hand side is\n  (k + 1) ^ 2 : Nat\nbut is expected to be\n  (k + 1) * (k + 1) : Nat"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.146653413772583
+      }
+    },
+    {
+      "index": 3,
+      "status": "FAILED",
+      "raw_text": "To prove that $n^2 \\le n!$ for $n \\ge 4$, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=4$):** We check $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   Note that $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   To complete the proof, it suffices to show $(k+1) \\cdot k^2 \\ge (k+1)^2$, which simplifies to $k^2 \\ge k+1$ for $k \\ge 4$.\n    *   Since $k \\ge 4$, $k^2 \\ge 4k = k + 3k \\ge k + 12 > k + 1$.\n    *   Thus, $(k+1)^2 \\le (k+1)k^2 \\le (k+1)!$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k h h_ind =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We want to show (k+1)^2 ≤ (k+1) * k!\n    -- It suffices to show (k+1)^2 ≤ (k+1) * k^2 because k! ≥ k^2\n    have h1 : (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n    rw [h1]\n    apply Nat.mul_le_mul_left\n    -- Now show k + 1 ≤ k^2 for k ≥ 4\n    calc\n      k + 1 ≤ k + k := by rel [h]\n      _ = 2 * k := by ring\n      _ ≤ k * k := by \n        apply Nat.mul_le_mul_right\n        exact le_trans (by norm_num) h\n      _ = k ^ 2 := by ring\n      _ ≤ k ! := h_ind\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k h h_ind =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We want to show (k+1)^2 ≤ (k+1) * k!\n    -- It suffices to show (k+1)^2 ≤ (k+1) * k^2 because k! ≥ k^2\n    have h1 : (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n    rw [h1]\n    apply Nat.mul_le_mul_left\n    -- Now show k + 1 ≤ k^2 for k ≥ 4\n    calc\n      k + 1 ≤ k + k := by rel [h]\n      _ = 2 * k := by ring\n      _ ≤ k * k := by \n        apply Nat.mul_le_mul_right\n        exact le_trans (by norm_num) h\n      _ = k ^ 2 := by ring\n      _ ≤ k ! := h_ind",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 29,
+              "column": 22
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.02344512939453125
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "To prove that $n^2 \\le n!$ for $n \\ge 4$, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=4$):** We have $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    -   Expanding the factorial: $(k+1)! = (k+1) \\cdot k!$.\n    -   By the inductive hypothesis: $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    -   We need to show $(k+1)k^2 \\ge (k+1)^2$, which simplifies to $k^2 \\ge k+1$ (since $k+1 > 0$).\n    -   For $k \\ge 4$, $k^2 \\ge 4k = k + 3k$. Since $3k \\ge 1$ for $k \\ge 4$, $k^2 \\ge k+1$ is true.\n    -   Thus, $(k+1)^2 \\le (k+1)k^2 \\le (k+1)!$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ, Nat.mul_comm]\n    -- We need (k+1)^2 ≤ (k+1) * k!\n    -- Since k+1 > 0, it suffices to show k+1 ≤ k!\n    have h1 : k + 1 ≤ k ^ 2 := by\n      calc\n        k + 1 ≤ k + k := by rel [hk]\n        _ = 2 * k := by ring\n        _ ≤ k * k := by rel [hk]\n        _ = k ^ 2 := by ring\n    have h2 : k + 1 ≤ k ! := Nat.le_trans h1 ih\n    -- Now multiply both sides of (k+1) ≤ k! by (k+1)\n    calc\n      (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) h2\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ, Nat.mul_comm]\n    -- We need (k+1)^2 ≤ (k+1) * k!\n    -- Since k+1 > 0, it suffices to show k+1 ≤ k!\n    have h1 : k + 1 ≤ k ^ 2 := by\n      calc\n        k + 1 ≤ k + k := by rel [hk]\n        _ = 2 * k := by ring\n        _ ≤ k * k := by rel [hk]\n        _ = k ^ 2 := by ring\n    have h2 : k + 1 ≤ k ! := Nat.le_trans h1 ih\n    -- Now multiply both sides of (k+1) ≤ k! by (k+1)\n    calc\n      (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) h2",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 28,
+              "column": 57
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.020275115966796875
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "To prove that $n^2 \\le n!$ for $n \\ge 4$, we use induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=4$):** We have $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   Note that $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   It remains to show $(k+1) \\cdot k^2 \\ge (k+1)^2$.\n    *   Dividing by $(k+1)$ (which is positive), we need to show $k^2 \\ge k+1$.\n    *   For $k \\ge 4$, $k^2 \\ge 4k = k + 3k \\ge k + 1$ (since $3k \\ge 12 \\ge 1$).\n    *   Thus, $(k+1)^2 \\le (k+1)k^2 \\le (k+1)!$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- 4^2 = 16, 4! = 24\n    norm_num\n  | succ k hk ih =>\n    -- Show (k+1)^2 ≤ (k+1)!\n    calc\n      (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n      _ ≤ (k + 1) * k := by\n        apply Nat.mul_le_mul_left\n        -- For k ≥ 4, k+1 ≤ k*k is true. Specifically k + 1 ≤ k^2\n        calc\n          k + 1 ≤ k + k := add_le_add_left (by linarith) k\n          _ = 2 * k := by ring\n          _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n      _ ≤ (k + 1) * k^2 := by\n        apply Nat.mul_le_mul_left\n        exact le_self_pow (by linarith) (by norm_num)\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n      _ = (k + 1)! := by rw [Nat.factorial_succ]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- 4^2 = 16, 4! = 24\n    norm_num\n  | succ k hk ih =>\n    -- Show (k+1)^2 ≤ (k+1)!\n    calc\n      (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n      _ ≤ (k + 1) * k := by\n        apply Nat.mul_le_mul_left\n        -- For k ≥ 4, k+1 ≤ k*k is true. Specifically k + 1 ≤ k^2\n        calc\n          k + 1 ≤ k + k := add_le_add_left (by linarith) k\n          _ = 2 * k := by ring\n          _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n      _ ≤ (k + 1) * k^2 := by\n        apply Nat.mul_le_mul_left\n        exact le_self_pow (by linarith) (by norm_num)\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n      _ = (k + 1)! := by rw [Nat.factorial_succ]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 27
+            },
+            "endPos": {
+              "line": 21,
+              "column": 58
+            },
+            "data": "Type mismatch\n  add_le_add_left\n    (le_of_not_gt fun a =>\n      Mathlib.Tactic.Linarith.lt_irrefl\n        (Eq.mp\n          (congrArg (fun _a => _a < 0)\n            (Mathlib.Tactic.Ring.of_eq\n              (Mathlib.Tactic.Ring.add_congr\n                (Mathlib.Tactic.Ring.neg_congr\n                  (Mathlib.Tactic.Ring.cast_pos (Mathlib.Meta.NormNum.isNat_ofNat ℤ (Eq.refl 1)))\n                  (Mathlib.Tactic.Ring.neg_add\n                    (Mathlib.Tactic.Ring.neg_one_mul\n                      (Mathlib.Meta.NormNum.IsInt.to_raw_eq\n                        (Mathlib.Meta.NormNum.isInt_mul (Eq.refl HMul.hMul)\n                          (Mathlib.Meta.NormNum.IsInt.of_raw ℤ (Int.negOfNat 1))\n                          (Mathlib.Meta.NormNum.IsNat.to_isInt (Mathlib.Meta.NormNum.IsNat.of_raw ℤ 1))\n                          (Eq.refl (Int.negOfNat 1)))))\n                    Mathlib.Tactic.Ring.neg_zero))\n                (Mathlib.Tactic.Ring.sub_congr\n                  (Mathlib.Tactic.Ring.add_congr (Mathlib.Tactic.Ring.atom_pf ↑k !)\n                    (Mathlib.Tactic.Ring.cast_pos (Mathlib.Meta.NormNum.isNat_ofNat ℤ (Eq.refl 1)))\n                    (Mathlib.Tactic.Ring.add_pf_add_gt (Nat.rawCast 1)\n                      (Mathlib.Tactic.Ring.add_pf_add_zero (↑k ! ^ Nat.rawCast 1 * Nat.rawCast 1 + 0))))\n                  (Mathlib.Tactic.Ring.atom_pf ↑k !)\n                  (Mathlib.Tactic.Ring.sub_pf\n                    (Mathlib.Tactic.Ring.neg_add\n                      (Mathlib.Tactic.Ring.neg_mul (↑k !) (Nat.rawCast 1)\n                        (Mathlib.Tactic.Ring.neg_one_mul\n                          (Mathlib.Meta.NormNum.IsInt.to_raw_eq\n                            (Mathlib.Meta.NormNum.isInt_mul (Eq.refl HMul.hMul)\n                              (Mathlib.Meta.NormNum.IsInt.of_raw ℤ (Int.negOfNat 1))\n                              (Mathlib.Meta.NormNum.IsNat.to_isInt (Mathlib.Meta.NormNum.IsNat.of_raw ℤ 1))\n                              (Eq.refl (Int.negOfNat 1))))))\n                      Mathlib.Tactic.Ring.neg_zero)\n                    (Mathlib.Tactic.Ring.add_pf_add_lt (Nat.rawCast 1)\n                      (Mathlib.Tactic.Ring.add_pf_add_overlap_zero\n                        (Mathlib.Tactic.Ring.add_overlap_pf_zero (↑k !) (Nat.rawCast 1)\n                          (Mathlib.Meta.NormNum.IsInt.to_isNat\n                            (Mathlib.Meta.NormNum.isInt_add (Eq.refl HAdd.hAdd)\n                              (Mathlib.Meta.NormNum.IsNat.to_isInt (Mathlib.Meta.NormNum.IsNat.of_raw ℤ 1))\n                              (Mathlib.Meta.NormNum.IsInt.of_raw ℤ (Int.negOfNat 1)) (Eq.refl (Int.ofNat 0)))))\n                        (Mathlib.Tactic.Ring.add_pf_zero_add 0)))))\n                (Mathlib.Tactic.Ring.add_pf_add_overlap_zero\n                  (Mathlib.Meta.NormNum.IsInt.to_isNat\n                    (Mathlib.Meta.NormNum.isInt_add (Eq.refl HAdd.hAdd)\n                      (Mathlib.Meta.NormNum.IsInt.of_raw ℤ (Int.negOfNat 1))\n                      (Mathlib.Meta.NormNum.IsNat.to_isInt (Mathlib.Meta.NormNum.IsNat.of_raw ℤ 1))\n                      (Eq.refl (Int.ofNat 0))))\n                  (Mathlib.Tactic.Ring.add_pf_zero_add 0)))\n              (Mathlib.Tactic.Ring.cast_zero (Mathlib.Meta.NormNum.isNat_ofNat ℤ (Eq.refl 0)))))\n          (Mathlib.Tactic.Linarith.add_lt_of_neg_of_le (neg_neg_of_pos Mathlib.Tactic.Linarith.zero_lt_one)\n            (Mathlib.Tactic.Linarith.sub_nonpos_of_le\n              (Int.add_one_le_iff.mpr (id (Eq.mp (Mathlib.Tactic.Zify.natCast_lt._simp_1 k ! k !) a)))))))\n    k\nhas type\n  k ! + k ≤ k ! + k\nbut is expected to have type\n  k + 1 ≤ k + k"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.35102128982543945
+      }
+    },
+    {
+      "index": 6,
+      "status": "FAILED",
+      "raw_text": "To prove $n^2 \\le n!$ for $n \\ge 4$ by induction:\n\n**Proof Sketch:**\n1.  **Base Case:** For $n=4$, $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   Note that $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   It suffices to show $(k+1) \\cdot k^2 \\ge (k+1)^2$, which simplifies to $k^2 \\ge k+1$ (since $k+1 > 0$).\n    *   For $k \\ge 4$, $k^2 \\ge 4k = k + 3k \\ge k + 12 > k + 1$.\n    *   Thus, the inequality holds for $k+1$.\n\n**Lean 4 Code:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k h₁ ih\n  · -- Base case: n = 4\n    simp\n  · -- Inductive step\n    rw [factorial_succ, pow_two]\n    have h_ge : k + 1 ≤ k * k := by\n      calc\n        k + 1 ≤ k + k := add_le_add_left (by linarith) k\n        _ = 2 * k := by linarith\n        _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n    calc\n      (k + 1) * (k + 1) ≤ (k + 1) * (k ^ 2) := Nat.mul_le_mul_left (k + 1) h_ge\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k h₁ ih\n  · -- Base case: n = 4\n    simp\n  · -- Inductive step\n    rw [factorial_succ, pow_two]\n    have h_ge : k + 1 ≤ k * k := by\n      calc\n        k + 1 ≤ k + k := add_le_add_left (by linarith) k\n        _ = 2 * k := by linarith\n        _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n    calc\n      (k + 1) * (k + 1) ≤ (k + 1) * (k ^ 2) := Nat.mul_le_mul_left (k + 1) h_ge\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 2
+            },
+            "endPos": {
+              "line": 11,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 16 ≤ 4!"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 25
+            },
+            "endPos": {
+              "line": 16,
+              "column": 56
+            },
+            "data": "Type mismatch\n  add_le_add_left\n    (le_of_not_gt fun a =>\n      Mathlib.Tactic.Linarith.lt_irrefl\n        (Eq.mp\n          (congrArg (fun _a => _a < 0)\n            (Mathlib.Tactic.Ring.of_eq\n              (Mathlib.Tactic.Ring.add_congr\n                (Mathlib.Tactic.Ring.neg_congr\n                  (Mathlib.Tactic.Ring.cast_pos (Mathlib.Meta.NormNum.isNat_ofNat ℤ (Eq.refl 1)))\n                  (Mathlib.Tactic.Ring.neg_add\n                    (Mathlib.Tactic.Ring.neg_one_mul\n                      (Mathlib.Meta.NormNum.IsInt.to_raw_eq\n                        (Mathlib.Meta.NormNum.isInt_mul (Eq.refl HMul.hMul)\n                          (Mathlib.Meta.NormNum.IsInt.of_raw ℤ (Int.negOfNat 1))\n                          (Mathlib.Meta.NormNum.IsNat.to_isInt (Mathlib.Meta.NormNum.IsNat.of_raw ℤ 1))\n                          (Eq.refl (Int.negOfNat 1)))))\n                    Mathlib.Tactic.Ring.neg_zero))\n                (Mathlib.Tactic.Ring.sub_congr\n                  (Mathlib.Tactic.Ring.add_congr (Mathlib.Tactic.Ring.atom_pf ↑k !)\n                    (Mathlib.Tactic.Ring.cast_pos (Mathlib.Meta.NormNum.isNat_ofNat ℤ (Eq.refl 1)))\n                    (Mathlib.Tactic.Ring.add_pf_add_gt (Nat.rawCast 1)\n                      (Mathlib.Tactic.Ring.add_pf_add_zero (↑k ! ^ Nat.rawCast 1 * Nat.rawCast 1 + 0))))\n                  (Mathlib.Tactic.Ring.atom_pf ↑k !)\n                  (Mathlib.Tactic.Ring.sub_pf\n                    (Mathlib.Tactic.Ring.neg_add\n                      (Mathlib.Tactic.Ring.neg_mul (↑k !) (Nat.rawCast 1)\n                        (Mathlib.Tactic.Ring.neg_one_mul\n                          (Mathlib.Meta.NormNum.IsInt.to_raw_eq\n                            (Mathlib.Meta.NormNum.isInt_mul (Eq.refl HMul.hMul)\n                              (Mathlib.Meta.NormNum.IsInt.of_raw ℤ (Int.negOfNat 1))\n                              (Mathlib.Meta.NormNum.IsNat.to_isInt (Mathlib.Meta.NormNum.IsNat.of_raw ℤ 1))\n                              (Eq.refl (Int.negOfNat 1))))))\n                      Mathlib.Tactic.Ring.neg_zero)\n                    (Mathlib.Tactic.Ring.add_pf_add_lt (Nat.rawCast 1)\n                      (Mathlib.Tactic.Ring.add_pf_add_overlap_zero\n                        (Mathlib.Tactic.Ring.add_overlap_pf_zero (↑k !) (Nat.rawCast 1)\n                          (Mathlib.Meta.NormNum.IsInt.to_isNat\n                            (Mathlib.Meta.NormNum.isInt_add (Eq.refl HAdd.hAdd)\n                              (Mathlib.Meta.NormNum.IsNat.to_isInt (Mathlib.Meta.NormNum.IsNat.of_raw ℤ 1))\n                              (Mathlib.Meta.NormNum.IsInt.of_raw ℤ (Int.negOfNat 1)) (Eq.refl (Int.ofNat 0)))))\n                        (Mathlib.Tactic.Ring.add_pf_zero_add 0)))))\n                (Mathlib.Tactic.Ring.add_pf_add_overlap_zero\n                  (Mathlib.Meta.NormNum.IsInt.to_isNat\n                    (Mathlib.Meta.NormNum.isInt_add (Eq.refl HAdd.hAdd)\n                      (Mathlib.Meta.NormNum.IsInt.of_raw ℤ (Int.negOfNat 1))\n                      (Mathlib.Meta.NormNum.IsNat.to_isInt (Mathlib.Meta.NormNum.IsNat.of_raw ℤ 1))\n                      (Eq.refl (Int.ofNat 0))))\n                  (Mathlib.Tactic.Ring.add_pf_zero_add 0)))\n              (Mathlib.Tactic.Ring.cast_zero (Mathlib.Meta.NormNum.isNat_ofNat ℤ (Eq.refl 0)))))\n          (Mathlib.Tactic.Linarith.add_lt_of_neg_of_le (neg_neg_of_pos Mathlib.Tactic.Linarith.zero_lt_one)\n            (Mathlib.Tactic.Linarith.sub_nonpos_of_le\n              (Int.add_one_le_iff.mpr (id (Eq.mp (Mathlib.Tactic.Zify.natCast_lt._simp_1 k ! k !) a)))))))\n    k\nhas type\n  k ! + k ≤ k ! + k\nbut is expected to have type\n  k + 1 ≤ k + k"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 75
+            },
+            "endPos": {
+              "line": 20,
+              "column": 79
+            },
+            "data": "Application type mismatch: The argument\n  h_ge\nhas type\n  k + 1 ≤ k * k\nbut is expected to have type\n  k + 1 ≤ k ^ 2\nin the application\n  Nat.mul_le_mul_left (k + 1) h_ge"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4495387077331543
+      }
+    },
+    {
+      "index": 7,
+      "status": "FAILED",
+      "raw_text": "To prove $n^2 \\le n!$ for $n \\ge 4$, we proceed by induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case:** For $n = 4$, $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $n^2 \\le n!$ for some $n \\ge 4$. We want to show $(n+1)^2 \\le (n+1)!$.\n    *   Note that $(n+1)! = (n+1) \\cdot n!$.\n    *   By the inductive hypothesis, $(n+1) \\cdot n! \\ge (n+1) \\cdot n^2$.\n    *   It suffices to show $(n+1) \\cdot n^2 \\ge (n+1)^2$.\n    *   Since $n+1 > 0$, this is equivalent to $n^2 \\ge n+1$.\n    *   For $n \\ge 4$, $n^2 = n \\cdot n \\ge 4n = n + 3n \\ge n + 1$ (since $3n \\ge 12 \\ge 1$).\n    *   Thus, the inequality holds for $n+1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using nat_strong_induction_on with n hn\n  by_cases h4 : n = 4\n  · rw [h4]\n    norm_num\n  · have h_gt_4 : 4 < n := Nat.lt_of_le_of_ne hn h4\n    let m := n - 1\n    have hm : n = m + 1 := (Nat.succ_pred_eq_of_pos (pos_of_gt h_gt_4)).symm\n    have h_m_ge_4 : 4 ≤ m := Nat.le_pred_of_lt h_gt_4\n    specialize hn m (Nat.pred_lt (pos_of_gt h_gt_4)) h_m_ge_4\n    -- Now we have m^2 ≤ m! and we want (m+1)^2 ≤ (m+1)!\n    rw [hm]\n    rw [Nat.factorial_succ, pow_two]\n    apply Nat.mul_le_mul_left\n    -- Show m + 1 ≤ m!\n    calc\n      m + 1 ≤ m ^ 2 := by\n        rw [pow_two]\n        apply Nat.le_trans (m := 2 * m)\n        · linarith\n        · apply Nat.mul_le_mul_right m (by linarith)\n      _ ≤ m ! := hn\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using nat_strong_induction_on with n hn\n  by_cases h4 : n = 4\n  · rw [h4]\n    norm_num\n  · have h_gt_4 : 4 < n := Nat.lt_of_le_of_ne hn h4\n    let m := n - 1\n    have hm : n = m + 1 := (Nat.succ_pred_eq_of_pos (pos_of_gt h_gt_4)).symm\n    have h_m_ge_4 : 4 ≤ m := Nat.le_pred_of_lt h_gt_4\n    specialize hn m (Nat.pred_lt (pos_of_gt h_gt_4)) h_m_ge_4\n    -- Now we have m^2 ≤ m! and we want (m+1)^2 ≤ (m+1)!\n    rw [hm]\n    rw [Nat.factorial_succ, pow_two]\n    apply Nat.mul_le_mul_left\n    -- Show m + 1 ≤ m!\n    calc\n      m + 1 ≤ m ^ 2 := by\n        rw [pow_two]\n        apply Nat.le_trans (m := 2 * m)\n        · linarith\n        · apply Nat.mul_le_mul_right m (by linarith)\n      _ ≤ m ! := hn",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 25
+            },
+            "endPos": {
+              "line": 9,
+              "column": 48
+            },
+            "data": "Unknown identifier `nat_strong_induction_on`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.015060901641845703
+      }
+    },
+    {
+      "index": 8,
+      "status": "SOLVED",
+      "raw_text": "To prove that $n^2 \\le n!$ for $n \\ge 4$, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n = 4$):** Check $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the statement holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   Note that $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   It suffices to show $(k+1) \\cdot k^2 \\ge (k+1)^2$, which simplifies to $k^2 \\ge k+1$ for $k \\ge 4$.\n    *   Since $k \\ge 4$, $k^2 \\ge 4k = k + 3k \\ge k + 12 > k+1$.\n    *   Thus, $(k+1)^2 \\le (k+1)k^2 \\le (k+1)k! = (k+1)!$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k hk ih\n  · -- Base case: n = 4\n    simp [Nat.factorial]\n  · -- Inductive step: k -> k + 1\n    rw [Nat.factorial_succ, pow_two]\n    -- We want to show (k+1)*(k+1) ≤ (k+1)*k!\n    -- Since k+1 > 0, it suffices to show k+1 ≤ k!\n    apply Nat.mul_le_mul_left\n    -- We know k^2 ≤ k! from IH.\n    -- It suffices to show k+1 ≤ k^2\n    apply le_trans _ ih\n    -- Prove k + 1 ≤ k^2 for k ≥ 4\n    have h1 : 1 ≤ 3 * k := by linarith\n    calc\n      k + 1 ≤ k + 3 * k := Nat.add_le_add_left h1 k\n      _ = 4 * k := by ring\n      _ ≤ k * k := Nat.mul_le_mul_right k hk\n      _ = k ^ 2 := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k hk ih\n  · -- Base case: n = 4\n    simp [Nat.factorial]\n  · -- Inductive step: k -> k + 1\n    rw [Nat.factorial_succ, pow_two]\n    -- We want to show (k+1)*(k+1) ≤ (k+1)*k!\n    -- Since k+1 > 0, it suffices to show k+1 ≤ k!\n    apply Nat.mul_le_mul_left\n    -- We know k^2 ≤ k! from IH.\n    -- It suffices to show k+1 ≤ k^2\n    apply le_trans _ ih\n    -- Prove k + 1 ≤ k^2 for k ≥ 4\n    have h1 : 1 ≤ 3 * k := by linarith\n    calc\n      k + 1 ≤ k + 3 * k := Nat.add_le_add_left h1 k\n      _ = 4 * k := by ring\n      _ ≤ k * k := Nat.mul_le_mul_right k hk\n      _ = k ^ 2 := by ring",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.15661215782165527
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "To prove $n^2 \\le n!$ for $n \\ge 4$, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case:** For $n = 4$, we check $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   By definition, $(k+1)! = (k+1) \\cdot k!$.\n    *   Using the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   It remains to show $(k+1) \\cdot k^2 \\ge (k+1)^2$, which simplifies to showing $k^2 \\ge k+1$ for $k \\ge 4$.\n    *   Since $k \\ge 4$, we have $k^2 \\ge 4k = k + 3k > k+1$.\n    *   Thus, $(k+1)^2 \\le (k+1)k^2 \\le (k+1)!$, completing the induction.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We want to show (k+1)^2 ≤ (k+1) * k!\n    -- Since k+1 > 0, this is equivalent to k+1 ≤ k!\n    have h_pos : 0 < k + 1 := Nat.succ_pos k\n    apply Nat.le_of_mul_le_mul_left (a := k + 1)\n    · calc\n        (k + 1) * (k + 1)^2 = (k + 1)^2 * (k + 1) := by ring\n        _ ≤ (k!) * (k + 1) := by\n          -- We use k^2 ≤ k! and the fact that k+1 ≤ k^2 for k ≥ 4\n          have h_k_le_ksq : k + 1 ≤ k ^ 2 := by\n            calc\n              k + 1 ≤ k + k := by linarith\n              _ = 2 * k := by ring\n              _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n              _ = k ^ 2 := by ring\n          have h_le : (k + 1) ^ 2 ≤ (k + 1) * k! := by\n            calc\n              (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n              _ ≤ (k + 1) * k ^ 2 := Nat.mul_le_mul_left (k + 1) h_k_le_ksq\n              _ ≤ (k + 1) * k! := Nat.mul_le_mul_left (k + 1) ih\n          exact h_le\n        _ = (k + 1)! := by rw [Nat.factorial_succ, mul_comm]\n    · exact h_pos\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We want to show (k+1)^2 ≤ (k+1) * k!\n    -- Since k+1 > 0, this is equivalent to k+1 ≤ k!\n    have h_pos : 0 < k + 1 := Nat.succ_pos k\n    apply Nat.le_of_mul_le_mul_left (a := k + 1)\n    · calc\n        (k + 1) * (k + 1)^2 = (k + 1)^2 * (k + 1) := by ring\n        _ ≤ (k!) * (k + 1) := by\n          -- We use k^2 ≤ k! and the fact that k+1 ≤ k^2 for k ≥ 4\n          have h_k_le_ksq : k + 1 ≤ k ^ 2 := by\n            calc\n              k + 1 ≤ k + k := by linarith\n              _ = 2 * k := by ring\n              _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n              _ = k ^ 2 := by ring\n          have h_le : (k + 1) ^ 2 ≤ (k + 1) * k! := by\n            calc\n              (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n              _ ≤ (k + 1) * k ^ 2 := Nat.mul_le_mul_left (k + 1) h_k_le_ksq\n              _ ≤ (k + 1) * k! := Nat.mul_le_mul_left (k + 1) ih\n          exact h_le\n        _ = (k + 1)! := by rw [Nat.factorial_succ, mul_comm]\n    · exact h_pos",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 37,
+              "column": 17
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.024827957153320312
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "To prove $n^2 \\le n!$ for $n \\ge 4$ by induction:\n\n**Proof Sketch:**\n1.  **Base Case:** For $n=4$, $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   Note that $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   It suffices to show $(k+1) \\cdot k^2 \\ge (k+1)^2$, which simplifies to $k^2 \\ge k+1$ (since $k+1 > 0$).\n    *   Since $k \\ge 4$, $k^2 \\ge 4k = k + 3k \\ge k + 12 > k + 1$.\n    *   Thus, the inequality holds for $k+1$.\n\n**Lean 4 Code:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: n = 4\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We need to show (k+1)^2 ≤ (k+1) * k!\n    -- Since k+1 > 0, this is equivalent to k+1 ≤ k!\n    have h_pos : 0 < k + 1 := Nat.succ_pos k\n    apply Nat.le_of_mul_le_mul_left (a := k + 1)\n    · rw [← pow_two]\n      calc\n        (k + 1) * (k + 1) = (k + 1)^2 := by ring\n        _ = k^2 + 2 * k + 1 := by ring\n        _ ≤ k! + 2 * k + 1 := Nat.add_le_add_right (Nat.add_le_add_right ih _) _\n        _ ≤ k! + k * k := by\n          apply Nat.add_le_add_left\n          -- 2k + 1 ≤ k^2 for k ≥ 4\n          have h_k_sq : 2 * k + 1 ≤ k * k := by\n            calc\n              2 * k + 1 < 2 * k + k := Nat.add_lt_add_left (by linarith) (2 * k)\n              _ = 3 * k := by ring\n              _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n          exact h_k_sq\n        _ ≤ k! + k! := Nat.add_le_add_left ih _\n        _ = 2 * k! := by ring\n        _ ≤ (k + 1) * k! := Nat.mul_le_mul_right (k!) (by linarith)\n    · exact h_pos\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: n = 4\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We need to show (k+1)^2 ≤ (k+1) * k!\n    -- Since k+1 > 0, this is equivalent to k+1 ≤ k!\n    have h_pos : 0 < k + 1 := Nat.succ_pos k\n    apply Nat.le_of_mul_le_mul_left (a := k + 1)\n    · rw [← pow_two]\n      calc\n        (k + 1) * (k + 1) = (k + 1)^2 := by ring\n        _ = k^2 + 2 * k + 1 := by ring\n        _ ≤ k! + 2 * k + 1 := Nat.add_le_add_right (Nat.add_le_add_right ih _) _\n        _ ≤ k! + k * k := by\n          apply Nat.add_le_add_left\n          -- 2k + 1 ≤ k^2 for k ≥ 4\n          have h_k_sq : 2 * k + 1 ≤ k * k := by\n            calc\n              2 * k + 1 < 2 * k + k := Nat.add_lt_add_left (by linarith) (2 * k)\n              _ = 3 * k := by ring\n              _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n          exact h_k_sq\n        _ ≤ k! + k! := Nat.add_le_add_left ih _\n        _ = 2 * k! := by ring\n        _ ≤ (k + 1) * k! := Nat.mul_le_mul_right (k!) (by linarith)\n    · exact h_pos",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 37,
+              "column": 17
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.026473283767700195
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "To prove that $n^2 \\le n!$ for $n \\ge 4$, we use induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case:** For $n=4$, we have $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   Note that $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   It remains to show $(k+1) \\cdot k^2 \\ge (k+1)^2$, which simplifies to $k^2 \\ge k+1$ for $k \\ge 4$.\n    *   Since $k \\ge 4$, $k^2 \\ge 4k = k + 3k > k + 1$ (as $3k > 1$).\n    *   Thus, the inequality holds for $n = k+1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k h_le ih\n  · -- Base case: n = 4\n    simp\n  · -- Inductive step: k -> k + 1\n    rw [Nat.factorial_succ, pow_two]\n    have h_k_pos : 0 < k + 1 := Nat.succ_pos k\n    apply Nat.le_of_mul_le_mul_left (a := k + 1)\n    · calc\n        (k + 1) * (k + 1) = (k + 1) ^ 2 := by rw [pow_two]\n        _ ≤ k * k + 2 * k + 1 := by rw [add_sq]; rfl\n        _ < k * k + k * k := by \n          apply Nat.add_lt_add_left\n          calc 2 * k + 1 < 2 * k + k := Nat.add_lt_add_left (by linarith) (2 * k)\n               _ = 3 * k := by linarith\n               _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n        _ = 2 * k ^ 2 := by rw [pow_two, two_mul]\n        _ ≤ (k + 1) * k ^ 2 := Nat.mul_le_mul_right (k ^ 2) (by linarith)\n        _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n    · exact h_k_pos\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k h_le ih\n  · -- Base case: n = 4\n    simp\n  · -- Inductive step: k -> k + 1\n    rw [Nat.factorial_succ, pow_two]\n    have h_k_pos : 0 < k + 1 := Nat.succ_pos k\n    apply Nat.le_of_mul_le_mul_left (a := k + 1)\n    · calc\n        (k + 1) * (k + 1) = (k + 1) ^ 2 := by rw [pow_two]\n        _ ≤ k * k + 2 * k + 1 := by rw [add_sq]; rfl\n        _ < k * k + k * k := by \n          apply Nat.add_lt_add_left\n          calc 2 * k + 1 < 2 * k + k := Nat.add_lt_add_left (by linarith) (2 * k)\n               _ = 3 * k := by linarith\n               _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n        _ = 2 * k ^ 2 := by rw [pow_two, two_mul]\n        _ ≤ (k + 1) * k ^ 2 := Nat.mul_le_mul_right (k ^ 2) (by linarith)\n        _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n    · exact h_k_pos",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 2
+            },
+            "endPos": {
+              "line": 11,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 16 ≤ 4!"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 48
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `Nat.le_of_mul_le_mul_left`\n  k + 1 ≤ ?m.56\nwith the goal\n  (k + 1) * (k + 1) ≤ (k + 1) * k !\n\nNote: The full type of `Nat.le_of_mul_le_mul_left` is\n  ?m.57 * (k + 1) ≤ ?m.57 * ?m.56 → 0 < ?m.57 → k + 1 ≤ ?m.56\n\ncase succ\nn k : ℕ\nh_le : 4 ≤ k\nih : k ^ 2 ≤ k !\nh_k_pos : 0 < k + 1\n⊢ (k + 1) * (k + 1) ≤ (k + 1) * k !"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.037288665771484375
+      }
+    },
+    {
+      "index": 12,
+      "status": "FAILED",
+      "raw_text": "To prove that $n^2 \\le n!$ for $n \\ge 4$, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=4$):** We check the values directly. $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   By definition, $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   We need to show $(k+1) \\cdot k^2 \\ge (k+1)^2$, which simplifies to $k^2 \\ge k+1$ (since $k+1 > 0$).\n    *   Since $k \\ge 4$, $k^2 \\ge 4k = k + 3k$. Since $3k \\ge 1$, $k^2 \\ge k+1$ is satisfied.\n    *   Thus, $(k+1)^2 \\le (k+1)k^2 \\le (k+1)!$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using nat_strong_induction_less_with__4 with k hk\n  · -- Base case: k = 4\n    simp\n  · -- Inductive step: k > 4, assume true for k-1\n    have h_prev : (k - 1) ^ 2 ≤ (k - 1)! := by\n      apply hk (k - 1)\n      · apply Nat.sub_lt _ (by linarith)\n        linarith\n      · linarith\n    calc\n      k ^ 2 = (k - 1 + 1) ^ 2 := by rw [Nat.sub_add_cancel (by linarith)]\n      _ = (k - 1) ^ 2 + 2 * (k - 1) + 1 := by ring\n      _ ≤ (k - 1)! + 2 * (k - 1) + 1 := Nat.add_le_add_right (Nat.add_le_add_right h_prev _) _\n      _ ≤ (k - 1)! + (k - 1) * (k - 1) := by\n          apply Nat.add_le_add_left\n          have h_k_ge_5 : 5 ≤ k := hk_1\n          have h_km1_ge_4 : 4 ≤ k - 1 := Nat.le_sub_of_add_le h_k_ge_5\n          calc\n            2 * (k - 1) + 1 ≤ 2 * (k - 1) + (k - 1) := by rel [h_km1_ge_4]\n            _ = 3 * (k - 1) := by ring\n            _ ≤ (k - 1) * (k - 1) := Nat.mul_le_mul_right (k - 1) (by linarith)\n      _ = (k - 1)! + (k - 1) ^ 2 := by rw [pow_two]\n      _ ≤ (k - 1)! + (k - 1)! := Nat.add_le_add_left h_prev _\n      _ = 2 * (k - 1)! := by ring\n      _ ≤ k * (k - 1)! := Nat.mul_le_mul_right (k - 1)! (by linarith)\n      _ = k ! := by rw [Nat.mul_factorial_pred (by linarith)]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using nat_strong_induction_less_with__4 with k hk\n  · -- Base case: k = 4\n    simp\n  · -- Inductive step: k > 4, assume true for k-1\n    have h_prev : (k - 1) ^ 2 ≤ (k - 1)! := by\n      apply hk (k - 1)\n      · apply Nat.sub_lt _ (by linarith)\n        linarith\n      · linarith\n    calc\n      k ^ 2 = (k - 1 + 1) ^ 2 := by rw [Nat.sub_add_cancel (by linarith)]\n      _ = (k - 1) ^ 2 + 2 * (k - 1) + 1 := by ring\n      _ ≤ (k - 1)! + 2 * (k - 1) + 1 := Nat.add_le_add_right (Nat.add_le_add_right h_prev _) _\n      _ ≤ (k - 1)! + (k - 1) * (k - 1) := by\n          apply Nat.add_le_add_left\n          have h_k_ge_5 : 5 ≤ k := hk_1\n          have h_km1_ge_4 : 4 ≤ k - 1 := Nat.le_sub_of_add_le h_k_ge_5\n          calc\n            2 * (k - 1) + 1 ≤ 2 * (k - 1) + (k - 1) := by rel [h_km1_ge_4]\n            _ = 3 * (k - 1) := by ring\n            _ ≤ (k - 1) * (k - 1) := Nat.mul_le_mul_right (k - 1) (by linarith)\n      _ = (k - 1)! + (k - 1) ^ 2 := by rw [pow_two]\n      _ ≤ (k - 1)! + (k - 1)! := Nat.add_le_add_left h_prev _\n      _ = 2 * (k - 1)! := by ring\n      _ ≤ k * (k - 1)! := Nat.mul_le_mul_right (k - 1)! (by linarith)\n      _ = k ! := by rw [Nat.mul_factorial_pred (by linarith)]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 25
+            },
+            "endPos": {
+              "line": 9,
+              "column": 58
+            },
+            "data": "Unknown identifier `nat_strong_induction_less_with__4`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.016815900802612305
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "To prove $n^2 \\le n!$ for $n \\ge 4$, we use mathematical induction.\n\n**Base Case:** $n = 4$.\n$4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n\n**Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\nBy the definition of factorial, $(k+1)! = (k+1) \\cdot k!$.\nUsing the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\nThus, it suffices to show $(k+1) \\cdot k^2 \\ge (k+1)^2$.\nSince $k+1 > 0$, we can divide both sides by $(k+1)$, reducing the goal to showing $k^2 \\ge k+1$.\nFor $k \\ge 4$, $k^2 - k - 1 > 0$ is clearly true (e.g., $k^2 \\ge 4k > k + 1$ for $k \\ge 4$).\nTherefore, $(k+1)^2 \\le (k+1)!$ holds.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We want to show (k+1)^2 ≤ (k+1) * k!\n    -- Since k! ≥ k^2 (IH), it suffices to show (k+1)^2 ≤ (k+1) * k^2\n    have h_le : (k + 1) * (k + 1) ≤ (k + 1) * k ! := by\n      apply Nat.mul_le_mul_left\n      exact ih\n    -- Now show (k+1)^2 ≤ (k+1) * (k+1) which is trivial,\n    -- and compare (k+1) with k^2.\n    -- (k+1)^2 = (k+1)(k+1). Since k ≥ 4, k^2 ≥ k+1.\n    apply h_le.trans'\n    rw [pow_two, Nat.mul_le_mul_left]\n    · apply (Nat.le_pow_self (by norm_num) k).trans'\n      linarith\n    · exact Nat.succ_pos k\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We want to show (k+1)^2 ≤ (k+1) * k!\n    -- Since k! ≥ k^2 (IH), it suffices to show (k+1)^2 ≤ (k+1) * k^2\n    have h_le : (k + 1) * (k + 1) ≤ (k + 1) * k ! := by\n      apply Nat.mul_le_mul_left\n      exact ih\n    -- Now show (k+1)^2 ≤ (k+1) * (k+1) which is trivial,\n    -- and compare (k+1) with k^2.\n    -- (k+1)^2 = (k+1)(k+1). Since k ≥ 4, k^2 ≥ k+1.\n    apply h_le.trans'\n    rw [pow_two, Nat.mul_le_mul_left]\n    · apply (Nat.le_pow_self (by norm_num) k).trans'\n      linarith\n    · exact Nat.succ_pos k",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 28,
+              "column": 26
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.019764184951782227
+      }
+    },
+    {
+      "index": 14,
+      "status": "FAILED",
+      "raw_text": "To prove that $n^2 \\le n!$ for $n \\ge 4$, we use mathematical induction.\n\n### Proof Sketch\n1.  **Base Case**: For $n=4$, we have $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step**: Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   By definition, $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   To complete the proof, it suffices to show $(k+1) \\cdot k^2 \\ge (k+1)^2$, which simplifies to $k^2 \\ge k+1$ for $k \\ge 4$.\n    *   Since $k \\ge 4$, we have $k^2 \\ge 4k = k + 3k$. Since $3k \\ge 1$ for $k \\ge 4$, $k^2 \\ge k+1$ is true.\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using nat_strong_induction_less_equal with k h_ind\n  · -- Base case: k = 4\n    norm_num\n  · -- Inductive step: k > 4\n    obtain ⟨m, hm⟩ := exists_eq_succ_of_ne_zero (ne_of_gt (lt_of_le_of_lt (by norm_num) h_ind.1))\n    rw [hm] at *\n    have h_prev := h_ind.2 m (le_of_lt (lt_add_one m)) (by linarith)\n    rw [factorial_succ, pow_two]\n    -- We need (m+1) * (m+1) ≤ (m+1) * m!\n    -- This is equivalent to (m+1) ≤ m!\n    apply mul_le_mul_of_nonneg_left\n    · -- Show m + 1 ≤ m!\n      -- Since m = k-1 and k > 4, m ≥ 4.\n      have hm_ge_4 : 4 ≤ m := by linarith\n      calc\n        m + 1 ≤ m ^ 2 := by \n          have : 1 ≤ m := by linarith\n          nlinarith\n        _ ≤ m ! := h_prev\n    · exact Nat.zero_le (m + 1)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using nat_strong_induction_less_equal with k h_ind\n  · -- Base case: k = 4\n    norm_num\n  · -- Inductive step: k > 4\n    obtain ⟨m, hm⟩ := exists_eq_succ_of_ne_zero (ne_of_gt (lt_of_le_of_lt (by norm_num) h_ind.1))\n    rw [hm] at *\n    have h_prev := h_ind.2 m (le_of_lt (lt_add_one m)) (by linarith)\n    rw [factorial_succ, pow_two]\n    -- We need (m+1) * (m+1) ≤ (m+1) * m!\n    -- This is equivalent to (m+1) ≤ m!\n    apply mul_le_mul_of_nonneg_left\n    · -- Show m + 1 ≤ m!\n      -- Since m = k-1 and k > 4, m ≥ 4.\n      have hm_ge_4 : 4 ≤ m := by linarith\n      calc\n        m + 1 ≤ m ^ 2 := by \n          have : 1 ≤ m := by linarith\n          nlinarith\n        _ ≤ m ! := h_prev\n    · exact Nat.zero_le (m + 1)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 25
+            },
+            "endPos": {
+              "line": 9,
+              "column": 56
+            },
+            "data": "Unknown identifier `nat_strong_induction_less_equal`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.015794038772583008
+      }
+    },
+    {
+      "index": 15,
+      "status": "SOLVED",
+      "raw_text": "To prove that $n^2 \\le n!$ for $n \\ge 4$, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case:** For $n = 4$, $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   Note that $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $k! \\ge k^2$, so $(k+1)! \\ge (k+1)k^2$.\n    *   It remains to show $(k+1)k^2 \\ge (k+1)^2$, which simplifies to $k^2 \\ge k+1$ (since $k+1 > 0$).\n    *   For $k \\ge 4$, $k^2 \\ge 4k = k + 3k$. Since $3k \\ge 12 > 1$, it follows that $k^2 > k+1$.\n    *   Thus, $(k+1)! \\ge (k+1)k^2 \\ge (k+1)(k+1) = (k+1)^2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k hk ih\n  · -- Base case: n = 4\n    norm_num\n  · -- Inductive step\n    rw [Nat.factorial_succ, pow_two]\n    have h1 : k + 1 ≤ k ^ 2 := by\n      calc\n        k + 1 ≤ k + k := by linarith\n        _ = 2 * k := by ring\n        _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n        _ = k ^ 2 := by ring\n    calc\n      (k + 1) * (k + 1) ≤ (k + 1) * k ^ 2 := Nat.mul_le_mul_left (k + 1) h1\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k hk ih\n  · -- Base case: n = 4\n    norm_num\n  · -- Inductive step\n    rw [Nat.factorial_succ, pow_two]\n    have h1 : k + 1 ≤ k ^ 2 := by\n      calc\n        k + 1 ≤ k + k := by linarith\n        _ = 2 * k := by ring\n        _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n        _ = k ^ 2 := by ring\n    calc\n      (k + 1) * (k + 1) ≤ (k + 1) * k ^ 2 := Nat.mul_le_mul_left (k + 1) h1\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.23259830474853516
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "To prove $n^2 \\leq n!$ for $n \\geq 4$, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=4$):** We check $4^2 = 16$ and $4! = 24$. Since $16 \\leq 24$, the base case holds.\n2.  **Inductive Step:** Assume $n^2 \\leq n!$ for some $n \\geq 4$. We wish to show $(n+1)^2 \\leq (n+1)!$.\n    *   Note that $(n+1)! = (n+1) \\cdot n!$.\n    *   By the inductive hypothesis, $(n+1) \\cdot n! \\geq (n+1) \\cdot n^2$.\n    *   It suffices to show $(n+1) \\cdot n^2 \\geq (n+1)^2$, which simplifies to $n^2 \\geq n+1$.\n    *   Since $n \\geq 4$, we have $n^2 \\geq 4n = n + 3n > n + 1$.\n    *   Thus $(n+1)^2 \\leq (n+1) \\cdot n^2 \\leq (n+1)!$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k hk ih\n  · -- Base case: n = 4\n    norm_num\n  · -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We want to show (k+1)^2 ≤ (k+1) * k!\n    -- Since k+1 > 0, this is equivalent to k+1 ≤ k!\n    have h1 : k + 1 ≤ k ^ 2 := by\n      have h2 : 4 ≤ k := hk\n      calc\n        k + 1 ≤ k + k := by rel [h2]\n        _ = 2 * k := by ring\n        _ ≤ k * k := by rel [h2]\n        _ = k ^ 2 := by ring\n    calc\n      (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n      _ ≤ (k + 1) * k ^ 2 := by rel [h1]\n      _ ≤ (k + 1) * k ! := by rel [ih]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k hk ih\n  · -- Base case: n = 4\n    norm_num\n  · -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We want to show (k+1)^2 ≤ (k+1) * k!\n    -- Since k+1 > 0, this is equivalent to k+1 ≤ k!\n    have h1 : k + 1 ≤ k ^ 2 := by\n      have h2 : 4 ≤ k := hk\n      calc\n        k + 1 ≤ k + k := by rel [h2]\n        _ = 2 * k := by ring\n        _ ≤ k * k := by rel [h2]\n        _ = k ^ 2 := by ring\n    calc\n      (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n      _ ≤ (k + 1) * k ^ 2 := by rel [h1]\n      _ ≤ (k + 1) * k ! := by rel [ih]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 28
+            },
+            "endPos": {
+              "line": 19,
+              "column": 36
+            },
+            "data": "rel failed, cannot prove goal by 'substituting' the listed relationships. The steps which could not be automatically justified were:\n1 ≤ k"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 24
+            },
+            "endPos": {
+              "line": 21,
+              "column": 32
+            },
+            "data": "rel failed, cannot prove goal by 'substituting' the listed relationships. The steps which could not be automatically justified were:\n2 ≤ k"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.14649605751037598
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "To prove $n^2 \\le n!$ for $n \\ge 4$ by induction:\n\n**Proof Sketch:**\n1.  **Base Case:** For $n=4$, we have $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   Expand $(k+1)!$ as $(k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   It suffices to show $(k+1) \\cdot k^2 \\ge (k+1)^2$, which simplifies to showing $k^2 \\ge k+1$ for $k \\ge 4$.\n    *   Since $k \\ge 4$, $k^2 \\ge 4k = k + 3k \\ge k + 12 > k + 1$.\n    *   Thus, the inequality holds for $n = k+1$.\n\n**Lean 4 Code:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: n = 4\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ, mul_comm]\n    -- We need to show (k+1)^2 ≤ (k+1) * k!\n    -- It is sufficient to show k+1 ≤ k! since (k+1)^2 = (k+1)*(k+1)\n    have h_pos : 0 < k + 1 := Nat.succ_pos k\n    apply Nat.le_of_mul_le_mul_left _ h_pos\n    -- After canceling (k+1), we show k+1 ≤ k!\n    calc\n      (k + 1) * (k + 1) = (k + 1) ^ 2 := by ring\n      _ ≤ k ^ 2 + 2 * k + 1 := by norm_num\n      _ ≤ k ^ 2 + k ^ 2 := by\n        -- Since k >= 4, 2k + 1 <= k^2\n        apply add_le_add_left\n        have h_k_ge_4 : 4 ≤ k := hk\n        calc\n          2 * k + 1 ≤ 2 * k + k := by rel [h_k_ge_4]\n          _ = 3 * k := by ring\n          _ ≤ k * k := by rel [h_k_ge_4]\n          _ = k ^ 2 := by ring\n      _ = 2 * k ^ 2 := by ring\n      _ ≤ k * k ^ 2 := by\n        apply mul_le_mul_right (Nat.pos_pow_of_pos 2 (pos_of_gt hk))\n        exact hk\n      _ ≤ (k + 1) * k ^ 2 := by\n        apply mul_le_mul_right (Nat.pos_pow_of_pos 2 (pos_of_gt hk))\n        exact Nat.le_succ k\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: n = 4\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ, mul_comm]\n    -- We need to show (k+1)^2 ≤ (k+1) * k!\n    -- It is sufficient to show k+1 ≤ k! since (k+1)^2 = (k+1)*(k+1)\n    have h_pos : 0 < k + 1 := Nat.succ_pos k\n    apply Nat.le_of_mul_le_mul_left _ h_pos\n    -- After canceling (k+1), we show k+1 ≤ k!\n    calc\n      (k + 1) * (k + 1) = (k + 1) ^ 2 := by ring\n      _ ≤ k ^ 2 + 2 * k + 1 := by norm_num\n      _ ≤ k ^ 2 + k ^ 2 := by\n        -- Since k >= 4, 2k + 1 <= k^2\n        apply add_le_add_left\n        have h_k_ge_4 : 4 ≤ k := hk\n        calc\n          2 * k + 1 ≤ 2 * k + k := by rel [h_k_ge_4]\n          _ = 3 * k := by ring\n          _ ≤ k * k := by rel [h_k_ge_4]\n          _ = k ^ 2 := by ring\n      _ = 2 * k ^ 2 := by ring\n      _ ≤ k * k ^ 2 := by\n        apply mul_le_mul_right (Nat.pos_pow_of_pos 2 (pos_of_gt hk))\n        exact hk\n      _ ≤ (k + 1) * k ^ 2 := by\n        apply mul_le_mul_right (Nat.pos_pow_of_pos 2 (pos_of_gt hk))\n        exact Nat.le_succ k\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 40,
+              "column": 57
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.015986919403076172
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "To prove $n^2 \\le n!$ for $n \\ge 4$ by induction:\n\n**Proof Sketch:**\n1.  **Base Case:** For $n = 4$, $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $n^2 \\le n!$ for some $n \\ge 4$. We want to show $(n+1)^2 \\le (n+1)!$.\n3.  Expand the factorial: $(n+1)! = (n+1) \\cdot n!$.\n4.  By the inductive hypothesis, $(n+1) \\cdot n! \\ge (n+1) \\cdot n^2$.\n5.  It suffices to show $(n+1) \\cdot n^2 \\ge (n+1)^2$, which simplifies to showing $n^2 \\ge n+1$ for $n \\ge 4$.\n6.  Since $n \\ge 4$, $n^2 = n \\cdot n \\ge 4n = n + 3n$.\n7.  Since $3n \\ge 12 \\ge 1$, we have $n^2 \\ge n+1$.\n8.  Thus, $(n+1)^2 = n^2 + 2n + 1 \\le n! + 2n + 1$. However, using the simplification in step 5 is more direct: $(n+1) \\cdot n^2 \\ge (n+1)(n+1)$ because $n \\ge 4 \\implies n^2 \\ge n+1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | succ k hk ih =>\n    -- Inductive step: (k+1)^2 ≤ (k+1)!\n    -- We know k! = k * (k-1) * ... and (k+1)! = (k+1) * k!\n    rw [Nat.factorial_succ]\n    -- From IH, (k+1) * k! ≥ (k+1) * k^2\n    have h1 : (k + 1) * k ^ 2 ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n    apply le_trans _ h1\n    -- Now show (k+1)^2 ≤ (k+1) * k^2, which is k+1 ≤ k^2 for k ≥ 4\n    rw [pow_two (k + 1), mul_comm]\n    apply Nat.mul_le_mul_left (k + 1)\n    -- Prove k + 1 ≤ k^2 for k ≥ 4\n    calc\n      k + 1 ≤ k + k := by rel [hk]\n      _ = 2 * k := by ring\n      _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n      _ = k ^ 2 := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | succ k hk ih =>\n    -- Inductive step: (k+1)^2 ≤ (k+1)!\n    -- We know k! = k * (k-1) * ... and (k+1)! = (k+1) * k!\n    rw [Nat.factorial_succ]\n    -- From IH, (k+1) * k! ≥ (k+1) * k^2\n    have h1 : (k + 1) * k ^ 2 ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n    apply le_trans _ h1\n    -- Now show (k+1)^2 ≤ (k+1) * k^2, which is k+1 ≤ k^2 for k ≥ 4\n    rw [pow_two (k + 1), mul_comm]\n    apply Nat.mul_le_mul_left (k + 1)\n    -- Prove k + 1 ≤ k^2 for k ≥ 4\n    calc\n      k + 1 ≤ k + k := by rel [hk]\n      _ = 2 * k := by ring\n      _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n      _ = k ^ 2 := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 26
+            },
+            "endPos": {
+              "line": 25,
+              "column": 34
+            },
+            "data": "rel failed, cannot prove goal by 'substituting' the listed relationships. The steps which could not be automatically justified were:\n1 ≤ k"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1875607967376709
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "To prove $n^2 \\le n!$ for $n \\ge 4$ by induction:\n1. **Base Case**: For $n=4$, $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2. **Inductive Step**: Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n   - We know $(k+1)! = (k+1) \\cdot k!$.\n   - By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n   - We need to show $(k+1)k^2 \\ge (k+1)^2$, which simplifies to showing $k^2 \\ge k+1$ for $k \\ge 4$.\n   - Since $k \\ge 4$, $k^2 \\ge 4k = k + 3k$. Since $3k \\ge 12 > 1$, $k^2 > k+1$ holds.\n   - Thus $(k+1)^2 \\le (k+1)k^2 \\le (k+1)!$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base => \n    simp [Nat.factorial_succ]\n    norm_num\n  | step k hk ih =>\n    rw [Nat.factorial_succ, Nat.mul_comm]\n    apply Nat.le_trans _ (Nat.mul_le_mul_left (k + 1) ih)\n    rw [pow_two, Nat.mul_le_mul_left (k + 1)]\n    calc\n      k + 1 ≤ k + k := Nat.add_le_add_left (by linarith) k\n      _ = 2 * k := by rw [Nat.two_mul]\n      _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base => \n    simp [Nat.factorial_succ]\n    norm_num\n  | step k hk ih =>\n    rw [Nat.factorial_succ, Nat.mul_comm]\n    apply Nat.le_trans _ (Nat.mul_le_mul_left (k + 1) ih)\n    rw [pow_two, Nat.mul_le_mul_left (k + 1)]\n    calc\n      k + 1 ≤ k + k := Nat.add_le_add_left (by linarith) k\n      _ = 2 * k := by rw [Nat.two_mul]\n      _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 20,
+              "column": 55
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 4
+            },
+            "endPos": {
+              "line": 12,
+              "column": 12
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.018204450607299805
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "To prove $n^2 \\le n!$ for $n \\ge 4$ by induction:\n\n1.  **Base Case ($n=4$):** $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   Expand the factorial: $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   We need to check if $(k+1) \\cdot k^2 \\ge (k+1)^2$, which simplifies to $k^2 \\ge k+1$ for $k \\ge 4$.\n    *   Since $k \\ge 4$, $k^2 \\ge 4k = k + 3k \\ge k + 12 > k+1$.\n    *   Thus, $(k+1)! \\ge (k+1)k^2 \\ge (k+1)(k+1) = (k+1)^2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- 4^2 = 16, 4! = 24\n    norm_num\n  | step k hk ih =>\n    -- Goal: (k + 1)^2 ≤ (k + 1)!\n    -- (k + 1)! = (k + 1) * k!\n    rw [Nat.factorial_succ, mul_comm]\n    -- By IH, k! ≥ k^2, so (k + 1) * k! ≥ (k + 1) * k^2\n    have h1 : (k + 1) * k ^ 2 ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n    apply le_trans _ h1\n    -- Now show (k + 1)^2 ≤ (k + 1) * k^2, which is k + 1 ≤ k^2\n    rw [pow_two, Nat.mul_le_mul_left (k + 1)]\n    -- Since k ≥ 4, k^2 ≥ 4k ≥ k + 1\n    calc\n      k + 1 ≤ k + k := by rel [hk]\n      _ ≤ 2 * k := by ring_nf; rfl\n      _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n      _ = k ^ 2 := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- 4^2 = 16, 4! = 24\n    norm_num\n  | step k hk ih =>\n    -- Goal: (k + 1)^2 ≤ (k + 1)!\n    -- (k + 1)! = (k + 1) * k!\n    rw [Nat.factorial_succ, mul_comm]\n    -- By IH, k! ≥ k^2, so (k + 1) * k! ≥ (k + 1) * k^2\n    have h1 : (k + 1) * k ^ 2 ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n    apply le_trans _ h1\n    -- Now show (k + 1)^2 ≤ (k + 1) * k^2, which is k + 1 ≤ k^2\n    rw [pow_two, Nat.mul_le_mul_left (k + 1)]\n    -- Since k ≥ 4, k^2 ≥ 4k ≥ k + 1\n    calc\n      k + 1 ≤ k + k := by rel [hk]\n      _ ≤ 2 * k := by ring_nf; rfl\n      _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n      _ = k ^ 2 := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 27,
+              "column": 26
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.024605274200439453
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "To prove that $n^2 \\le n!$ for all $n \\ge 4$, we proceed by induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case:** For $n = 4$, we have $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   By definition, $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   Thus, it suffices to show $(k+1) \\cdot k^2 \\ge (k+1)^2$.\n    *   Since $k+1 > 0$, we can divide both sides by $(k+1)$, reducing the goal to $k^2 \\ge k+1$.\n    *   For $k \\ge 4$, $k^2 \\ge 4k = k + 3k$. Since $3k \\ge 12 > 1$, $k^2 > k+1$ holds.\n    *   Therefore, $(k+1)^2 \\le (k+1)!$ is satisfied.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ, Nat.pow_two]\n    -- Since (k+1)! = (k+1) * k!, and k^2 ≤ k!,\n    -- we have (k+1) * k^2 ≤ (k+1) * k!\n    have h1 : (k + 1) * k ≤ (k + 1) * (k ! / k) := by sorry -- Simplified path below\n    -- Let's use a cleaner chain of inequalities:\n    calc\n      (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n      _ ≤ (k + 1) * k^2 := by\n        apply Nat.mul_le_mul_left\n        nlinarith\n      _ ≤ (k + 1) * k ! := by\n        apply Nat.mul_le_mul_left\n        exact ih\n      _ = (k + 1)! := by rfl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ, Nat.pow_two]\n    -- Since (k+1)! = (k+1) * k!, and k^2 ≤ k!,\n    -- we have (k+1) * k^2 ≤ (k+1) * k!\n    have h1 : (k + 1) * k ≤ (k + 1) * (k ! / k) := by sorry -- Simplified path below\n    -- Let's use a cleaner chain of inequalities:\n    calc\n      (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n      _ ≤ (k + 1) * k^2 := by\n        apply Nat.mul_le_mul_left\n        nlinarith\n      _ ≤ (k + 1) * k ! := by\n        apply Nat.mul_le_mul_left\n        exact ih\n      _ = (k + 1)! := by rfl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 28,
+              "column": 28
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.022603273391723633
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "To prove $n^2 \\le n!$ for $n \\ge 4$ by induction:\n\n**Proof Sketch:**\n1.  **Base Case:** For $n=4$, $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   Note that $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   We need to check if $(k+1) \\cdot k^2 \\ge (k+1)^2$, which simplifies to checking if $k^2 \\ge k+1$ for $k \\ge 4$.\n    *   Since $k \\ge 4$, $k^2 \\ge 4k = k + 3k \\ge k + 12 > k + 1$.\n    *   Thus, $(k+1)^2 = (k+1)(k+1) \\le (k+1)k^2 \\le (k+1)k! = (k+1)!$.\n3.  Conclusion follows by induction.\n\n**Lean 4 Code:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We need to show (k+1)^2 ≤ (k+1) * k!\n    -- Since k! ≥ k^2, it suffices to show (k+1)^2 ≤ (k+1) * k^2\n    have h_le : (k + 1) ^ 2 ≤ (k + 1) * k ^ 2 := by\n      rw [pow_two, mul_le_mul_left (succ_pos k)]\n      calc\n        k + 1 ≤ k + k := add_le_add_left (by linarith) k\n        _ = 2 * k := by rw [two_mul]\n        _ ≤ k * k := mul_le_mul_right' (by linarith) k\n        _ = k ^ 2 := by rw [pow_two]\n    exact h_le.trans (mul_le_mul_left' ih (k + 1))\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We need to show (k+1)^2 ≤ (k+1) * k!\n    -- Since k! ≥ k^2, it suffices to show (k+1)^2 ≤ (k+1) * k^2\n    have h_le : (k + 1) ^ 2 ≤ (k + 1) * k ^ 2 := by\n      rw [pow_two, mul_le_mul_left (succ_pos k)]\n      calc\n        k + 1 ≤ k + k := add_le_add_left (by linarith) k\n        _ = 2 * k := by rw [two_mul]\n        _ ≤ k * k := mul_le_mul_right' (by linarith) k\n        _ = k ^ 2 := by rw [pow_two]\n    exact h_le.trans (mul_le_mul_left' ih (k + 1))",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 25,
+              "column": 50
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.020222187042236328
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "To prove $n^2 \\le n!$ for $n \\ge 4$ by induction:\n\n**Proof Sketch:**\n1.  **Base Case:** For $n=4$, $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   Note that $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   It remains to show $(k+1)k^2 \\ge (k+1)^2$, which simplifies to $k^2 \\ge k+1$ (since $k+1 > 0$).\n    *   Since $k \\ge 4$, $k^2 \\ge 4k = k + 3k$. Since $3k \\ge 1$, $k^2 \\ge k+1$ is true.\n    *   Thus $(k+1)^2 \\le (k+1)k^2 \\le (k+1)k! = (k+1)!$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- Since k ≥ 4, k + 1 > 0, we can divide by (k+1)\n    -- Or show (k+1)^2 ≤ (k+1) * k^2 ≤ (k+1) * k!\n    have h1 : (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n    have h2 : (k + 1) * (k + 1) ≤ (k + 1) * k ^ 2 := by\n      apply Nat.mul_le_mul_left\n      calc\n        k + 1 ≤ k + k := by rel [hk]\n        _ ≤ k * k := by \n          rw [← mul_two]\n          apply Nat.mul_le_mul_left\n          exact le_trans (by norm_num) hk\n        _ = k ^ 2 := by ring\n    have h3 : (k + 1) * k ^ 2 ≤ (k + 1) * k ! := by\n      apply Nat.mul_le_mul_left\n      exact ih\n    exact le_trans (le_trans h1 h2) h3\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- Since k ≥ 4, k + 1 > 0, we can divide by (k+1)\n    -- Or show (k+1)^2 ≤ (k+1) * k^2 ≤ (k+1) * k!\n    have h1 : (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n    have h2 : (k + 1) * (k + 1) ≤ (k + 1) * k ^ 2 := by\n      apply Nat.mul_le_mul_left\n      calc\n        k + 1 ≤ k + k := by rel [hk]\n        _ ≤ k * k := by \n          rw [← mul_two]\n          apply Nat.mul_le_mul_left\n          exact le_trans (by norm_num) hk\n        _ = k ^ 2 := by ring\n    have h3 : (k + 1) * k ^ 2 ≤ (k + 1) * k ! := by\n      apply Nat.mul_le_mul_left\n      exact ih\n    exact le_trans (le_trans h1 h2) h3",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 31,
+              "column": 38
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.028821468353271484
+      }
+    },
+    {
+      "index": 24,
+      "status": "FAILED",
+      "raw_text": "To prove that $n^2 \\le n!$ for $n \\ge 4$, we proceed by induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=4$):** $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the statement holds.\n2.  **Inductive Step:** Assume $n^2 \\le n!$ for some $n \\ge 4$. We wish to show $(n+1)^2 \\le (n+1)!$.\n    *   Note that $(n+1)! = (n+1) \\cdot n!$.\n    *   By the inductive hypothesis, $(n+1) \\cdot n! \\ge (n+1) \\cdot n^2$.\n    *   It suffices to show $(n+1) \\cdot n^2 \\ge (n+1)^2$, which simplifies to showing $n^2 \\ge n+1$ for $n \\ge 4$.\n    *   Since $n \\ge 4$, $n^2 \\ge 4n = n + 3n \\ge n + 12 > n + 1$.\n    *   Thus, $(n+1)^2 \\le (n+1) \\cdot n^2 \\le (n+1)!$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k hk ih\n  · -- Base case: n = 4\n    norm_num\n  · -- Inductive step: n = k + 1\n    rw [Nat.factorial_succ, pow_two]\n    calc\n      (k + 1) * (k + 1) ≤ (k + 1) * k := by\n        -- Since k >= 4, k+1 <= k^2 is not quite right in this direction,\n        -- let's use the IH: k^2 <= k!\n        -- We want (k+1)^2 <= (k+1) * k!\n        -- Equivalent to (k+1) <= k!\n        -- But even stronger: (k+1) <= k^2 <= k!\n        refine Nat.mul_le_mul_left (k + 1) ?_\n        have h_k_sq : k + 1 ≤ k ^ 2 := by\n          calc\n            k + 1 ≤ k + k := by rel [hk]\n            _ = 2 * k := by ring\n            _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n            _ = k ^ 2 := by ring\n        exact h_k_sq.trans ih\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k hk ih\n  · -- Base case: n = 4\n    norm_num\n  · -- Inductive step: n = k + 1\n    rw [Nat.factorial_succ, pow_two]\n    calc\n      (k + 1) * (k + 1) ≤ (k + 1) * k := by\n        -- Since k >= 4, k+1 <= k^2 is not quite right in this direction,\n        -- let's use the IH: k^2 <= k!\n        -- We want (k+1)^2 <= (k+1) * k!\n        -- Equivalent to (k+1) <= k!\n        -- But even stronger: (k+1) <= k^2 <= k!\n        refine Nat.mul_le_mul_left (k + 1) ?_\n        have h_k_sq : k + 1 ≤ k ^ 2 := by\n          calc\n            k + 1 ≤ k + k := by rel [hk]\n            _ = 2 * k := by ring\n            _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n            _ = k ^ 2 := by ring\n        exact h_k_sq.trans ih\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 55
+            },
+            "endPos": {
+              "line": 29,
+              "column": 57
+            },
+            "data": "Application type mismatch: The argument\n  ih\nhas type\n  k ^ 2 ≤ k !\nbut is expected to have type\n  k ≤ k !\nin the application\n  Nat.mul_le_mul_left (k + 1) ih"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 32
+            },
+            "endPos": {
+              "line": 24,
+              "column": 40
+            },
+            "data": "rel failed, cannot prove goal by 'substituting' the listed relationships. The steps which could not be automatically justified were:\n1 ≤ k"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 27
+            },
+            "endPos": {
+              "line": 28,
+              "column": 29
+            },
+            "data": "Application type mismatch: The argument\n  ih\nhas type\n  k ^ 2 ≤ k !\nbut is expected to have type\n  k ^ 2 ≤ k\nin the application\n  LE.le.trans h_k_sq ih"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.16515350341796875
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "To prove $n^2 \\le n!$ for $n \\ge 4$ by induction:\n\n**Proof Sketch:**\n1.  **Base Case ($n=4$):** $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   Observe that $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   To complete the proof, it suffices to show $(k+1) \\cdot k^2 \\ge (k+1)^2$, which simplifies to showing $k^2 \\ge k+1$ for $k \\ge 4$.\n    *   Since $k \\ge 4$, $k^2 \\ge 4k = k + 3k \\ge k + 12 > k+1$.\n    *   Thus, $(k+1)^2 \\le (k+1)k^2 \\le (k+1)!$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: Assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We want to show (k+1)^2 ≤ (k+1) * k!\n    -- Since k+1 > 0, we can divide both sides by (k+1)\n    have h_pos : 0 < k + 1 := Nat.succ_pos k\n    rw [pow_two, ← Nat.mul_le_mul_left h_pos]\n    -- Now we need to show k + 1 ≤ k!\n    -- From inductive hypothesis k^2 ≤ k!, it suffices to show k + 1 ≤ k^2\n    apply le_trans _ ih\n    -- Prove k + 1 ≤ k^2 for k ≥ 4\n    have k_ge_2 : 2 ≤ k := le_trans (by norm_num) hk\n    calc\n      k + 1 ≤ k + k := add_le_add_left (le_trans (by norm_num) hk) k\n      _ = 2 * k := by rw [two_mul]\n      _ ≤ k * k := Nat.mul_le_mul_right k k_ge_2\n      _ = k ^ 2 := by rw [pow_two]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: Assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We want to show (k+1)^2 ≤ (k+1) * k!\n    -- Since k+1 > 0, we can divide both sides by (k+1)\n    have h_pos : 0 < k + 1 := Nat.succ_pos k\n    rw [pow_two, ← Nat.mul_le_mul_left h_pos]\n    -- Now we need to show k + 1 ≤ k!\n    -- From inductive hypothesis k^2 ≤ k!, it suffices to show k + 1 ≤ k^2\n    apply le_trans _ ih\n    -- Prove k + 1 ≤ k^2 for k ≥ 4\n    have k_ge_2 : 2 ≤ k := le_trans (by norm_num) hk\n    calc\n      k + 1 ≤ k + k := add_le_add_left (le_trans (by norm_num) hk) k\n      _ = 2 * k := by rw [two_mul]\n      _ ≤ k * k := Nat.mul_le_mul_right k k_ge_2\n      _ = k ^ 2 := by rw [pow_two]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 29,
+              "column": 34
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.03021693229675293
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "To prove that $n^2 \\le n!$ for $n \\ge 4$, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=4$):** We check $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the statement holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   Note that $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   It suffices to show $(k+1) \\cdot k^2 \\ge (k+1)^2$, which simplifies to $k^2 \\ge k+1$.\n    *   Since $k \\ge 4$, we have $k^2 \\ge 4k = k + 3k \\ge k + 12 > k+1$.\n    *   Thus, $(k+1)^2 \\le (k+1) \\cdot k^2 \\le (k+1)!$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    calc\n      (k + 1) ^ 2 = k^2 + 2 * k + 1 := by ring\n      _ ≤ k * k + 2 * k + k := by\n        rel [ih]\n        apply add_le_add_left\n        apply add_le_add_left\n        exact le_trans (by norm_num) hk\n      _ = k^2 + 3 * k := by ring\n      _ ≤ k^2 + k * k := by\n        apply add_le_add_left\n        apply mul_le_mul_right'\n        exact le_trans (by norm_num) hk\n      _ = 2 * k^2 := by ring\n      _ ≤ (k + 1) * k^2 := by\n        apply mul_le_mul_right'\n        exact le_trans (by norm_num) hk\n      _ ≤ (k + 1) * k ! := by\n        apply mul_le_mul_left'\n        exact ih\n      _ = (k + 1)! := by\n        rw [Nat.factorial_succ]\n        ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    calc\n      (k + 1) ^ 2 = k^2 + 2 * k + 1 := by ring\n      _ ≤ k * k + 2 * k + k := by\n        rel [ih]\n        apply add_le_add_left\n        apply add_le_add_left\n        exact le_trans (by norm_num) hk\n      _ = k^2 + 3 * k := by ring\n      _ ≤ k^2 + k * k := by\n        apply add_le_add_left\n        apply mul_le_mul_right'\n        exact le_trans (by norm_num) hk\n      _ = 2 * k^2 := by ring\n      _ ≤ (k + 1) * k^2 := by\n        apply mul_le_mul_right'\n        exact le_trans (by norm_num) hk\n      _ ≤ (k + 1) * k ! := by\n        apply mul_le_mul_left'\n        exact ih\n      _ = (k + 1)! := by\n        rw [Nat.factorial_succ]\n        ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 36,
+              "column": 12
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.018984317779541016
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "To prove that $n^2 \\le n!$ for $n \\ge 4$, we use mathematical induction.\n\n**Proof Sketch:**\n1.  **Base Case:** For $n = 4$, $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   Note that $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   It suffices to show $(k+1) \\cdot k^2 \\ge (k+1)^2$, which simplifies to $k^2 \\ge k+1$ for $k \\ge 4$.\n    *   Since $k \\ge 4$, $k^2 \\ge 4k = k + 3k \\ge k + 12 > k+1$.\n    *   Thus, the inequality holds for $k+1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k hk ih\n  · -- Base case: n = 4\n    simp\n  · -- Inductive step\n    rw [Nat.factorial_succ, pow_two]\n    have h_le : k + 1 ≤ k * k := by\n      calc\n        k + 1 ≤ k + k := by rel [hk]\n        _ = 2 * k := by ring\n        _ ≤ k * k := (mul_le_mul_right (show 0 < k from Nat.zero_lt_of_lt hk)).mpr (by linarith)\n    calc\n      (k + 1) * (k + 1) ≤ (k + 1) * (k ^ 2) := Nat.mul_le_mul_left (k + 1) h_le\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k hk ih\n  · -- Base case: n = 4\n    simp\n  · -- Inductive step\n    rw [Nat.factorial_succ, pow_two]\n    have h_le : k + 1 ≤ k * k := by\n      calc\n        k + 1 ≤ k + k := by rel [hk]\n        _ = 2 * k := by ring\n        _ ≤ k * k := (mul_le_mul_right (show 0 < k from Nat.zero_lt_of_lt hk)).mpr (by linarith)\n    calc\n      (k + 1) * (k + 1) ≤ (k + 1) * (k ^ 2) := Nat.mul_le_mul_left (k + 1) h_le\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 2
+            },
+            "endPos": {
+              "line": 11,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase base\nn : ℕ\n⊢ 16 ≤ 4!"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 79
+            },
+            "endPos": {
+              "line": 18,
+              "column": 82
+            },
+            "data": "Invalid field `mpr`: The environment does not contain `Function.mpr`, so it is not possible to project the field `mpr` from an expression\n  _root_.mul_le_mul_right\n    (have this := zero_lt_of_lt hk;\n    ?m.98)\nof type\n  ∀ (a : ?m.85), a * ?m.89 ≤ a * ?m.90"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 28
+            },
+            "endPos": {
+              "line": 16,
+              "column": 36
+            },
+            "data": "rel failed, cannot prove goal by 'substituting' the listed relationships. The steps which could not be automatically justified were:\n1 ≤ k"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 40
+            },
+            "endPos": {
+              "line": 18,
+              "column": 76
+            },
+            "data": "Type mismatch\n  this\nhas type\n  0 < k\nbut is expected to have type\n  ?m.89 ≤ ?m.90"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 75
+            },
+            "endPos": {
+              "line": 20,
+              "column": 79
+            },
+            "data": "Application type mismatch: The argument\n  h_le\nhas type\n  k + 1 ≤ k * k\nbut is expected to have type\n  k + 1 ≤ k ^ 2\nin the application\n  Nat.mul_le_mul_left (k + 1) h_le"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.18497157096862793
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "To prove that $n^2 \\le n!$ for $n \\ge 4$, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=4$):** We check $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   Note that $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   To complete the proof, it suffices to show $(k+1) \\cdot k^2 \\ge (k+1)^2$, which simplifies to $k^2 \\ge k+1$ for $k \\ge 4$.\n    *   Since $k \\ge 4$, $k^2 \\ge 4k = k + 3k > k+1$. Thus the inequality holds.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k hk ih\n  · -- Base case: n = 4\n    norm_num\n  · -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ, mul_comm]\n    -- We want to show (k+1)^2 ≤ (k+1) * k!\n    -- Since k+1 > 0, this is equivalent to k+1 ≤ k!\n    have h1 : k + 1 ≤ k ^ 2 := by\n      have h2 : 4 ≤ k := hk\n      calc\n        k + 1 ≤ k + k := by rel [h2]\n        _ = 2 * k := by ring\n        _ ≤ k * k := by rel [h2]\n        _ = k ^ 2 := by ring\n    calc\n      (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n      _ ≤ (k + 1) * k ^ 2 := Nat.mul_le_mul_left (k + 1) h1\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction' n, h₀ using Nat.le_induction with k hk ih\n  · -- Base case: n = 4\n    norm_num\n  · -- Inductive step: assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ, mul_comm]\n    -- We want to show (k+1)^2 ≤ (k+1) * k!\n    -- Since k+1 > 0, this is equivalent to k+1 ≤ k!\n    have h1 : k + 1 ≤ k ^ 2 := by\n      have h2 : 4 ≤ k := hk\n      calc\n        k + 1 ≤ k + k := by rel [h2]\n        _ = 2 * k := by ring\n        _ ≤ k * k := by rel [h2]\n        _ = k ^ 2 := by ring\n    calc\n      (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n      _ ≤ (k + 1) * k ^ 2 := Nat.mul_le_mul_left (k + 1) h1\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 28
+            },
+            "endPos": {
+              "line": 19,
+              "column": 36
+            },
+            "data": "rel failed, cannot prove goal by 'substituting' the listed relationships. The steps which could not be automatically justified were:\n1 ≤ k"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 24
+            },
+            "endPos": {
+              "line": 21,
+              "column": 32
+            },
+            "data": "rel failed, cannot prove goal by 'substituting' the listed relationships. The steps which could not be automatically justified were:\n2 ≤ k"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 2
+            },
+            "endPos": {
+              "line": 26,
+              "column": 57
+            },
+            "data": "unsolved goals\ncase succ.calc.step\nn k : ℕ\nhk : 4 ≤ k\nih : k ^ 2 ≤ k !\nh1 : k + 1 ≤ k ^ 2\n⊢ (k + 1) * k ! ≤ k ! * (k + 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.12883996963500977
+      }
+    },
+    {
+      "index": 29,
+      "status": "FAILED",
+      "raw_text": "To prove that $n^2 \\le n!$ for all $n \\ge 4$, we use mathematical induction.\n\n**Proof Sketch:**\n1.  **Base Case:** For $n=4$, $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   Note that $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   We need to show $(k+1) \\cdot k^2 \\ge (k+1)^2$, which simplifies to $k^2 \\ge k+1$ for $k \\ge 4$.\n    *   Since $k \\ge 4$, $k^2 \\ge 4k = k + 3k \\ge k + 1$ (as $3k \\ge 1$).\n    *   Thus $(k+1)^2 \\le (k+1)k^2 \\le (k+1)k! = (k+1)!$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- 4^2 = 16, 4! = 24\n    norm_num\n  | step k hk ih =>\n    -- Goal: (k + 1)^2 ≤ (k + 1)!\n    rw [Nat.factorial_succ]\n    -- (k + 1)! = (k + 1) * k!\n    -- By IH, (k + 1) * k! ≥ (k + 1) * k^2\n    have h1 : (k + 1) * k ^ 2 ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n    apply le_trans _ h1\n    -- Show (k + 1)^2 ≤ (k + 1) * k^2\n    -- Dividing by (k + 1), this is k + 1 ≤ k^2\n    rw [pow_two, ← mul_assoc, mul_comm (k + 1) k, mul_assoc]\n    apply Nat.mul_le_mul_left\n    -- Show k + 1 ≤ k^2 for k ≥ 4\n    calc\n      k + 1 ≤ k + k := Nat.add_le_add_left (by linarith) k\n      _ = 2 * k := by ring\n      _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n      _ = k ^ 2 := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- 4^2 = 16, 4! = 24\n    norm_num\n  | step k hk ih =>\n    -- Goal: (k + 1)^2 ≤ (k + 1)!\n    rw [Nat.factorial_succ]\n    -- (k + 1)! = (k + 1) * k!\n    -- By IH, (k + 1) * k! ≥ (k + 1) * k^2\n    have h1 : (k + 1) * k ^ 2 ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n    apply le_trans _ h1\n    -- Show (k + 1)^2 ≤ (k + 1) * k^2\n    -- Dividing by (k + 1), this is k + 1 ≤ k^2\n    rw [pow_two, ← mul_assoc, mul_comm (k + 1) k, mul_assoc]\n    apply Nat.mul_le_mul_left\n    -- Show k + 1 ≤ k^2 for k ≥ 4\n    calc\n      k + 1 ≤ k + k := Nat.add_le_add_left (by linarith) k\n      _ = 2 * k := by ring\n      _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n      _ = k ^ 2 := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 29,
+              "column": 26
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.06936812400817871
+      }
+    },
+    {
+      "index": 30,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case**: For $n = 4$, we have $4^2 = 16$ and $4! = 24$. Since $16 \\leq 24$, the base case holds.\n2.  **Inductive Step**: Assume $k^2 \\leq k!$ for some $k \\geq 4$. We want to show $(k+1)^2 \\leq (k+1)!$.\n3.  Rewrite the target: $(k+1)! = (k+1) \\cdot k!$.\n4.  By the inductive hypothesis, $(k+1) \\cdot k! \\geq (k+1) \\cdot k^2$.\n5.  It suffices to show $(k+1) \\cdot k^2 \\geq (k+1)^2$, which simplifies to $k^2 \\geq k+1$ (since $k+1 > 0$).\n6.  For $k \\geq 4$, $k^2 \\geq 4k = k + 3k$. Since $3k \\geq 12 \\geq 1$, it follows $k^2 \\geq k+1$.\n7.  Combining these, $(k+1)! \\geq (k+1)k^2 \\geq (k+1)(k+1) = (k+1)^2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: Assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We know (k+1)! = (k+1) * k!\n    -- By IH, (k+1) * k! ≥ (k+1) * k^2\n    have h1 : (k + 1) * k ^ 2 ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n    apply le_trans _ h1\n    -- Now show (k+1)^2 ≤ (k+1) * k^2, which simplifies to k+1 ≤ k^2\n    rw [pow_two (k + 1)]\n    apply Nat.mul_le_mul_left (k + 1)\n    -- Prove k + 1 ≤ k^2 for k ≥ 4\n    calc\n      k + 1 ≤ k + k := Nat.add_le_add_left (by linarith) k\n      _ = 2 * k := by ring\n      _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n      _ = k ^ 2 := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: Assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We know (k+1)! = (k+1) * k!\n    -- By IH, (k+1) * k! ≥ (k+1) * k^2\n    have h1 : (k + 1) * k ^ 2 ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n    apply le_trans _ h1\n    -- Now show (k+1)^2 ≤ (k+1) * k^2, which simplifies to k+1 ≤ k^2\n    rw [pow_two (k + 1)]\n    apply Nat.mul_le_mul_left (k + 1)\n    -- Prove k + 1 ≤ k^2 for k ≥ 4\n    calc\n      k + 1 ≤ k + k := Nat.add_le_add_left (by linarith) k\n      _ = 2 * k := by ring\n      _ ≤ k * k := Nat.mul_le_mul_right k (by linarith)\n      _ = k ^ 2 := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 28,
+              "column": 26
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.06316089630126953
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "To prove that $n^2 \\le n!$ for $n \\ge 4$, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n = 4$):** $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the inequality holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    *   Note that $(k+1)! = (k+1) \\cdot k!$.\n    *   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    *   We need to show $(k+1) \\cdot k^2 \\ge (k+1)^2$, which simplifies to showing $k^2 \\ge k+1$ for $k \\ge 4$.\n    *   Since $k \\ge 4$, $k^2 \\ge 4k = k + 3k$. Since $3k \\ge 1$, we have $k^2 \\ge k+1$.\n    *   Alternatively, $k^2 - k - 1 > 0$ for $k \\ge 4$ is easily verified.\n    *   Thus $(k+1)! \\ge (k+1)k^2 \\ge (k+1)(k+1) = (k+1)^2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: Assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    calc\n      (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n      _ ≤ (k + 1) * k ^ 2 := by\n        apply Nat.mul_le_mul_left\n        -- Show k + 1 ≤ k^2 for k ≥ 4\n        calc\n          k + 1 ≤ k + k := by rel [hk]\n          _ = 2 * k := by ring\n          _ ≤ k * k := by\n            apply Nat.mul_le_mul_right\n            exact Nat.le_trans (by norm_num) hk\n          _ = k ^ 2 := by ring\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n      _ = (k + 1) ! := by rw [Nat.factorial_succ]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: Assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    calc\n      (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n      _ ≤ (k + 1) * k ^ 2 := by\n        apply Nat.mul_le_mul_left\n        -- Show k + 1 ≤ k^2 for k ≥ 4\n        calc\n          k + 1 ≤ k + k := by rel [hk]\n          _ = 2 * k := by ring\n          _ ≤ k * k := by\n            apply Nat.mul_le_mul_right\n            exact Nat.le_trans (by norm_num) hk\n          _ = k ^ 2 := by ring\n      _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n      _ = (k + 1) ! := by rw [Nat.factorial_succ]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 28,
+              "column": 49
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.06485843658447266
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "To prove $n^2 \\le n!$ for $n \\ge 4$ by induction:\n\n**Proof Sketch:**\n1.  **Base Case:** For $n=4$, $4^2 = 16$ and $4! = 24$. Since $16 \\le 24$, the base case holds.\n2.  **Inductive Step:** Assume $k^2 \\le k!$ for some $k \\ge 4$. We want to show $(k+1)^2 \\le (k+1)!$.\n    -   Expanding $(k+1)!$, we have $(k+1)! = (k+1) \\cdot k!$.\n    -   By the inductive hypothesis, $(k+1) \\cdot k! \\ge (k+1) \\cdot k^2$.\n    -   Thus, it suffices to show $(k+1)k^2 \\ge (k+1)^2$, which simplifies to $k^2 \\ge k+1$ for $k \\ge 4$.\n    -   Since $k \\ge 4$, $k^2 \\ge 4k = k + 3k \\ge k + 12 > k+1$.\n    -   Therefore, the inequality holds for $k+1$.\n\n**Lean 4 Code:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: Assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We need to show (k+1)^2 ≤ (k+1) * k!\n    -- Since k! ≥ k^2, it suffices to show (k+1)^2 ≤ (k+1) * k^2\n    have h_le : (k + 1) ^ 2 ≤ (k + 1) * k ! := by\n      calc\n        (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n        _ ≤ (k + 1) * k ^ 2 := by\n          apply Nat.mul_le_mul_left\n          -- Prove k+1 ≤ k^2 for k ≥ 4\n          calc\n            k + 1 ≤ k + k := by rel [hk]\n            _ = 2 * k := by ring\n            _ ≤ k * k := by rel [hk]\n            _ = k ^ 2 := by ring\n        _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n    exact h_le\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_ineq_nsqlefactn (n : ℕ) (h₀ : 4 ≤ n) : n ^ 2 ≤ n ! := by\n  induction n, h₀ using Nat.le_induction with\n  | base =>\n    -- Base case: 4^2 ≤ 4!\n    norm_num\n  | step k hk ih =>\n    -- Inductive step: Assume k^2 ≤ k!, show (k+1)^2 ≤ (k+1)!\n    rw [Nat.factorial_succ]\n    -- We need to show (k+1)^2 ≤ (k+1) * k!\n    -- Since k! ≥ k^2, it suffices to show (k+1)^2 ≤ (k+1) * k^2\n    have h_le : (k + 1) ^ 2 ≤ (k + 1) * k ! := by\n      calc\n        (k + 1) ^ 2 = (k + 1) * (k + 1) := by ring\n        _ ≤ (k + 1) * k ^ 2 := by\n          apply Nat.mul_le_mul_left\n          -- Prove k+1 ≤ k^2 for k ≥ 4\n          calc\n            k + 1 ≤ k + k := by rel [hk]\n            _ = 2 * k := by ring\n            _ ≤ k * k := by rel [hk]\n            _ = k ^ 2 := by ring\n        _ ≤ (k + 1) * k ! := Nat.mul_le_mul_left (k + 1) ih\n    exact h_le",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 2
+            },
+            "endPos": {
+              "line": 30,
+              "column": 14
+            },
+            "data": "Invalid alternative name `step`: Expected `succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 2
+            },
+            "endPos": {
+              "line": 9,
+              "column": 11
+            },
+            "data": "Alternative `succ` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.05987739562988281
+      }
+    }
+  ]
+}

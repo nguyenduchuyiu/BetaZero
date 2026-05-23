@@ -1,0 +1,1991 @@
+{
+  "problem": "problems/miniF2F-test/mathd_algebra_214.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 15:43:26",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 0,
+    "completed_count": 0,
+    "solved": false
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "Proof sketch:\n1.  From $h_0$, $f(x) = ax^2 + bx + c$.\n2.  The condition $h_1$ (extremum at $x=2$) implies $f'(2) = 0$. Differentiating $f(x)$ gives $f'(x) = 2ax + b$. Thus $2a(2) + b = 0 \\implies b = -4a$.\n3.  Substitute $b = -4a$ into the vertex form/equation: $f(x) = a(x^2 - 4x) + c = a(x-2)^2 + (c - 4a)$.\n4.  Given $h_2$, $f(2) = 3$. Since $f(2) = a(2-2)^2 + (c-4a)$, we have $c-4a = 3$. Thus $f(x) = a(x-2)^2 + 3$.\n5.  Given $h_3$, $f(4) = 4$. So $a(4-2)^2 + 3 = 4 \\implies 4a + 3 = 4 \\implies a = 1/4$.\n6.  The specific function is $f(x) = \\frac{1}{4}(x-2)^2 + 3$.\n7.  Finally, evaluate $f(6) = \\frac{1}{4}(6-2)^2 + 3 = \\frac{1}{4}(16) + 3 = 4 + 3 = 7$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a polynomial, it is differentiable\n  have h_diff : Differentiable ℝ f := by\n    simp [h₀]\n    intro x\n    apply Differentiable.add\n    · apply Differentiable.add\n      · apply Differentiable.mul\n        · apply differentiable_const\n        · apply Differentiable.pow\n          exact differentiable_id\n      · apply Differentiable.mul\n        · apply differentiable_const\n        · exact differentiable_id\n    · apply differentiable_const\n\n  -- At an extremum in an open set (univ), the derivative is zero\n  have h_deriv_zero : deriv f 2 = 0 := \n    h₁.deriv_eq_zero (is_open_univ.uniqueDiffOn 2 (Set.mem_univ 2)) (Set.mem_univ 2)\n  \n  -- Calculate the derivative from the definition of f\n  have h_deriv_f : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n\n  -- Use deriv f 2 = 0 to relate a and b\n  have h_b : b = -4 * a := by\n    specialize h_deriv_f 2\n    rw [h_deriv_zero] at h_deriv_f\n    linarith\n\n  -- Use f 2 = 3 to relate a, b, and c\n  have h_c : c = 3 + 4 * a := by\n    specialize h₀ 2\n    rw [h₂] at h₀\n    rw [h_b] at h₀\n    linarith\n\n  -- Use f 4 = 4 to find a\n  have h_a : a = 1 / 4 := by\n    specialize h₀ 4\n    rw [h₃, h_b, h_c] at h₀\n    linarith\n\n  -- Solve for b and c\n  have h_b_val : b = -1 := by rw [h_b, h_a]; linarith\n  have h_c_val : c = 4 := by rw [h_c, h_a]; linarith\n\n  -- Calculate f 6\n  rw [h₀ 6, h_a, h_b_val, h_c_val]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a polynomial, it is differentiable\n  have h_diff : Differentiable ℝ f := by\n    simp [h₀]\n    intro x\n    apply Differentiable.add\n    · apply Differentiable.add\n      · apply Differentiable.mul\n        · apply differentiable_const\n        · apply Differentiable.pow\n          exact differentiable_id\n      · apply Differentiable.mul\n        · apply differentiable_const\n        · exact differentiable_id\n    · apply differentiable_const\n\n  -- At an extremum in an open set (univ), the derivative is zero\n  have h_deriv_zero : deriv f 2 = 0 := \n    h₁.deriv_eq_zero (is_open_univ.uniqueDiffOn 2 (Set.mem_univ 2)) (Set.mem_univ 2)\n  \n  -- Calculate the derivative from the definition of f\n  have h_deriv_f : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n\n  -- Use deriv f 2 = 0 to relate a and b\n  have h_b : b = -4 * a := by\n    specialize h_deriv_f 2\n    rw [h_deriv_zero] at h_deriv_f\n    linarith\n\n  -- Use f 2 = 3 to relate a, b, and c\n  have h_c : c = 3 + 4 * a := by\n    specialize h₀ 2\n    rw [h₂] at h₀\n    rw [h_b] at h₀\n    linarith\n\n  -- Use f 4 = 4 to find a\n  have h_a : a = 1 / 4 := by\n    specialize h₀ 4\n    rw [h₃, h_b, h_c] at h₀\n    linarith\n\n  -- Solve for b and c\n  have h_b_val : b = -1 := by rw [h_b, h_a]; linarith\n  have h_c_val : c = 4 := by rw [h_c, h_a]; linarith\n\n  -- Calculate f 6\n  rw [h₀ 6, h_a, h_b_val, h_c_val]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 13
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 7
+            },
+            "endPos": {
+              "line": 31,
+              "column": 20
+            },
+            "data": "Invalid field `deriv_eq_zero`: The environment does not contain `Or.deriv_eq_zero`, so it is not possible to project the field `deriv_eq_zero` from an expression\n  h₁\nof type\n  IsMinFilter f (Filter.principal Set.univ) 2 ∨ IsMaxFilter f (Filter.principal Set.univ) 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 8
+            },
+            "endPos": {
+              "line": 36,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  deriv f x = 2 * a * x + b\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : Differentiable ℝ f\nh_deriv_zero : deriv f 2 = 0\nx : ℝ\n⊢ deriv f x = 2 * a * x + b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 60,
+              "column": 45
+            },
+            "endPos": {
+              "line": 60,
+              "column": 53
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : Differentiable ℝ f\nh_deriv_zero : deriv f 2 = 0\nh_deriv_f : ∀ (x : ℝ), deriv f x = 2 * a * x + b\nh_b : b = -4 * a\nh_c : c = 3 + 4 * a\nh_a : a = 1 / 4\na✝ : -4 * (1 / 4) < -1\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 61,
+              "column": 44
+            },
+            "endPos": {
+              "line": 61,
+              "column": 52
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : Differentiable ℝ f\nh_deriv_zero : deriv f 2 = 0\nh_deriv_f : ∀ (x : ℝ), deriv f x = 2 * a * x + b\nh_b : b = -4 * a\nh_c : c = 3 + 4 * a\nh_a : a = 1 / 4\nh_b_val : b = -1\na✝ : 3 + 4 * (1 / 4) < 4\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.0051689147949219
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "To prove that $f(6) = 7$ given the quadratic form and conditions:\n\n1.  **Identify the vertex**: Since $f$ is a quadratic function $f(x) = ax^2 + bx + c$ and has an extremum at $x = 2$ (given by `IsExtrOn f Set.univ 2`), the vertex of the parabola is at $x = 2$.\n2.  **Vertex form**: Given the vertex is at $(2, f(2)) = (2, 3)$, we can express the function in vertex form: $f(x) = a(x - 2)^2 + 3$.\n3.  **Solve for $a$**: Using the condition $f(4) = 4$, we substitute $x = 4$:\n    $4 = a(4 - 2)^2 + 3 \\implies 4 = 4a + 3 \\implies 1 = 4a \\implies a = \\frac{1}{4}$.\n4.  **Calculate $f(6)$**: Now substitute $x = 6$ into the vertex form:\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a quadratic and has an extremum at 2, its derivative at 2 is 0\n  have h_diff : Differentiable ℝ f := by\n    intro x\n    rw [h₀]\n    simp only [differentiable_at_id', differentiable_at_const, DifferentiableAt.pow, \n               DifferentiableAt.mul, DifferentiableAt.add]\n  \n  have h_deriv_zero : deriv f 2 = 0 := \n    h₁.deriv_eq_zero (IsUnit.is_open Set.univ) (Set.mem_univ 2) (h_diff 2)\n\n  -- Calculate the derivative from the explicit form\n  have h_deriv_f : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n\n  -- From deriv f 2 = 0, we get 4a + b = 0 => b = -4a\n  have h_b : b = -4 * a := by\n    have := h_deriv_f 2\n    rw [h_deriv_zero] at this\n    linarith\n\n  -- Use f 2 = 3 to find c in terms of a\n  have h_c : c = 3 - 4 * a := by\n    have := h₂\n    rw [h₀] at this\n    rw [h_b] at this\n    linarith\n\n  -- Use f 4 = 4 to solve for a\n  have h_a : a = 1/4 := by\n    have := h₃\n    rw [h₀] at this\n    rw [h_b, h_c] at this\n    linarith\n\n  -- Calculate f 6\n  rw [h₀, h_b, h_c, h_a]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a quadratic and has an extremum at 2, its derivative at 2 is 0\n  have h_diff : Differentiable ℝ f := by\n    intro x\n    rw [h₀]\n    simp only [differentiable_at_id', differentiable_at_const, DifferentiableAt.pow, \n               DifferentiableAt.mul, DifferentiableAt.add]\n  \n  have h_deriv_zero : deriv f 2 = 0 := \n    h₁.deriv_eq_zero (IsUnit.is_open Set.univ) (Set.mem_univ 2) (h_diff 2)\n\n  -- Calculate the derivative from the explicit form\n  have h_deriv_f : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n\n  -- From deriv f 2 = 0, we get 4a + b = 0 => b = -4a\n  have h_b : b = -4 * a := by\n    have := h_deriv_f 2\n    rw [h_deriv_zero] at this\n    linarith\n\n  -- Use f 2 = 3 to find c in terms of a\n  have h_c : c = 3 - 4 * a := by\n    have := h₂\n    rw [h₀] at this\n    rw [h_b] at this\n    linarith\n\n  -- Use f 4 = 4 to solve for a\n  have h_a : a = 1/4 := by\n    have := h₃\n    rw [h₀] at this\n    rw [h_b, h_c] at this\n    linarith\n\n  -- Calculate f 6\n  rw [h₀, h_b, h_c, h_a]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 8
+            },
+            "endPos": {
+              "line": 19,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  DifferentiableAt ℝ f x\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nx : ℝ\n⊢ DifferentiableAt ℝ f x"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 7
+            },
+            "endPos": {
+              "line": 24,
+              "column": 20
+            },
+            "data": "Invalid field `deriv_eq_zero`: The environment does not contain `Or.deriv_eq_zero`, so it is not possible to project the field `deriv_eq_zero` from an expression\n  h₁\nof type\n  IsMinFilter f (Filter.principal Set.univ) 2 ∨ IsMaxFilter f (Filter.principal Set.univ) 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 8
+            },
+            "endPos": {
+              "line": 29,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  deriv f x = 2 * a * x + b\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : Differentiable ℝ f\nh_deriv_zero : deriv f 2 = 0\nx : ℝ\n⊢ deriv f x = 2 * a * x + b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 4
+            },
+            "endPos": {
+              "line": 44,
+              "column": 12
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : Differentiable ℝ f\nh_deriv_zero : deriv f 2 = 0\nh_deriv_f : ∀ (x : ℝ), deriv f x = 2 * a * x + b\nh_b : b = -4 * a\nthis : a * 2 ^ 2 + -4 * a * 2 + c = 3\na✝ : c < 3 - 4 * a\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 51,
+              "column": 4
+            },
+            "endPos": {
+              "line": 51,
+              "column": 12
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : Differentiable ℝ f\nh_deriv_zero : deriv f 2 = 0\nh_deriv_f : ∀ (x : ℝ), deriv f x = 2 * a * x + b\nh_b : b = -4 * a\nh_c : c = 3 - 4 * a\nthis : a * 4 ^ 2 + -4 * a * 4 + (3 - 4 * a) = 4\na✝ : a < 1 / 4\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 13
+            },
+            "endPos": {
+              "line": 55,
+              "column": 6
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : Differentiable ℝ f\nh_deriv_zero : deriv f 2 = 0\nh_deriv_f : ∀ (x : ℝ), deriv f x = 2 * a * x + b\nh_b : b = -4 * a\nh_c : c = 3 - 4 * a\nh_a : a = 1 / 4\n⊢ Nat.rawCast 5 = 7"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5099868774414062
+      }
+    },
+    {
+      "index": 3,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Represent the Quadratic Function**: Since $f(x) = ax^2 + bx + c$ has an extremum at $x = 2$, the vertex of the parabola is at $x = 2$.\n2.  **Vertex Form**: Using the vertex $(h, k)$, where $h=2$ and $k=f(2)=3$, we can write the function in the form $f(x) = a(x - 2)^2 + 3$.\n3.  **Solve for $a$**: Substitute the point $(4, 4)$ into the vertex form:\n    $4 = a(4 - 2)^2 + 3 \\implies 4 = 4a + 3 \\implies a = 1/4$.\n4.  **Calculate $f(6)$**: Substitute $x=6$ and $a=1/4$ into the vertex form:\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = 4 + 3 = 7$.\n5.  **Formalize in Lean**: Use the property that `IsExtrOn f Set.univ 2` implies the derivative $f'(2) = 0$ (or use the algebraic property of the vertex of a parabola). By comparing coefficients of $ax^2 + bx + c$ and $a(x-2)^2 + 3$, we determine $a, b, c$ and evaluate $f(6)$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a differentiable quadratic, its extremum at 2 implies f'(2) = 0\n  have h_deriv : HasDerivAt f (2 * a * 2 + b) 2 := by\n    have h_der_f : ∀ x, HasDerivAt f (2 * a * x + b) x := by\n      intro x\n      rw [h₀]\n      apply_rules [HasDerivAt.add, HasDerivAt.mul_const, HasDerivAt.pow, HasDerivAt.const]\n      simp\n    exact h_der_f 2\n  \n  have h_extr_deriv := h_deriv.isExtr_univ h₁\n  have h_eq1 : 4 * a + b = 0 := by\n    rw [← h_extr_deriv]\n    ring\n\n  -- Use h₂: f 2 = 3\n  have h_eq2 : 4 * a + 2 * b + c = 3 := by\n    rw [h₀] at h₂\n    convert h₂ using 1\n    ring\n\n  -- Use h₃: f 4 = 4\n  have h_eq3 : 16 * a + 4 * b + c = 4 := by\n    rw [h₀] at h₃\n    convert h₃ using 1\n    ring\n\n  -- Solve the system of linear equations\n  -- b = -4a\n  have hb : b = -4 * a := by linarith\n  -- Substitute b into h_eq2: 4a + 2(-4a) + c = 3 => -4a + c = 3 => c = 3 + 4a\n  have hc : c = 3 + 4 * a := by rw [hb] at h_eq2; linarith\n  -- Substitute b and c into h_eq3: 16a + 4(-4a) + (3 + 4a) = 4 => 4a + 3 = 4 => 4a = 1 => a = 1/4\n  have ha : a = 1/4 := by \n    rw [hb, hc] at h_eq3\n    linarith\n  \n  -- Now calculate f 6\n  rw [h₀, ha]\n  have hb_val : b = -1 := by rw [ha] at hb; linarith\n  have hc_val : c = 4 := by rw [ha] at hc; linarith\n  rw [hb_val, hc_val]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a differentiable quadratic, its extremum at 2 implies f'(2) = 0\n  have h_deriv : HasDerivAt f (2 * a * 2 + b) 2 := by\n    have h_der_f : ∀ x, HasDerivAt f (2 * a * x + b) x := by\n      intro x\n      rw [h₀]\n      apply_rules [HasDerivAt.add, HasDerivAt.mul_const, HasDerivAt.pow, HasDerivAt.const]\n      simp\n    exact h_der_f 2\n  \n  have h_extr_deriv := h_deriv.isExtr_univ h₁\n  have h_eq1 : 4 * a + b = 0 := by\n    rw [← h_extr_deriv]\n    ring\n\n  -- Use h₂: f 2 = 3\n  have h_eq2 : 4 * a + 2 * b + c = 3 := by\n    rw [h₀] at h₂\n    convert h₂ using 1\n    ring\n\n  -- Use h₃: f 4 = 4\n  have h_eq3 : 16 * a + 4 * b + c = 4 := by\n    rw [h₀] at h₃\n    convert h₃ using 1\n    ring\n\n  -- Solve the system of linear equations\n  -- b = -4a\n  have hb : b = -4 * a := by linarith\n  -- Substitute b into h_eq2: 4a + 2(-4a) + c = 3 => -4a + c = 3 => c = 3 + 4a\n  have hc : c = 3 + 4 * a := by rw [hb] at h_eq2; linarith\n  -- Substitute b and c into h_eq3: 16a + 4(-4a) + (3 + 4a) = 4 => 4a + 3 = 4 => 4a = 1 => a = 1/4\n  have ha : a = 1/4 := by \n    rw [hb, hc] at h_eq3\n    linarith\n  \n  -- Now calculate f 6\n  rw [h₀, ha]\n  have hb_val : b = -1 := by rw [ha] at hb; linarith\n  have hc_val : c = 4 := by rw [ha] at hc; linarith\n  rw [hb_val, hc_val]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 10
+            },
+            "endPos": {
+              "line": 20,
+              "column": 12
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  HasDerivAt f (2 * a * x + b) x\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nx : ℝ\n⊢ HasDerivAt f (2 * a * x + b) x"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 31
+            },
+            "endPos": {
+              "line": 25,
+              "column": 42
+            },
+            "data": "Invalid field `isExtr_univ`: The environment does not contain `HasFDerivAtFilter.isExtr_univ`, so it is not possible to project the field `isExtr_univ` from an expression\n  h_deriv\nof type\n  HasFDerivAtFilter f (ContinuousLinearMap.toSpanSingleton ℝ (2 * a * 2 + b)) 2 (𝓝 2)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 13
+            },
+            "endPos": {
+              "line": 57,
+              "column": 6
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv : HasDerivAt f (2 * a * 2 + b) 2\n⊢ f 6 = 7"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.13994979858398438
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "The theorem asks us to find the value of a quadratic function $f(x) = ax^2 + bx + c$ at $x=6$, given that it has an extremum at $x=2$ with $f(2)=3$, and that $f(4)=4$.\n\n### Proof Sketch\n1.  **Vertex Form**: Since $f$ is a quadratic and has an extremum at $x=2$, the vertex of the parabola is at $x=2$. The vertex form of a quadratic is $f(x) = a(x - h)^2 + k$, where $(h, k)$ is the vertex.\n2.  **Identify Constants**: We are given $h = 2$ and $k = f(2) = 3$. Thus, $f(x) = a(x - 2)^2 + 3$.\n3.  **Solve for $a$**: Using the condition $f(4) = 4$, we have $a(4 - 2)^2 + 3 = 4$, which simplifies to $4a + 3 = 4$, so $a = 1/4$.\n4.  **Calculate $f(6)$**: Substitute $x=6$ into the equation: $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(16) + 3 = 4 + 3 = 7$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Use the derivative condition for an extremum\n  have h_deriv : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv h₁\n    exact differentiableAt_univ.mp (differentiable_univ_iff_exists_deriv.mpr (fun x => ⟨2 * a * x + b, by\n      have hf : f = fun x => a * x^2 + b * x + c := by ext; rw [h₀]\n      rw [hf]\n      simp ⟩)) 2\n  \n  -- Calculate the derivative of f(x) = ax^2 + bx + c\n  have h_deriv_calc : deriv f 2 = 2 * a * 2 + b := by\n    have hf : f = fun x => a * x^2 + b * x + c := by ext; rw [h₀]\n    rw [hf]\n    simp\n  \n  -- From the derivative at vertex, relate b and a\n  have h_b : b = -4 * a := by\n    rw [h_deriv_calc] at h_deriv\n    linarith\n  \n  -- Use f(2) = 3 to relate a, b, c\n  have h_f2 : a * 2^2 + b * 2 + c = 3 := by\n    rw [← h₂]\n    exact (h₀ 2).symm\n    \n  -- Use f(4) = 4 to relate a, b, c\n  have h_f4 : a * 4^2 + b * 4 + c = 4 := by\n    rw [← h₃]\n    exact (h₀ 4).symm\n    \n  -- Solve the system of equations\n  have h_a : a = 1/4 := by\n    simp at h_f2 h_f4\n    rw [h_b] at h_f2 h_f4\n    linarith\n    \n  have h_c : c = 4 := by\n    simp at h_f2 h_f4\n    rw [h_b, h_a] at h_f2\n    linarith\n    \n  -- Final evaluation\n  rw [h₀ 6]\n  rw [h_b, h_a, h_c]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Use the derivative condition for an extremum\n  have h_deriv : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv h₁\n    exact differentiableAt_univ.mp (differentiable_univ_iff_exists_deriv.mpr (fun x => ⟨2 * a * x + b, by\n      have hf : f = fun x => a * x^2 + b * x + c := by ext; rw [h₀]\n      rw [hf]\n      simp ⟩)) 2\n  \n  -- Calculate the derivative of f(x) = ax^2 + bx + c\n  have h_deriv_calc : deriv f 2 = 2 * a * 2 + b := by\n    have hf : f = fun x => a * x^2 + b * x + c := by ext; rw [h₀]\n    rw [hf]\n    simp\n  \n  -- From the derivative at vertex, relate b and a\n  have h_b : b = -4 * a := by\n    rw [h_deriv_calc] at h_deriv\n    linarith\n  \n  -- Use f(2) = 3 to relate a, b, c\n  have h_f2 : a * 2^2 + b * 2 + c = 3 := by\n    rw [← h₂]\n    exact (h₀ 2).symm\n    \n  -- Use f(4) = 4 to relate a, b, c\n  have h_f4 : a * 4^2 + b * 4 + c = 4 := by\n    rw [← h₃]\n    exact (h₀ 4).symm\n    \n  -- Solve the system of equations\n  have h_a : a = 1/4 := by\n    simp at h_f2 h_f4\n    rw [h_b] at h_f2 h_f4\n    linarith\n    \n  have h_c : c = 4 := by\n    simp at h_f2 h_f4\n    rw [h_b, h_a] at h_f2\n    linarith\n    \n  -- Final evaluation\n  rw [h₀ 6]\n  rw [h_b, h_a, h_c]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 10
+            },
+            "endPos": {
+              "line": 18,
+              "column": 24
+            },
+            "data": "Unknown constant `IsExtrOn.deriv`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 22,
+              "column": 16
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 51
+            },
+            "endPos": {
+              "line": 28,
+              "column": 8
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv : deriv f 2 = 0\nhf : f = fun x => a * x ^ 2 + b * x + c\n⊢ deriv (fun y => a * y ^ 2 + b * y) 2 = 2 * a * 2 + b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 43,
+              "column": 4
+            },
+            "endPos": {
+              "line": 43,
+              "column": 21
+            },
+            "data": "Type mismatch\n  Eq.symm (h₀ 4)\nhas type\n  a * 4 ^ 2 + b * 4 + c = f 4\nbut is expected to have type\n  a * f 4 ^ 2 + b * f 4 + c = f 4"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.5680205821990967
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "**Proof Sketch:**\n\n1.  **Vertex Form identification:** Since $f$ is a quadratic function $f(x) = ax^2 + bx + c$ and has an extremum at $x = 2$, the vertex of the parabola is at $x = 2$.\n2.  **Determine $a$:** The vertex form of the parabola is $f(x) = a(x - 2)^2 + k$. Given $f(2) = 3$, we have $k = 3$, so $f(x) = a(x - 2)^2 + 3$.\n3.  **Solve for $a$:** Use the point $f(4) = 4$. Substituting $x = 4$ into the vertex form gives $a(4 - 2)^2 + 3 = 4$, which simplifies to $4a + 3 = 4$, hence $a = 1/4$.\n4.  **Calculate $f(6)$:** Substitute $x = 6$ into the equation $f(x) = \\frac{1}{4}(x - 2)^2 + 3$. We get $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(16) + 3 = 4 + 3 = 7$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a differentiable function with an extremum at 2, f'(2) = 0\n  have h_deriv : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv_eq_zero h₁\n    simp\n  -- Calculate the derivative of f\n  have h_f_deriv : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n  -- Use f'(2) = 0 to get an equation in a and b\n  have h_ab : 4 * a + b = 0 := by\n    specialize h_f_deriv 2\n    rw [h_deriv] at h_f_deriv\n    linarith\n  -- Use f(2) = 3\n  have h_abc_2 : 4 * a + 2 * b + c = 3 := by\n    specialize h₀ 2\n    rw [h₂] at h₀\n    nlinarith\n  -- Use f(4) = 4\n  have h_abc_4 : 16 * a + 4 * b + c = 4 := by\n    specialize h₀ 4\n    rw [h₃] at h₀\n    nlinarith\n  -- Now we have a system of 3 linear equations\n  -- 1) 4a + b = 0  => b = -4a\n  -- 2) 4a + 2b + c = 3\n  -- 3) 16a + 4b + c = 4\n  have hb : b = -4 * a := by linarith\n  have hc : c = 3 + 4 * a := by \n    rw [hb] at h_abc_2\n    linarith\n  have ha : a = 1/4 := by\n    rw [hb, hc] at h_abc_4\n    linarith\n  -- Substitute a, b, c back to find f(6)\n  rw [h₀ 6]\n  have hb_val : b = -1 := by \n    rw [ha] at hb\n    norm_num at hb\n    exact hb\n  have hc_val : c = 4 := by\n    rw [ha] at hc\n    norm_num at hc\n    exact hc\n  rw [ha, hb_val, hc_val]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a differentiable function with an extremum at 2, f'(2) = 0\n  have h_deriv : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv_eq_zero h₁\n    simp\n  -- Calculate the derivative of f\n  have h_f_deriv : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n  -- Use f'(2) = 0 to get an equation in a and b\n  have h_ab : 4 * a + b = 0 := by\n    specialize h_f_deriv 2\n    rw [h_deriv] at h_f_deriv\n    linarith\n  -- Use f(2) = 3\n  have h_abc_2 : 4 * a + 2 * b + c = 3 := by\n    specialize h₀ 2\n    rw [h₂] at h₀\n    nlinarith\n  -- Use f(4) = 4\n  have h_abc_4 : 16 * a + 4 * b + c = 4 := by\n    specialize h₀ 4\n    rw [h₃] at h₀\n    nlinarith\n  -- Now we have a system of 3 linear equations\n  -- 1) 4a + b = 0  => b = -4a\n  -- 2) 4a + 2b + c = 3\n  -- 3) 16a + 4b + c = 4\n  have hb : b = -4 * a := by linarith\n  have hc : c = 3 + 4 * a := by \n    rw [hb] at h_abc_2\n    linarith\n  have ha : a = 1/4 := by\n    rw [hb, hc] at h_abc_4\n    linarith\n  -- Substitute a, b, c back to find f(6)\n  rw [h₀ 6]\n  have hb_val : b = -1 := by \n    rw [ha] at hb\n    norm_num at hb\n    exact hb\n  have hc_val : c = 4 := by\n    rw [ha] at hc\n    norm_num at hc\n    exact hc\n  rw [ha, hb_val, hc_val]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 10
+            },
+            "endPos": {
+              "line": 18,
+              "column": 32
+            },
+            "data": "Unknown constant `IsExtrOn.deriv_eq_zero`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 8
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  deriv f x = 2 * a * x + b\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv : deriv f 2 = 0\nx : ℝ\n⊢ deriv f x = 2 * a * x + b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 60,
+              "column": 4
+            },
+            "endPos": {
+              "line": 60,
+              "column": 12
+            },
+            "data": "Type mismatch\n  hc\nhas type\n  c = 3 + 1\nbut is expected to have type\n  c = 4"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.2418928146362305
+      }
+    },
+    {
+      "index": 6,
+      "status": "FAILED",
+      "raw_text": "To prove $f(6)=7$ given $f(x) = ax^2 + bx + c$, an extremum at $x=2$ with value $f(2)=3$, and $f(4)=4$:\n\n### Proof Sketch\n1.  **Vertex Form**: Since $f$ is a quadratic with an extremum at $x=2$, its vertex is $(2, f(2)) = (2, 3)$. Thus, $f(x)$ can be written in the form $f(x) = a(x - 2)^2 + 3$.\n2.  **Determine $a$**: Use the point $(4, 4)$. Substituting $x=4$ into the vertex form gives:\n    $4 = a(4 - 2)^2 + 3 \\implies 4 = 4a + 3 \\implies 1 = 4a \\implies a = \\frac{1}{4}$.\n3.  **Calculate $f(6)$**: Substitute $x=6$ and $a = \\frac{1}{4}$ back into the equation:\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the extremum property to relate a and b\n  have deriv_zero : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv\n    · exact h₁\n    · apply differentiableAt_univ_iff.mpr\n      intro x\n      rw [h₀]\n      exact differentiableAt_id.pow 2 |>.const_mul a |>.add (differentiableAt_id.const_mul b) |>.add (differentiableAt_const c)\n    · exact interior_univ ▸ Set.mem_univ 2\n  \n  have f_deriv (x : ℝ) : deriv f x = 2 * a * x + b := by\n    rw [h₀]\n    simp\n    ring\n\n  have h_deriv_2 : 2 * a * 2 + b = 0 := by\n    rw [← f_deriv 2, deriv_zero]\n  \n  have b_val : b = -4 * a := by\n    linarith [h_deriv_2]\n  \n  -- 2. Use f 2 = 3 to find c in terms of a\n  have h_f2 : a * 2^2 + b * 2 + c = 3 := by\n    rw [← h₂, h₀]\n  \n  have c_val : c = 4 * a + 3 := by\n    rw [b_val] at h_f2\n    linarith [h_f2]\n  \n  -- 3. Use f 4 = 4 to solve for a\n  have h_f4 : a * 4^2 + b * 4 + c = 4 := by\n    rw [← h₃, h₀]\n  \n  have a_val : a = 1/4 := by\n    rw [b_val, c_val] at h_f4\n    linarith [h_f4]\n  \n  -- 4. Calculate f 6\n  rw [h₀, b_val, c_val, a_val]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the extremum property to relate a and b\n  have deriv_zero : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv\n    · exact h₁\n    · apply differentiableAt_univ_iff.mpr\n      intro x\n      rw [h₀]\n      exact differentiableAt_id.pow 2 |>.const_mul a |>.add (differentiableAt_id.const_mul b) |>.add (differentiableAt_const c)\n    · exact interior_univ ▸ Set.mem_univ 2\n  \n  have f_deriv (x : ℝ) : deriv f x = 2 * a * x + b := by\n    rw [h₀]\n    simp\n    ring\n\n  have h_deriv_2 : 2 * a * 2 + b = 0 := by\n    rw [← f_deriv 2, deriv_zero]\n  \n  have b_val : b = -4 * a := by\n    linarith [h_deriv_2]\n  \n  -- 2. Use f 2 = 3 to find c in terms of a\n  have h_f2 : a * 2^2 + b * 2 + c = 3 := by\n    rw [← h₂, h₀]\n  \n  have c_val : c = 4 * a + 3 := by\n    rw [b_val] at h_f2\n    linarith [h_f2]\n  \n  -- 3. Use f 4 = 4 to solve for a\n  have h_f4 : a * 4^2 + b * 4 + c = 4 := by\n    rw [← h₃, h₀]\n  \n  have a_val : a = 1/4 := by\n    rw [b_val, c_val] at h_f4\n    linarith [h_f4]\n  \n  -- 4. Calculate f 6\n  rw [h₀, b_val, c_val, a_val]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 10
+            },
+            "endPos": {
+              "line": 18,
+              "column": 24
+            },
+            "data": "Unknown constant `IsExtrOn.deriv`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 14
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 8
+            },
+            "endPos": {
+              "line": 27,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  deriv f x = 2 * a * x + b\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nderiv_zero : deriv f 2 = 0\nx : ℝ\n⊢ deriv f x = 2 * a * x + b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 46,
+              "column": 41
+            },
+            "endPos": {
+              "line": 47,
+              "column": 17
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nderiv_zero : deriv f 2 = 0\nf_deriv : ∀ (x : ℝ), deriv f x = 2 * a * x + b\nh_deriv_2 : 2 * a * 2 + b = 0\nb_val : b = -4 * a\nh_f2 : a * 2 ^ 2 + b * 2 + c = 3\nc_val : c = 4 * a + 3\n⊢ a * (a * 4 ^ 2 + b * 4 + c) ^ 2 + b * (a * 4 ^ 2 + b * 4 + c) + c = a * 4 ^ 2 + b * 4 + c"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6312992572784424
+      }
+    },
+    {
+      "index": 7,
+      "status": "FAILED",
+      "raw_text": "To prove $f(6) = 7$ given the quadratic form and conditions, we follow these steps:\n\n### Proof Sketch\n1.  **Vertex Form Identification**: The condition `IsExtrOn f Set.univ 2` implies that the function $f(x) = ax^2 + bx + c$ has a local extremum at $x = 2$. For a differentiable quadratic function on $\\mathbb{R}$, this means the derivative $f'(2) = 0$.\n2.  **Symmetry/Vertex Form**: Since the extremum is at $x=2$ and $f(2)=3$, the vertex of the parabola is $(2, 3)$. Thus, $f(x)$ can be written in the form $f(x) = a(x - 2)^2 + 3$.\n3.  **Solve for $a$**: Using the condition $f(4) = 4$, we substitute into the vertex form:\n    $4 = a(4 - 2)^2 + 3 \\implies 4 = 4a + 3 \\implies 1 = 4a \\implies a = \\frac{1}{4}$.\n4.  **Calculate $f(6)$**: Substitute $x=6$ and $a = \\frac{1}{4}$ back into the equation:\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Establish that the derivative at the extremum is 0\n  have h_deriv : HasDerivAt f (2 * a * 2 + b) 2 := by\n    show HasDerivAt (fun x => a * x^2 + b * x + c) (2 * a * 2 + b) 2\n    repeat (apply HasDerivAt.add | apply HasDerivAt.mul | apply HasDerivAt.pow | apply hasDerivAt_const | apply hasDerivAt_id')\n  \n  have h_extr := h₁.isLocalExtr Set.univ_mem_nhds\n  have f_diff : DifferentiableAt ℝ f 2 := h_deriv.differentiableAt\n  have h_deriv_zero := f_diff.hasDerivAt.unique (h_extr.hasDerivAt (Set.univ_mem_nhds))\n  simp at h_deriv_zero\n  have h_b : b = -4 * a := by linarith [h_deriv_zero]\n\n  -- 2. Use f(2) = 3 to relate a, b, c\n  have h_f2 : a * 2^2 + b * 2 + c = 3 := by rwa [h₀] at h₂\n  simp at h_f2\n  -- Substitute b = -4a into the equation for f(2)\n  have h_c : c = 3 + 4 * a := by linarith [h_f2, h_b]\n\n  -- 3. Use f(4) = 4 to solve for a\n  have h_f4 : a * 4^2 + b * 4 + c = 4 := by rwa [h₀] at h₃\n  simp at h_f4\n  have h_solve_a : 4 * a = 1 := by linarith [h_f4, h_b, h_c]\n  have ha : a = 1/4 := by linarith\n\n  -- 4. Calculate f(6)\n  rw [h₀]\n  simp\n  linarith [ha, h_b, h_c]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Establish that the derivative at the extremum is 0\n  have h_deriv : HasDerivAt f (2 * a * 2 + b) 2 := by\n    show HasDerivAt (fun x => a * x^2 + b * x + c) (2 * a * 2 + b) 2\n    repeat (apply HasDerivAt.add | apply HasDerivAt.mul | apply HasDerivAt.pow | apply hasDerivAt_const | apply hasDerivAt_id')\n  \n  have h_extr := h₁.isLocalExtr Set.univ_mem_nhds\n  have f_diff : DifferentiableAt ℝ f 2 := h_deriv.differentiableAt\n  have h_deriv_zero := f_diff.hasDerivAt.unique (h_extr.hasDerivAt (Set.univ_mem_nhds))\n  simp at h_deriv_zero\n  have h_b : b = -4 * a := by linarith [h_deriv_zero]\n\n  -- 2. Use f(2) = 3 to relate a, b, c\n  have h_f2 : a * 2^2 + b * 2 + c = 3 := by rwa [h₀] at h₂\n  simp at h_f2\n  -- Substitute b = -4a into the equation for f(2)\n  have h_c : c = 3 + 4 * a := by linarith [h_f2, h_b]\n\n  -- 3. Use f(4) = 4 to solve for a\n  have h_f4 : a * 4^2 + b * 4 + c = 4 := by rwa [h₀] at h₃\n  simp at h_f4\n  have h_solve_a : 4 * a = 1 := by linarith [h_f4, h_b, h_c]\n  have ha : a = 1/4 := by linarith\n\n  -- 4. Calculate f(6)\n  rw [h₀]\n  simp\n  linarith [ha, h_b, h_c]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 32
+            },
+            "endPos": {
+              "line": 19,
+              "column": 34
+            },
+            "data": "unexpected token '|'; expected ')'"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 4
+            },
+            "endPos": {
+              "line": 18,
+              "column": 68
+            },
+            "data": "'show' tactic failed, pattern\n  HasDerivAt (fun x => a * x ^ 2 + b * x + c) (2 * a * 2 + b) 2\nis not definitionally equal to target\n  HasDerivAt f (2 * a * 2 + b) 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 13
+            },
+            "endPos": {
+              "line": 19,
+              "column": 32
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv : HasDerivAt f (2 * a * 2 + b) 2\n⊢ f 6 = 7"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1396949291229248
+      }
+    },
+    {
+      "index": 8,
+      "status": "FAILED",
+      "raw_text": "To solve this problem, we follow these steps:\n\n1.  **Vertex Form**: Given that $f(x)$ is a quadratic and has an extremum at $x=2$ with value $f(2)=3$, we can express the function in vertex form: $f(x) = a(x - 2)^2 + 3$.\n2.  **Determine Parameter $a$**: We are given $f(4) = 4$. Plugging this into the vertex form:\n    $a(4 - 2)^2 + 3 = 4 \\implies a(2)^2 + 3 = 4 \\implies 4a + 3 = 4 \\implies 4a = 1 \\implies a = 1/4$.\n3.  **Evaluate $f(6)$**: Using $a = 1/4$ and the vertex form:\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4)^2 + 3 = \\frac{1}{4}(16) + 3 = 4 + 3 = 7$.\n\nIn the formal proof, we use the fact that if a quadratic $ax^2 + bx + c$ has an extremum at $x_0$, then its derivative at $x_0$ is zero ($2ax_0 + b = 0$), which allows us to relate $a, b,$ and $c$ to the vertex form.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a differentiable function with an extremum at 2, f'(2) = 0\n  have h_deriv_zero : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv_eq_zero h₁\n    apply differentiableAt_univ_iff.mp\n    intro x\n    rw [h₀]\n    apply DifferentiableAt.add\n    · apply DifferentiableAt.add\n      · apply DifferentiableAt.mul\n        · exact differentiableAt_const _\n        · exact differentiableAt_pow 2\n      · apply DifferentiableAt.mul\n        · exact differentiableAt_const _\n        · exact differentiableAt_id\n    · exact differentiableAt_const _\n    exact IsOpen.mem_univ (isOpen_univ) 2\n  \n  -- Calculate the derivative from the formula\n  have h_deriv_val : deriv f 2 = 2 * a * 2 + b := by\n    rw [deriv_singleton_function h₀]\n    · ring\n    · apply DifferentiableAt.add\n      · apply DifferentiableAt.add\n        · apply DifferentiableAt.mul (differentiableAt_const _) (differentiableAt_pow 2)\n        · apply DifferentiableAt.mul (differentiableAt_const _) (differentiableAt_id)\n      · exact differentiableAt_const _\n\n  -- From 4a + b = 0, we get b = -4a\n  have h_b : b = -4 * a := by\n    rw [h_deriv_val] at h_deriv_zero\n    linarith\n\n  -- Use f(2) = 3 to find c in terms of a\n  have h_c : c = 3 - 4 * a := by\n    have : f 2 = a * 2^2 + b * 2 + c := h₀ 2\n    rw [h₂] at this\n    rw [h_b] at this\n    linarith\n\n  -- Use f(4) = 4 to solve for a\n  have h_a : a = 1 / 4 := by\n    have : f 4 = a * 4^2 + b * 4 + c := h₀ 4\n    rw [h₃, h_b, h_c] at this\n    linarith\n\n  -- Final calculation for f(6)\n  rw [h₀ 6, h_b, h_c, h_a]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a differentiable function with an extremum at 2, f'(2) = 0\n  have h_deriv_zero : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv_eq_zero h₁\n    apply differentiableAt_univ_iff.mp\n    intro x\n    rw [h₀]\n    apply DifferentiableAt.add\n    · apply DifferentiableAt.add\n      · apply DifferentiableAt.mul\n        · exact differentiableAt_const _\n        · exact differentiableAt_pow 2\n      · apply DifferentiableAt.mul\n        · exact differentiableAt_const _\n        · exact differentiableAt_id\n    · exact differentiableAt_const _\n    exact IsOpen.mem_univ (isOpen_univ) 2\n  \n  -- Calculate the derivative from the formula\n  have h_deriv_val : deriv f 2 = 2 * a * 2 + b := by\n    rw [deriv_singleton_function h₀]\n    · ring\n    · apply DifferentiableAt.add\n      · apply DifferentiableAt.add\n        · apply DifferentiableAt.mul (differentiableAt_const _) (differentiableAt_pow 2)\n        · apply DifferentiableAt.mul (differentiableAt_const _) (differentiableAt_id)\n      · exact differentiableAt_const _\n\n  -- From 4a + b = 0, we get b = -4a\n  have h_b : b = -4 * a := by\n    rw [h_deriv_val] at h_deriv_zero\n    linarith\n\n  -- Use f(2) = 3 to find c in terms of a\n  have h_c : c = 3 - 4 * a := by\n    have : f 2 = a * 2^2 + b * 2 + c := h₀ 2\n    rw [h₂] at this\n    rw [h_b] at this\n    linarith\n\n  -- Use f(4) = 4 to solve for a\n  have h_a : a = 1 / 4 := by\n    have : f 4 = a * 4^2 + b * 4 + c := h₀ 4\n    rw [h₃, h_b, h_c] at this\n    linarith\n\n  -- Final calculation for f(6)\n  rw [h₀ 6, h_b, h_c, h_a]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 10
+            },
+            "endPos": {
+              "line": 18,
+              "column": 32
+            },
+            "data": "Unknown constant `IsExtrOn.deriv_eq_zero`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 38
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 8
+            },
+            "endPos": {
+              "line": 35,
+              "column": 32
+            },
+            "data": "Unknown identifier `deriv_singleton_function`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 53,
+              "column": 4
+            },
+            "endPos": {
+              "line": 53,
+              "column": 12
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv_zero : deriv f 2 = 0\nh_deriv_val : deriv f 2 = 2 * a * 2 + b\nh_b : b = -4 * a\nthis : 3 = a * 2 ^ 2 + -4 * a * 2 + c\na✝ : c < 3 - 4 * a\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 59,
+              "column": 4
+            },
+            "endPos": {
+              "line": 59,
+              "column": 12
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv_zero : deriv f 2 = 0\nh_deriv_val : deriv f 2 = 2 * a * 2 + b\nh_b : b = -4 * a\nh_c : c = 3 - 4 * a\nthis : 4 = a * 4 ^ 2 + -4 * a * 4 + (3 - 4 * a)\na✝ : a < 1 / 4\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 13
+            },
+            "endPos": {
+              "line": 63,
+              "column": 6
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv_zero : deriv f 2 = 0\nh_deriv_val : deriv f 2 = 2 * a * 2 + b\nh_b : b = -4 * a\nh_c : c = 3 - 4 * a\nh_a : a = 1 / 4\n⊢ Nat.rawCast 5 = 7"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.42236876487731934
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1. **Identify the Vertex Form**: Since $f$ is a quadratic function $f(x) = ax^2 + bx + c$ and has an extremum at $x = 2$, the vertex of the parabola is at $(2, f(2))$. Given $f(2) = 3$, the vertex form of the function is $f(x) = a(x - 2)^2 + 3$.\n2. **Determine the Leading Coefficient**: Use the condition $f(4) = 4$. Substituting $x = 4$ into the vertex form:\n   $4 = a(4 - 2)^2 + 3 \\implies 4 = 4a + 3 \\implies 4a = 1 \\implies a = 1/4$.\n3. **Calculate the Final Value**: Now that the function is fully defined as $f(x) = \\frac{1}{4}(x - 2)^2 + 3$, substitute $x = 6$:\n   $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n---\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is differentiable and has an extremum at 2, its derivative at 2 is 0\n  have h_diff : DifferentiableAt ℝ f 2 := by\n    rw [funext h₀]\n    simp only [differentiableAt_id', differentiableAt_const, DifferentiableAt.pow, \n               DifferentiableAt.mul, DifferentiableAt.add]\n  have h_deriv_zero : deriv f 2 = 0 := h₁.deriv h_diff (Set.mem_univ 2) (isOpen_univ)\n  \n  -- Compute the derivative using the formula\n  have h_deriv_formula : deriv f 2 = 2 * a * 2 + b := by\n    rw [funext h₀]\n    simp only [deriv_add, deriv_mul_const, deriv_pow_two, deriv_id, \n               deriv_const, add_zero]\n    ring\n  \n  -- We have a system of linear equations for a, b, c\n  -- 1) 4a + b = 0  (from derivative)\n  -- 2) 4a + 2b + c = 3 (from f 2 = 3)\n  -- 3) 16a + 4b + c = 4 (from f 4 = 4)\n  have eq1 : 4 * a + b = 0 := by rwa [h_deriv_formula] at h_deriv_zero\n  have eq2 : 4 * a + 2 * b + c = 3 := by\n    rw [h₀ 2] at h₂\n    linarith\n  have eq3 : 16 * a + 4 * b + c = 4 := by\n    rw [h₀ 4] at h₃\n    linarith\n    \n  -- Solve the system: b = -4a. Substitute into eq2 and eq3.\n  -- eq2: 4a - 8a + c = 3 => -4a + c = 3\n  -- eq3: 16a - 16a + c = 4 => c = 4\n  -- Then -4a + 4 = 3 => 4a = 1 => a = 1/4, b = -1\n  have hc : c = 4 := by linarith\n  have ha : a = 1/4 := by linarith\n  have hb : b = -1 := by linarith\n  \n  -- Calculate f 6\n  rw [h₀ 6, ha, hb, hc]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is differentiable and has an extremum at 2, its derivative at 2 is 0\n  have h_diff : DifferentiableAt ℝ f 2 := by\n    rw [funext h₀]\n    simp only [differentiableAt_id', differentiableAt_const, DifferentiableAt.pow, \n               DifferentiableAt.mul, DifferentiableAt.add]\n  have h_deriv_zero : deriv f 2 = 0 := h₁.deriv h_diff (Set.mem_univ 2) (isOpen_univ)\n  \n  -- Compute the derivative using the formula\n  have h_deriv_formula : deriv f 2 = 2 * a * 2 + b := by\n    rw [funext h₀]\n    simp only [deriv_add, deriv_mul_const, deriv_pow_two, deriv_id, \n               deriv_const, add_zero]\n    ring\n  \n  -- We have a system of linear equations for a, b, c\n  -- 1) 4a + b = 0  (from derivative)\n  -- 2) 4a + 2b + c = 3 (from f 2 = 3)\n  -- 3) 16a + 4b + c = 4 (from f 4 = 4)\n  have eq1 : 4 * a + b = 0 := by rwa [h_deriv_formula] at h_deriv_zero\n  have eq2 : 4 * a + 2 * b + c = 3 := by\n    rw [h₀ 2] at h₂\n    linarith\n  have eq3 : 16 * a + 4 * b + c = 4 := by\n    rw [h₀ 4] at h₃\n    linarith\n    \n  -- Solve the system: b = -4a. Substitute into eq2 and eq3.\n  -- eq2: 4a - 8a + c = 3 => -4a + c = 3\n  -- eq3: 16a - 16a + c = 4 => c = 4\n  -- Then -4a + 4 = 3 => 4a = 1 => a = 1/4, b = -1\n  have hc : c = 4 := by linarith\n  have ha : a = 1/4 := by linarith\n  have hb : b = -1 := by linarith\n  \n  -- Calculate f 6\n  rw [h₀ 6, ha, hb, hc]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 15
+            },
+            "endPos": {
+              "line": 19,
+              "column": 35
+            },
+            "data": "Unknown identifier `differentiableAt_id'`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 20,
+              "column": 58
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 42
+            },
+            "endPos": {
+              "line": 21,
+              "column": 47
+            },
+            "data": "Invalid field `deriv`: The environment does not contain `Or.deriv`, so it is not possible to project the field `deriv` from an expression\n  h₁\nof type\n  IsMinFilter f (Filter.principal Set.univ) 2 ∨ IsMaxFilter f (Filter.principal Set.univ) 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 43
+            },
+            "endPos": {
+              "line": 26,
+              "column": 56
+            },
+            "data": "Unknown identifier `deriv_pow_two`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 4
+            },
+            "endPos": {
+              "line": 27,
+              "column": 37
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 33
+            },
+            "endPos": {
+              "line": 34,
+              "column": 70
+            },
+            "data": "Tactic `assumption` failed\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : DifferentiableAt ℝ f 2\nh_deriv_zero : 2 * a * 2 + b = 0\nh_deriv_formula : deriv f 2 = 2 * a * 2 + b\n⊢ 4 * a + b = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.2459125518798828
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Vertex Form**: Since $f(x) = ax^2 + bx + c$ is a quadratic (or linear/constant) function and has an extremum at $x = 2$, the derivative at $x = 2$ must be zero, or equivalently, the vertex of the parabola is at $x = 2$.\n2.  **Equation Setup**: Given the vertex is $(2, 3)$, the function can be expressed in the form $f(x) = a(x - 2)^2 + 3$.\n3.  **Solve for $a$**: Using the condition $f(4) = 4$, we substitute $x = 4$:\n    $f(4) = a(4 - 2)^2 + 3 = 4a + 3 = 4$.\n    Solving for $a$ gives $4a = 1 \\implies a = 1/4$.\n4.  **Evaluate $f(6)$**: Substitute $x = 6$ and $a = 1/4$ into the vertex form:\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a polynomial, it is differentiable\n  have h_diff : Differentiable ℝ f := by\n    simp [h₀]\n  -- An extremum of a differentiable function on an open set implies derivative is 0\n  have h_deriv : deriv f 2 = 0 :=\n    h₁ (isInternal_univ 2) (h_diff 2)\n  -- Calculate the derivative from the explicit form\n  have h_deriv_calc : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n  -- From deriv f 2 = 0, we get 4a + b = 0 => b = -4a\n  have h_b : b = -4 * a := by\n    have := h_deriv_calc 2\n    rw [h_deriv] at this\n    linarith\n  -- Use f 2 = 3 to find c in terms of a\n  have h_c : 3 = 4 * a + 2 * b + c := by\n    rw [← h₂]\n    simp [h₀]\n  -- Substitute b = -4a into the equation for c\n  have h_c_val : c = 3 + 4 * a := by\n    rw [h_b] at h_c\n    linarith\n  -- Use f 4 = 4 to solve for a\n  have h_a_val : a = 1/4 := by\n    have : f 4 = 16 * a + 4 * b + c := by simp [h₀]\n    rw [h₃, h_b, h_c_val] at this\n    linarith\n  -- Now substitute a, b, and c back into f 6\n  rw [h₀, h_b, h_c_val, h_a_val]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a polynomial, it is differentiable\n  have h_diff : Differentiable ℝ f := by\n    simp [h₀]\n  -- An extremum of a differentiable function on an open set implies derivative is 0\n  have h_deriv : deriv f 2 = 0 :=\n    h₁ (isInternal_univ 2) (h_diff 2)\n  -- Calculate the derivative from the explicit form\n  have h_deriv_calc : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n  -- From deriv f 2 = 0, we get 4a + b = 0 => b = -4a\n  have h_b : b = -4 * a := by\n    have := h_deriv_calc 2\n    rw [h_deriv] at this\n    linarith\n  -- Use f 2 = 3 to find c in terms of a\n  have h_c : 3 = 4 * a + 2 * b + c := by\n    rw [← h₂]\n    simp [h₀]\n  -- Substitute b = -4a into the equation for c\n  have h_c_val : c = 3 + 4 * a := by\n    rw [h_b] at h_c\n    linarith\n  -- Use f 4 = 4 to solve for a\n  have h_a_val : a = 1/4 := by\n    have : f 4 = 16 * a + 4 * b + c := by simp [h₀]\n    rw [h₃, h_b, h_c_val] at this\n    linarith\n  -- Now substitute a, b, and c back into f 6\n  rw [h₀, h_b, h_c_val, h_a_val]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 13
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 37
+            },
+            "data": "Function expected at\n  h₁\nbut this term has type\n  IsExtrOn f Set.univ 2\n\nNote: Expected a function because this term is being applied to the argument\n  (isInternal_univ 2)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  deriv f x = 2 * a * x + b\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : Differentiable ℝ f\nh_deriv : deriv f 2 = 0\nx : ℝ\n⊢ deriv f x = 2 * a * x + b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 38
+            },
+            "endPos": {
+              "line": 33,
+              "column": 13
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : Differentiable ℝ f\nh_deriv : deriv f 2 = 0\nh_deriv_calc : ∀ (x : ℝ), deriv f x = 2 * a * x + b\nh_b : b = -4 * a\n⊢ a * 2 ^ 2 + b * 2 = 4 * a + 2 * b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 40,
+              "column": 39
+            },
+            "endPos": {
+              "line": 40,
+              "column": 51
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : Differentiable ℝ f\nh_deriv : deriv f 2 = 0\nh_deriv_calc : ∀ (x : ℝ), deriv f x = 2 * a * x + b\nh_b : b = -4 * a\nh_c : 3 = 4 * a + 2 * b + c\nh_c_val : c = 3 + 4 * a\n⊢ a * 4 ^ 2 + b * 4 = 16 * a + 4 * b"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.7116227149963379
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem $f(6) = 7$ for a quadratic function $f(x) = ax^2 + bx + c$ with an extremum at $x=2$, we follow these steps:\n\n### Proof Sketch\n1.  **Vertex Form**: Since $f$ is a quadratic function and has an extremum at $x=2$ with $f(2)=3$, its vertex is $(2, 3)$. Thus, $f(x)$ can be written in vertex form: $f(x) = a(x-2)^2 + 3$.\n2.  **Determine $a$**: We are given $f(4)=4$. Substituting $x=4$ into the vertex form gives:\n    $a(4-2)^2 + 3 = 4 \\implies a(2^2) + 3 = 4 \\implies 4a = 1 \\implies a = 1/4$.\n3.  **Evaluate $f(6)$**: Now that $a$ is known, we substitute $x=6$ into the vertex form:\n    $f(6) = a(6-2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{1}{4}(16) + 3 = 4 + 3 = 7$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the extremum property to find b in terms of a\n  have h_deriv : HasDerivAt f (2 * a * 2 + b) 2 := by\n    have : HasDerivAt (fun x => a * x ^ 2 + b * x + c) (2 * a * 2 + b) 2 := by\n      let f1 (x : ℝ) := a * x ^ 2\n      let f2 (x : ℝ) := b * x\n      let f3 (x : ℝ) := c\n      have d1 : HasDerivAt f1 (a * (2 * 2)) 2 := by\n        convert HasDerivAt.const_mul a (hasDerivAt_pow 2 2)\n        ring\n      have d2 : HasDerivAt f2 b 2 := HasDerivAt.mul_const b (hasDerivAt_id 2)\n      have d3 : HasDerivAt f3 0 2 := hasDerivAt_const 2 c\n      convert HasDerivAt.add (HasDerivAt.add d1 d2) d3\n      ring\n    simp_all [h₀]\n\n  have h_extr := h₁.hasDerivAt (by simp) (UniqueDiffOn.uniqueDiffAt Set.uniqueDiffAt_univ (Set.mem_univ 2))\n  have h_eq1 : 4 * a + b = 0 := by\n    rw [h_deriv.unique_deriv h_extr]\n    ring\n\n  -- 2. Use f(2) = 3 and f(4) = 4 to solve for a, b, c\n  have h_f2 : a * 4 + b * 2 + c = 3 := by rw [← h₂, h₀]; ring\n  have h_f4 : a * 16 + b * 4 + c = 4 := by rw [← h₃, h₀]; ring\n\n  -- 3. Express b as -4a and substitute into f(2) and f(4)\n  have hb : b = -4 * a := by linarith\n  rw [hb] at h_f2 h_f4\n  have h_f2' : -4 * a + c = 3 := by linarith\n  have h_f4' : c = 4 := by linarith\n  have ha : a = 1/4 := by linarith\n  \n  -- 4. Calculate f(6)\n  rw [h₀, ha, hb, h_f4']\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the extremum property to find b in terms of a\n  have h_deriv : HasDerivAt f (2 * a * 2 + b) 2 := by\n    have : HasDerivAt (fun x => a * x ^ 2 + b * x + c) (2 * a * 2 + b) 2 := by\n      let f1 (x : ℝ) := a * x ^ 2\n      let f2 (x : ℝ) := b * x\n      let f3 (x : ℝ) := c\n      have d1 : HasDerivAt f1 (a * (2 * 2)) 2 := by\n        convert HasDerivAt.const_mul a (hasDerivAt_pow 2 2)\n        ring\n      have d2 : HasDerivAt f2 b 2 := HasDerivAt.mul_const b (hasDerivAt_id 2)\n      have d3 : HasDerivAt f3 0 2 := hasDerivAt_const 2 c\n      convert HasDerivAt.add (HasDerivAt.add d1 d2) d3\n      ring\n    simp_all [h₀]\n\n  have h_extr := h₁.hasDerivAt (by simp) (UniqueDiffOn.uniqueDiffAt Set.uniqueDiffAt_univ (Set.mem_univ 2))\n  have h_eq1 : 4 * a + b = 0 := by\n    rw [h_deriv.unique_deriv h_extr]\n    ring\n\n  -- 2. Use f(2) = 3 and f(4) = 4 to solve for a, b, c\n  have h_f2 : a * 4 + b * 2 + c = 3 := by rw [← h₂, h₀]; ring\n  have h_f4 : a * 16 + b * 4 + c = 4 := by rw [← h₃, h₀]; ring\n\n  -- 3. Express b as -4a and substitute into f(2) and f(4)\n  have hb : b = -4 * a := by linarith\n  rw [hb] at h_f2 h_f4\n  have h_f2' : -4 * a + c = 3 := by linarith\n  have h_f4' : c = 4 := by linarith\n  have ha : a = 1/4 := by linarith\n  \n  -- 4. Calculate f(6)\n  rw [h₀, ha, hb, h_f4']\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 58
+            },
+            "endPos": {
+              "line": 25,
+              "column": 59
+            },
+            "data": "Application type mismatch: The argument\n  b\nhas type\n  ℝ\nof sort `Type` but is expected to have type\n  HasDerivAt ?m.781 ?m.782 ?m.777\nof sort `Prop` in the application\n  HasDerivAt.mul_const b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 61
+            },
+            "endPos": {
+              "line": 25,
+              "column": 76
+            },
+            "data": "failed to synthesize instance of type class\n  NontriviallyNormedField ℕ\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 51
+            },
+            "endPos": {
+              "line": 29,
+              "column": 17
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : a * 2 ^ 2 + b * 2 + c = 3\nh₃ : a * 4 ^ 2 + b * 4 + c = 4\nthis : HasDerivAt (fun x => a * x ^ 2 + b * x) (2 * a * 2 + b) 2\n⊢ HasDerivAt f (2 * a * 2 + b) 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 20
+            },
+            "endPos": {
+              "line": 31,
+              "column": 30
+            },
+            "data": "Invalid field `hasDerivAt`: The environment does not contain `Or.hasDerivAt`, so it is not possible to project the field `hasDerivAt` from an expression\n  h₁\nof type\n  IsMinFilter f (Filter.principal Set.univ) 2 ∨ IsMaxFilter f (Filter.principal Set.univ) 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 13
+            },
+            "endPos": {
+              "line": 49,
+              "column": 6
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv : HasDerivAt f (2 * a * 2 + b) 2\n⊢ f 6 = 7"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 29,
+              "column": 14
+            },
+            "endPos": {
+              "line": 29,
+              "column": 16
+            },
+            "data": "This simp argument is unused:\n  h₀\n\nHint: Omit it from the simp argument list.\n  simp_all ̵[̵h̵₀̵]̵\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.8123164176940918
+      }
+    },
+    {
+      "index": 12,
+      "status": "FAILED",
+      "raw_text": "To solve for $f(6)$, we follow these steps:\n\n1.  **Vertex Form Identification**: The condition `IsExtrOn f Set.univ 2` implies that the function $f(x) = ax^2 + bx + c$ has a local extremum at $x=2$. For a quadratic, this means $x=2$ is the $x$-coordinate of the vertex.\n2.  **Formulating the Equation**: Given the vertex is at $(2, f(2)) = (2, 3)$, the quadratic can be written in vertex form: $f(x) = a(x - 2)^2 + 3$.\n3.  **Solving for $a$**: Using the point $f(4) = 4$, we substitute into the vertex form:\n    $4 = a(4 - 2)^2 + 3 \\implies 4 = 4a + 3 \\implies 1 = 4a \\implies a = 1/4$.\n4.  **Calculating $f(6)$**: Now substitute $x=6$ into the completed equation:\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Step 1: Prove that f' (2) = 0 using the extremum condition\n  have h_deriv : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv_eq_zero h₁\n    exact differentiableAt_univ.mp (differentiable_univ_iff_exists_fderiv.mpr \n      ⟨fun x => 2 * a * x + b, fun x => by\n        unfold f at h₀\n        simp [h₀]\n        exact hasDerivAt_id x |>.pow 2 |>.const_mul a |>.add (hasDerivAt_id x |>.const_mul b) |>.add (hasDerivAt_const x c)\n      ⟩) 2\n    exact isOpen_univ.mem_nhds (Set.mem_univ 2)\n\n  -- Step 2: Relate the derivative to a and b\n  have h_ab : 4 * a + b = 0 := by\n    rw [show deriv f 2 = 4 * a + b from by\n      rw [deriv_congr_add (by intro x; rw [h₀ x]) (by simp; intros; ring)]\n      simp; ring] at h_deriv\n    exact h_deriv\n\n  -- Step 3: Use f(2) = 3 and f(4) = 4 to solve for a and c\n  have h_f2 : 4 * a + 2 * b + c = 3 := by\n    rw [← h₂, h₀]; ring\n  have h_f4 : 16 * a + 4 * b + c = 4 := by\n    rw [← h₃, h₀]; ring\n\n  -- Step 4: System of equations to find a, b, c\n  -- b = -4a\n  -- f(2) = 4a + 2(-4a) + c = -4a + c = 3\n  -- f(4) = 16a + 4(-4a) + c = 0a + c = 4\n  have hc : c = 4 := by\n    linarith [h_ab, h_f2, h_f4]\n  have ha : a = 1/4 := by\n    linarith [h_ab, h_f2, h_f4]\n  have hb : b = -1 := by\n    linarith [h_ab, h_f2, h_f4]\n\n  -- Step 5: Final calculation\n  rw [h₀ 6, ha, hb, hc]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Step 1: Prove that f' (2) = 0 using the extremum condition\n  have h_deriv : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv_eq_zero h₁\n    exact differentiableAt_univ.mp (differentiable_univ_iff_exists_fderiv.mpr \n      ⟨fun x => 2 * a * x + b, fun x => by\n        unfold f at h₀\n        simp [h₀]\n        exact hasDerivAt_id x |>.pow 2 |>.const_mul a |>.add (hasDerivAt_id x |>.const_mul b) |>.add (hasDerivAt_const x c)\n      ⟩) 2\n    exact isOpen_univ.mem_nhds (Set.mem_univ 2)\n\n  -- Step 2: Relate the derivative to a and b\n  have h_ab : 4 * a + b = 0 := by\n    rw [show deriv f 2 = 4 * a + b from by\n      rw [deriv_congr_add (by intro x; rw [h₀ x]) (by simp; intros; ring)]\n      simp; ring] at h_deriv\n    exact h_deriv\n\n  -- Step 3: Use f(2) = 3 and f(4) = 4 to solve for a and c\n  have h_f2 : 4 * a + 2 * b + c = 3 := by\n    rw [← h₂, h₀]; ring\n  have h_f4 : 16 * a + 4 * b + c = 4 := by\n    rw [← h₃, h₀]; ring\n\n  -- Step 4: System of equations to find a, b, c\n  -- b = -4a\n  -- f(2) = 4a + 2(-4a) + c = -4a + c = 3\n  -- f(4) = 16a + 4(-4a) + c = 0a + c = 4\n  have hc : c = 4 := by\n    linarith [h_ab, h_f2, h_f4]\n  have ha : a = 1/4 := by\n    linarith [h_ab, h_f2, h_f4]\n  have hb : b = -1 := by\n    linarith [h_ab, h_f2, h_f4]\n\n  -- Step 5: Final calculation\n  rw [h₀ 6, ha, hb, hc]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 10
+            },
+            "endPos": {
+              "line": 18,
+              "column": 32
+            },
+            "data": "Unknown constant `IsExtrOn.deriv_eq_zero`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 24,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 10
+            },
+            "endPos": {
+              "line": 30,
+              "column": 25
+            },
+            "data": "Unknown identifier `deriv_congr_add`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 40
+            },
+            "endPos": {
+              "line": 31,
+              "column": 16
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv : deriv f 2 = 0\n⊢ deriv f 2 = 4 * a + b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 40
+            },
+            "endPos": {
+              "line": 38,
+              "column": 23
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv : deriv f 2 = 0\nh_ab : 4 * a + b = 0\nh_f2 : 4 * a + 2 * b + c = 3\n⊢ a * 16 + a * b * 16 + b * c + b ^ 2 * 4 + c = a * 16 + b * 4 + c"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.0147194862365723
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "To prove $f(6) = 7$, we follow these steps:\n1.  **Vertex Form**: Since $f(x) = ax^2 + bx + c$ has an extremum at $x = 2$, the vertex of the parabola is at $(2, f(2))$. Given $f(2) = 3$, the function can be expressed in vertex form: $f(x) = a(x - 2)^2 + 3$.\n2.  **Determine $a$**: We use the condition $f(4) = 4$. Substituting $x=4$ into the vertex form gives $a(4 - 2)^2 + 3 = 4$, which simplifies to $4a + 3 = 4$, hence $a = 1/4$.\n3.  **Calculate $f(6)$**: Substitute $x=6$ and $a=1/4$ into the vertex form: $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(16) + 3 = 4 + 3 = 7$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Use the derivative at an extremum of a differentiable function\n  have h_deriv : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv_eq_zero h₁\n    · rw [h₀]\n      exact differentiable_at_univ_iff.mp (by continuity) 2\n    · exact uniqueDiffOn_univ 2 (Set.mem_univ 2)\n  \n  -- Calculate the derivative from the polynomial form\n  have f_deriv (x : ℝ) : deriv f x = 2 * a * x + b := by\n    rw [h₀]\n    simp\n  \n  -- Substitute x=2 into the derivative equation\n  have h_b : b = -4 * a := by\n    specialize f_deriv 2\n    rw [h_deriv] at f_deriv\n    linarith\n    \n  -- Use f(2) = 3 to relate a, b, and c\n  have h_f2 : a * 2^2 + b * 2 + c = 3 := by\n    rw [← h₀, h₂]\n  \n  -- Substitute b = -4a into the f(2) equation to find c in terms of a\n  have h_c : c = 3 + 4 * a := by\n    rw [h_b] at h_f2\n    linarith\n  \n  -- Use f(4) = 4 to solve for a\n  have h_f4 : a * 4^2 + b * 4 + c = 4 := by\n    rw [← h₀, h₃]\n    \n  have h_a : a = 1/4 := by\n    rw [h_b, h_c] at h_f4\n    linarith\n    \n  -- Finally, compute f(6)\n  rw [h₀, h_b, h_c, h_a]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Use the derivative at an extremum of a differentiable function\n  have h_deriv : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv_eq_zero h₁\n    · rw [h₀]\n      exact differentiable_at_univ_iff.mp (by continuity) 2\n    · exact uniqueDiffOn_univ 2 (Set.mem_univ 2)\n  \n  -- Calculate the derivative from the polynomial form\n  have f_deriv (x : ℝ) : deriv f x = 2 * a * x + b := by\n    rw [h₀]\n    simp\n  \n  -- Substitute x=2 into the derivative equation\n  have h_b : b = -4 * a := by\n    specialize f_deriv 2\n    rw [h_deriv] at f_deriv\n    linarith\n    \n  -- Use f(2) = 3 to relate a, b, and c\n  have h_f2 : a * 2^2 + b * 2 + c = 3 := by\n    rw [← h₀, h₂]\n  \n  -- Substitute b = -4a into the f(2) equation to find c in terms of a\n  have h_c : c = 3 + 4 * a := by\n    rw [h_b] at h_f2\n    linarith\n  \n  -- Use f(4) = 4 to solve for a\n  have h_f4 : a * 4^2 + b * 4 + c = 4 := by\n    rw [← h₀, h₃]\n    \n  have h_a : a = 1/4 := by\n    rw [h_b, h_c] at h_f4\n    linarith\n    \n  -- Finally, compute f(6)\n  rw [h₀, h_b, h_c, h_a]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 10
+            },
+            "endPos": {
+              "line": 18,
+              "column": 32
+            },
+            "data": "Unknown constant `IsExtrOn.deriv_eq_zero`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 20,
+              "column": 59
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 8
+            },
+            "endPos": {
+              "line": 25,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  deriv f x = 2 * a * x + b\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv : deriv f 2 = 0\nx : ℝ\n⊢ deriv f x = 2 * a * x + b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 13
+            },
+            "endPos": {
+              "line": 53,
+              "column": 10
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv : deriv f 2 = 0\nf_deriv : ∀ (x : ℝ), deriv f x = 2 * a * x + b\nh_b : b = -4 * a\nh_f2 : a * 2 ^ 2 + b * 2 + c = 3\nh_c : c = 3 + 4 * a\nh_f4 : a * 4 ^ 2 + b * 4 + c = 4\nh_a : a = 1 / 4\n⊢ 3 + (3 + 1) = 7"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.7469534873962402
+      }
+    },
+    {
+      "index": 14,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we first provide a concise proof sketch and then the complete Lean 4 code.\n\n### Proof Sketch\n1.  **Vertex Form Identification**: The condition `IsExtrOn f Set.univ 2` implies that the quadratic function $f(x) = ax^2 + bx + c$ has an extremum at $x = 2$. For a quadratic, this means the vertex is at $x = 2$.\n2.  **Using Vertex and Value**: Given $f(2) = 3$, the vertex is $(2, 3)$. The vertex form of the quadratic is $f(x) = a(x - 2)^2 + 3$.\n3.  **Determine Coefficient**: Use the condition $f(4) = 4$. Substituting into the vertex form: $a(4 - 2)^2 + 3 = 4 \\implies 4a + 3 = 4 \\implies 4a = 1 \\implies a = 1/4$.\n4.  **Calculate Target**: With $a = 1/4$, the function is $f(x) = \\frac{1}{4}(x - 2)^2 + 3$. For $x = 6$, we calculate $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4)^2 + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Deduce that b = -4a from the extremum condition at x=2\n  have deriv_zero : HasDerivAt f (2 * a * 2 + b) 2 := by\n    have : HasDerivAt (fun x => a * x^2 + b * x + c) (2 * a * 2 + b) 2 := by\n      repeat (apply HasDerivAt.add <|> apply HasDerivAt.mul <|> apply HasDerivAt.pow <|> apply hasDerivAt_id <|> apply hasDerivAt_const)\n    convert this using 1\n    ext x; exact h₀ x\n  \n  have h_ext : IsLocalExtr f 2 := h₁.isLocalExtr (IsSelfAdjoint.mem_nhds Set.univ_mem)\n  have h_diff : HasDerivAt f (4 * a + b) 2 := by convert deriv_zero using 1; ring\n  have b_val : b = -4 * a := by\n    have := h_ext.hasDerivAt_eq_zero h_diff\n    linarith\n\n  -- 2. Use f(2) = 3 to relate a and c\n  have f2 : f 2 = a * (2)^2 + b * 2 + c := h₀ 2\n  rw [h₂, b_val] at f2\n  have c_val : c = 3 + 4 * a := by linarith\n\n  -- 3. Use f(4) = 4 to find a\n  have f4 : f 4 = a * (4)^2 + b * 4 + c := h₀ 4\n  rw [h₃, b_val, c_val] at f4\n  have a_val : a = 1/4 := by linarith\n\n  -- 4. Calculate f(6)\n  rw [h₀ 6, b_val, c_val, a_val]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Deduce that b = -4a from the extremum condition at x=2\n  have deriv_zero : HasDerivAt f (2 * a * 2 + b) 2 := by\n    have : HasDerivAt (fun x => a * x^2 + b * x + c) (2 * a * 2 + b) 2 := by\n      repeat (apply HasDerivAt.add <|> apply HasDerivAt.mul <|> apply HasDerivAt.pow <|> apply hasDerivAt_id <|> apply hasDerivAt_const)\n    convert this using 1\n    ext x; exact h₀ x\n  \n  have h_ext : IsLocalExtr f 2 := h₁.isLocalExtr (IsSelfAdjoint.mem_nhds Set.univ_mem)\n  have h_diff : HasDerivAt f (4 * a + b) 2 := by convert deriv_zero using 1; ring\n  have b_val : b = -4 * a := by\n    have := h_ext.hasDerivAt_eq_zero h_diff\n    linarith\n\n  -- 2. Use f(2) = 3 to relate a and c\n  have f2 : f 2 = a * (2)^2 + b * 2 + c := h₀ 2\n  rw [h₂, b_val] at f2\n  have c_val : c = 3 + 4 * a := by linarith\n\n  -- 3. Use f(4) = 4 to find a\n  have f4 : f 4 = a * (4)^2 + b * 4 + c := h₀ 4\n  rw [h₃, b_val, c_val] at f4\n  have a_val : a = 1/4 := by linarith\n\n  -- 4. Calculate f(6)\n  rw [h₀ 6, b_val, c_val, a_val]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 74
+            },
+            "endPos": {
+              "line": 19,
+              "column": 136
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\n⊢ HasDerivAt (fun x => a * x ^ 2 + b * x + c) (2 * a * 2 + b) 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 50
+            },
+            "endPos": {
+              "line": 23,
+              "column": 72
+            },
+            "data": "Unknown constant `IsSelfAdjoint.mem_nhds`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.8334965705871582
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "To prove that $f(6) = 7$ given that $f(x) = ax^2 + bx + c$, the function has an extremum at $x=2$ with $f(2)=3$, and $f(4)=4$, we follow these steps:\n\n### Proof Sketch\n1.  **Vertex Form**: Since $f$ is a quadratic function with an extremum at $x=2$, the vertex of the parabola is at $x=2$. Thus, the function can be written in the vertex form: $f(x) = a(x - 2)^2 + k$.\n2.  **Determine $k$**: We are given $f(2) = 3$. Substituting $x=2$ into the vertex form gives $a(2-2)^2 + k = 3$, which implies $k = 3$. So, $f(x) = a(x - 2)^2 + 3$.\n3.  **Determine $a$**: We are given $f(4) = 4$. Substituting $x=4$ into our equation: $a(4-2)^2 + 3 = 4 \\implies 4a + 3 = 4 \\implies 4a = 1 \\implies a = 1/4$.\n4.  **Calculate $f(6)$**: Now substitute $x=6$ into the function $f(x) = \\frac{1}{4}(x - 2)^2 + 3$:\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the extremum property to find the relationship between a and b.\n  -- Since f is differentiable, f'(2) = 0.\n  have h_diff : Differentiable ℝ f := by\n    intro x; rw [h₀]; simp\n  have h_deriv_zero := h_diff.hasDerivAt x |>.isExtrOn h₁ (Set.mem_univ 2) |>.deriv\n  have h_f_deriv : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp [deriv_add, deriv_mul, deriv_pow]\n  have h_ab : 4 * a + b = 0 := by\n    rw [h_f_deriv 2] at h_deriv_zero\n    linarith\n  \n  -- 2. Use f(2) = 3 and f(4) = 4 to create a system of equations\n  have eq1 : a * 4 + b * 2 + c = 3 := by rw [← h₂, h₀]\n  have eq2 : a * 16 + b * 4 + c = 4 := by rw [← h₃, h₀]\n  \n  -- 3. Solve for a, b, and c\n  -- From h_ab, b = -4a. Substitute into eq1 and eq2.\n  have eq1' : -4 * a + c = 3 := by linarith\n  have eq2' : a * 0 + c = 4 := by linarith -- wait, let's just solve directly:\n  have h_a : a = 1/4 := by linarith\n  have h_b : b = -1 := by linarith\n  have h_c : c = 4 := by linarith\n  \n  -- 4. Calculate f(6)\n  rw [h₀, h_a, h_b, h_c]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the extremum property to find the relationship between a and b.\n  -- Since f is differentiable, f'(2) = 0.\n  have h_diff : Differentiable ℝ f := by\n    intro x; rw [h₀]; simp\n  have h_deriv_zero := h_diff.hasDerivAt x |>.isExtrOn h₁ (Set.mem_univ 2) |>.deriv\n  have h_f_deriv : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp [deriv_add, deriv_mul, deriv_pow]\n  have h_ab : 4 * a + b = 0 := by\n    rw [h_f_deriv 2] at h_deriv_zero\n    linarith\n  \n  -- 2. Use f(2) = 3 and f(4) = 4 to create a system of equations\n  have eq1 : a * 4 + b * 2 + c = 3 := by rw [← h₂, h₀]\n  have eq2 : a * 16 + b * 4 + c = 4 := by rw [← h₃, h₀]\n  \n  -- 3. Solve for a, b, and c\n  -- From h_ab, b = -4a. Substitute into eq1 and eq2.\n  have eq1' : -4 * a + c = 3 := by linarith\n  have eq2' : a * 0 + c = 4 := by linarith -- wait, let's just solve directly:\n  have h_a : a = 1/4 := by linarith\n  have h_b : b = -1 := by linarith\n  have h_c : c = 4 := by linarith\n  \n  -- 4. Calculate f(6)\n  rw [h₀, h_a, h_b, h_c]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 17
+            },
+            "endPos": {
+              "line": 19,
+              "column": 19
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  DifferentiableAt ℝ f x\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nx : ℝ\n⊢ DifferentiableAt ℝ f x"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 30
+            },
+            "endPos": {
+              "line": 20,
+              "column": 40
+            },
+            "data": "Invalid field `hasDerivAt`: The environment does not contain `Function.hasDerivAt`, so it is not possible to project the field `hasDerivAt` from an expression\n  h_diff\nof type\n  ∀ (x : ℝ), DifferentiableAt ℝ f x"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 13
+            },
+            "endPos": {
+              "line": 43,
+              "column": 10
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : Differentiable ℝ f\n⊢ f 6 = 7"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.9509942531585693
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "To prove $f(6) = 7$, we follow these steps:\n\n### Proof Sketch\n1.  **Identify the Vertex:** Since $f$ is a quadratic and has an extremum at $x = 2$, the vertex of the parabola is $(2, f(2))$. Given $f(2) = 3$, the vertex is $(2, 3)$.\n2.  **Vertex Form:** The vertex form of a quadratic is $f(x) = a(x - h)^2 + k$. Substituting $(h, k) = (2, 3)$, we have $f(x) = a(x - 2)^2 + 3$.\n3.  **Find $a$:** Use the point $f(4) = 4$. Substituting $x = 4$ into the vertex form gives $4 = a(4 - 2)^2 + 3$, which simplifies to $4 = 4a + 3$. Solving for $a$, we find $a = 1/4$.\n4.  **Calculate $f(6)$:** Now that we have the specific equation $f(x) = \\frac{1}{4}(x - 2)^2 + 3$, we plug in $x = 6$:\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4)^2 + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Relate the extremum condition to the derivative being zero\n  have h_deriv : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv\n    · exact h₁\n    · apply differentiableAt_univ.mp\n      intro x\n      rw [h₀]\n      exact differentiableAt_id.pow 2 |>.const_mul a |>.add (differentiableAt_id.const_mul b) |>.add (differentiableAt_const c)\n    · exact uniqueDiffOn_univ 2 (Set.mem_univ 2)\n\n  -- 2. Compute the derivative of f(x) = ax^2 + bx + c\n  have h_f_deriv : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n\n  -- 3. Use the system of equations to solve for a, b, c\n  -- From f'(2) = 0: 4a + b = 0 => b = -4a\n  have eq1 : 4 * a + b = 0 := by\n    rw [← h_f_deriv 2]\n    exact h_deriv\n\n  -- From f(2) = 3: 4a + 2b + c = 3\n  have eq2 : 4 * a + 2 * b + c = 3 := by\n    rw [← h₂]\n    rw [h₀]\n    ring\n\n  -- From f(4) = 4: 16a + 4b + c = 4\n  have eq3 : 16 * a + 4 * b + c = 4 := by\n    rw [← h₃]\n    rw [h₀]\n    ring\n\n  -- Solve for a: (eq3 - eq2) gives 12a + 2b = 1.\n  -- Substitute b = -4a: 12a + 2(-4a) = 1 => 4a = 1 => a = 1/4\n  have h_a : a = 1/4 := by\n    linear_combination 1/4 * eq3 - 1/4 * eq2 - 1/2 * eq1\n  \n  have h_b : b = -1 := by\n    linear_combination eq1 - 4 * h_a\n\n  have h_c : c = 4 := by\n    linear_combination eq2 - 4 * h_a - 2 * h_b\n\n  -- 4. Calculate f(6)\n  rw [h₀, h_a, h_b, h_c]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Relate the extremum condition to the derivative being zero\n  have h_deriv : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv\n    · exact h₁\n    · apply differentiableAt_univ.mp\n      intro x\n      rw [h₀]\n      exact differentiableAt_id.pow 2 |>.const_mul a |>.add (differentiableAt_id.const_mul b) |>.add (differentiableAt_const c)\n    · exact uniqueDiffOn_univ 2 (Set.mem_univ 2)\n\n  -- 2. Compute the derivative of f(x) = ax^2 + bx + c\n  have h_f_deriv : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n\n  -- 3. Use the system of equations to solve for a, b, c\n  -- From f'(2) = 0: 4a + b = 0 => b = -4a\n  have eq1 : 4 * a + b = 0 := by\n    rw [← h_f_deriv 2]\n    exact h_deriv\n\n  -- From f(2) = 3: 4a + 2b + c = 3\n  have eq2 : 4 * a + 2 * b + c = 3 := by\n    rw [← h₂]\n    rw [h₀]\n    ring\n\n  -- From f(4) = 4: 16a + 4b + c = 4\n  have eq3 : 16 * a + 4 * b + c = 4 := by\n    rw [← h₃]\n    rw [h₀]\n    ring\n\n  -- Solve for a: (eq3 - eq2) gives 12a + 2b = 1.\n  -- Substitute b = -4a: 12a + 2(-4a) = 1 => 4a = 1 => a = 1/4\n  have h_a : a = 1/4 := by\n    linear_combination 1/4 * eq3 - 1/4 * eq2 - 1/2 * eq1\n  \n  have h_b : b = -1 := by\n    linear_combination eq1 - 4 * h_a\n\n  have h_c : c = 4 := by\n    linear_combination eq2 - 4 * h_a - 2 * h_b\n\n  -- 4. Calculate f(6)\n  rw [h₀, h_a, h_b, h_c]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 10
+            },
+            "endPos": {
+              "line": 18,
+              "column": 24
+            },
+            "data": "Unknown constant `IsExtrOn.deriv`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 14
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 8
+            },
+            "endPos": {
+              "line": 29,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  deriv f x = 2 * a * x + b\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv : deriv f 2 = 0\nx : ℝ\n⊢ deriv f x = 2 * a * x + b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 8
+            },
+            "endPos": {
+              "line": 36,
+              "column": 21
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  2 * a * 2 + b\nin the target expression\n  4 * a + b = 0\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv : deriv f 2 = 0\nh_f_deriv : ∀ (x : ℝ), deriv f x = 2 * a * x + b\n⊢ 4 * a + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 46,
+              "column": 39
+            },
+            "endPos": {
+              "line": 49,
+              "column": 8
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv : deriv f 2 = 0\nh_f_deriv : ∀ (x : ℝ), deriv f x = 2 * a * x + b\neq1 : 4 * a + b = 0\neq2 : 4 * a + 2 * b + c = 3\n⊢ a * 16 + a * b * 16 + b * c + b ^ 2 * 4 + c = a * 16 + b * 4 + c"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5374512672424316
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Vertex Form Identification**: The condition `IsExtrOn f Set.univ 2` implies that the function $f(x) = ax^2 + bx + c$ has a local (and thus global) extremum at $x = 2$. For a quadratic function, the extremum occurs at the vertex. Thus, $f(x)$ can be written in vertex form: $f(x) = a(x - 2)^2 + k$.\n2.  **Determine $k$**: Given $f(2) = 3$, we substitute $x = 2$ into the vertex form: $f(2) = a(2 - 2)^2 + k = k$. Therefore, $k = 3$, and $f(x) = a(x - 2)^2 + 3$.\n3.  **Determine $a$**: Given $f(4) = 4$, we substitute $x = 4$: $f(4) = a(4 - 2)^2 + 3 = 4a + 3$. Setting $4a + 3 = 4$ yields $4a = 1$, so $a = 1/4$.\n4.  **Calculate $f(6)$**: Now that $f(x) = \\frac{1}{4}(x - 2)^2 + 3$, we evaluate it at $x = 6$:\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the extremum property to relate a and b\n  have deriv_zero : deriv f 2 = 0 := by\n    apply IsLocalExtr.deriv_eq_zero\n    · exact IsExtrOn.isLocalExtr h₁ (mem_univ 2)\n    · apply differentiable_at_univ_iff.mp\n      intro x\n      rw [h₀]\n      exact differentiableAt_id.pow 2 |>.const_mul a |>.add (differentiableAt_id.const_mul b) |>.add (differentiableAt_const c)\n  \n  -- Calculate deriv f x = 2ax + b\n  have h_deriv : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n\n  -- From deriv f 2 = 0, we get 4a + b = 0 => b = -4a\n  have hb : b = -4 * a := by\n    specialize h_deriv 2\n    rw [deriv_zero] at h_deriv\n    linarith\n\n  -- 2. Use f 2 = 3 to find c in terms of a\n  have hc : c = 3 + 4 * a := by\n    specialize h₀ 2\n    rw [h₂] at h₀\n    rw [hb] at h₀\n    linarith\n\n  -- 3. Use f 4 = 4 to find a\n  have ha : a = 1/4 := by\n    specialize h₀ 4\n    rw [h₃, hb, hc] at h₀\n    linarith\n\n  -- 4. Calculate f 6\n  rw [h₀, hb, hc, ha]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the extremum property to relate a and b\n  have deriv_zero : deriv f 2 = 0 := by\n    apply IsLocalExtr.deriv_eq_zero\n    · exact IsExtrOn.isLocalExtr h₁ (mem_univ 2)\n    · apply differentiable_at_univ_iff.mp\n      intro x\n      rw [h₀]\n      exact differentiableAt_id.pow 2 |>.const_mul a |>.add (differentiableAt_id.const_mul b) |>.add (differentiableAt_const c)\n  \n  -- Calculate deriv f x = 2ax + b\n  have h_deriv : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n\n  -- From deriv f 2 = 0, we get 4a + b = 0 => b = -4a\n  have hb : b = -4 * a := by\n    specialize h_deriv 2\n    rw [deriv_zero] at h_deriv\n    linarith\n\n  -- 2. Use f 2 = 3 to find c in terms of a\n  have hc : c = 3 + 4 * a := by\n    specialize h₀ 2\n    rw [h₂] at h₀\n    rw [hb] at h₀\n    linarith\n\n  -- 3. Use f 4 = 4 to find a\n  have ha : a = 1/4 := by\n    specialize h₀ 4\n    rw [h₃, hb, hc] at h₀\n    linarith\n\n  -- 4. Calculate f 6\n  rw [h₀, hb, hc, ha]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 37
+            },
+            "endPos": {
+              "line": 19,
+              "column": 47
+            },
+            "data": "failed to synthesize instance of type class\n  Fintype ℕ\n\nHint: Adding the command `deriving instance Fintype for Nat` may allow Lean to derive the missing instance."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 36
+            },
+            "endPos": {
+              "line": 19,
+              "column": 48
+            },
+            "data": "Application type mismatch: The argument\n  mem_univ 2\nhas type\n  2 ∈ univ\nbut is expected to have type\n  Set.univ ∈ 𝓝 2\nin the application\n  IsExtrOn.isLocalExtr h₁ (mem_univ 2)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 4
+            },
+            "endPos": {
+              "line": 23,
+              "column": 127
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 8
+            },
+            "endPos": {
+              "line": 28,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  deriv f x = 2 * a * x + b\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nderiv_zero : deriv f 2 = 0\nx : ℝ\n⊢ deriv f x = 2 * a * x + b"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.9999315738677979
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "**Proof Sketch:**\n\n1.  **Vertex Form:** Given $f(x) = ax^2 + bx + c$, the condition `IsExtrOn f Set.univ 2` implies that the function $f$ has an extremum at $x = 2$. For a quadratic, this means $x = 2$ is the vertex of the parabola.\n2.  **Function Definition:** Since $(2, f(2))$ is the vertex and $f(2) = 3$, the function can be written in vertex form: $f(x) = a(x - 2)^2 + 3$.\n3.  **Solve for $a$:** Use the given point $f(4) = 4$. Substituting $x=4$ into the vertex form gives $4 = a(4 - 2)^2 + 3$, which simplifies to $4 = 4a + 3$. Solving for $a$, we get $a = 1/4$.\n4.  **Evaluate $f(6)$:** Now that the parameters are determined, calculate $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4)^2 + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is differentiable and has an extremum at 2, f'(2) = 0\n  have h_diff : Differentiable ℝ f := by\n    intro x\n    rw [h₀]\n    simp only [differentiable_at_id', differentiable_at_const, DifferentiableAt.pow, \n               DifferentiableAt.mul, DifferentiableAt.add]\n  \n  have h_deriv_zero : deriv f 2 = 0 :=\n    h₁.isLocalExtr.deriv_eq_zero (h_diff 2)\n\n  -- Calculate the derivative from the definition\n  have h_deriv_val : deriv f 2 = 2 * a * 2 + b := by\n    rw [h₀]\n    simp only [deriv_add, deriv_mul_const, deriv_pow, deriv_id'', deriv_const, add_zero]\n    ring\n\n  -- From h_deriv_zero and h_deriv_val: 4a + b = 0 => b = -4a\n  have h_b : b = -4 * a := by\n    linarith [h_deriv_zero, h_deriv_val]\n\n  -- Use f(2) = 3 to find a relation between a and c\n  have h_f2 : f 2 = a * 2^2 + b * 2 + c := h₀ 2\n  rw [h₂, h_b] at h_f2\n  have h_c : c = 3 + 4 * a := by\n    linarith [h_f2]\n\n  -- Use f(4) = 4 to solve for a\n  have h_f4 : f 4 = a * 4^2 + b * 4 + c := h₀ 4\n  rw [h₃, h_b, h_c] at h_f4\n  have h_a : a = 1/4 := by\n    linarith [h_f4]\n\n  -- Substitute a, b, c back to find f(6)\n  rw [h₀ 6, h_b, h_c, h_a]\n  field_simp\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is differentiable and has an extremum at 2, f'(2) = 0\n  have h_diff : Differentiable ℝ f := by\n    intro x\n    rw [h₀]\n    simp only [differentiable_at_id', differentiable_at_const, DifferentiableAt.pow, \n               DifferentiableAt.mul, DifferentiableAt.add]\n  \n  have h_deriv_zero : deriv f 2 = 0 :=\n    h₁.isLocalExtr.deriv_eq_zero (h_diff 2)\n\n  -- Calculate the derivative from the definition\n  have h_deriv_val : deriv f 2 = 2 * a * 2 + b := by\n    rw [h₀]\n    simp only [deriv_add, deriv_mul_const, deriv_pow, deriv_id'', deriv_const, add_zero]\n    ring\n\n  -- From h_deriv_zero and h_deriv_val: 4a + b = 0 => b = -4a\n  have h_b : b = -4 * a := by\n    linarith [h_deriv_zero, h_deriv_val]\n\n  -- Use f(2) = 3 to find a relation between a and c\n  have h_f2 : f 2 = a * 2^2 + b * 2 + c := h₀ 2\n  rw [h₂, h_b] at h_f2\n  have h_c : c = 3 + 4 * a := by\n    linarith [h_f2]\n\n  -- Use f(4) = 4 to solve for a\n  have h_f4 : f 4 = a * 4^2 + b * 4 + c := h₀ 4\n  rw [h₃, h_b, h_c] at h_f4\n  have h_a : a = 1/4 := by\n    linarith [h_f4]\n\n  -- Substitute a, b, c back to find f(6)\n  rw [h₀ 6, h_b, h_c, h_a]\n  field_simp\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 8
+            },
+            "endPos": {
+              "line": 19,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  DifferentiableAt ℝ f x\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nx : ℝ\n⊢ DifferentiableAt ℝ f x"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 19
+            },
+            "endPos": {
+              "line": 24,
+              "column": 32
+            },
+            "data": "Invalid field `deriv_eq_zero`: The environment does not contain `Function.deriv_eq_zero`, so it is not possible to project the field `deriv_eq_zero` from an expression\n  IsExtrOn.isLocalExtr h₁\nof type\n  Set.univ ∈ 𝓝 2 → IsLocalExtr f 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 8
+            },
+            "endPos": {
+              "line": 28,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  deriv f 2 = 2 * a * 2 + b\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : Differentiable ℝ f\nh_deriv_zero : deriv f 2 = 0\n⊢ deriv f 2 = 2 * a * 2 + b"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.0642929077148438
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Form of the Parabola:** Since $f(x) = ax^2 + bx + c$ has an extremum at $x = 2$, the vertex of the parabola is at $(2, f(2))$.\n2.  **Vertex Form:** Given $f(2) = 3$, the vertex is $(2, 3)$. We can express $f(x)$ in vertex form: $f(x) = a(x - 2)^2 + 3$.\n3.  **Find $a$:** Use the condition $f(4) = 4$. Substituting $x = 4$ into the vertex form gives $4 = a(4 - 2)^2 + 3 \\implies 4 = 4a + 3 \\implies 1 = 4a \\implies a = 1/4$.\n4.  **Calculate $f(6)$:** Substitute $x = 6$ and $a = 1/4$ into the vertex form: $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n5.  **Formalization:** In Lean, we use the property that an extremum of a differentiable function on an open set implies the derivative is zero. For a quadratic $ax^2 + bx + c$, the derivative is $2ax + b$. $f'(2) = 0 \\implies 4a + b = 0 \\implies b = -4a$. Then use the system of equations from $f(2)=3$ and $f(4)=4$ to solve for $a$ and $c$, and finally evaluate $f(6)$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is differentiable on ℝ and has an extremum at 2, f'(2) = 0.\n  have h_deriv_zero : hasDerivAt f (2 * a * 2 + b) 2 := by\n    have hf : HasDerivAt f (2 * a * 2 + b) 2 := by\n      -- Compute derivative using h₀\n      show HasDerivAt (fun x => a * x ^ 2 + b * x + c) (2 * a * 2 + b) 2\n      repeat (apply HasDerivAt.add <|> apply HasDerivAt.mul <|> apply HasDerivAt.pow <|> \n              apply hasDerivAt_id <|> apply hasDerivAt_const)\n    exact hf\n\n  -- From h₁, the derivative at 2 must be zero\n  have h_prime : 2 * a * 2 + b = 0 :=\n    h₁ (isInternal_univ 2) (h_deriv_zero)\n\n  -- b = -4a\n  have h_b : b = -4 * a := by linarith\n  \n  -- Use f(2) = 3 and f(4) = 4 to solve for a and c\n  have h_f2 : a * 2 ^ 2 + b * 2 + c = 3 := by rwa [h₀] at h₂\n  have h_f4 : a * 4 ^ 2 + b * 4 + c = 4 := by rwa [h₀] at h₃\n  \n  -- Simplify using b = -4a\n  have h_f2_simp : 4 * a + 2 * (-4 * a) + c = 3 := by linarith\n  have h_f4_simp : 16 * a + 4 * (-4 * a) + c = 4 := by linarith\n  \n  -- This gives: -4a + c = 3 and c = 4\n  have hc : c = 4 := by linarith\n  have ha : a = 1/4 := by linarith\n  \n  -- Calculate f(6)\n  rw [h₀, h_b, hc, ha]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is differentiable on ℝ and has an extremum at 2, f'(2) = 0.\n  have h_deriv_zero : hasDerivAt f (2 * a * 2 + b) 2 := by\n    have hf : HasDerivAt f (2 * a * 2 + b) 2 := by\n      -- Compute derivative using h₀\n      show HasDerivAt (fun x => a * x ^ 2 + b * x + c) (2 * a * 2 + b) 2\n      repeat (apply HasDerivAt.add <|> apply HasDerivAt.mul <|> apply HasDerivAt.pow <|> \n              apply hasDerivAt_id <|> apply hasDerivAt_const)\n    exact hf\n\n  -- From h₁, the derivative at 2 must be zero\n  have h_prime : 2 * a * 2 + b = 0 :=\n    h₁ (isInternal_univ 2) (h_deriv_zero)\n\n  -- b = -4a\n  have h_b : b = -4 * a := by linarith\n  \n  -- Use f(2) = 3 and f(4) = 4 to solve for a and c\n  have h_f2 : a * 2 ^ 2 + b * 2 + c = 3 := by rwa [h₀] at h₂\n  have h_f4 : a * 4 ^ 2 + b * 4 + c = 4 := by rwa [h₀] at h₃\n  \n  -- Simplify using b = -4a\n  have h_f2_simp : 4 * a + 2 * (-4 * a) + c = 3 := by linarith\n  have h_f4_simp : 16 * a + 4 * (-4 * a) + c = 4 := by linarith\n  \n  -- This gives: -4a + c = 3 and c = 4\n  have hc : c = 4 := by linarith\n  have ha : a = 1/4 := by linarith\n  \n  -- Calculate f(6)\n  rw [h₀, h_b, hc, ha]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 22
+            },
+            "endPos": {
+              "line": 17,
+              "column": 32
+            },
+            "data": "Unknown identifier `hasDerivAt`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 6
+            },
+            "endPos": {
+              "line": 20,
+              "column": 72
+            },
+            "data": "'show' tactic failed, pattern\n  HasDerivAt (fun x => a * x ^ 2 + b * x + c) (2 * a * 2 + b) 2\nis not definitionally equal to target\n  HasDerivAt f (2 * a * 2 + b) 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 4
+            },
+            "endPos": {
+              "line": 27,
+              "column": 41
+            },
+            "data": "Function expected at\n  h₁\nbut this term has type\n  IsExtrOn f Set.univ 2\n\nNote: Expected a function because this term is being applied to the argument\n  (isInternal_univ 2)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.9248671531677246
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Vertex Form Identification**: Given that $f(x) = ax^2 + bx + c$ is a quadratic function and has an extremum at $x=2$ with $f(2)=3$, the vertex of the parabola is $(2, 3)$. \n2.  **Determine the Equation**: Using the vertex form $f(x) = a(x-2)^2 + 3$.\n3.  **Find the Parameter $a$**: We are given $f(4) = 4$. Plugging this into the vertex form:\n    $4 = a(4-2)^2 + 3 \\implies 4 = 4a + 3 \\implies 4a = 1 \\implies a = \\frac{1}{4}$.\n4.  **Calculate $f(6)$**: Substitute $a = \\frac{1}{4}$ back into the equation:\n    $f(6) = \\frac{1}{4}(6-2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the extremum property to find the relationship between a and b\n  have deriv_zero : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv_eq_zero h₁\n    exact differentiableAt_univ.mp (differentiable_id.pow 2 |>.const_mul a |>.add (differentiable_id.const_mul b) |>.add differentiable_const) 2\n    exact isOpen_univ\n\n  -- Calculate the derivative explicitly\n  have df : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n\n  have h_deriv : 4 * a + b = 0 := by\n    rw [← df 2]\n    exact deriv_zero\n\n  -- 2. Use the point f(2) = 3\n  have h_f2 : 4 * a + 2 * b + c = 3 := by\n    rw [← h₂]\n    rw [h₀]\n    ring\n\n  -- 3. Use the point f(4) = 4\n  have h_f4 : 16 * a + 4 * b + c = 4 := by\n    rw [← h₃]\n    rw [h₀]\n    ring\n\n  -- 4. Solve the system of linear equations\n  have ha : a = 1 / 4 := by\n    linarith\n  have hb : b = -1 := by\n    linarith\n  have hc : c = 4 := by\n    linarith\n\n  -- 5. Calculate f(6)\n  rw [h₀, ha, hb, hc]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the extremum property to find the relationship between a and b\n  have deriv_zero : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv_eq_zero h₁\n    exact differentiableAt_univ.mp (differentiable_id.pow 2 |>.const_mul a |>.add (differentiable_id.const_mul b) |>.add differentiable_const) 2\n    exact isOpen_univ\n\n  -- Calculate the derivative explicitly\n  have df : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n\n  have h_deriv : 4 * a + b = 0 := by\n    rw [← df 2]\n    exact deriv_zero\n\n  -- 2. Use the point f(2) = 3\n  have h_f2 : 4 * a + 2 * b + c = 3 := by\n    rw [← h₂]\n    rw [h₀]\n    ring\n\n  -- 3. Use the point f(4) = 4\n  have h_f4 : 16 * a + 4 * b + c = 4 := by\n    rw [← h₃]\n    rw [h₀]\n    ring\n\n  -- 4. Solve the system of linear equations\n  have ha : a = 1 / 4 := by\n    linarith\n  have hb : b = -1 := by\n    linarith\n  have hc : c = 4 := by\n    linarith\n\n  -- 5. Calculate f(6)\n  rw [h₀, ha, hb, hc]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 10
+            },
+            "endPos": {
+              "line": 18,
+              "column": 32
+            },
+            "data": "Unknown constant `IsExtrOn.deriv_eq_zero`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 144
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 8
+            },
+            "endPos": {
+              "line": 25,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  deriv f x = 2 * a * x + b\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nderiv_zero : deriv f 2 = 0\nx : ℝ\n⊢ deriv f x = 2 * a * x + b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 8
+            },
+            "endPos": {
+              "line": 30,
+              "column": 14
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  2 * a * 2 + b\nin the target expression\n  4 * a + b = 0\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nderiv_zero : deriv f 2 = 0\ndf : ∀ (x : ℝ), deriv f x = 2 * a * x + b\n⊢ 4 * a + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 40,
+              "column": 40
+            },
+            "endPos": {
+              "line": 43,
+              "column": 8
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nderiv_zero : deriv f 2 = 0\ndf : ∀ (x : ℝ), deriv f x = 2 * a * x + b\nh_deriv : 4 * a + b = 0\nh_f2 : 4 * a + 2 * b + c = 3\n⊢ a * 16 + a * b * 16 + b * c + b ^ 2 * 4 + c = a * 16 + b * 4 + c"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.9389996528625488
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "To prove $f(6) = 7$ given that $f(x) = ax^2 + bx + c$ has an extremum at $x=2$ with $f(2)=3$ and $f(4)=4$:\n\n1.  **Vertex Form**: Since $f$ is a quadratic with an extremum at $x=2$, the vertex of the parabola is at $(2, f(2)) = (2, 3)$. Thus, $f(x)$ can be written in vertex form: $f(x) = a(x - 2)^2 + 3$.\n2.  **Determine $a$**: We are given $f(4) = 4$. Substituting $x=4$ into the vertex form:\n    $a(4 - 2)^2 + 3 = 4 \\implies a(2^2) + 3 = 4 \\implies 4a = 1 \\implies a = 1/4$.\n3.  **Evaluate $f(6)$**: Now that we have the specific equation $f(x) = \\frac{1}{4}(x - 2)^2 + 3$, substitute $x=6$:\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Use the derivative property of an extremum on an open set (univ)\n  have h_deriv : deriv f 2 = 0 := IsExtrOn.deriv h₁ (isOpen_univ.unique_diffOn 2 (Set.mem_univ 2)) (Set.mem_univ 2)\n  \n  -- Calculate the derivative of f(x) = ax^2 + bx + c\n  have h_f_deriv : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [show f = (fun x => a * x ^ 2 + b * x + c) from funext h₀]\n    simp [pow_two]\n  \n  -- From f'(2) = 0, we get 4a + b = 0 => b = -4a\n  have h_b : b = -4 * a := by\n    rw [h_f_deriv 2] at h_deriv\n    linarith\n    \n  -- Substitute b into f(2) = 3 to find a relation between a and c\n  have h_f2 : a * 2 ^ 2 + b * 2 + c = 3 := by rwa [h₀] at h₂\n  rw [h_b] at h_f2\n  have h_c : c = 3 + 4 * a := by linarith\n  \n  -- Substitute a, b, c into f(4) = 4 to solve for a\n  have h_f4 : a * 4 ^ 2 + b * 4 + c = 4 := by rwa [h₀] at h₃\n  rw [h_b, h_c] at h_f4\n  have ha : a = 1/4 := by linarith\n  \n  -- Now substitute a back into b and c\n  have hb : b = -1 := by \n    rw [h_b, ha]\n    norm_num\n  have hc : c = 4 := by \n    rw [h_c, ha]\n    norm_num\n    \n  -- Finally, evaluate f(6)\n  rw [h₀ 6, ha, hb, hc]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Use the derivative property of an extremum on an open set (univ)\n  have h_deriv : deriv f 2 = 0 := IsExtrOn.deriv h₁ (isOpen_univ.unique_diffOn 2 (Set.mem_univ 2)) (Set.mem_univ 2)\n  \n  -- Calculate the derivative of f(x) = ax^2 + bx + c\n  have h_f_deriv : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [show f = (fun x => a * x ^ 2 + b * x + c) from funext h₀]\n    simp [pow_two]\n  \n  -- From f'(2) = 0, we get 4a + b = 0 => b = -4a\n  have h_b : b = -4 * a := by\n    rw [h_f_deriv 2] at h_deriv\n    linarith\n    \n  -- Substitute b into f(2) = 3 to find a relation between a and c\n  have h_f2 : a * 2 ^ 2 + b * 2 + c = 3 := by rwa [h₀] at h₂\n  rw [h_b] at h_f2\n  have h_c : c = 3 + 4 * a := by linarith\n  \n  -- Substitute a, b, c into f(4) = 4 to solve for a\n  have h_f4 : a * 4 ^ 2 + b * 4 + c = 4 := by rwa [h₀] at h₃\n  rw [h_b, h_c] at h_f4\n  have ha : a = 1/4 := by linarith\n  \n  -- Now substitute a back into b and c\n  have hb : b = -1 := by \n    rw [h_b, ha]\n    norm_num\n  have hc : c = 4 := by \n    rw [h_c, ha]\n    norm_num\n    \n  -- Finally, evaluate f(6)\n  rw [h₀ 6, ha, hb, hc]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 34
+            },
+            "endPos": {
+              "line": 17,
+              "column": 48
+            },
+            "data": "Unknown constant `IsExtrOn.deriv`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 53
+            },
+            "endPos": {
+              "line": 23,
+              "column": 18
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv : deriv f 2 = 0\nx : ℝ\n⊢ deriv (fun y => a * (y * y) + b * y) x = 2 * a * x + b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 21
+            },
+            "endPos": {
+              "line": 46,
+              "column": 12
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv : deriv f 2 = 0\nh_f_deriv : ∀ (x : ℝ), deriv f x = 2 * a * x + b\nh_b : b = -4 * a\nh_f2 : a * 2 ^ 2 + -4 * a * 2 + c = 3\nh_c : c = 3 + 4 * a\nh_f4 : a * 4 ^ 2 + -4 * a * 4 + (3 + 4 * a) = 4\nha : a = 1 / 4\nhb : b = -1\n⊢ 3 + 1 = 4"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.0999481678009033
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "**Proof Sketch:**\n\n1.  **Vertex Form:** The condition `IsExtrOn f Set.univ 2` implies that the function $f(x) = ax^2 + bx + c$ has a local extremum at $x = 2$. For a quadratic, this means the vertex is at $x = 2$. Thus, the function can be written in the form $f(x) = a(x - 2)^2 + k$.\n2.  **Determine $k$:** We are given $f(2) = 3$. Substituting $x = 2$ into the vertex form gives $f(2) = a(0)^2 + k = k$. Therefore, $k = 3$.\n3.  **Determine $a$:** We are given $f(4) = 4$. Substituting $x = 4$ into $f(x) = a(x - 2)^2 + 3$ gives $a(4 - 2)^2 + 3 = 4$, which simplifies to $4a + 3 = 4$, hence $a = 1/4$.\n4.  **Final Calculation:** With the function fully defined as $f(x) = \\frac{1}{4}(x - 2)^2 + 3$, we calculate $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a differentiable quadratic, IsExtrOn implies f' (2) = 0\n  have h_deriv : deriv f 2 = 0 := by\n    apply IsLocalExtr.deriv_eq_zero\n    · apply IsExtrOn.isLocalExtr h₁\n      exact Filter.univ_mem\n    · apply DifferentiableAt.congr (fun x => (a * x ^ 2 + b * x + c))\n      · intro x; simp [h₀]\n      · simp; apply DifferentiableAt.add\n        · apply DifferentiableAt.add\n          · apply DifferentiableAt.mul (differentiableAt_const a) (differentiableAt_pow 2)\n          · apply DifferentiableAt.mul (differentiableAt_const b) (differentiableAt_id)\n        · exact differentiableAt_const c\n  \n  -- Calculate deriv f x = 2ax + b\n  have h_f' : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [deriv_congr_add (h₀ x) (fun y => a * y ^ 2 + b * y + c) (by intro y; simp [h₀])]\n    simp\n    ring\n\n  -- Use h_deriv and h_f' to get 4a + b = 0\n  have h_ab : 4 * a + b = 0 := by\n    have tmp := h_f' 2\n    rw [h_deriv] at tmp\n    linarith\n\n  -- Use h₂: f 2 = 3 => 4a + 2b + c = 3\n  have h_abc2 : 4 * a + 2 * b + c = 3 := by\n    have tmp := h₀ 2\n    rw [h₂] at tmp\n    linarith\n\n  -- Use h₃: f 4 = 4 => 16a + 4b + c = 4\n  have h_abc4 : 16 * a + 4 * b + c = 4 := by\n    have tmp := h₀ 4\n    rw [h₃] at tmp\n    linarith\n\n  -- Solve the system of linear equations\n  -- b = -4a\n  have hb : b = -4 * a := by linarith\n  -- 4a + 2(-4a) + c = 3 => -4a + c = 3\n  -- 16a + 4(-4a) + c = 4 => c = 4\n  have hc : c = 4 := by linarith\n  have ha : a = 1/4 := by linarith\n  have hb' : b = -1 := by linarith\n\n  -- Calculate f 6\n  rw [h₀ 6]\n  rw [ha, hb', hc]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a differentiable quadratic, IsExtrOn implies f' (2) = 0\n  have h_deriv : deriv f 2 = 0 := by\n    apply IsLocalExtr.deriv_eq_zero\n    · apply IsExtrOn.isLocalExtr h₁\n      exact Filter.univ_mem\n    · apply DifferentiableAt.congr (fun x => (a * x ^ 2 + b * x + c))\n      · intro x; simp [h₀]\n      · simp; apply DifferentiableAt.add\n        · apply DifferentiableAt.add\n          · apply DifferentiableAt.mul (differentiableAt_const a) (differentiableAt_pow 2)\n          · apply DifferentiableAt.mul (differentiableAt_const b) (differentiableAt_id)\n        · exact differentiableAt_const c\n  \n  -- Calculate deriv f x = 2ax + b\n  have h_f' : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [deriv_congr_add (h₀ x) (fun y => a * y ^ 2 + b * y + c) (by intro y; simp [h₀])]\n    simp\n    ring\n\n  -- Use h_deriv and h_f' to get 4a + b = 0\n  have h_ab : 4 * a + b = 0 := by\n    have tmp := h_f' 2\n    rw [h_deriv] at tmp\n    linarith\n\n  -- Use h₂: f 2 = 3 => 4a + 2b + c = 3\n  have h_abc2 : 4 * a + 2 * b + c = 3 := by\n    have tmp := h₀ 2\n    rw [h₂] at tmp\n    linarith\n\n  -- Use h₃: f 4 = 4 => 16a + 4b + c = 4\n  have h_abc4 : 16 * a + 4 * b + c = 4 := by\n    have tmp := h₀ 4\n    rw [h₃] at tmp\n    linarith\n\n  -- Solve the system of linear equations\n  -- b = -4a\n  have hb : b = -4 * a := by linarith\n  -- 4a + 2(-4a) + c = 3 => -4a + c = 3\n  -- 16a + 4(-4a) + c = 4 => c = 4\n  have hc : c = 4 := by linarith\n  have ha : a = 1/4 := by linarith\n  have hb' : b = -1 := by linarith\n\n  -- Calculate f 6\n  rw [h₀ 6]\n  rw [ha, hb', hc]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 4
+            },
+            "endPos": {
+              "line": 27,
+              "column": 40
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 8
+            },
+            "endPos": {
+              "line": 32,
+              "column": 23
+            },
+            "data": "Unknown identifier `deriv_congr_add`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.9545235633850098
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "To prove $f(6) = 7$, we follow these steps:\n\n1.  **Vertex Form**: The condition `IsExtrOn f Set.univ 2` implies that the function $f(x) = ax^2 + bx + c$ has an extremum at $x = 2$. For a quadratic, this means the vertex is at $x = 2$. Thus, the function can be written in vertex form: $f(x) = a(x - 2)^2 + k$.\n2.  **Determine $k$**: We are given $f(2) = 3$. Substituting $x=2$ into the vertex form gives $a(2-2)^2 + k = 3$, which implies $k = 3$.\n3.  **Determine $a$**: We are given $f(4) = 4$. Substituting $x=4$ gives $a(4-2)^2 + 3 = 4$, which simplifies to $4a + 3 = 4$, so $a = \\frac{1}{4}$.\n4.  **Calculate $f(6)$**: Now that we have the full expression $f(x) = \\frac{1}{4}(x - 2)^2 + 3$, we substitute $x = 6$:\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a differentiable quadratic and has an extremum at x=2, f'(2) = 0\n  have h_diff : Differentiable ℝ f := by\n    intro x; rw [h₀]; simp\n  have h_deriv_zero : deriv f 2 = 0 :=\n    h₁.isLocalExtrOn (Set.univ_mem_nhds 2) |.hasDerivAt (h_diff 2)\n  \n  -- Calculate deriv f x\n  have h_deriv_f : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n  \n  -- From f'(2) = 0, we get 4a + b = 0, so b = -4a\n  have h_b : b = -4 * a := by\n    specialize h_deriv_f 2\n    rw [h_deriv_zero] at h_deriv_f\n    linarith\n  \n  -- Use f(2) = 3 and b = -4a to find c in terms of a\n  have h_c : c = 3 + 4 * a := by\n    rw [h₀, h_b] at h₂\n    linarith\n  \n  -- Use f(4) = 4 to solve for a\n  have h_a : a = 1/4 := by\n    rw [h₀, h_b, h_c] at h₃\n    linarith\n  \n  -- Final evaluation\n  rw [h₀, h_b, h_c, h_a]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a differentiable quadratic and has an extremum at x=2, f'(2) = 0\n  have h_diff : Differentiable ℝ f := by\n    intro x; rw [h₀]; simp\n  have h_deriv_zero : deriv f 2 = 0 :=\n    h₁.isLocalExtrOn (Set.univ_mem_nhds 2) |.hasDerivAt (h_diff 2)\n  \n  -- Calculate deriv f x\n  have h_deriv_f : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n  \n  -- From f'(2) = 0, we get 4a + b = 0, so b = -4a\n  have h_b : b = -4 * a := by\n    specialize h_deriv_f 2\n    rw [h_deriv_zero] at h_deriv_f\n    linarith\n  \n  -- Use f(2) = 3 and b = -4a to find c in terms of a\n  have h_c : c = 3 + 4 * a := by\n    rw [h₀, h_b] at h₂\n    linarith\n  \n  -- Use f(4) = 4 to solve for a\n  have h_a : a = 1/4 := by\n    rw [h₀, h_b, h_c] at h₃\n    linarith\n  \n  -- Final evaluation\n  rw [h₀, h_b, h_c, h_a]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 2
+            },
+            "endPos": null,
+            "data": "expected no space before"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 17
+            },
+            "endPos": {
+              "line": 18,
+              "column": 19
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  DifferentiableAt ℝ f x\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nx : ℝ\n⊢ DifferentiableAt ℝ f x"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 7
+            },
+            "endPos": {
+              "line": 20,
+              "column": 20
+            },
+            "data": "Invalid field `isLocalExtrOn`: The environment does not contain `Or.isLocalExtrOn`, so it is not possible to project the field `isLocalExtrOn` from an expression\n  h₁\nof type\n  IsMinFilter f (Filter.principal Set.univ) 2 ∨ IsMaxFilter f (Filter.principal Set.univ) 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 13
+            },
+            "endPos": {
+              "line": 20,
+              "column": 66
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : Differentiable ℝ f\nh_deriv_zero : deriv f 2 = 0\n⊢ f 6 = 7"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.12466073036193848
+      }
+    },
+    {
+      "index": 24,
+      "status": "FAILED",
+      "raw_text": "The problem asks us to find $f(6)$ given a quadratic function $f(x) = ax^2 + bx + c$ with an extremum at $x=2$ where $f(2)=3$, and a point $f(4)=4$.\n\n### Proof Sketch\n1. **Identify the Vertex Form**: Since $f$ is a quadratic function and has an extremum at $x=2$, the vertex of the parabola is at $x=2$. This allows us to write $f(x)$ in vertex form: $f(x) = a(x - 2)^2 + k$.\n2. **Determine $k$**: We are given $f(2) = 3$. Substituting $x=2$ into the vertex form gives $f(2) = a(2-2)^2 + k = k$. Thus, $k=3$, so $f(x) = a(x - 2)^2 + 3$.\n3. **Determine $a$**: We are given $f(4) = 4$. Substituting $x=4$ into our equation: $4 = a(4-2)^2 + 3 \\implies 4 = 4a + 3 \\implies 4a = 1 \\implies a = 1/4$.\n4. **Calculate $f(6)$**: Now that the function is fully defined as $f(x) = \\frac{1}{4}(x - 2)^2 + 3$, we plug in $x=6$:\n   $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4)^2 + 3 = \\frac{1}{4}(16) + 3 = 4 + 3 = 7$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the fact that x=2 is an extremum to find a relation between a and b.\n  -- The derivative f'(x) = 2ax + b must be 0 at x=2.\n  have h_diff : HasDerivAt f (2 * a * 2 + b) 2 := by\n    show HasDerivAt (fun x => a * x^2 + b * x + c) (2 * a * 2 + b) 2\n    simp only [h₀]\n    apply HasDerivAt.add\n    · apply HasDerivAt.add\n      · apply HasDerivAt.const_mul\n        apply HasDerivAt.pow (HasDerivAt_id _) 2\n      · apply HasDerivAt.mul_const (HasDerivAt_id _)\n    · apply hasDerivAt_const\n  \n  have h_extr := h₁.hasDerivAt (isInternal_univ 2) h_diff\n  have hb : b = -4 * a := by\n    rw [h_extr] at h_diff\n    linarith\n\n  -- 2. Use f(2) = 3 to relate a, b, c\n  have h_f2 : a * 2^2 + b * 2 + c = 3 := by rwa [h₀] at h₂\n  \n  -- 3. Use f(4) = 4 to find a\n  have h_f4 : a * 4^2 + b * 4 + c = 4 := by rwa [h₀] at h₃\n  \n  -- Substitute b = -4a into the equations\n  have h_eq1 : 4 * a + 2 * (-4 * a) + c = 3 := by rwa [hb] at h_f2\n  have h_eq2 : 16 * a + 4 * (-4 * a) + c = 4 := by rwa [hb] at h_f4\n  \n  -- Solve the system:\n  -- c - 4a = 3\n  -- c = 4\n  have hc : c = 4 := by linarith\n  have ha : a = 1/4 := by linarith\n  \n  -- 4. Calculate f(6)\n  rw [h₀, hb, hc, ha]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the fact that x=2 is an extremum to find a relation between a and b.\n  -- The derivative f'(x) = 2ax + b must be 0 at x=2.\n  have h_diff : HasDerivAt f (2 * a * 2 + b) 2 := by\n    show HasDerivAt (fun x => a * x^2 + b * x + c) (2 * a * 2 + b) 2\n    simp only [h₀]\n    apply HasDerivAt.add\n    · apply HasDerivAt.add\n      · apply HasDerivAt.const_mul\n        apply HasDerivAt.pow (HasDerivAt_id _) 2\n      · apply HasDerivAt.mul_const (HasDerivAt_id _)\n    · apply hasDerivAt_const\n  \n  have h_extr := h₁.hasDerivAt (isInternal_univ 2) h_diff\n  have hb : b = -4 * a := by\n    rw [h_extr] at h_diff\n    linarith\n\n  -- 2. Use f(2) = 3 to relate a, b, c\n  have h_f2 : a * 2^2 + b * 2 + c = 3 := by rwa [h₀] at h₂\n  \n  -- 3. Use f(4) = 4 to find a\n  have h_f4 : a * 4^2 + b * 4 + c = 4 := by rwa [h₀] at h₃\n  \n  -- Substitute b = -4a into the equations\n  have h_eq1 : 4 * a + 2 * (-4 * a) + c = 3 := by rwa [hb] at h_f2\n  have h_eq2 : 16 * a + 4 * (-4 * a) + c = 4 := by rwa [hb] at h_f4\n  \n  -- Solve the system:\n  -- c - 4a = 3\n  -- c = 4\n  have hc : c = 4 := by linarith\n  have ha : a = 1/4 := by linarith\n  \n  -- 4. Calculate f(6)\n  rw [h₀, hb, hc, ha]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 68
+            },
+            "data": "'show' tactic failed, pattern\n  HasDerivAt (fun x => a * x ^ 2 + b * x + c) (2 * a * 2 + b) 2\nis not definitionally equal to target\n  HasDerivAt f (2 * a * 2 + b) 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 20
+            },
+            "endPos": {
+              "line": 28,
+              "column": 30
+            },
+            "data": "Invalid field `hasDerivAt`: The environment does not contain `Or.hasDerivAt`, so it is not possible to project the field `hasDerivAt` from an expression\n  h₁\nof type\n  IsMinFilter f (Filter.principal Set.univ) 2 ∨ IsMaxFilter f (Filter.principal Set.univ) 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 13
+            },
+            "endPos": {
+              "line": 51,
+              "column": 10
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : HasDerivAt f (2 * a * 2 + b) 2\n⊢ f 6 = 7"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1964554786682129
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Form of the Parabola**: Since $f(x) = ax^2 + bx + c$ has an extremum at $x=2$, the vertex of the parabola is at $x=2$. This allows us to express $f$ in vertex form: $f(x) = a(x - 2)^2 + k$.\n2.  **Determine $k$**: We are given $f(2) = 3$. Substituting $x=2$ into the vertex form gives $f(2) = a(0)^2 + k = 3$, so $k = 3$. Thus, $f(x) = a(x - 2)^2 + 3$.\n3.  **Determine $a$**: We are given $f(4) = 4$. Substituting $x=4$ gives $f(4) = a(4 - 2)^2 + 3 = 4a + 3$. Setting $4a + 3 = 4$ yields $4a = 1$, so $a = 1/4$.\n4.  **Final Calculation**: The function is $f(x) = \\frac{1}{4}(x - 2)^2 + 3$. To find $f(6)$, we substitute $x=6$:\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{1}{4}(16) + 3 = 4 + 3 = 7$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a quadratic and has an extremum at 2, its derivative at 2 is 0.\n  have h_diff : (f 2 = 3) := h₂\n  have deriv_f : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [show f = (fun x => a * x^2 + b * x + c) from funext h₀]\n    simp\n  \n  -- IsExtrOn at an interior point implies derivative is 0\n  have h_deriv_zero : deriv f 2 = 0 := \n    h₁.deriv_eq_zero (UniqueDiffOn.uniqueDiff_univ) (Set.mem_univ 2)\n  \n  rw [deriv_f] at h_deriv_zero\n  -- 2 * a * 2 + b = 0 => 4a + b = 0 => b = -4a\n  have hb : b = -4 * a := by linarith\n  \n  -- Use f(2) = 3 to find c in terms of a\n  have h_f2 : f 2 = a * 2^2 + b * 2 + c := h₀ 2\n  rw [h₂, hb] at h_f2\n  -- 3 = 4a - 8a + c => 3 = -4a + c => c = 3 + 4a\n  have hc : c = 3 + 4 * a := by linarith\n  \n  -- Use f(4) = 4 to find a\n  have h_f4 : f 4 = a * 4^2 + b * 4 + c := h₀ 4\n  rw [h₃, hb, hc] at h_f4\n  -- 4 = 16a - 16a + 3 + 4a => 4 = 3 + 4a => 1 = 4a => a = 1/4\n  have ha : a = 1/4 := by linarith\n  \n  -- Calculate f(6)\n  rw [h₀ 6, hb, hc, ha]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a quadratic and has an extremum at 2, its derivative at 2 is 0.\n  have h_diff : (f 2 = 3) := h₂\n  have deriv_f : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [show f = (fun x => a * x^2 + b * x + c) from funext h₀]\n    simp\n  \n  -- IsExtrOn at an interior point implies derivative is 0\n  have h_deriv_zero : deriv f 2 = 0 := \n    h₁.deriv_eq_zero (UniqueDiffOn.uniqueDiff_univ) (Set.mem_univ 2)\n  \n  rw [deriv_f] at h_deriv_zero\n  -- 2 * a * 2 + b = 0 => 4a + b = 0 => b = -4a\n  have hb : b = -4 * a := by linarith\n  \n  -- Use f(2) = 3 to find c in terms of a\n  have h_f2 : f 2 = a * 2^2 + b * 2 + c := h₀ 2\n  rw [h₂, hb] at h_f2\n  -- 3 = 4a - 8a + c => 3 = -4a + c => c = 3 + 4a\n  have hc : c = 3 + 4 * a := by linarith\n  \n  -- Use f(4) = 4 to find a\n  have h_f4 : f 4 = a * 4^2 + b * 4 + c := h₀ 4\n  rw [h₃, hb, hc] at h_f4\n  -- 4 = 16a - 16a + 3 + 4a => 4 = 3 + 4a => 1 = 4a => a = 1/4\n  have ha : a = 1/4 := by linarith\n  \n  -- Calculate f(6)\n  rw [h₀ 6, hb, hc, ha]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 51
+            },
+            "endPos": {
+              "line": 21,
+              "column": 8
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : f 2 = 3\nx : ℝ\n⊢ deriv (fun y => a * y ^ 2 + b * y) x = 2 * a * x + b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 7
+            },
+            "endPos": {
+              "line": 25,
+              "column": 20
+            },
+            "data": "Invalid field `deriv_eq_zero`: The environment does not contain `Or.deriv_eq_zero`, so it is not possible to project the field `deriv_eq_zero` from an expression\n  h₁\nof type\n  IsMinFilter f (Filter.principal Set.univ) 2 ∨ IsMaxFilter f (Filter.principal Set.univ) 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.9546539783477783
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "**Proof Sketch:**\n1.  **Form of the Quadratic:** Since $f$ is a quadratic function $f(x) = ax^2 + bx + c$ and has an extremum at $x=2$ with value $f(2)=3$, it must be of the vertex form: $f(x) = a(x-2)^2 + 3$.\n2.  **Determine $a$:** Use the condition $f(4)=4$. Plugging $x=4$ into the vertex form gives $a(4-2)^2 + 3 = 4$, which simplifies to $4a + 3 = 4$, hence $a = 1/4$.\n3.  **Evaluate $f(6)$:** Substitute $x=6$ into the derived formula $f(x) = \\frac{1}{4}(x-2)^2 + 3$. This gives $f(6) = \\frac{1}{4}(6-2)^2 + 3 = \\frac{1}{4}(16) + 3 = 4 + 3 = 7$.\n\n**Completed Lean 4 Code:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is differentiable and has an extremum at x=2, f'(2) = 0\n  have h_deriv : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv_eq_zero h₁\n    apply differentiableAt_univ.mp\n    intro x\n    rw [h₀]\n    simp [differentiableAt_pow, differentiableAt_id', differentiableAt_const]\n  \n  -- Calculate deriv f x using h₀\n  have h_f_deriv : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n  \n  -- From f'(2) = 0, we get 4a + b = 0, so b = -4a\n  have h_b : b = -4 * a := by\n    specialize h_f_deriv 2\n    rw [h_deriv] at h_f_deriv\n    linarith\n  \n  -- Use f(2) = 3 to express c in terms of a\n  have h_c : c = 3 - 4 * a + 8 * a := by\n    rw [h₀] at h_h₂\n    rw [h_b] at h_h₂\n    linarith\n  -- which simplifies to c = 3 + 4a\n  have h_c' : c = 3 + 4 * a := by linarith\n  \n  -- Use f(4) = 4 to solve for a\n  have h_a : a = 1/4 := by\n    rw [h₀] at h₃\n    rw [h_b, h_c'] at h₃\n    linarith\n  \n  -- Substitute a, b, c back into f(6)\n  rw [h₀]\n  rw [h_b, h_c', h_a]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is differentiable and has an extremum at x=2, f'(2) = 0\n  have h_deriv : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv_eq_zero h₁\n    apply differentiableAt_univ.mp\n    intro x\n    rw [h₀]\n    simp [differentiableAt_pow, differentiableAt_id', differentiableAt_const]\n  \n  -- Calculate deriv f x using h₀\n  have h_f_deriv : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n  \n  -- From f'(2) = 0, we get 4a + b = 0, so b = -4a\n  have h_b : b = -4 * a := by\n    specialize h_f_deriv 2\n    rw [h_deriv] at h_f_deriv\n    linarith\n  \n  -- Use f(2) = 3 to express c in terms of a\n  have h_c : c = 3 - 4 * a + 8 * a := by\n    rw [h₀] at h_h₂\n    rw [h_b] at h_h₂\n    linarith\n  -- which simplifies to c = 3 + 4a\n  have h_c' : c = 3 + 4 * a := by linarith\n  \n  -- Use f(4) = 4 to solve for a\n  have h_a : a = 1/4 := by\n    rw [h₀] at h₃\n    rw [h_b, h_c'] at h₃\n    linarith\n  \n  -- Substitute a, b, c back into f(6)\n  rw [h₀]\n  rw [h_b, h_c', h_a]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 10
+            },
+            "endPos": {
+              "line": 18,
+              "column": 32
+            },
+            "data": "Unknown constant `IsExtrOn.deriv_eq_zero`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 34
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 8
+            },
+            "endPos": {
+              "line": 27,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  deriv f x = 2 * a * x + b\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv : deriv f 2 = 0\nx : ℝ\n⊢ deriv f x = 2 * a * x + b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 39,
+              "column": 15
+            },
+            "endPos": {
+              "line": 39,
+              "column": 19
+            },
+            "data": "Unknown identifier `h_h₂`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6822004318237305
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "To prove $f(6) = 7$ given that $f(x) = ax^2 + bx + c$ is a parabola with an extremum at $x=2$, we follow these steps:\n\n### Proof Sketch\n1.  **Vertex Form**: Since $f$ has an extremum at $x=2$ (the vertex of the parabola), the derivative $f'(2)$ must be zero. Alternatively, we can express the quadratic in vertex form: $f(x) = a(x - 2)^2 + k$.\n2.  **Determine $k$**: We are given $f(2) = 3$. Substituting $x=2$ into the vertex form gives $f(2) = a(0)^2 + k = 3$, so $k = 3$. Thus, $f(x) = a(x - 2)^2 + 3$.\n3.  **Determine $a$**: We are given $f(4) = 4$. Substituting $x=4$ into our equation: $a(4 - 2)^2 + 3 = 4 \\implies 4a + 3 = 4 \\implies 4a = 1 \\implies a = 1/4$.\n4.  **Final Calculation**: Now we evaluate $f(6)$ using $a = 1/4$ and the vertex form:\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the extremum property to find the relationship between a and b\n  have deriv_f : ∀ x, HasDerivAt f (2 * a * x + b) x := by\n    intro x\n    rw [show f = fun x => a * x^2 + b * x + c from funext h₀]\n    have d1 : HasDerivAt (fun x => a * x^2) (a * (2 * x)) x := by\n      convert HasDerivAt.const_mul a (hasDerivAt_pow 2 x)\n      ring\n    have d2 : HasDerivAt (fun x => b * x) b x := hasDerivAt_mul_const b\n    have d3 : HasDerivAt (fun _ => c) 0 x := hasDerivAt_const x c\n    convert (d1.add d2).add d3 using 1\n    ring\n\n  have h_extr : HasDerivAt f 0 2 := h₁.hasDerivAt (uniqueDiffOn_univ 2 (Set.mem_univ 2))\n  have h_eq : 2 * a * 2 + b = 0 := (deriv_f 2).unique h_extr\n  have b_eq : b = -4 * a := by linarith\n\n  -- 2. Use f(2) = 3 and f(4) = 4 to solve for a and c\n  have f2 : a * 2^2 + b * 2 + c = 3 := by rwa [h₀] at h₂\n  have f4 : a * 4^2 + b * 4 + c = 4 := by rwa [h₀] at h₃\n  \n  -- Substitute b = -4a into f2 and f4\n  have f2_sub : a * 4 + (-4 * a) * 2 + c = 3 := by rwa [b_eq] at f2\n  have f4_sub : a * 16 + (-4 * a) * 4 + c = 4 := by rwa [b_eq] at f4\n  \n  have c_eq : -4 * a + c = 3 := by linarith\n  have f4_simp : c = 4 := by linarith\n  have a_val : a = 1/4 := by linarith\n  have b_val : b = -1 := by linarith\n  \n  -- 3. Calculate f(6)\n  rw [h₀, a_val, b_val, f4_simp]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the extremum property to find the relationship between a and b\n  have deriv_f : ∀ x, HasDerivAt f (2 * a * x + b) x := by\n    intro x\n    rw [show f = fun x => a * x^2 + b * x + c from funext h₀]\n    have d1 : HasDerivAt (fun x => a * x^2) (a * (2 * x)) x := by\n      convert HasDerivAt.const_mul a (hasDerivAt_pow 2 x)\n      ring\n    have d2 : HasDerivAt (fun x => b * x) b x := hasDerivAt_mul_const b\n    have d3 : HasDerivAt (fun _ => c) 0 x := hasDerivAt_const x c\n    convert (d1.add d2).add d3 using 1\n    ring\n\n  have h_extr : HasDerivAt f 0 2 := h₁.hasDerivAt (uniqueDiffOn_univ 2 (Set.mem_univ 2))\n  have h_eq : 2 * a * 2 + b = 0 := (deriv_f 2).unique h_extr\n  have b_eq : b = -4 * a := by linarith\n\n  -- 2. Use f(2) = 3 and f(4) = 4 to solve for a and c\n  have f2 : a * 2^2 + b * 2 + c = 3 := by rwa [h₀] at h₂\n  have f4 : a * 4^2 + b * 4 + c = 4 := by rwa [h₀] at h₃\n  \n  -- Substitute b = -4a into f2 and f4\n  have f2_sub : a * 4 + (-4 * a) * 2 + c = 3 := by rwa [b_eq] at f2\n  have f4_sub : a * 16 + (-4 * a) * 4 + c = 4 := by rwa [b_eq] at f4\n  \n  have c_eq : -4 * a + c = 3 := by linarith\n  have f4_simp : c = 4 := by linarith\n  have a_val : a = 1/4 := by linarith\n  have b_val : b = -1 := by linarith\n  \n  -- 3. Calculate f(6)\n  rw [h₀, a_val, b_val, f4_simp]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 49
+            },
+            "endPos": {
+              "line": 23,
+              "column": 71
+            },
+            "data": "Type mismatch\n  hasDerivAt_mul_const b\nhas type\n  HasDerivAt (fun x => x * b) b ?m.742\nbut is expected to have type\n  HasDerivAt (fun x => b * x) b x"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 39
+            },
+            "endPos": {
+              "line": 28,
+              "column": 49
+            },
+            "data": "Invalid field `hasDerivAt`: The environment does not contain `Or.hasDerivAt`, so it is not possible to project the field `hasDerivAt` from an expression\n  h₁\nof type\n  IsMinFilter f (Filter.principal Set.univ) 2 ∨ IsMaxFilter f (Filter.principal Set.univ) 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 51
+            },
+            "endPos": {
+              "line": 37,
+              "column": 67
+            },
+            "data": "Tactic `assumption` failed\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nderiv_f : ∀ (x : ℝ), HasDerivAt f (2 * a * x + b) x\nh_extr : HasDerivAt f 0 2\nh_eq : 2 * a * 2 + b = 0\nb_eq : b = -4 * a\nf2 : a * 2 ^ 2 + -4 * a * 2 + c = 3\nf4 : a * 4 ^ 2 + b * 4 + c = 4\n⊢ a * 4 + -4 * a * 2 + c = 3"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 52
+            },
+            "endPos": {
+              "line": 38,
+              "column": 68
+            },
+            "data": "Tactic `assumption` failed\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nderiv_f : ∀ (x : ℝ), HasDerivAt f (2 * a * x + b) x\nh_extr : HasDerivAt f 0 2\nh_eq : 2 * a * 2 + b = 0\nb_eq : b = -4 * a\nf2 : a * 2 ^ 2 + b * 2 + c = 3\nf4 : a * 4 ^ 2 + -4 * a * 4 + c = 4\nf2_sub : a * 4 + -4 * a * 2 + c = 3\n⊢ a * 16 + -4 * a * 4 + c = 4"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.0034334659576416
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Identify the vertex form**: Since $f(x) = ax^2 + bx + c$ has an extremum at $x=2$, the vertex of the parabola is at $(2, f(2))$. Given $f(2) = 3$, the vertex is $(2, 3)$.\n2.  **Formulate the equation**: The vertex form of the quadratic is $f(x) = a(x - 2)^2 + 3$.\n3.  **Solve for $a$**: Using the condition $f(4) = 4$, we substitute $x=4$ into the vertex form:\n    $4 = a(4 - 2)^2 + 3 \\implies 4 = 4a + 3 \\implies 4a = 1 \\implies a = 1/4$.\n4.  **Calculate $f(6)$**: Now that $a$ is known, substitute $x=6$ into the equation:\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n5.  **Relate to standard form**: Since $f(x) = ax^2 + bx + c$ and $f(x) = \\frac{1}{4}(x-2)^2 + 3$ are equivalent, the parameters $a, b, c$ are uniquely determined by expanding the vertex form.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Use the fact that x = 2 is an extremum to find the relation between a and b\n  have h_deriv : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv_eq_zero h₁\n    exact differentiableAt_univ.mp (fun x _ => by \n      rw [h₀]\n      exact differentiableAt_id.pow 2 |>.const_mul a |>.add (differentiableAt_id.const_mul b) |>.add (differentiableAt_const c))\n    exact interior_univ ▸ Set.mem_univ 2\n  \n  -- Compute the derivative of f(x) = ax^2 + bx + c\n  have h_f_deriv : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n\n  -- From deriv f 2 = 0, we get 4a + b = 0, so b = -4a\n  have hb : b = -4 * a := by\n    rw [h_f_deriv] at h_deriv\n    linarith\n\n  -- Use f 2 = 3: a(2)^2 + b(2) + c = 3 => 4a + 2b + c = 3\n  have h_f2 : 4 * a + 2 * b + c = 3 := by\n    rw [← h₂, h₀]\n    ring\n\n  -- Use f 4 = 4: a(4)^2 + b(4) + c = 4 => 16a + 4b + c = 4\n  have h_f4 : 16 * a + 4 * b + c = 4 := by\n    rw [← h₃, h₀]\n    ring\n\n  -- Substitute b = -4a into the equations for f 2 and f 4\n  have hc : c = 4 * a + 3 := by linarith\n  have ha : a = 1/4 := by linarith\n  \n  -- Calculate f 6\n  rw [h₀]\n  rw [hb, hc, ha]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Use the fact that x = 2 is an extremum to find the relation between a and b\n  have h_deriv : deriv f 2 = 0 := by\n    apply IsExtrOn.deriv_eq_zero h₁\n    exact differentiableAt_univ.mp (fun x _ => by \n      rw [h₀]\n      exact differentiableAt_id.pow 2 |>.const_mul a |>.add (differentiableAt_id.const_mul b) |>.add (differentiableAt_const c))\n    exact interior_univ ▸ Set.mem_univ 2\n  \n  -- Compute the derivative of f(x) = ax^2 + bx + c\n  have h_f_deriv : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n\n  -- From deriv f 2 = 0, we get 4a + b = 0, so b = -4a\n  have hb : b = -4 * a := by\n    rw [h_f_deriv] at h_deriv\n    linarith\n\n  -- Use f 2 = 3: a(2)^2 + b(2) + c = 3 => 4a + 2b + c = 3\n  have h_f2 : 4 * a + 2 * b + c = 3 := by\n    rw [← h₂, h₀]\n    ring\n\n  -- Use f 4 = 4: a(4)^2 + b(4) + c = 4 => 16a + 4b + c = 4\n  have h_f4 : 16 * a + 4 * b + c = 4 := by\n    rw [← h₃, h₀]\n    ring\n\n  -- Substitute b = -4a into the equations for f 2 and f 4\n  have hc : c = 4 * a + 3 := by linarith\n  have ha : a = 1/4 := by linarith\n  \n  -- Calculate f 6\n  rw [h₀]\n  rw [hb, hc, ha]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 10
+            },
+            "endPos": {
+              "line": 18,
+              "column": 32
+            },
+            "data": "Unknown constant `IsExtrOn.deriv_eq_zero`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 21,
+              "column": 128
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 8
+            },
+            "endPos": {
+              "line": 27,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  deriv f x = 2 * a * x + b\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv : deriv f 2 = 0\nx : ℝ\n⊢ deriv f x = 2 * a * x + b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 42,
+              "column": 40
+            },
+            "endPos": {
+              "line": 44,
+              "column": 8
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_deriv : deriv f 2 = 0\nh_f_deriv : ∀ (x : ℝ), deriv f x = 2 * a * x + b\nhb : b = -4 * a\nh_f2 : 4 * a + 2 * b + c = 3\n⊢ a * 16 + a * b * 16 + b * c + b ^ 2 * 4 + c = a * 16 + b * 4 + c"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6964545249938965
+      }
+    },
+    {
+      "index": 29,
+      "status": "FAILED",
+      "raw_text": "To prove $f(6) = 7$ given the quadratic form and conditions:\n\n1.  **Identify the Vertex:** The condition `IsExtrOn f Set.univ 2` implies that the function $f(x)$ has a local extremum at $x=2$. For a quadratic function $f(x) = ax^2 + bx + c$, this means the vertex of the parabola is at $x=2$.\n2.  **Vertex Form:** Given the vertex $(h, k) = (2, f(2)) = (2, 3)$, we can write the quadratic in vertex form: $f(x) = a(x - 2)^2 + 3$.\n3.  **Determine $a$:** We use the point $(4, 4)$ provided by $f(4) = 4$:\n    $4 = a(4 - 2)^2 + 3 \\implies 4 = 4a + 3 \\implies 4a = 1 \\implies a = 1/4$.\n4.  **Calculate $f(6)$:** Substitute $x=6$ into the vertex form:\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a differentiable quadratic, the extremum at x=2 implies f'(2) = 0\n  have h_diff : Differentiable ℝ f := fun x => by\n    rw [h₀]; exact differentiable_at_univ_id.pow 2 |>.const_mul a |>.add (differentiable_at_univ_id.const_mul b) |>.add (differentiable_const c)\n  have h_deriv_zero : deriv f 2 = 0 :=\n    h₁.isLocalExtr 2 (Set.mem_univ 2) |>.hasDerivAt (h_diff 2) |>.deriv\n  \n  -- Calculate the derivative of f(x) = ax^2 + bx + c\n  have h_deriv_expr : ∀ x, deriv f x = 2 * a * x + b := fun x => by\n    rw [h₀]\n    simp only [deriv_add, deriv_const, add_zero, deriv_mul_const]\n    rw [deriv_pow_two, deriv_id'']\n    simp [mul_comm, mul_assoc]\n\n  -- From f'(2) = 0, we get 4a + b = 0 => b = -4a\n  have hb : b = -4 * a := by\n    specialize h_deriv_expr 2\n    rw [h_deriv_zero] at h_deriv_expr\n    linarith\n\n  -- Use f(2) = 3 to find c in terms of a\n  have hc : 3 = -4 * a + c := by\n    specialize h₀ 2\n    rw [h₂, hb] at h₀\n    linarith\n\n  -- Use f(4) = 4 to find a\n  have ha : a = 1/4 := by\n    specialize h₀ 4\n    rw [h₃, hb, hc] at h₀\n    linarith\n\n  -- Substitute a, b, c back into f(6)\n  rw [h₀ 6, hb, hc, ha]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is a differentiable quadratic, the extremum at x=2 implies f'(2) = 0\n  have h_diff : Differentiable ℝ f := fun x => by\n    rw [h₀]; exact differentiable_at_univ_id.pow 2 |>.const_mul a |>.add (differentiable_at_univ_id.const_mul b) |>.add (differentiable_const c)\n  have h_deriv_zero : deriv f 2 = 0 :=\n    h₁.isLocalExtr 2 (Set.mem_univ 2) |>.hasDerivAt (h_diff 2) |>.deriv\n  \n  -- Calculate the derivative of f(x) = ax^2 + bx + c\n  have h_deriv_expr : ∀ x, deriv f x = 2 * a * x + b := fun x => by\n    rw [h₀]\n    simp only [deriv_add, deriv_const, add_zero, deriv_mul_const]\n    rw [deriv_pow_two, deriv_id'']\n    simp [mul_comm, mul_assoc]\n\n  -- From f'(2) = 0, we get 4a + b = 0 => b = -4a\n  have hb : b = -4 * a := by\n    specialize h_deriv_expr 2\n    rw [h_deriv_zero] at h_deriv_expr\n    linarith\n\n  -- Use f(2) = 3 to find c in terms of a\n  have hc : 3 = -4 * a + c := by\n    specialize h₀ 2\n    rw [h₂, hb] at h₀\n    linarith\n\n  -- Use f(4) = 4 to find a\n  have ha : a = 1/4 := by\n    specialize h₀ 4\n    rw [h₃, hb, hc] at h₀\n    linarith\n\n  -- Substitute a, b, c back into f(6)\n  rw [h₀ 6, hb, hc, ha]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 8
+            },
+            "endPos": {
+              "line": 18,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  DifferentiableAt ℝ f x\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nx : ℝ\n⊢ DifferentiableAt ℝ f x"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 19
+            },
+            "endPos": {
+              "line": 20,
+              "column": 20
+            },
+            "data": "numerals are data in Lean, but the expected type is a proposition\n  Set.univ ∈ 𝓝 2 : Prop"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 8
+            },
+            "endPos": {
+              "line": 24,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  deriv f x = 2 * a * x + b\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : Differentiable ℝ f\nh_deriv_zero : deriv f 2 = 0\nx : ℝ\n⊢ deriv f x = 2 * a * x + b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 16
+            },
+            "endPos": {
+              "line": 44,
+              "column": 18
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  3\nin the target expression\n  4 = a * 4 ^ 2 + -4 * a * 4 + c\n\na b c : ℝ\nf : ℝ → ℝ\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : Differentiable ℝ f\nh_deriv_zero : deriv f 2 = 0\nh_deriv_expr : ∀ (x : ℝ), deriv f x = 2 * a * x + b\nhb : b = -4 * a\nhc : 3 = -4 * a + c\nh₀ : 4 = a * 4 ^ 2 + -4 * a * 4 + c\n⊢ a = 1 / 4"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 48,
+              "column": 16
+            },
+            "endPos": {
+              "line": 48,
+              "column": 18
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  3\nin the target expression\n  a * 6 ^ 2 + -4 * a * 6 + c = 7\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : Differentiable ℝ f\nh_deriv_zero : deriv f 2 = 0\nh_deriv_expr : ∀ (x : ℝ), deriv f x = 2 * a * x + b\nhb : b = -4 * a\nhc : 3 = -4 * a + c\nha : a = 1 / 4\n⊢ a * 6 ^ 2 + -4 * a * 6 + c = 7"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.7903449535369873
+      }
+    },
+    {
+      "index": 30,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Vertex Form**: Since $f(x) = ax^2 + bx + c$ is a quadratic and $f$ has an extremum at $x=2$, the vertex of the parabola is at $(2, f(2))$.\n2.  **Specific Form**: Given $f(2) = 3$, the vertex is $(2, 3)$. Thus, the function can be written in vertex form: $f(x) = a(x - 2)^2 + 3$.\n3.  **Find Coefficient $a$**: We are given $f(4) = 4$. Substituting this into the vertex form:\n    $4 = a(4 - 2)^2 + 3 \\implies 4 = 4a + 3 \\implies 4a = 1 \\implies a = 1/4$.\n4.  **Calculate $f(6)$**: Substitute $x=6$ and $a=1/4$ into the vertex form:\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is differentiable and has an extremum at 2, its derivative at 2 is 0.\n  have h_diff : DifferentiableAt ℝ f 2 := by\n    rw [h₀]\n    simp only [differentiableAt_id', differentiableAt_pow, differentiableAt_const, \n               DifferentiableAt.mul, DifferentiableAt.add]\n  have h_deriv_zero : deriv f 2 = 0 := \n    h₁.isLocalExtrAt (IsOpen.mem_nhds isOpen_univ (Set.mem_univ 2)) |>.hasDerivAt h_diff |>.deriv\n  \n  -- Calculate the derivative from the explicit form\n  have h_deriv_f : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n  \n  -- Use deriv f 2 = 0 and f 2 = 3 to express b and c in terms of a\n  have hb : b = -4 * a := by\n    specialize h_deriv_f 2\n    rw [h_deriv_zero] at h_deriv_f\n    linarith\n  \n  have hc : c = 3 + 4 * a := by\n    specialize h₀ 2\n    rw [h₂] at h₀\n    rw [hb] at h₀\n    linarith\n  \n  -- Use f 4 = 4 to solve for a\n  have ha : a = 1/4 := by\n    specialize h₀ 4\n    rw [h₃, hb, hc] at h₀\n    linarith\n  \n  -- Final evaluation\n  rw [h₀ 6, hb, hc, ha]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- Since f is differentiable and has an extremum at 2, its derivative at 2 is 0.\n  have h_diff : DifferentiableAt ℝ f 2 := by\n    rw [h₀]\n    simp only [differentiableAt_id', differentiableAt_pow, differentiableAt_const, \n               DifferentiableAt.mul, DifferentiableAt.add]\n  have h_deriv_zero : deriv f 2 = 0 := \n    h₁.isLocalExtrAt (IsOpen.mem_nhds isOpen_univ (Set.mem_univ 2)) |>.hasDerivAt h_diff |>.deriv\n  \n  -- Calculate the derivative from the explicit form\n  have h_deriv_f : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n  \n  -- Use deriv f 2 = 0 and f 2 = 3 to express b and c in terms of a\n  have hb : b = -4 * a := by\n    specialize h_deriv_f 2\n    rw [h_deriv_zero] at h_deriv_f\n    linarith\n  \n  have hc : c = 3 + 4 * a := by\n    specialize h₀ 2\n    rw [h₂] at h₀\n    rw [hb] at h₀\n    linarith\n  \n  -- Use f 4 = 4 to solve for a\n  have ha : a = 1/4 := by\n    specialize h₀ 4\n    rw [h₃, hb, hc] at h₀\n    linarith\n  \n  -- Final evaluation\n  rw [h₀ 6, hb, hc, ha]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 8
+            },
+            "endPos": {
+              "line": 18,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  DifferentiableAt ℝ f 2\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\n⊢ DifferentiableAt ℝ f 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 7
+            },
+            "endPos": {
+              "line": 22,
+              "column": 20
+            },
+            "data": "Invalid field `isLocalExtrAt`: The environment does not contain `Or.isLocalExtrAt`, so it is not possible to project the field `isLocalExtrAt` from an expression\n  h₁\nof type\n  IsMinFilter f (Filter.principal Set.univ) 2 ∨ IsMaxFilter f (Filter.principal Set.univ) 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 8
+            },
+            "endPos": {
+              "line": 27,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  deriv f x = 2 * a * x + b\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : DifferentiableAt ℝ f 2\nh_deriv_zero : deriv f 2 = 0\nx : ℝ\n⊢ deriv f x = 2 * a * x + b"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.8304593563079834
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Form of the Quadratic:** Since $f(x) = ax^2 + bx + c$ has an extremum at $x = 2$, the vertex of the parabola is at $(2, f(2))$.\n2.  **Vertex Form:** Given $f(2) = 3$ and the vertex is at $x=2$, we can write $f(x)$ in vertex form: $f(x) = a(x - 2)^2 + 3$.\n3.  **Find $a$:** Use the point $f(4) = 4$. Substituting into the vertex form:\n    $4 = a(4 - 2)^2 + 3 \\implies 4 = 4a + 3 \\implies a = 1/4$.\n4.  **Calculate $f(6)$:** Use the established formula $f(x) = \\frac{1}{4}(x - 2)^2 + 3$.\n    $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n---\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the extremum property to relate a and b\n  -- Since f is differentiable, f'(2) = 0\n  have h_diff : DifferentiableAt ℝ f 2 := by\n    rw [funext h₀]\n    apply DifferentiableAt.add\n    · apply DifferentiableAt.add\n      · apply DifferentiableAt.mul\n        · exact differentiableAt_const _\n        · exact differentiableAt_pow 2\n      · apply DifferentiableAt.mul\n        · exact differentiableAt_const _\n        · exact differentiableAt_id\n    · exact differentiableAt_const _\n  \n  have h_deriv_zero := h₁.hasDerivAt (isInternal_univ 2) h_diff\n  have h_deriv_f : HasDerivAt f (2 * a * 2 + b) 2 := by\n    show HasDerivAt (λ x => a * x^2 + b * x + c) (2 * a * 2 + b) 2\n    have h_deriv_poly : HasDerivAt (λ x => a * x^2 + b * x + c) (a * (2 * (2 : ℝ)^(2-1)) + b) 2 := by\n      simp only [pow_one]\n      apply HasDerivAt.add\n      · apply HasDerivAt.add\n        · apply HasDerivAt.mul_const\n          exact hasDerivAt_pow 2 2\n        · apply HasDerivAt.mul_const\n          exact hasDerivAt_id 2\n      · exact hasDerivAt_const 2 c\n    convert h_deriv_poly using 1\n    ring\n  \n  have h_b : b = -4 * a := by\n    have : 2 * a * 2 + b = 0 := h_deriv_zero.unique h_deriv_f\n    linarith\n\n  -- 2. Use f(2) = 3 to find c in terms of a\n  have h_c : c = 3 + 4 * a := by\n    rw [h₀ 2, h₂] at h_b ⊢\n    linarith\n\n  -- 3. Use f(4) = 4 to find a\n  have h_a : a = 1/4 := by\n    rw [h₀ 4, h_b, h_c] at h₃\n    linarith\n\n  -- 4. Calculate f(6)\n  rw [h₀ 6, h_b, h_c, h_a]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * (x) ^ 2 + b * x + c)\n  (h₁ : IsExtrOn f Set.univ 2)\n  (h₂ : f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the extremum property to relate a and b\n  -- Since f is differentiable, f'(2) = 0\n  have h_diff : DifferentiableAt ℝ f 2 := by\n    rw [funext h₀]\n    apply DifferentiableAt.add\n    · apply DifferentiableAt.add\n      · apply DifferentiableAt.mul\n        · exact differentiableAt_const _\n        · exact differentiableAt_pow 2\n      · apply DifferentiableAt.mul\n        · exact differentiableAt_const _\n        · exact differentiableAt_id\n    · exact differentiableAt_const _\n  \n  have h_deriv_zero := h₁.hasDerivAt (isInternal_univ 2) h_diff\n  have h_deriv_f : HasDerivAt f (2 * a * 2 + b) 2 := by\n    show HasDerivAt (λ x => a * x^2 + b * x + c) (2 * a * 2 + b) 2\n    have h_deriv_poly : HasDerivAt (λ x => a * x^2 + b * x + c) (a * (2 * (2 : ℝ)^(2-1)) + b) 2 := by\n      simp only [pow_one]\n      apply HasDerivAt.add\n      · apply HasDerivAt.add\n        · apply HasDerivAt.mul_const\n          exact hasDerivAt_pow 2 2\n        · apply HasDerivAt.mul_const\n          exact hasDerivAt_id 2\n      · exact hasDerivAt_const 2 c\n    convert h_deriv_poly using 1\n    ring\n  \n  have h_b : b = -4 * a := by\n    have : 2 * a * 2 + b = 0 := h_deriv_zero.unique h_deriv_f\n    linarith\n\n  -- 2. Use f(2) = 3 to find c in terms of a\n  have h_c : c = 3 + 4 * a := by\n    rw [h₀ 2, h₂] at h_b ⊢\n    linarith\n\n  -- 3. Use f(4) = 4 to find a\n  have h_a : a = 1/4 := by\n    rw [h₀ 4, h_b, h_c] at h₃\n    linarith\n\n  -- 4. Calculate f(6)\n  rw [h₀ 6, h_b, h_c, h_a]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 26
+            },
+            "endPos": {
+              "line": 30,
+              "column": 36
+            },
+            "data": "Invalid field `hasDerivAt`: The environment does not contain `Or.hasDerivAt`, so it is not possible to project the field `hasDerivAt` from an expression\n  h₁\nof type\n  IsMinFilter f (Filter.principal Set.univ) 2 ∨ IsMaxFilter f (Filter.principal Set.univ) 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 13
+            },
+            "endPos": {
+              "line": 61,
+              "column": 6
+            },
+            "data": "unsolved goals\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : DifferentiableAt ℝ f 2\n⊢ f 6 = 7"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.33671140670776367
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "To prove $f(6) = 7$ given that $f(x) = ax^2 + bx + c$ has an extremum at $x=2$ with value $3$ and passes through $(4,4)$, we follow these steps:\n\n### Proof Sketch\n1.  **Vertex Form**: Since $f$ is a quadratic and has an extremum at $x=2$, the vertex of the parabola is at $x=2$. The vertex form of the quadratic is $f(x) = a(x - 2)^2 + k$.\n2.  **Determine $k$**: Given $f(2) = 3$, substituting $x=2$ into the vertex form gives $k = 3$. Thus, $f(x) = a(x - 2)^2 + 3$.\n3.  **Determine $a$**: Given $f(4) = 4$, substitute $x=4$ into the equation: $4 = a(4 - 2)^2 + 3 \\implies 4 = 4a + 3 \\implies 1 = 4a \\implies a = 1/4$.\n4.  **Calculate $f(6)$**: Use the derived formula $f(x) = \\frac{1}{4}(x - 2)^2 + 3$.\n    For $x=6$: $f(6) = \\frac{1}{4}(6 - 2)^2 + 3 = \\frac{1}{4}(4^2) + 3 = \\frac{16}{4} + 3 = 4 + 3 = 7$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the extremum property to relate a and b\n  -- Since f is differentiable, f'(2) = 0\n  have h_diff : Differentiable ℝ f := by\n    intro x\n    rw [h₀]\n    apply Differentiable.add\n    · apply Differentiable.add\n      · exact differentiable_const _ |>.mul (differentiable_pow 2)\n      · exact differentiable_const _ |>.mul differentiable_id\n    · exact differentiable_const _\n    \n  have h_deriv_zero : deriv f 2 = 0 := \n    h₁.isLocalExtr Set.univ_mem_nhds |>.hasDerivAt (h_diff 2) |>.deriv\n  \n  -- Calculate the derivative from the formula\n  have h_deriv_f : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n\n  -- From deriv f 2 = 0, we get 4a + b = 0 => b = -4a\n  have h_b : b = -4 * a := by\n    have := h_deriv_f 2\n    rw [h_deriv_zero] at this\n    linarith\n\n  -- 2. Use f 2 = 3 to find c in terms of a\n  -- f 2 = a(2)^2 + b(2) + c = 4a + 2b + c = 3\n  have h_c : c = 3 + 4 * a := by\n    have := h₂\n    rw [h₀] at this\n    rw [h_b] at this\n    linarith\n\n  -- 3. Use f 4 = 4 to solve for a\n  -- f 4 = a(4)^2 + b(4) + c = 16a + 4b + c = 4\n  have h_val_a : a = 1/4 := by\n    have := h₃\n    rw [h₀, h_b, h_c] at this\n    linarith\n\n  -- 4. Calculate f 6\n  rw [h₀, h_b, h_c, h_val_a]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_214 \n  (a b c : ℝ) \n  (f : ℝ → ℝ) \n  (h₀ : ∀ x, f x = a * x ^ 2 + b * x + c)\n  (h₁: IsExtrOn f Set.univ 2)\n  (h₂: f 2 = 3)\n  (h₃ : f 4 = 4) :\n  f 6 = 7 := by\n  -- 1. Use the extremum property to relate a and b\n  -- Since f is differentiable, f'(2) = 0\n  have h_diff : Differentiable ℝ f := by\n    intro x\n    rw [h₀]\n    apply Differentiable.add\n    · apply Differentiable.add\n      · exact differentiable_const _ |>.mul (differentiable_pow 2)\n      · exact differentiable_const _ |>.mul differentiable_id\n    · exact differentiable_const _\n    \n  have h_deriv_zero : deriv f 2 = 0 := \n    h₁.isLocalExtr Set.univ_mem_nhds |>.hasDerivAt (h_diff 2) |>.deriv\n  \n  -- Calculate the derivative from the formula\n  have h_deriv_f : ∀ x, deriv f x = 2 * a * x + b := by\n    intro x\n    rw [h₀]\n    simp\n    ring\n\n  -- From deriv f 2 = 0, we get 4a + b = 0 => b = -4a\n  have h_b : b = -4 * a := by\n    have := h_deriv_f 2\n    rw [h_deriv_zero] at this\n    linarith\n\n  -- 2. Use f 2 = 3 to find c in terms of a\n  -- f 2 = a(2)^2 + b(2) + c = 4a + 2b + c = 3\n  have h_c : c = 3 + 4 * a := by\n    have := h₂\n    rw [h₀] at this\n    rw [h_b] at this\n    linarith\n\n  -- 3. Use f 4 = 4 to solve for a\n  -- f 4 = a(4)^2 + b(4) + c = 16a + 4b + c = 4\n  have h_val_a : a = 1/4 := by\n    have := h₃\n    rw [h₀, h_b, h_c] at this\n    linarith\n\n  -- 4. Calculate f 6\n  rw [h₀, h_b, h_c, h_val_a]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 8
+            },
+            "endPos": {
+              "line": 20,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  DifferentiableAt ℝ f x\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nx : ℝ\n⊢ DifferentiableAt ℝ f x"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 19
+            },
+            "endPos": {
+              "line": 28,
+              "column": 36
+            },
+            "data": "Unknown constant `Set.univ_mem_nhds`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 8
+            },
+            "endPos": {
+              "line": 33,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  f ?x\nin the target expression\n  deriv f x = 2 * a * x + b\n\na b c : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = a * x ^ 2 + b * x + c\nh₁ : IsExtrOn f Set.univ 2\nh₂ : f 2 = 3\nh₃ : f 4 = 4\nh_diff : Differentiable ℝ f\nh_deriv_zero : deriv f 2 = 0\nx : ℝ\n⊢ deriv f x = 2 * a * x + b"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6332378387451172
+      }
+    }
+  ]
+}

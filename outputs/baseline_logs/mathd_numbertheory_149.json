@@ -1,0 +1,1834 @@
+{
+  "problem": "problems/miniF2F-test/mathd_numbertheory_149.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 15:53:41",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 5,
+    "completed_count": 5,
+    "solved": true
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "SOLVED",
+      "raw_text": "To solve the theorem, we first analyze the conditions for $k \\in \\{0, 1, \\dots, 49\\}$:\n1. $k \\equiv 5 \\pmod{8}$\n2. $k \\equiv 3 \\pmod{6}$\n\nFrom $k \\equiv 5 \\pmod{8}$, the possible values for $k$ in the range $[0, 49]$ are:\n$\\{5, 13, 21, 29, 37, 45\\}$.\n\nNow we check these candidates against the second condition $k \\equiv 3 \\pmod{6}$:\n- $5 \\equiv 5 \\not\\equiv 3 \\pmod{6}$\n- $13 \\equiv 1 \\not\\equiv 3 \\pmod{6}$\n- $21 \\equiv 3 \\pmod{6}$ (Valid)\n- $29 \\equiv 5 \\not\\equiv 3 \\pmod{6}$\n- $37 \\equiv 1 \\not\\equiv 3 \\pmod{6}$\n- $45 \\equiv 3 \\pmod{6}$ (Valid)\n\nThe values satisfying both conditions are $21$ and $45$. The sum is $21 + 45 = 66$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the property for clarity\n  let p (x : ℕ) := x % 8 = 5 ∧ x % 6 = 3\n  -- Evaluate the set of elements in the range [0, 49] satisfying p\n  have h_set : Finset.filter p (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [p, mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · intro ⟨hx_range, hx8, hx6⟩\n      -- Check cases based on x % 24 (LCM of 8 and 6 is 24)\n      -- or simply exhaustive search since the range is small\n      interval_cases x <;> aesop\n    · intro hx\n      rcases hx with h | h\n      · subst h; simp\n      · subst h; simp\n  -- Sum the resulting elements\n  rw [h_set]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the property for clarity\n  let p (x : ℕ) := x % 8 = 5 ∧ x % 6 = 3\n  -- Evaluate the set of elements in the range [0, 49] satisfying p\n  have h_set : Finset.filter p (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [p, mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · intro ⟨hx_range, hx8, hx6⟩\n      -- Check cases based on x % 24 (LCM of 8 and 6 is 24)\n      -- or simply exhaustive search since the range is small\n      interval_cases x <;> aesop\n    · intro hx\n      rcases hx with h | h\n      · subst h; simp\n      · subst h; simp\n  -- Sum the resulting elements\n  rw [h_set]\n  simp",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.9592211246490479
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "To solve this problem, we need to identify the integers $k$ in the range $[0, 49]$ that satisfy the system of congruences:\n1. $k \\equiv 5 \\pmod 8$\n2. $k \\equiv 3 \\pmod 6$\n\nFrom (1), $k$ must be of the form $8m + 5$.\nSubstituting into (2): $8m + 5 \\equiv 3 \\pmod 6$.\nThis simplifies to $2m + 5 \\equiv 3 \\pmod 6$, or $2m \\equiv -2 \\equiv 4 \\pmod 6$.\nThe solutions for $2m \\equiv 4 \\pmod 6$ are $m \\equiv 2 \\pmod 3$ or $m \\equiv 5 \\pmod 3$, which is just $m \\equiv 2 \\pmod 3$.\nThus, $m = 3n + 2$.\nSubstituting $m$ back into the formula for $k$:\n$k = 8(3n + 2) + 5 = 24n + 16 + 5 = 24n + 21$.\n\nFor $k$ to be in the range $[0, 49]$, we check values of $n$:\n- If $n = 0$, $k = 21$.\n- If $n = 1$, $k = 45$.\n- If $n = 2$, $k = 69$ (out of range).\n\nThe values are $\\{21, 45\\}$. Their sum is $21 + 45 = 66$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set we are summing over\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- Enumerate the elements of the set\n  have hs : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · intro ⟨hx_range, hx_mod8, hx_mod6⟩\n      -- k % 8 = 5 implies k = 8m + 5\n      have h1 : x = 8 * (x / 8) + 5 := by rw [← hx_mod8, Nat.div_add_mod]\n      -- Test values of x = 8m + 5 < 50\n      -- m can be 0, 1, 2, 3, 4, 5\n      have hx_vals : x ∈ {5, 13, 21, 29, 37, 45} := by\n        revert hx_range hx_mod8\n        generalize h : x = k\n        intro hk_range hk_mod8\n        interval_cases k <;> aesop\n      -- Filter those where x % 6 = 3\n      rcases hx_vals with (rfl | rfl | rfl | rfl | rfl | rfl) <;> aesop\n    · intro h\n      rcases h with rfl | rfl <;> simp\n  -- Perform the sum\n  rw [hs]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set we are summing over\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- Enumerate the elements of the set\n  have hs : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · intro ⟨hx_range, hx_mod8, hx_mod6⟩\n      -- k % 8 = 5 implies k = 8m + 5\n      have h1 : x = 8 * (x / 8) + 5 := by rw [← hx_mod8, Nat.div_add_mod]\n      -- Test values of x = 8m + 5 < 50\n      -- m can be 0, 1, 2, 3, 4, 5\n      have hx_vals : x ∈ {5, 13, 21, 29, 37, 45} := by\n        revert hx_range hx_mod8\n        generalize h : x = k\n        intro hk_range hk_mod8\n        interval_cases k <;> aesop\n      -- Filter those where x % 6 = 3\n      rcases hx_vals with (rfl | rfl | rfl | rfl | rfl | rfl) <;> aesop\n    · intro h\n      rcases h with rfl | rfl <;> simp\n  -- Perform the sum\n  rw [hs]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 12
+            },
+            "endPos": {
+              "line": 17,
+              "column": 40
+            },
+            "data": "Invalid `⟨...⟩` notation: The expected type\n  List.Mem x (List.filter (fun b => decide ((fun x => x % 8 = 5 ∧ x % 6 = 3) b)) (List.range 50))\nhas more than one constructor\n\nNote: This notation can only be used when the expected type is an inductive type with a single constructor"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 6
+            },
+            "endPos": {
+              "line": 19,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 34
+            },
+            "endPos": {
+              "line": 30,
+              "column": 38
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 34
+            },
+            "endPos": {
+              "line": 30,
+              "column": 38
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 6
+            },
+            "endPos": {
+              "line": 32,
+              "column": 8
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  s\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nhs : s = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 15
+            },
+            "endPos": {
+              "line": 15,
+              "column": 25
+            },
+            "data": "This simp argument is unused:\n  mem_filter\n\nHint: Omit it from the simp argument list.\n  simp only [̵m̵e̵m̵_̵f̵i̵l̵t̵e̵r̵,̵ ̵m̵e̵m̵_̵r̵a̵n̵g̵e̵,̵[̲m̲e̲m̲_̲r̲a̲n̲g̲e̲,̲ mem_insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 27
+            },
+            "endPos": {
+              "line": 15,
+              "column": 36
+            },
+            "data": "This simp argument is unused:\n  mem_range\n\nHint: Omit it from the simp argument list.\n  simp only [mem_filter, mem_r̵a̵n̵g̵e̵,̵ ̵m̵e̵m̵_̵insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.13280963897705078
+      }
+    },
+    {
+      "index": 3,
+      "status": "SOLVED",
+      "raw_text": "To solve the theorem, we first analyze the conditions for the summation:\n1. $k \\in \\{0, 1, \\dots, 49\\}$.\n2. $k \\equiv 5 \\pmod{8}$, which means $k \\in \\{5, 13, 21, 29, 37, 45\\}$.\n3. $k \\equiv 3 \\pmod{6}$, which means $k$ is odd and a multiple of 3.\n\nChecking the candidates from the first condition against the second:\n- $5 \\pmod{6} = 5 \\neq 3$\n- $13 \\pmod{6} = 1 \\neq 3$\n- $21 \\pmod{6} = 3$ (Matches)\n- $29 \\pmod{6} = 5 \\neq 3$\n- $37 \\pmod{6} = 1 \\neq 3$\n- $45 \\pmod{6} = 3$ (Matches)\n\nThe elements satisfying both conditions are $\\{21, 45\\}$. Their sum is $21 + 45 = 66$.\n\nIn Lean, we can prove this by explicitly expanding the range and filtering, or by using the `decide` tactic or `native_decide` for computational verification, as the range is small and the predicates are decidable.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Evaluate the sum by deciding the membership for each element in the finite range.\n  native_decide\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Evaluate the sum by deciding the membership for each element in the finite range.\n  native_decide",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.051218509674072266
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "To solve the theorem, we analyze the constraints on the variable $k$:\n1. $k \\in \\{0, 1, \\dots, 49\\}$\n2. $k \\equiv 5 \\pmod{8}$\n3. $k \\equiv 3 \\pmod{6}$\n\nFrom $k \\equiv 5 \\pmod{8}$, the possible values in the range are $\\{5, 13, 21, 29, 37, 45\\}$.\nFrom $k \\equiv 3 \\pmod{6}$, the possible values in the range are $\\{3, 9, 15, 21, 27, 33, 39, 45\\}$.\n\nIntersecting these two sets gives $\\{21, 45\\}$.\nThe sum is $21 + 45 = 66$.\n\nIn Lean 4, we can prove this by explicitly evaluating the finite set using `decide` or by characterizing the elements and summing them.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We define the set of elements satisfying the condition.\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We show that the elements of this set are exactly 21 and 45.\n  have h : s = {21, 45} := by\n    apply Finset.ext\n    intro x\n    simp only [s, mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · intro ⟨hx_range, hx_mod8, hx_mod6⟩\n      -- x % 8 = 5 implies x = 8n + 5. Since x < 50, n ∈ {0, 1, 2, 3, 4, 5}.\n      have h8 : x ∈ {5, 13, 21, 29, 37, 45} := by\n        revert hx_range hx_mod8\n        generalize h : x = y\n        intro hy_range\n        match y with\n        | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 \n        | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 \n        | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 | 48 | 49 => decide\n        | n + 50 => intro; \n                    exfalso; \n                    apply Nat.not_lt_of_le (Nat.le_add_left 50 n)\n                    exact hy_range\n      -- Check which of these satisfy x % 6 = 3\n      rcases h8 with hx | hx | hx | hx | hx | hx <;> rw [hx] at hx_mod6 <;> try (simp at hx_mod6; done)\n      · left; rfl\n      · right; rfl\n    · intro hx\n      rcases hx with hx | hx <;> rw [hx] <;> decide\n  -- Now substitute and sum\n  rw [h]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We define the set of elements satisfying the condition.\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We show that the elements of this set are exactly 21 and 45.\n  have h : s = {21, 45} := by\n    apply Finset.ext\n    intro x\n    simp only [s, mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · intro ⟨hx_range, hx_mod8, hx_mod6⟩\n      -- x % 8 = 5 implies x = 8n + 5. Since x < 50, n ∈ {0, 1, 2, 3, 4, 5}.\n      have h8 : x ∈ {5, 13, 21, 29, 37, 45} := by\n        revert hx_range hx_mod8\n        generalize h : x = y\n        intro hy_range\n        match y with\n        | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 \n        | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 \n        | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 | 48 | 49 => decide\n        | n + 50 => intro; \n                    exfalso; \n                    apply Nat.not_lt_of_le (Nat.le_add_left 50 n)\n                    exact hy_range\n      -- Check which of these satisfy x % 6 = 3\n      rcases h8 with hx | hx | hx | hx | hx | hx <;> rw [hx] at hx_mod6 <;> try (simp at hx_mod6; done)\n      · left; rfl\n      · right; rfl\n    · intro hx\n      rcases hx with hx | hx <;> rw [hx] <;> decide\n  -- Now substitute and sum\n  rw [h]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 20
+            },
+            "endPos": {
+              "line": 20,
+              "column": 43
+            },
+            "data": "typeclass instance problem is stuck\n  Insert ℕ ?m.181\n\nNote: Lean will not try to resolve this typeclass instance problem because the second type argument to `Insert` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 39,
+              "column": 6
+            },
+            "endPos": {
+              "line": 39,
+              "column": 7
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  s\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nh : s = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.23929643630981445
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "To prove that the sum of all integers $k$ in the range $[0, 49]$ such that $k \\equiv 5 \\pmod 8$ and $k \\equiv 3 \\pmod 6$ is 66, we follow these steps:\n\n### Proof Sketch\n1.  **System of Congruences**: We identify the constraints on $k$:\n    *   $k \\equiv 5 \\pmod 8 \\implies k \\in \\{5, 13, 21, 29, 37, 45, \\dots\\}$\n    *   $k \\equiv 3 \\pmod 6 \\implies k \\in \\{3, 9, 15, 21, 27, 33, 39, 45, \\dots\\}$\n2.  **Intersection within Range**: We examine the intersection of these sets within the range $0 \\le k < 50$:\n    *   The values satisfying $k \\equiv 5 \\pmod 8$ in the range are $\\{5, 13, 21, 29, 37, 45\\}$.\n    *   Checking these against the second condition $k \\equiv 3 \\pmod 6$:\n        *   $5 \\pmod 6 = 5 \\neq 3$\n        *   $13 \\pmod 6 = 1 \\neq 3$\n        *   $21 \\pmod 6 = 3$ (Matches)\n        *   $29 \\pmod 6 = 5 \\neq 3$\n        *   $37 \\pmod 6 = 1 \\neq 3$\n        *   $45 \\pmod 6 = 3$ (Matches)\n3.  **Summation**: The integers satisfying both conditions are $\\{21, 45\\}$. Their sum is $21 + 45 = 66$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set S as the filtered range\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- Explicitly compute the elements of the set\n  have hs : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx_8, hx_6⟩\n      -- Check possible values for x % 24 based on CRT\n      -- Alternatively, brute force search since the range is small\n      interval_cases x <;> aesop\n    · rintro (rfl | rfl) <;> simp\n  -- Perform the sum\n  rw [hs]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set S as the filtered range\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- Explicitly compute the elements of the set\n  have hs : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx_8, hx_6⟩\n      -- Check possible values for x % 24 based on CRT\n      -- Alternatively, brute force search since the range is small\n      interval_cases x <;> aesop\n    · rintro (rfl | rfl) <;> simp\n  -- Perform the sum\n  rw [hs]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 13
+            },
+            "endPos": {
+              "line": 17,
+              "column": 35
+            },
+            "data": "Tactic `rcases` failed: `List.filter (fun b => decide ((fun x => x % 8 = 5 ∧ x % 6 = 3) b))\n  [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,\n    49]` is not a free variable"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 29
+            },
+            "endPos": {
+              "line": 21,
+              "column": 33
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 29
+            },
+            "endPos": {
+              "line": 21,
+              "column": 33
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 6
+            },
+            "endPos": {
+              "line": 23,
+              "column": 8
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  s\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nhs : s = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 15
+            },
+            "endPos": {
+              "line": 15,
+              "column": 25
+            },
+            "data": "This simp argument is unused:\n  mem_filter\n\nHint: Omit it from the simp argument list.\n  simp only [̵m̵e̵m̵_̵f̵i̵l̵t̵e̵r̵,̵ ̵m̵e̵m̵_̵r̵a̵n̵g̵e̵,̵[̲m̲e̲m̲_̲r̲a̲n̲g̲e̲,̲ mem_insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 27
+            },
+            "endPos": {
+              "line": 15,
+              "column": 36
+            },
+            "data": "This simp argument is unused:\n  mem_range\n\nHint: Omit it from the simp argument list.\n  simp only [mem_filter, mem_r̵a̵n̵g̵e̵,̵ ̵m̵e̵m̵_̵insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.20450711250305176
+      }
+    },
+    {
+      "index": 6,
+      "status": "SOLVED",
+      "raw_text": "To solve the theorem, we analyze the constraints on the variable $k$:\n1.  $k \\in \\{0, 1, \\dots, 49\\}$ (since $k \\in \\text{range}(50)$).\n2.  $k \\equiv 5 \\pmod 8$.\n3.  $k \\equiv 3 \\pmod 6$.\n\nFrom $k \\equiv 5 \\pmod 8$, the possible values for $k$ in the range $[0, 49]$ are:\n$5, 13, 21, 29, 37, 45$.\n\nNow we check these values against the second condition $k \\equiv 3 \\pmod 6$:\n- $5 \\pmod 6 = 5 \\neq 3$\n- $13 \\pmod 6 = 1 \\neq 3$\n- $21 \\pmod 6 = 3$ (Valid)\n- $29 \\pmod 6 = 5 \\neq 3$\n- $37 \\pmod 6 = 1 \\neq 3$\n- $45 \\pmod 6 = 3$ (Valid)\n\nThe values satisfying both conditions are $21$ and $45$. \nThe sum is $21 + 45 = 66$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  /-\n  We compute the filter explicitly.\n  The set is {k ∈ [0, 49] | k ≡ 5 [MOD 8] and k ≡ 3 [MOD 6]}.\n  -/\n  have h_set : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- Check possible values for x % 24 based on Chinese Remainder Theorem logic\n      -- but we can just brute force since the range is small.\n      interval_cases x <;> simp_all\n    · rintro (rfl | rfl) <;> simp\n  rw [h_set]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  /-\n  We compute the filter explicitly.\n  The set is {k ∈ [0, 49] | k ≡ 5 [MOD 8] and k ≡ 3 [MOD 6]}.\n  -/\n  have h_set : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- Check possible values for x % 24 based on Chinese Remainder Theorem logic\n      -- but we can just brute force since the range is small.\n      interval_cases x <;> simp_all\n    · rintro (rfl | rfl) <;> simp\n  rw [h_set]\n  simp",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.7394015789031982
+      }
+    },
+    {
+      "index": 7,
+      "status": "SOLVED",
+      "raw_text": "To solve the problem, we identify the integers $k$ in the range $[0, 49]$ that satisfy the system of congruences:\n1. $k \\equiv 5 \\pmod{8}$\n2. $k \\equiv 3 \\pmod{6}$\n\nFrom $k \\equiv 5 \\pmod{8}$, we can write $k = 8n + 5$ for some integer $n$.\nSubstituting this into the second congruence:\n$8n + 5 \\equiv 3 \\pmod{6}$\n$2n + 5 \\equiv 3 \\pmod{6}$\n$2n \\equiv -2 \\pmod{6}$\n$2n \\equiv 4 \\pmod{6}$\n\nThis linear congruence $2n \\equiv 4 \\pmod{6}$ is equivalent to $n \\equiv 2 \\pmod{3}$ or $n \\equiv 5 \\pmod{3}$ (which is the same). Thus, $n = 3m + 2$.\nSubstituting $n$ back into the expression for $k$:\n$k = 8(3m + 2) + 5 = 24m + 16 + 5 = 24m + 21$.\n\nWe need $0 \\le k < 50$:\nFor $m = 0$, $k = 21$.\nFor $m = 1$, $k = 45$.\nFor $m = 2$, $k = 69$ (too large).\nFor $m = -1$, $k = -3$ (too small).\n\nThe values satisfying the conditions are $\\{21, 45\\}$.\nThe sum is $21 + 45 = 66$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  /-\n  We evaluate the sum by explicitly identifying the elements of the filtered set.\n  The condition is x < 50, x ≡ 5 [MOD 8], and x ≡ 3 [MOD 6].\n  -/\n  have h_set : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_lt, hx8, hx6⟩\n      /- x % 8 = 5 implies x ∈ {5, 13, 21, 29, 37, 45} for x < 50 -/\n      interval_cases x <;> aesop\n    · rintro (rfl | rfl) <;> simp\n  rw [h_set]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  /-\n  We evaluate the sum by explicitly identifying the elements of the filtered set.\n  The condition is x < 50, x ≡ 5 [MOD 8], and x ≡ 3 [MOD 6].\n  -/\n  have h_set : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_lt, hx8, hx6⟩\n      /- x % 8 = 5 implies x ∈ {5, 13, 21, 29, 37, 45} for x < 50 -/\n      interval_cases x <;> aesop\n    · rintro (rfl | rfl) <;> simp\n  rw [h_set]\n  norm_num",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.9605679512023926
+      }
+    },
+    {
+      "index": 8,
+      "status": "FAILED",
+      "raw_text": "To prove that the sum of all integers $k$ in the range $[0, 49]$ such that $k \\equiv 5 \\pmod 8$ and $k \\equiv 3 \\pmod 6$ is 66, we follow these steps:\n\n### Proof Sketch\n1.  **Analyze the congruences**:\n    *   $k \\equiv 5 \\pmod 8 \\implies k \\in \\{5, 13, 21, 29, 37, 45, \\dots\\}$.\n    *   $k \\equiv 3 \\pmod 6 \\implies k$ must be odd and $k$ is a multiple of 3 offset by 3. Specifically, $k \\in \\{3, 9, 15, 21, 27, 33, 39, 45, \\dots\\}$.\n2.  **Find the intersection within the range $[0, 49]$**:\n    *   Checking values $k = 8n + 5$ for $n \\in \\{0, 1, 2, 3, 4, 5\\}$:\n        *   $n=0 \\implies k=5$: $5 \\pmod 6 = 5 \\neq 3$.\n        *   $n=1 \\implies k=13$: $13 \\pmod 6 = 1 \\neq 3$.\n        *   $n=2 \\implies k=21$: $21 \\pmod 6 = 3$. (Match)\n        *   $n=3 \\implies k=29$: $29 \\pmod 6 = 5 \\neq 3$.\n        *   $n=4 \\implies k=37$: $37 \\pmod 6 = 1 \\neq 3$.\n        *   $n=5 \\implies k=45$: $45 \\pmod 6 = 3$. (Match)\n3.  **Sum the matches**:\n    *   The valid values are $21$ and $45$.\n    *   Sum $= 21 + 45 = 66$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We define the set we are summing over.\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We explicitly demonstrate which elements are in the set.\n  have h : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_lt, hx8, hx6⟩\n      -- Since x < 50 and x % 8 = 5, x must be in {5, 13, 21, 29, 37, 45}\n      have : x ∈ {5, 13, 21, 29, 37, 45} := by\n        revert hx_lt hx8\n        generalize h : x = n\n        iterate 50 (cases n; decide; rename_i n)\n        simp\n      aesop\n    · rintro (rfl | rfl) <;> decide\n  -- Now we compute the sum of the set.\n  rw [h]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We define the set we are summing over.\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We explicitly demonstrate which elements are in the set.\n  have h : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_lt, hx8, hx6⟩\n      -- Since x < 50 and x % 8 = 5, x must be in {5, 13, 21, 29, 37, 45}\n      have : x ∈ {5, 13, 21, 29, 37, 45} := by\n        revert hx_lt hx8\n        generalize h : x = n\n        iterate 50 (cases n; decide; rename_i n)\n        simp\n      aesop\n    · rintro (rfl | rfl) <;> decide\n  -- Now we compute the sum of the set.\n  rw [h]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 13
+            },
+            "endPos": {
+              "line": 17,
+              "column": 30
+            },
+            "data": "Tactic `rcases` failed: `List.filter (fun b => decide ((fun x => x % 8 = 5 ∧ x % 6 = 3) b))\n  [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,\n    49]` is not a free variable"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 6
+            },
+            "endPos": {
+              "line": 27,
+              "column": 7
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  s\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nh : s = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 15
+            },
+            "endPos": {
+              "line": 15,
+              "column": 25
+            },
+            "data": "This simp argument is unused:\n  mem_filter\n\nHint: Omit it from the simp argument list.\n  simp only [̵m̵e̵m̵_̵f̵i̵l̵t̵e̵r̵,̵ ̵m̵e̵m̵_̵r̵a̵n̵g̵e̵,̵[̲m̲e̲m̲_̲r̲a̲n̲g̲e̲,̲ mem_insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 27
+            },
+            "endPos": {
+              "line": 15,
+              "column": 36
+            },
+            "data": "This simp argument is unused:\n  mem_range\n\nHint: Omit it from the simp argument list.\n  simp only [mem_filter, mem_r̵a̵n̵g̵e̵,̵ ̵m̵e̵m̵_̵insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.20503640174865723
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we characterize the elements in the set $\\{x \\in \\mathbb{N} \\mid 0 \\le x < 50, x \\equiv 5 \\pmod 8, x \\equiv 3 \\pmod 6\\}$.\n\n**Proof Sketch:**\n1.  **Analyze the congruences:** We are looking for $x$ such that $x = 8m + 5$ and $x = 6n + 3$.\n2.  From $x = 6n + 3$, we know $x$ must be odd and a multiple of 3 plus 3 (so $x \\in \\{3, 9, 15, 21, 27, 33, 39, 45\\}$ within the range $[0, 49]$).\n3.  From $x = 8m + 5$, we test these candidates:\n    *   $3 \\pmod 8 = 3 \\neq 5$\n    *   $9 \\pmod 8 = 1 \\neq 5$\n    *   $15 \\pmod 8 = 7 \\neq 5$\n    *   $21 \\pmod 8 = 5$ (Match!)\n    *   $27 \\pmod 8 = 3 \\neq 5$\n    *   $33 \\pmod 8 = 1 \\neq 5$\n    *   $39 \\pmod 8 = 7 \\neq 5$\n    *   $45 \\pmod 8 = 5$ (Match!)\n4.  The elements satisfying both conditions in the range $[0, 49]$ are $\\{21, 45\\}$.\n5.  The sum is $21 + 45 = 66$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We define the set S as the filtered range\n  let S := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We prove that S is exactly {21, 45}\n  have hS : S = {21, 45} := by\n    apply Finset.ext\n    intro x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_lt, hx8, hx6⟩\n      -- Since x % 6 = 3, x = 6n + 3. Since x < 50, n < 8.\n      have hx_odd : x % 2 = 1 := by\n        rw [← Nat.mod_mod_of_dvd x (show 2 ∣ 6 by norm_num)]\n        rw [hx6]\n        norm_num\n      -- Exhaustive check or narrowing down\n      interval_cases x <;> aesop\n    · rintro (rfl | rfl) <;> aesop\n  -- Now compute the sum\n  rw [hS]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We define the set S as the filtered range\n  let S := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We prove that S is exactly {21, 45}\n  have hS : S = {21, 45} := by\n    apply Finset.ext\n    intro x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_lt, hx8, hx6⟩\n      -- Since x % 6 = 3, x = 6n + 3. Since x < 50, n < 8.\n      have hx_odd : x % 2 = 1 := by\n        rw [← Nat.mod_mod_of_dvd x (show 2 ∣ 6 by norm_num)]\n        rw [hx6]\n        norm_num\n      -- Exhaustive check or narrowing down\n      interval_cases x <;> aesop\n    · rintro (rfl | rfl) <;> aesop\n  -- Now compute the sum\n  rw [hS]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 13
+            },
+            "endPos": {
+              "line": 18,
+              "column": 30
+            },
+            "data": "Tactic `rcases` failed: `List.filter (fun b => decide ((fun x => x % 8 = 5 ∧ x % 6 = 3) b))\n  [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,\n    49]` is not a free variable"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 6
+            },
+            "endPos": {
+              "line": 28,
+              "column": 8
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  S\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\nS : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nhS : S = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 16,
+              "column": 15
+            },
+            "endPos": {
+              "line": 16,
+              "column": 25
+            },
+            "data": "This simp argument is unused:\n  mem_filter\n\nHint: Omit it from the simp argument list.\n  simp only [̵m̵e̵m̵_̵f̵i̵l̵t̵e̵r̵,̵ ̵m̵e̵m̵_̵r̵a̵n̵g̵e̵,̵[̲m̲e̲m̲_̲r̲a̲n̲g̲e̲,̲ mem_insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 16,
+              "column": 27
+            },
+            "endPos": {
+              "line": 16,
+              "column": 36
+            },
+            "data": "This simp argument is unused:\n  mem_range\n\nHint: Omit it from the simp argument list.\n  simp only [mem_filter, mem_r̵a̵n̵g̵e̵,̵ ̵m̵e̵m̵_̵insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.23259592056274414
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we analyze the constraints on the variable $k$ within the range $[0, 49]$.\n\n**Proof Sketch:**\n1.  **Identify the constraints:** We are looking for natural numbers $k$ such that $0 \\le k < 50$, $k \\equiv 5 \\pmod 8$, and $k \\equiv 3 \\pmod 6$.\n2.  **Solve the system of congruences:**\n    *   From $k \\equiv 3 \\pmod 6$, we know $k$ is odd.\n    *   From $k \\equiv 5 \\pmod 8$, the possible values for $k < 50$ are $\\{5, 13, 21, 29, 37, 45\\}$.\n3.  **Check the second congruence for these values:**\n    *   $5 \\pmod 6 = 5 \\neq 3$\n    *   $13 \\pmod 6 = 1 \\neq 3$\n    *   $21 \\pmod 6 = 3$ (Matches)\n    *   $29 \\pmod 6 = 5 \\neq 3$\n    *   $37 \\pmod 6 = 1 \\neq 3$\n    *   $45 \\pmod 6 = 3$ (Matches)\n4.  **Sum the valid values:** The values satisfying both conditions are $21$ and $45$. Their sum is $21 + 45 = 66$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set we are summing over\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- Show explicitly which elements are in the set\n  have hs : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- Check values k = 8n + 5 < 50\n      -- n=0: 5, n=1: 13, n=2: 21, n=3: 29, n=4: 37, n=5: 45\n      interval_cases x <;> aesop\n    · rintro (rfl | rfl) <;> aesop\n  -- Perform the summation\n  rw [hs]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set we are summing over\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- Show explicitly which elements are in the set\n  have hs : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- Check values k = 8n + 5 < 50\n      -- n=0: 5, n=1: 13, n=2: 21, n=3: 29, n=4: 37, n=5: 45\n      interval_cases x <;> aesop\n    · rintro (rfl | rfl) <;> aesop\n  -- Perform the summation\n  rw [hs]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 13
+            },
+            "endPos": {
+              "line": 17,
+              "column": 33
+            },
+            "data": "Tactic `rcases` failed: `List.filter (fun b => decide ((fun x => x % 8 = 5 ∧ x % 6 = 3) b))\n  [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,\n    49]` is not a free variable"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 6
+            },
+            "endPos": {
+              "line": 23,
+              "column": 8
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  s\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nhs : s = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 15
+            },
+            "endPos": {
+              "line": 15,
+              "column": 25
+            },
+            "data": "This simp argument is unused:\n  mem_filter\n\nHint: Omit it from the simp argument list.\n  simp only [̵m̵e̵m̵_̵f̵i̵l̵t̵e̵r̵,̵ ̵m̵e̵m̵_̵r̵a̵n̵g̵e̵,̵[̲m̲e̲m̲_̲r̲a̲n̲g̲e̲,̲ mem_insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 27
+            },
+            "endPos": {
+              "line": 15,
+              "column": 36
+            },
+            "data": "This simp argument is unused:\n  mem_range\n\nHint: Omit it from the simp argument list.\n  simp only [mem_filter, mem_r̵a̵n̵g̵e̵,̵ ̵m̵e̵m̵_̵insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.2220745086669922
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "To solve this problem, we characterize the integers $k$ satisfying the given conditions within the range $[0, 49]$.\nThe conditions are:\n1.  $k \\equiv 5 \\pmod 8 \\implies k \\in \\{5, 13, 21, 29, 37, 45\\}$.\n2.  $k \\equiv 3 \\pmod 6 \\implies k \\in \\{3, 9, 15, 21, 27, 33, 39, 45\\}$.\n\nBy taking the intersection of these two sets, we find the integers that satisfy both conditions: $\\{21, 45\\}$.\nThe sum of these integers is $21 + 45 = 66$.\n\nIn Lean 4, we can prove this by explicitly evaluating the filtered finset and summing its elements.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Evaluate the set of numbers satisfying the condition\n  have h : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx_mod8, hx_mod6⟩\n      -- Narrow down possibilities using mod 8 and mod 6\n      have h1 : x = 21 ∨ x = 45 := by\n        revert hx_range hx_mod8 hx_mod6\n        decide\n      exact h1\n    · rintro (rfl | rfl) <;> simp\n  -- Rewrite the sum using the explicit set and compute\n  rw [h]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Evaluate the set of numbers satisfying the condition\n  have h : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx_mod8, hx_mod6⟩\n      -- Narrow down possibilities using mod 8 and mod 6\n      have h1 : x = 21 ∨ x = 45 := by\n        revert hx_range hx_mod8 hx_mod6\n        decide\n      exact h1\n    · rintro (rfl | rfl) <;> simp\n  -- Rewrite the sum using the explicit set and compute\n  rw [h]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 8
+            },
+            "endPos": {
+              "line": 19,
+              "column": 14
+            },
+            "data": "Expected type must not contain free variables\n  x < 50 → x % 8 = 5 → x % 6 = 3 → x = 21 ∨ x = 45\n\nHint: Use the `+revert` option to automatically clean up and revert free variables"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.19919419288635254
+      }
+    },
+    {
+      "index": 12,
+      "status": "SOLVED",
+      "raw_text": "To solve this problem, we characterize the integers $k$ in the range $[0, 49]$ that satisfy the simultaneous congruences $k \\equiv 5 \\pmod 8$ and $k \\equiv 3 \\pmod 6$.\n\n**Proof Sketch:**\n1.  **Congruence Analysis:** \n    *   $k \\equiv 5 \\pmod 8 \\implies k \\in \\{5, 13, 21, 29, 37, 45, \\dots\\}$.\n    *   $k \\equiv 3 \\pmod 6 \\implies k$ must be odd and a multiple of 3 plus some offset.\n2.  **Intersection:** \n    *   Checking the elements of the first set within the range $0 \\le k < 50$:\n        *   $5 \\pmod 6 = 5 \\neq 3$\n        *   $13 \\pmod 6 = 1 \\neq 3$\n        *   $21 \\pmod 6 = 3$ (Matches)\n        *   $29 \\pmod 6 = 5 \\neq 3$\n        *   $37 \\pmod 6 = 1 \\neq 3$\n        *   $45 \\pmod 6 = 3$ (Matches)\n3.  **Summation:** The elements satisfying both conditions in the range are $\\{21, 45\\}$. Their sum is $21 + 45 = 66$.\n\nIn Lean, we can use `decide` or computational evaluation because the set is finite and small.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We evaluate the finite sum by explicitly computing the filtered set.\n  have h : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- x % 8 = 5 means x = 8n + 5. Since x < 50, n ∈ {0, 1, 2, 3, 4, 5}.\n      interval_cases x <;> aesop\n    · rintro (rfl | rfl) <;> simp\n  rw [h]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We evaluate the finite sum by explicitly computing the filtered set.\n  have h : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- x % 8 = 5 means x = 8n + 5. Since x < 50, n ∈ {0, 1, 2, 3, 4, 5}.\n      interval_cases x <;> aesop\n    · rintro (rfl | rfl) <;> simp\n  rw [h]\n  simp",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.9639914035797119
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "To solve the theorem, we first analyze the conditions for the summation:\n1. $k$ must be in the range $[0, 49]$.\n2. $k \\equiv 5 \\pmod{8}$.\n3. $k \\equiv 3 \\pmod{6}$.\n\nFrom $k \\equiv 3 \\pmod{6}$, we know $k$ must be odd. From $k \\equiv 5 \\pmod{8}$, we check the candidates:\n- $k = 5$ (Check: $5 \\equiv 5 \\pmod{6}$ - No)\n- $k = 13$ (Check: $13 \\equiv 1 \\pmod{6}$ - No)\n- $k = 21$ (Check: $21 \\equiv 3 \\pmod{6}$ - Yes)\n- $k = 29$ (Check: $29 \\equiv 5 \\pmod{6}$ - No)\n- $k = 37$ (Check: $37 \\equiv 1 \\pmod{6}$ - No)\n- $k = 45$ (Check: $45 \\equiv 3 \\pmod{6}$ - Yes)\n\nThe numbers satisfying the conditions are $\\{21, 45\\}$. Their sum is $21 + 45 = 66$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We identify the set of numbers satisfying the criteria.\n  -- The criteria are x < 50, x % 8 = 5, and x % 6 = 3.\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  have h : s = {21, 45} := by\n    apply Finset.ext\n    intro x\n    simp only [s, mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · intro ⟨hx_lt, hx8, hx6⟩\n      -- x % 8 = 5 implies x = 8n + 5\n      have ⟨n, hn⟩ : ∃ n, x = 8 * n + 5 := exists_eq_mul_left_add_of_mod_eq hx8\n      subst hn\n      have : 8 * n + 5 < 50 := hx_lt\n      have : 8 * n < 45 := by linarith\n      have hn_range : n < 6 := by linarith\n      interval_cases n <;> aesop\n    · intro h\n      rcases h with rfl | rfl <;> simp\n  rw [h]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We identify the set of numbers satisfying the criteria.\n  -- The criteria are x < 50, x % 8 = 5, and x % 6 = 3.\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  have h : s = {21, 45} := by\n    apply Finset.ext\n    intro x\n    simp only [s, mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · intro ⟨hx_lt, hx8, hx6⟩\n      -- x % 8 = 5 implies x = 8n + 5\n      have ⟨n, hn⟩ : ∃ n, x = 8 * n + 5 := exists_eq_mul_left_add_of_mod_eq hx8\n      subst hn\n      have : 8 * n + 5 < 50 := hx_lt\n      have : 8 * n < 45 := by linarith\n      have hn_range : n < 6 := by linarith\n      interval_cases n <;> aesop\n    · intro h\n      rcases h with rfl | rfl <;> simp\n  rw [h]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 43
+            },
+            "endPos": {
+              "line": 20,
+              "column": 75
+            },
+            "data": "Unknown identifier `exists_eq_mul_left_add_of_mod_eq`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 6
+            },
+            "endPos": {
+              "line": 28,
+              "column": 7
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  s\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nh : s = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.7768585681915283
+      }
+    },
+    {
+      "index": 14,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we characterize the elements $k$ in the range $[0, 49]$ that satisfy the conditions $k \\equiv 5 \\pmod 8$ and $k \\equiv 3 \\pmod 6$.\n\n**Proof Sketch:**\n1.  **Decompose the conditions:**\n    *   $k \\equiv 5 \\pmod 8$ means $k \\in \\{5, 13, 21, 29, 37, 45, \\dots\\}$.\n    *   $k \\equiv 3 \\pmod 6$ means $k \\in \\{3, 9, 15, 21, 27, 33, 39, 45, \\dots\\}$.\n2.  **Find the intersection:**\n    *   Checking elements in the range $0 \\le k < 50$:\n        *   $k = 5$: $5 \\equiv 5 \\pmod 8$ (Yes), $5 \\equiv 5 \\not\\equiv 3 \\pmod 6$ (No).\n        *   $k = 13$: $13 \\equiv 5 \\pmod 8$ (Yes), $13 \\equiv 1 \\not\\equiv 3 \\pmod 6$ (No).\n        *   $k = 21$: $21 \\equiv 5 \\pmod 8$ (Yes), $21 \\equiv 3 \\pmod 6$ (Yes).\n        *   $k = 29$: $29 \\equiv 5 \\pmod 8$ (Yes), $29 \\equiv 5 \\not\\equiv 3 \\pmod 6$ (No).\n        *   $k = 37$: $37 \\equiv 5 \\pmod 8$ (Yes), $37 \\equiv 1 \\not\\equiv 3 \\pmod 6$ (No).\n        *   $k = 45$: $45 \\equiv 5 \\pmod 8$ (Yes), $45 \\equiv 3 \\pmod 6$ (Yes).\n3.  **Sum the results:**\n    *   The elements satisfying both conditions are $21$ and $45$.\n    *   The sum is $21 + 45 = 66$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the condition for clarity\n  let p (x : ℕ) := x % 8 = 5 ∧ x % 6 = 3\n  -- We identify the set elements manually or via decidability\n  have h : Finset.filter p (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton, p]\n    constructor\n    · rintro ⟨hx, h8, h6⟩\n      -- Since x < 50 and x % 8 = 5, x must be 5, 13, 21, 29, 37, or 45\n      have hx8 : x ∈ {5, 13, 21, 29, 37, 45} := by\n        revert h8 hx\n        generalize h_range : Finset.range 50 = R\n        interval_cases x <;> aesop\n      -- Now check x % 6 = 3 for each candidate\n      rcases hx8 with (rfl | rfl | rfl | rfl | rfl | rfl)\n      · contradiction -- 5 % 6 = 5\n      · contradiction -- 13 % 6 = 1\n      · left; rfl     -- 21 % 6 = 3\n      · contradiction -- 29 % 6 = 5\n      · contradiction -- 37 % 6 = 1\n      · right; rfl    -- 45 % 6 = 3\n    · rintro (rfl | rfl)\n      · exact ⟨by norm_num, by norm_num, by norm_num⟩\n      · exact ⟨by norm_num, by norm_num, by norm_num⟩\n  rw [h]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the condition for clarity\n  let p (x : ℕ) := x % 8 = 5 ∧ x % 6 = 3\n  -- We identify the set elements manually or via decidability\n  have h : Finset.filter p (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton, p]\n    constructor\n    · rintro ⟨hx, h8, h6⟩\n      -- Since x < 50 and x % 8 = 5, x must be 5, 13, 21, 29, 37, or 45\n      have hx8 : x ∈ {5, 13, 21, 29, 37, 45} := by\n        revert h8 hx\n        generalize h_range : Finset.range 50 = R\n        interval_cases x <;> aesop\n      -- Now check x % 6 = 3 for each candidate\n      rcases hx8 with (rfl | rfl | rfl | rfl | rfl | rfl)\n      · contradiction -- 5 % 6 = 5\n      · contradiction -- 13 % 6 = 1\n      · left; rfl     -- 21 % 6 = 3\n      · contradiction -- 29 % 6 = 5\n      · contradiction -- 37 % 6 = 1\n      · right; rfl    -- 45 % 6 = 3\n    · rintro (rfl | rfl)\n      · exact ⟨by norm_num, by norm_num, by norm_num⟩\n      · exact ⟨by norm_num, by norm_num, by norm_num⟩\n  rw [h]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 21
+            },
+            "endPos": {
+              "line": 19,
+              "column": 44
+            },
+            "data": "typeclass instance problem is stuck\n  Insert ℕ ?m.148\n\nNote: Lean will not try to resolve this typeclass instance problem because the second type argument to `Insert` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.20752239227294922
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "To prove that the sum of integers $k$ in the range $[0, 49]$ satisfying $k \\equiv 5 \\pmod 8$ and $k \\equiv 3 \\pmod 6$ is 66, we follow this sketch:\n\n1.  **Characterize the conditions**: We look for $k \\in \\{0, \\dots, 49\\}$ such that $k = 8m + 5$ and $k = 6n + 3$.\n2.  **Analyze parity and divisibility**: \n    *   $k \\equiv 3 \\pmod 6$ implies $k$ is odd and a multiple of 3.\n    *   $k \\equiv 5 \\pmod 8$ implies $k \\in \\{5, 13, 21, 29, 37, 45\\}$.\n3.  **Filter the candidates**:\n    *   $5 \\pmod 6 = 5 \\neq 3$\n    *   $13 \\pmod 6 = 1 \\neq 3$\n    *   $21 \\pmod 6 = 3$ (Matches)\n    *   $29 \\pmod 6 = 5 \\neq 3$\n    *   $37 \\pmod 6 = 1 \\neq 3$\n    *   $45 \\pmod 6 = 3$ (Matches)\n4.  **Sum the results**: The integers satisfying both conditions are $21$ and $45$. Their sum is $21 + 45 = 66$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We define the set we are summing over.\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We explicitly evaluate the filter.\n  have h : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_lt, hx8, hx6⟩\n      -- x % 8 = 5 means x = 8n + 5. Since x < 50, n ∈ {0, 1, 2, 3, 4, 5}.\n      have hx_vals : x ∈ ({5, 13, 21, 29, 37, 45} : Set ℕ) := by\n        have : x < 8 * 6 := by linarith\n        revert hx8 hx_lt\n        generalize hx : x = k\n        interval_cases k <;> simp [hx]\n      rcases hx_vals with (rfl | rfl | rfl | rfl | rfl | rfl) <;> (simp at hx6 || (simp [hx6] at hx6))\n    · rintro (rfl | rfl) <;> simp\n  -- Perform the sum.\n  rw [h]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We define the set we are summing over.\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We explicitly evaluate the filter.\n  have h : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_lt, hx8, hx6⟩\n      -- x % 8 = 5 means x = 8n + 5. Since x < 50, n ∈ {0, 1, 2, 3, 4, 5}.\n      have hx_vals : x ∈ ({5, 13, 21, 29, 37, 45} : Set ℕ) := by\n        have : x < 8 * 6 := by linarith\n        revert hx8 hx_lt\n        generalize hx : x = k\n        interval_cases k <;> simp [hx]\n      rcases hx_vals with (rfl | rfl | rfl | rfl | rfl | rfl) <;> (simp at hx6 || (simp [hx6] at hx6))\n    · rintro (rfl | rfl) <;> simp\n  -- Perform the sum.\n  rw [h]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 78
+            },
+            "endPos": {
+              "line": 24,
+              "column": 81
+            },
+            "data": "unexpected token '||'; expected ')'"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 13
+            },
+            "endPos": {
+              "line": 17,
+              "column": 30
+            },
+            "data": "Tactic `rcases` failed: `List.filter (fun b => decide ((fun x => x % 8 = 5 ∧ x % 6 = 3) b))\n  [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,\n    49]` is not a free variable"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 27
+            },
+            "endPos": {
+              "line": 24,
+              "column": 78
+            },
+            "data": "unsolved goals\ncase h.mpr\ns : Finset ℕ := ⋯\nx : ℕ\n⊢ x = 21 ∨ x = 45 → x ∈ s"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 90
+            },
+            "endPos": {
+              "line": 24,
+              "column": 78
+            },
+            "data": "unsolved goals\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nh : s = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.13924837112426758
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "To solve this problem, we characterize the integers $k \\in [0, 49]$ that satisfy the simultaneous congruences $k \\equiv 5 \\pmod 8$ and $k \\equiv 3 \\pmod 6$.\n\n1.  **Analyze the congruences:**\n    *   $k \\equiv 5 \\pmod 8 \\implies k \\in \\{5, 13, 21, 29, 37, 45\\}$.\n    *   $k \\equiv 3 \\pmod 6 \\implies k$ is odd and a multiple of 3 plus some offset. Specifically, $k \\in \\{3, 9, 15, 21, 27, 33, 39, 45\\}$.\n\n2.  **Intersection of constraints:**\n    *   The values satisfying both within the range $[0, 49]$ are $\\{21, 45\\}$.\n    *   Checking 21: $21 = 2 \\times 8 + 5$ and $21 = 3 \\times 6 + 3$. Correct.\n    *   Checking 45: $45 = 5 \\times 8 + 5$ and $45 = 7 \\times 6 + 3$. Correct.\n\n3.  **Summation:**\n    *   The sum is $21 + 45 = 66$.\n\nIn Lean, we can compute this sum by explicitly evaluating the filter on the finite range.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We define the set we are summing over\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We evaluate the filter explicitly\n  have h : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨h_range, h8, h6⟩\n      interval_cases x <;> simp_all\n    · rintro (rfl | rfl) <;> simp\n  -- Apply the result of the filter to the sum\n  rw [h]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We define the set we are summing over\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We evaluate the filter explicitly\n  have h : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨h_range, h8, h6⟩\n      interval_cases x <;> simp_all\n    · rintro (rfl | rfl) <;> simp\n  -- Apply the result of the filter to the sum\n  rw [h]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 13
+            },
+            "endPos": {
+              "line": 17,
+              "column": 30
+            },
+            "data": "Tactic `rcases` failed: `List.filter (fun b => decide ((fun x => x % 8 = 5 ∧ x % 6 = 3) b))\n  [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,\n    49]` is not a free variable"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 29
+            },
+            "endPos": {
+              "line": 19,
+              "column": 33
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 29
+            },
+            "endPos": {
+              "line": 19,
+              "column": 33
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 6
+            },
+            "endPos": {
+              "line": 21,
+              "column": 7
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  s\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nh : s = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 15
+            },
+            "endPos": {
+              "line": 15,
+              "column": 25
+            },
+            "data": "This simp argument is unused:\n  mem_filter\n\nHint: Omit it from the simp argument list.\n  simp only [̵m̵e̵m̵_̵f̵i̵l̵t̵e̵r̵,̵ ̵m̵e̵m̵_̵r̵a̵n̵g̵e̵,̵[̲m̲e̲m̲_̲r̲a̲n̲g̲e̲,̲ mem_insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 27
+            },
+            "endPos": {
+              "line": 15,
+              "column": 36
+            },
+            "data": "This simp argument is unused:\n  mem_range\n\nHint: Omit it from the simp argument list.\n  simp only [mem_filter, mem_r̵a̵n̵g̵e̵,̵ ̵m̵e̵m̵_̵insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.24105525016784668
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "To prove that the sum of all integers $k$ in the range $[0, 49]$ such that $k \\equiv 5 \\pmod 8$ and $k \\equiv 3 \\pmod 6$ is 66, we follow these steps:\n\n### Proof Sketch\n1.  **Analyze the Constraints**: We are looking for integers $k \\in \\{0, 1, \\dots, 49\\}$ satisfying:\n    *   (1) $k \\equiv 5 \\pmod 8 \\implies k \\in \\{5, 13, 21, 29, 37, 45\\}$\n    *   (2) $k \\equiv 3 \\pmod 6 \\implies k$ must be odd and a multiple of 3 plus 3.\n2.  **Find the Intersection**:\n    *   Test $k=5$: $5 \\pmod 6 = 5 \\neq 3$.\n    *   Test $k=13$: $13 \\pmod 6 = 1 \\neq 3$.\n    *   Test $k=21$: $21 \\pmod 6 = 3$. (Matches!)\n    *   Test $k=29$: $29 \\pmod 6 = 5 \\neq 3$.\n    *   Test $k=37$: $37 \\pmod 6 = 1 \\neq 3$.\n    *   Test $k=45$: $45 \\pmod 6 = 3$. (Matches!)\n3.  **Sum the Values**: The values satisfying both conditions in the range are $\\{21, 45\\}$.\n4.  **Final Calculation**: $21 + 45 = 66$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set we are summing over\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- Explicitly state the members of the set\n  have h_set : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton, s]\n    constructor\n    · intro ⟨hx_range, hx_8, hx_6⟩\n      -- Narrow down by x % 8 = 5\n      have hx_vals : x ∈ {5, 13, 21, 29, 37, 45} := by\n        revert hx_range hx_8\n        generalize h : x = n\n        intro h_range h_8\n        interval_cases n <;> aesop\n      rcases hx_vals with rfl | rfl | rfl | rfl | rfl | rfl <;> aesop\n    · intro h\n      rcases h with rfl | rfl <;> aesop\n  -- Perform the sum\n  rw [h_set]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set we are summing over\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- Explicitly state the members of the set\n  have h_set : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton, s]\n    constructor\n    · intro ⟨hx_range, hx_8, hx_6⟩\n      -- Narrow down by x % 8 = 5\n      have hx_vals : x ∈ {5, 13, 21, 29, 37, 45} := by\n        revert hx_range hx_8\n        generalize h : x = n\n        intro h_range h_8\n        interval_cases n <;> aesop\n      rcases hx_vals with rfl | rfl | rfl | rfl | rfl | rfl <;> aesop\n    · intro h\n      rcases h with rfl | rfl <;> aesop\n  -- Perform the sum\n  rw [h_set]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 25
+            },
+            "endPos": {
+              "line": 19,
+              "column": 48
+            },
+            "data": "typeclass instance problem is stuck\n  Insert ℕ ?m.181\n\nNote: Lean will not try to resolve this typeclass instance problem because the second type argument to `Insert` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 6
+            },
+            "endPos": {
+              "line": 28,
+              "column": 11
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  s\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nh_set : s = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.35952234268188477
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we characterize the elements $k$ in the range $[0, 49]$ that satisfy the conditions $k \\equiv 5 \\pmod 8$ and $k \\equiv 3 \\pmod 6$.\n\n1.  **Congruence System**: We have $k \\equiv 5 \\pmod 8$ and $k \\equiv 3 \\pmod 6$.\n2.  **Implications**:\n    -   $k \\equiv 5 \\pmod 8 \\implies k \\in \\{5, 13, 21, 29, 37, 45\\}$ for $k < 50$.\n    -   $k \\equiv 3 \\pmod 6 \\implies k \\in \\{3, 9, 15, 21, 27, 33, 39, 45\\}$.\n3.  **Intersection**: The values satisfying both conditions in the range $[0, 49]$ are $\\{21, 45\\}$.\n4.  **Summation**: $21 + 45 = 66$.\n\nIn Lean, we can use `dec_trivial` or computational evaluation because the set is finite and small.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the property for filtering\n  let p := fun x : ℕ => x % 8 = 5 ∧ x % 6 = 3\n  -- The set we are summing over\n  let s := Finset.filter p (Finset.range 50)\n  -- We prove the set contains exactly 21 and 45\n  have h_set : s = {21, 45} := by\n    apply Finset.ext\n    intro x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · intro ⟨hx_range, hx_cond⟩\n      -- Check x manually or via cases\n      match x with\n      | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 => \n        simp [p] at hx_cond\n      | 21 => left; rfl\n      | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 => \n        simp [p] at hx_cond\n      | 45 => right; rfl\n      | _ => \n        simp [p] at hx_cond\n        -- Range is < 50, so handle indices 46-49\n        omega\n    · intro h\n      cases h with\n      | inl h21 => subst h21; simp\n      | inr h45 => subst h45; simp\n  -- Perform the sum\n  rw [h_set]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the property for filtering\n  let p := fun x : ℕ => x % 8 = 5 ∧ x % 6 = 3\n  -- The set we are summing over\n  let s := Finset.filter p (Finset.range 50)\n  -- We prove the set contains exactly 21 and 45\n  have h_set : s = {21, 45} := by\n    apply Finset.ext\n    intro x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · intro ⟨hx_range, hx_cond⟩\n      -- Check x manually or via cases\n      match x with\n      | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 => \n        simp [p] at hx_cond\n      | 21 => left; rfl\n      | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40 | 41 | 42 | 43 | 44 => \n        simp [p] at hx_cond\n      | 45 => right; rfl\n      | _ => \n        simp [p] at hx_cond\n        -- Range is < 50, so handle indices 46-49\n        omega\n    · intro h\n      cases h with\n      | inl h21 => subst h21; simp\n      | inr h45 => subst h45; simp\n  -- Perform the sum\n  rw [h_set]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 12
+            },
+            "endPos": {
+              "line": 20,
+              "column": 31
+            },
+            "data": "Invalid `⟨...⟩` notation: The expected type\n  List.Mem x (List.filter (fun b => decide (p b)) (List.range 50))\nhas more than one constructor\n\nNote: This notation can only be used when the expected type is an inductive type with a single constructor"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 6
+            },
+            "endPos": {
+              "line": 32,
+              "column": 13
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 30
+            },
+            "endPos": {
+              "line": 35,
+              "column": 34
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 30
+            },
+            "endPos": {
+              "line": 36,
+              "column": 34
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 6
+            },
+            "endPos": {
+              "line": 38,
+              "column": 11
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  s\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\np : ℕ → Prop := fun x => x % 8 = 5 ∧ x % 6 = 3\ns : Finset ℕ := filter p (range 50)\nh_set : s = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 18,
+              "column": 15
+            },
+            "endPos": {
+              "line": 18,
+              "column": 25
+            },
+            "data": "This simp argument is unused:\n  mem_filter\n\nHint: Omit it from the simp argument list.\n  simp only [̵m̵e̵m̵_̵f̵i̵l̵t̵e̵r̵,̵ ̵m̵e̵m̵_̵r̵a̵n̵g̵e̵,̵[̲m̲e̲m̲_̲r̲a̲n̲g̲e̲,̲ mem_insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 18,
+              "column": 27
+            },
+            "endPos": {
+              "line": 18,
+              "column": 36
+            },
+            "data": "This simp argument is unused:\n  mem_range\n\nHint: Omit it from the simp argument list.\n  simp only [mem_filter, mem_r̵a̵n̵g̵e̵,̵ ̵m̵e̵m̵_̵insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.1938643455505371
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "To prove that the sum of all integers $k$ in the range $[0, 49]$ such that $k \\equiv 5 \\pmod 8$ and $k \\equiv 3 \\pmod 6$ is equal to 66, we follow these steps:\n\n### Proof Sketch\n1.  **Analyze the congruences:**\n    *   $k \\equiv 5 \\pmod 8 \\implies k \\in \\{5, 13, 21, 29, 37, 45, \\dots\\}$\n    *   $k \\equiv 3 \\pmod 6 \\implies k \\in \\{3, 9, 15, 21, 27, 33, 39, 45, \\dots\\}$\n2.  **Find common solutions in the range $[0, 49]$:**\n    *   Comparing the lists or solving the system:\n        *   $k = 8m + 5$\n        *   Substituting into the second congruence: $8m + 5 \\equiv 3 \\pmod 6 \\implies 2m \\equiv -2 \\equiv 4 \\pmod 6 \\implies m \\equiv 2, 5 \\pmod 3$.\n    *   For $m = 2$: $k = 8(2) + 5 = 21$.\n    *   For $m = 5$: $k = 8(5) + 5 = 45$.\n    *   For $m = 8$: $k = 8(8) + 5 = 69$ (out of range).\n3.  **Sum the valid elements:**\n    *   The values of $k$ satisfying both conditions in the range are $21$ and $45$.\n    *   Sum $= 21 + 45 = 66$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We identify the elements in the range [0, 49] satisfying the conditions.\n  have h_set : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- Since x < 50 and x % 8 = 5, x must be 5, 13, 21, 29, 37, or 45.\n      have hx8_vals : x ∈ [5, 13, 21, 29, 37, 45] := by\n        have : x = 8 * (x / 8) + x % 8 := (Nat.div_add_mod x 8).symm\n        rw [hx8] at this\n        have : x / 8 < 7 := by linarith [hx_range]\n        interval_cases h : x / 8 <;> rw [h] at this <;> norm_num at this <;> aesop\n      -- Now check which of these satisfy x % 6 = 3\n      rcases hx8_vals with h | h | h | h | h | h <;> rw [h] at hx6 <;> norm_num at hx6\n      · exact Or.inl h\n      · exact Or.inr h\n    · rintro (rfl | rfl) <;> norm_num\n  -- Finally, sum the elements of the set.\n  rw [h_set]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We identify the elements in the range [0, 49] satisfying the conditions.\n  have h_set : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- Since x < 50 and x % 8 = 5, x must be 5, 13, 21, 29, 37, or 45.\n      have hx8_vals : x ∈ [5, 13, 21, 29, 37, 45] := by\n        have : x = 8 * (x / 8) + x % 8 := (Nat.div_add_mod x 8).symm\n        rw [hx8] at this\n        have : x / 8 < 7 := by linarith [hx_range]\n        interval_cases h : x / 8 <;> rw [h] at this <;> norm_num at this <;> aesop\n      -- Now check which of these satisfy x % 6 = 3\n      rcases hx8_vals with h | h | h | h | h | h <;> rw [h] at hx6 <;> norm_num at hx6\n      · exact Or.inl h\n      · exact Or.inr h\n    · rintro (rfl | rfl) <;> norm_num\n  -- Finally, sum the elements of the set.\n  rw [h_set]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 41
+            },
+            "endPos": {
+              "line": 21,
+              "column": 42
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  x / 8\nin the target expression\n  0 < 7\n\ncase «0»\nx : ℕ\nhx_range : x < 50\nhx8 : x % 8 = 5\nhx6 : x % 6 = 3\nh : x / 8 = 0\nthis✝ : x = 8 * 0 + 5\nthis : 0 < 7\n⊢ x ∈ [5, 13, 21, 29, 37, 45]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 41
+            },
+            "endPos": {
+              "line": 21,
+              "column": 42
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  x / 8\nin the target expression\n  1 < 7\n\ncase «1»\nx : ℕ\nhx_range : x < 50\nhx8 : x % 8 = 5\nhx6 : x % 6 = 3\nh : x / 8 = 1\nthis✝ : x = 8 * 1 + 5\nthis : 1 < 7\n⊢ x ∈ [5, 13, 21, 29, 37, 45]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 41
+            },
+            "endPos": {
+              "line": 21,
+              "column": 42
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  x / 8\nin the target expression\n  2 < 7\n\ncase «2»\nx : ℕ\nhx_range : x < 50\nhx8 : x % 8 = 5\nhx6 : x % 6 = 3\nh : x / 8 = 2\nthis✝ : x = 8 * 2 + 5\nthis : 2 < 7\n⊢ x ∈ [5, 13, 21, 29, 37, 45]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 41
+            },
+            "endPos": {
+              "line": 21,
+              "column": 42
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  x / 8\nin the target expression\n  3 < 7\n\ncase «3»\nx : ℕ\nhx_range : x < 50\nhx8 : x % 8 = 5\nhx6 : x % 6 = 3\nh : x / 8 = 3\nthis✝ : x = 8 * 3 + 5\nthis : 3 < 7\n⊢ x ∈ [5, 13, 21, 29, 37, 45]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 41
+            },
+            "endPos": {
+              "line": 21,
+              "column": 42
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  x / 8\nin the target expression\n  4 < 7\n\ncase «4»\nx : ℕ\nhx_range : x < 50\nhx8 : x % 8 = 5\nhx6 : x % 6 = 3\nh : x / 8 = 4\nthis✝ : x = 8 * 4 + 5\nthis : 4 < 7\n⊢ x ∈ [5, 13, 21, 29, 37, 45]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 41
+            },
+            "endPos": {
+              "line": 21,
+              "column": 42
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  x / 8\nin the target expression\n  5 < 7\n\ncase «5»\nx : ℕ\nhx_range : x < 50\nhx8 : x % 8 = 5\nhx6 : x % 6 = 3\nh : x / 8 = 5\nthis✝ : x = 8 * 5 + 5\nthis : 5 < 7\n⊢ x ∈ [5, 13, 21, 29, 37, 45]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 41
+            },
+            "endPos": {
+              "line": 21,
+              "column": 42
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  x / 8\nin the target expression\n  6 < 7\n\ncase «6»\nx : ℕ\nhx_range : x < 50\nhx8 : x % 8 = 5\nhx6 : x % 6 = 3\nh : x / 8 = 6\nthis✝ : x = 8 * 6 + 5\nthis : 6 < 7\n⊢ x ∈ [5, 13, 21, 29, 37, 45]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 27
+            },
+            "endPos": {
+              "line": 23,
+              "column": 48
+            },
+            "data": "Tactic `rcases` failed: `5` is not a free variable"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6234292984008789
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "To prove that the sum of all $k < 50$ satisfying $k \\equiv 5 \\pmod 8$ and $k \\equiv 3 \\pmod 6$ is $66$, we follow these steps:\n\n### Proof Sketch\n1.  **Analyze the congruences**:\n    *   $k \\equiv 5 \\pmod 8$ implies $k \\in \\{5, 13, 21, 29, 37, 45, \\dots\\}$.\n    *   $k \\equiv 3 \\pmod 6$ implies $k$ is an odd multiple of 3, specifically $k \\in \\{3, 9, 15, 21, 27, 33, 39, 45, \\dots\\}$.\n2.  **Find the intersection within the range $[0, 49]$**:\n    *   Testing values from the first set:\n        *   $5 \\pmod 6 = 5 \\neq 3$.\n        *   $13 \\pmod 6 = 1 \\neq 3$.\n        *   $21 \\pmod 6 = 3$. (Matches)\n        *   $29 \\pmod 6 = 5 \\neq 3$.\n        *   $37 \\pmod 6 = 1 \\neq 3$.\n        *   $45 \\pmod 6 = 3$. (Matches)\n    *   The values satisfy both conditions if and only if $k \\in \\{21, 45\\}$.\n3.  **Sum the values**:\n    *   $21 + 45 = 66$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50), k) = 66 := by\n  /-\n  We compute the filter explicitly. \n  The range is small (0 to 49), so we can evaluate the filter set.\n  -/\n  have h_set : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- x % 8 = 5 implies x = 8n + 5\n      have hx_vals : x ∈ {5, 13, 21, 29, 37, 45} := by\n        revert hx_range hx8\n        interval_cases x <;> simp\n      rcases hx_vals with rfl | rfl | rfl | rfl | rfl | rfl\n      · simp at hx6 -- 5 % 6 = 5 != 3\n      · simp at hx6 -- 13 % 6 = 1 != 3\n      · left; rfl   -- 21 % 6 = 3\n      · simp at hx6 -- 29 % 6 = 5 != 3\n      · simp at hx6 -- 37 % 6 = 1 != 3\n      · right; rfl  -- 45 % 6 = 3\n    · rintro (rfl | rfl)\n      · simp\n      · simp\n  rw [h_set]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50), k) = 66 := by\n  /-\n  We compute the filter explicitly. \n  The range is small (0 to 49), so we can evaluate the filter set.\n  -/\n  have h_set : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- x % 8 = 5 implies x = 8n + 5\n      have hx_vals : x ∈ {5, 13, 21, 29, 37, 45} := by\n        revert hx_range hx8\n        interval_cases x <;> simp\n      rcases hx_vals with rfl | rfl | rfl | rfl | rfl | rfl\n      · simp at hx6 -- 5 % 6 = 5 != 3\n      · simp at hx6 -- 13 % 6 = 1 != 3\n      · left; rfl   -- 21 % 6 = 3\n      · simp at hx6 -- 29 % 6 = 5 != 3\n      · simp at hx6 -- 37 % 6 = 1 != 3\n      · right; rfl  -- 45 % 6 = 3\n    · rintro (rfl | rfl)\n      · simp\n      · simp\n  rw [h_set]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 25
+            },
+            "endPos": {
+              "line": 20,
+              "column": 48
+            },
+            "data": "typeclass instance problem is stuck\n  Insert ℕ ?m.166\n\nNote: Lean will not try to resolve this typeclass instance problem because the second type argument to `Insert` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3079700469970703
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "To solve the theorem, we analyze the constraints on the natural numbers $k$ within the range $0 \\le k < 50$.\n\n**Proof Sketch:**\n1.  **Analyze the congruences:** We are looking for $k \\in \\{0, 1, \\dots, 49\\}$ such that:\n    -   $k \\equiv 5 \\pmod 8$\n    -   $k \\equiv 3 \\pmod 6$\n2.  **Solve the system:**\n    -   From $k \\equiv 5 \\pmod 8$, $k$ can be $5, 13, 21, 29, 37, 45$.\n    -   From $k \\equiv 3 \\pmod 6$, $k$ must be odd and a multiple of 3.\n3.  **Check candidates:**\n    -   $5 \\pmod 6 = 5 \\neq 3$\n    -   $13 \\pmod 6 = 1 \\neq 3$\n    -   $21 \\pmod 6 = 3$ (Matches)\n    -   $29 \\pmod 6 = 5 \\neq 3$\n    -   $37 \\pmod 6 = 1 \\neq 3$\n    -   $45 \\pmod 6 = 3$ (Matches)\n4.  **Sum the values:** The values satisfying both conditions are $21$ and $45$. Their sum is $21 + 45 = 66$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set S as the filtered range\n  let S := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We explicitly evaluate the set S\n  have hS : S = {21, 45} := by\n    apply Finset.ext\n    intro x\n    simp only [S, mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · intro ⟨hx_range, hx8, hx6⟩\n      -- Check all possibilities for x % 24 using the Chinese Remainder Theorem logic\n      -- but since the range is small, we can just check values\n      interval_cases x <;> simp_all\n    · intro hx\n      rcases hx with rfl | rfl\n      · repeat (constructor) <;> norm_num\n      · repeat (constructor) <;> norm_num\n  -- Sum the elements of the set\n  rw [hS]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set S as the filtered range\n  let S := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We explicitly evaluate the set S\n  have hS : S = {21, 45} := by\n    apply Finset.ext\n    intro x\n    simp only [S, mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · intro ⟨hx_range, hx8, hx6⟩\n      -- Check all possibilities for x % 24 using the Chinese Remainder Theorem logic\n      -- but since the range is small, we can just check values\n      interval_cases x <;> simp_all\n    · intro hx\n      rcases hx with rfl | rfl\n      · repeat (constructor) <;> norm_num\n      · repeat (constructor) <;> norm_num\n  -- Sum the elements of the set\n  rw [hS]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 6
+            },
+            "endPos": {
+              "line": 27,
+              "column": 8
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  S\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\nS : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nhS : S = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6175618171691895
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we analyze the constraints on the variable $k$ within the range $[0, 49]$.\n\n**Proof Sketch:**\n1.  **Identify the constraints:** We are looking for integers $k$ such that $0 \\leq k < 50$, $k \\equiv 5 \\pmod 8$, and $k \\equiv 3 \\pmod 6$.\n2.  **Solve the system of congruences:**\n    *   From $k \\equiv 5 \\pmod 8$, the possible values for $k$ are $\\{5, 13, 21, 29, 37, 45\\}$.\n    *   From $k \\equiv 3 \\pmod 6$, we check these candidates:\n        *   $5 \\equiv 5 \\pmod 6$ (False)\n        *   $13 \\equiv 1 \\pmod 6$ (False)\n        *   $21 \\equiv 3 \\pmod 6$ (True)\n        *   $29 \\equiv 5 \\pmod 6$ (False)\n        *   $37 \\equiv 1 \\pmod 6$ (False)\n        *   $45 \\equiv 3 \\pmod 6$ (True)\n3.  **Sum the valid values:** The values of $k$ satisfying both conditions in the range are $21$ and $45$.\n4.  **Calculate:** $21 + 45 = 66$.\n\nIn Lean 4, we can prove this by explicitly expanding the finite set using the `decide` tactic or by normalizing the sum.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We compute the filter over the finite range [0, 49]\n  have h_set : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_lt, hx8, hx6⟩\n      -- Narrow down by modulo 8: x = 8n + 5\n      match x, hx_lt with\n      | 5, _ => simp [hx6]\n      | 13, _ => simp [hx6]\n      | 21, _ => simp [hx6]\n      | 29, _ => simp [hx6]\n      | 37, _ => simp [hx6]\n      | 45, _ => simp [hx6]\n      | x, _ => \n        -- Systematic check for all values up to 49\n        -- Given x % 8 = 5, x must be in {5, 13, 21, 29, 37, 45}\n        have : x ∈ [5, 13, 21, 29, 37, 45] := by\n          revert hx8 hx_lt\n          decide\n        aesop\n    · rintro (rfl | rfl) <;> simp\n  \n  rw [h_set]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We compute the filter over the finite range [0, 49]\n  have h_set : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_lt, hx8, hx6⟩\n      -- Narrow down by modulo 8: x = 8n + 5\n      match x, hx_lt with\n      | 5, _ => simp [hx6]\n      | 13, _ => simp [hx6]\n      | 21, _ => simp [hx6]\n      | 29, _ => simp [hx6]\n      | 37, _ => simp [hx6]\n      | 45, _ => simp [hx6]\n      | x, _ => \n        -- Systematic check for all values up to 49\n        -- Given x % 8 = 5, x must be in {5, 13, 21, 29, 37, 45}\n        have : x ∈ [5, 13, 21, 29, 37, 45] := by\n          revert hx8 hx_lt\n          decide\n        aesop\n    · rintro (rfl | rfl) <;> simp\n  \n  rw [h_set]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 13
+            },
+            "endPos": {
+              "line": 30,
+              "column": 13
+            },
+            "data": "unsolved goals\nx : ℕ\nhx_lt : x < 50\nx✝ : 5 < 50\nhx8 : 5 % 8 = 5\nhx6 : 5 % 6 = 3\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 14
+            },
+            "endPos": {
+              "line": 30,
+              "column": 13
+            },
+            "data": "unsolved goals\nx : ℕ\nhx_lt : x < 50\nx✝ : 13 < 50\nhx8 : 13 % 8 = 5\nhx6 : 13 % 6 = 3\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 14
+            },
+            "endPos": {
+              "line": 30,
+              "column": 13
+            },
+            "data": "unsolved goals\nx : ℕ\nhx_lt : x < 50\nx✝ : 29 < 50\nhx8 : 29 % 8 = 5\nhx6 : 29 % 6 = 3\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 14
+            },
+            "endPos": {
+              "line": 30,
+              "column": 13
+            },
+            "data": "unsolved goals\nx : ℕ\nhx_lt : x < 50\nx✝ : 37 < 50\nhx8 : 37 % 8 = 5\nhx6 : 37 % 6 = 3\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 10
+            },
+            "endPos": {
+              "line": 29,
+              "column": 16
+            },
+            "data": "Expected type must not contain free variables\n  x✝¹ < 50 → x % 8 = 5 → x ∈ [5, 13, 21, 29, 37, 45]\n\nHint: Use the `+revert` option to automatically clean up and revert free variables"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 18,
+              "column": 22
+            },
+            "endPos": {
+              "line": 18,
+              "column": 25
+            },
+            "data": "This simp argument is unused:\n  hx6\n\nHint: Omit it from the simp argument list.\n  simp ̵[̵h̵x̵6̵]̵\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 19,
+              "column": 23
+            },
+            "endPos": {
+              "line": 19,
+              "column": 26
+            },
+            "data": "This simp argument is unused:\n  hx6\n\nHint: Omit it from the simp argument list.\n  simp ̵[̵h̵x̵6̵]̵\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 20,
+              "column": 23
+            },
+            "endPos": {
+              "line": 20,
+              "column": 26
+            },
+            "data": "This simp argument is unused:\n  hx6\n\nHint: Omit it from the simp argument list.\n  simp ̵[̵h̵x̵6̵]̵\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 21,
+              "column": 23
+            },
+            "endPos": {
+              "line": 21,
+              "column": 26
+            },
+            "data": "This simp argument is unused:\n  hx6\n\nHint: Omit it from the simp argument list.\n  simp ̵[̵h̵x̵6̵]̵\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 22,
+              "column": 23
+            },
+            "endPos": {
+              "line": 22,
+              "column": 26
+            },
+            "data": "This simp argument is unused:\n  hx6\n\nHint: Omit it from the simp argument list.\n  simp ̵[̵h̵x̵6̵]̵\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 23,
+              "column": 23
+            },
+            "endPos": {
+              "line": 23,
+              "column": 26
+            },
+            "data": "This simp argument is unused:\n  hx6\n\nHint: Omit it from the simp argument list.\n  simp ̵[̵h̵x̵6̵]̵\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.5341472625732422
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "To solve this problem, we need to find all integers $k$ in the range $0 \\le k < 50$ that satisfy the system of congruences:\n1. $k \\equiv 5 \\pmod 8$\n2. $k \\equiv 3 \\pmod 6$\n\n**Proof Sketch:**\n1. **Analyze the first congruence:** $k \\equiv 5 \\pmod 8$ means $k = 8n + 5$ for some integer $n$.\n2. **Analyze the second congruence:** $k \\equiv 3 \\pmod 6$ means $k$ is odd and $k \\equiv 0 \\pmod 3$.\n3. **Combine constraints:**\n   - Substituting $k = 8n + 5$ into the second congruence: $8n + 5 \\equiv 3 \\pmod 6$.\n   - Simplify: $2n + 5 \\equiv 3 \\pmod 6 \\Rightarrow 2n \\equiv -2 \\equiv 4 \\pmod 6$.\n   - This linear congruence $2n \\equiv 4 \\pmod 6$ has solutions $n \\equiv 2 \\pmod 3$ (since $2 \\times 2 = 4$ and $2 \\times 5 = 10 \\equiv 4$).\n4. **List possible values for $k$:**\n   - For $n = 2$, $k = 8(2) + 5 = 21$.\n   - For $n = 5$, $k = 8(5) + 5 = 45$.\n   - For $n = 8$, $k = 8(8) + 5 = 69$ (which is $\\ge 50$).\n5. **Check values in range $[0, 50)$:** The valid values are $\\{21, 45\\}$.\n6. **Calculate sum:** $21 + 45 = 66$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We identify the elements of the set by testing them or solving the congruence.\n  -- The elements satisfy k < 50, k = 8n + 5 and k = 6m + 3.\n  have h_set : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_lt, h8, h6⟩\n      -- x % 8 = 5 means x = 8*n + 5\n      have : x ∈ {21, 45} := by\n        revert hx_lt h8 h6\n        generalize h : x = n\n        match n with\n        | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10\n        | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20\n        | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30\n        | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40\n        | 41 | 42 | 43 | 44 | 45 | 46 | 47 | 48 | 49 =>\n          decide\n        | _ + 50 => intro h_lt; exfalso; linarith\n      exact this\n    · rintro (rfl | rfl) <;> decide\n  rw [h_set]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We identify the elements of the set by testing them or solving the congruence.\n  -- The elements satisfy k < 50, k = 8n + 5 and k = 6m + 3.\n  have h_set : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_lt, h8, h6⟩\n      -- x % 8 = 5 means x = 8*n + 5\n      have : x ∈ {21, 45} := by\n        revert hx_lt h8 h6\n        generalize h : x = n\n        match n with\n        | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10\n        | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20\n        | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30\n        | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 | 40\n        | 41 | 42 | 43 | 44 | 45 | 46 | 47 | 48 | 49 =>\n          decide\n        | _ + 50 => intro h_lt; exfalso; linarith\n      exact this\n    · rintro (rfl | rfl) <;> decide\n  rw [h_set]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 17
+            },
+            "endPos": {
+              "line": 18,
+              "column": 25
+            },
+            "data": "typeclass instance problem is stuck\n  Insert ℕ ?m.146\n\nNote: Lean will not try to resolve this typeclass instance problem because the second type argument to `Insert` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.30445051193237305
+      }
+    },
+    {
+      "index": 24,
+      "status": "FAILED",
+      "raw_text": "To solve this problem, we characterize the elements $k$ in the range $[0, 49]$ that satisfy the system of congruences:\n1. $k \\equiv 5 \\pmod{8}$\n2. $k \\equiv 3 \\pmod{6}$\n\nFrom the first congruence, $k = 8m + 5$ for some integer $m$. Substituting this into the second:\n$8m + 5 \\equiv 3 \\pmod{6}$\n$2m \\equiv -2 \\equiv 4 \\pmod{6}$\n$m \\equiv 2 \\pmod{3}$ or $m \\equiv 5 \\pmod{3}$, which simplifies to $m = 3n + 2$ for some integer $n$.\n\nSubstituting back into $k$:\n$k = 8(3n + 2) + 5 = 24n + 16 + 5 = 24n + 21$.\n\nFor $k$ to be in the range $[0, 49]$:\n- If $n = 0$, $k = 21$.\n- If $n = 1$, $k = 45$.\n- If $n = 2$, $k = 69$ (too large).\n- If $n = -1$, $k = -3$ (too small).\n\nThe set of such $k$ is $\\{21, 45\\}$. The sum is $21 + 45 = 66$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the condition\n  let p (x : ℕ) := x % 8 = 5 ∧ x % 6 = 3\n  -- We identify the elements in the range [0, 49] satisfying p\n  have h_set : Finset.filter p (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton, p]\n    constructor\n    · rintro ⟨hx, h8, h6⟩\n      -- x % 8 = 5 means x = 8k + 5\n      have : ∃ k, x = 8 * k + 5 := Nat.exists_eq_mul_add_of_mod_eq h8\n      rcases this with ⟨k, rfl⟩\n      -- Check constraints on k based on x < 50\n      -- 8k + 5 < 50 => 8k < 45 => k <= 5\n      have hk : k ≤ 5 := by linarith\n      -- Substitute into second condition: (8k + 5) % 6 = 3\n      have hmod : (2 * k + 5) % 6 = 3 := by\n        rw [← h6]\n        simp [Nat.add_mod, Nat.mul_mod]\n      -- Test values of k from 0 to 5\n      interval_cases k <;> simp at hmod <;> try contradiction\n      · left; rfl\n      · right; rfl\n    · rintro (rfl | rfl) <;> aesop\n  -- Final summation\n  rw [h_set]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the condition\n  let p (x : ℕ) := x % 8 = 5 ∧ x % 6 = 3\n  -- We identify the elements in the range [0, 49] satisfying p\n  have h_set : Finset.filter p (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton, p]\n    constructor\n    · rintro ⟨hx, h8, h6⟩\n      -- x % 8 = 5 means x = 8k + 5\n      have : ∃ k, x = 8 * k + 5 := Nat.exists_eq_mul_add_of_mod_eq h8\n      rcases this with ⟨k, rfl⟩\n      -- Check constraints on k based on x < 50\n      -- 8k + 5 < 50 => 8k < 45 => k <= 5\n      have hk : k ≤ 5 := by linarith\n      -- Substitute into second condition: (8k + 5) % 6 = 3\n      have hmod : (2 * k + 5) % 6 = 3 := by\n        rw [← h6]\n        simp [Nat.add_mod, Nat.mul_mod]\n      -- Test values of k from 0 to 5\n      interval_cases k <;> simp at hmod <;> try contradiction\n      · left; rfl\n      · right; rfl\n    · rintro (rfl | rfl) <;> aesop\n  -- Final summation\n  rw [h_set]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 35
+            },
+            "endPos": {
+              "line": 19,
+              "column": 66
+            },
+            "data": "Unknown constant `Nat.exists_eq_mul_add_of_mod_eq`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5926501750946045
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "To prove that the sum of all integers $k \\in [0, 49]$ satisfying $k \\equiv 5 \\pmod 8$ and $k \\equiv 3 \\pmod 6$ is 66, we follow these steps:\n\n### Proof Sketch\n1.  **Analyze the congruences**:\n    *   $k \\equiv 5 \\pmod 8 \\implies k \\in \\{5, 13, 21, 29, 37, 45, \\dots\\}$.\n    *   $k \\equiv 3 \\pmod 6 \\implies k \\in \\{3, 9, 15, 21, 27, 33, 39, 45, 51, \\dots\\}$.\n2.  **Find the intersection within the range $[0, 49]$**:\n    *   Testing values of $k = 8m + 5$:\n        *   $m=0: 5 \\pmod 6 = 5 \\neq 3$.\n        *   $m=1: 13 \\pmod 6 = 1 \\neq 3$.\n        *   $m=2: 21 \\pmod 6 = 3$. (Matches)\n        *   $m=3: 29 \\pmod 6 = 5 \\neq 3$.\n        *   $m=4: 37 \\pmod 6 = 1 \\neq 3$.\n        *   $m=5: 45 \\pmod 6 = 3$. (Matches)\n        *   $m=6: 53 > 49$.\n3.  **Identify valid elements**: The elements are $\\{21, 45\\}$.\n4.  **Sum the elements**: $21 + 45 = 66$.\n5.  **Implementation**: Use `Finset.decide_mem` or explicit evaluation since the range is small.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set we are summing over\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- Evaluate the set explicitly\n  have hs : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · intro ⟨h_range, h8, h6⟩\n      -- Exhaustive check for x < 50\n      interval_cases x <;> simp_all\n    · intro h\n      rcases h with rfl | rfl\n      · simp\n      · simp\n  -- Perform the sum\n  rw [hs]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set we are summing over\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- Evaluate the set explicitly\n  have hs : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · intro ⟨h_range, h8, h6⟩\n      -- Exhaustive check for x < 50\n      interval_cases x <;> simp_all\n    · intro h\n      rcases h with rfl | rfl\n      · simp\n      · simp\n  -- Perform the sum\n  rw [hs]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 12
+            },
+            "endPos": {
+              "line": 17,
+              "column": 29
+            },
+            "data": "Invalid `⟨...⟩` notation: The expected type\n  List.Mem x (List.filter (fun b => decide ((fun x => x % 8 = 5 ∧ x % 6 = 3) b)) (List.range 50))\nhas more than one constructor\n\nNote: This notation can only be used when the expected type is an inductive type with a single constructor"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 6
+            },
+            "endPos": {
+              "line": 19,
+              "column": 35
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 8
+            },
+            "endPos": {
+              "line": 22,
+              "column": 12
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 12
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 6
+            },
+            "endPos": {
+              "line": 25,
+              "column": 8
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  s\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nhs : s = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 15
+            },
+            "endPos": {
+              "line": 15,
+              "column": 25
+            },
+            "data": "This simp argument is unused:\n  mem_filter\n\nHint: Omit it from the simp argument list.\n  simp only [̵m̵e̵m̵_̵f̵i̵l̵t̵e̵r̵,̵ ̵m̵e̵m̵_̵r̵a̵n̵g̵e̵,̵[̲m̲e̲m̲_̲r̲a̲n̲g̲e̲,̲ mem_insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 27
+            },
+            "endPos": {
+              "line": 15,
+              "column": 36
+            },
+            "data": "This simp argument is unused:\n  mem_range\n\nHint: Omit it from the simp argument list.\n  simp only [mem_filter, mem_r̵a̵n̵g̵e̵,̵ ̵m̵e̵m̵_̵insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.19928383827209473
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we analyze the constraints on $k$ within the range $[0, 49]$.\nThe conditions are:\n1.  $k \\equiv 5 \\pmod{8}$\n2.  $k \\equiv 3 \\pmod{6}$\n\nFrom (2), we know $k$ must be an odd multiple of 3 (specifically $k = 6m + 3$).\nFrom (1), the possible values for $k$ in the range $[0, 49]$ that satisfy $k \\equiv 5 \\pmod{8}$ are:\n$5, 13, 21, 29, 37, 45$.\n\nNow we check each against $k \\equiv 3 \\pmod{6}$:\n- $5 \\equiv 5 \\pmod{6}$ (No)\n- $13 \\equiv 1 \\pmod{6}$ (No)\n- $21 \\equiv 3 \\pmod{6}$ (Yes)\n- $29 \\equiv 5 \\pmod{6}$ (No)\n- $37 \\equiv 1 \\pmod{6}$ (No)\n- $45 \\equiv 3 \\pmod{6}$ (Yes)\n\nThe elements of the set are $\\{21, 45\\}$. Their sum is $21 + 45 = 66$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set we are summing over\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- Show that the set is exactly {21, 45}\n  have h : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- Since x < 50 and x % 8 = 5, x must be in {5, 13, 21, 29, 37, 45}\n      have hx_vals : x ∈ ({5, 13, 21, 29, 37, 45} : Set ℕ) := by\n        revert hx8 hx_range\n        generalize hx : x = n\n        interval_cases n <;> aesop\n      -- Filter these values by x % 6 = 3\n      rcases hx_vals with (rfl | rfl | rfl | rfl | rfl | rfl) <;> \n      simp_all [Nat.mod_eq_of_lt]\n    · rintro (rfl | rfl) <;> (simp; decide)\n  -- Calculate the sum\n  rw [h]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set we are summing over\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- Show that the set is exactly {21, 45}\n  have h : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- Since x < 50 and x % 8 = 5, x must be in {5, 13, 21, 29, 37, 45}\n      have hx_vals : x ∈ ({5, 13, 21, 29, 37, 45} : Set ℕ) := by\n        revert hx8 hx_range\n        generalize hx : x = n\n        interval_cases n <;> aesop\n      -- Filter these values by x % 6 = 3\n      rcases hx_vals with (rfl | rfl | rfl | rfl | rfl | rfl) <;> \n      simp_all [Nat.mod_eq_of_lt]\n    · rintro (rfl | rfl) <;> (simp; decide)\n  -- Calculate the sum\n  rw [h]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 13
+            },
+            "endPos": {
+              "line": 17,
+              "column": 33
+            },
+            "data": "Tactic `rcases` failed: `List.filter (fun b => decide ((fun x => x % 8 = 5 ∧ x % 6 = 3) b))\n  [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,\n    49]` is not a free variable"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 30
+            },
+            "endPos": {
+              "line": 26,
+              "column": 34
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 30
+            },
+            "endPos": {
+              "line": 26,
+              "column": 34
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 6
+            },
+            "endPos": {
+              "line": 28,
+              "column": 7
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  s\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nh : s = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 15
+            },
+            "endPos": {
+              "line": 15,
+              "column": 25
+            },
+            "data": "This simp argument is unused:\n  mem_filter\n\nHint: Omit it from the simp argument list.\n  simp only [̵m̵e̵m̵_̵f̵i̵l̵t̵e̵r̵,̵ ̵m̵e̵m̵_̵r̵a̵n̵g̵e̵,̵[̲m̲e̲m̲_̲r̲a̲n̲g̲e̲,̲ mem_insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 27
+            },
+            "endPos": {
+              "line": 15,
+              "column": 36
+            },
+            "data": "This simp argument is unused:\n  mem_range\n\nHint: Omit it from the simp argument list.\n  simp only [mem_filter, mem_r̵a̵n̵g̵e̵,̵ ̵m̵e̵m̵_̵insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.263444185256958
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "To solve the problem, we first characterize the integers $k$ that satisfy the two given congruence conditions within the range $0 \\leq k < 50$.\n\n**Proof Sketch:**\n1.  **Analyze the congruences:** We are looking for $k$ such that $k \\equiv 5 \\pmod{8}$ and $k \\equiv 3 \\pmod{6}$.\n2.  **Translate to equations:**\n    *   $k \\equiv 5 \\pmod{8} \\implies k \\in \\{5, 13, 21, 29, 37, 45, \\dots\\}$.\n    *   $k \\equiv 3 \\pmod{6} \\implies k \\in \\{3, 9, 15, 21, 27, 33, 39, 45, \\dots\\}$.\n3.  **Find the intersection:** Comparing the lists within the range $[0, 49]$, the common values are $k = 21$ and $k = 45$.\n4.  **Verify conditions for 21:** $21 = 2 \\times 8 + 5$ and $21 = 3 \\times 6 + 3$. $21 < 50$.\n5.  **Verify conditions for 45:** $45 = 5 \\times 8 + 5$ and $45 = 7 \\times 6 + 3$. $45 < 50$.\n6.  **Verify no other values exist:** The Chinese Remainder Theorem logic suggests solutions are periodic with $\\text{lcm}(8, 6) = 24$. Starting from the first solution $21$, the next is $21 + 24 = 45$, and the one after is $45 + 24 = 69$, which is outside the range.\n7.  **Calculate the sum:** $21 + 45 = 66$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set we are summing over\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- Prove exactly which elements are in s\n  have hs : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_lt, hx8, hx6⟩\n      -- k % 8 = 5 means k = 8n + 5\n      -- k % 6 = 3 means k is odd.\n      have : x % 2 = 1 := by\n        have : x % 6 = 3 := hx6\n        rw [← Nat.mod_mod_of_dvd x (show 2 ∣ 6 by norm_num)] at this\n        norm_num at this\n        exact this\n      -- Check all multiples of 8 plus 5 below 50\n      interval_cases x <;> norm_num at hx8 hx6 <;> aesop\n    · rintro (rfl | rfl) <;> norm_num\n  -- Sum the elements\n  rw [hs]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set we are summing over\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- Prove exactly which elements are in s\n  have hs : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_lt, hx8, hx6⟩\n      -- k % 8 = 5 means k = 8n + 5\n      -- k % 6 = 3 means k is odd.\n      have : x % 2 = 1 := by\n        have : x % 6 = 3 := hx6\n        rw [← Nat.mod_mod_of_dvd x (show 2 ∣ 6 by norm_num)] at this\n        norm_num at this\n        exact this\n      -- Check all multiples of 8 plus 5 below 50\n      interval_cases x <;> norm_num at hx8 hx6 <;> aesop\n    · rintro (rfl | rfl) <;> norm_num\n  -- Sum the elements\n  rw [hs]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 13
+            },
+            "endPos": {
+              "line": 17,
+              "column": 30
+            },
+            "data": "Tactic `rcases` failed: `List.filter (fun b => decide ((fun x => x % 8 = 5 ∧ x % 6 = 3) b))\n  [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,\n    49]` is not a free variable"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 4
+            },
+            "endPos": {
+              "line": 27,
+              "column": 37
+            },
+            "data": "unsolved goals\ncase h.mpr.inl\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\n⊢ 21 ∈ s\n\ncase h.mpr.inr\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\n⊢ 45 ∈ s"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 6
+            },
+            "endPos": {
+              "line": 29,
+              "column": 8
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  s\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nhs : s = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 15
+            },
+            "endPos": {
+              "line": 15,
+              "column": 25
+            },
+            "data": "This simp argument is unused:\n  mem_filter\n\nHint: Omit it from the simp argument list.\n  simp only [̵m̵e̵m̵_̵f̵i̵l̵t̵e̵r̵,̵ ̵m̵e̵m̵_̵r̵a̵n̵g̵e̵,̵[̲m̲e̲m̲_̲r̲a̲n̲g̲e̲,̲ mem_insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 27
+            },
+            "endPos": {
+              "line": 15,
+              "column": 36
+            },
+            "data": "This simp argument is unused:\n  mem_range\n\nHint: Omit it from the simp argument list.\n  simp only [mem_filter, mem_r̵a̵n̵g̵e̵,̵ ̵m̵e̵m̵_̵insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.25934386253356934
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Define the search space**: We are looking for integers $k$ in the range $[0, 49]$ that satisfy two conditions: $k \\equiv 5 \\pmod 8$ and $k \\equiv 3 \\pmod 6$.\n2.  **Simplify the constraints**:\n    *   $k \\equiv 5 \\pmod 8 \\implies k \\in \\{5, 13, 21, 29, 37, 45\\}$.\n    *   $k \\equiv 3 \\pmod 6 \\implies k$ must be odd and a multiple of 3 plus some offset.\n3.  **Filter the candidates**:\n    *   Checking $k = 5$: $5 \\pmod 6 = 5 \\neq 3$.\n    *   Checking $k = 13$: $13 \\pmod 6 = 1 \\neq 3$.\n    *   Checking $k = 21$: $21 \\pmod 6 = 3$. (Match!)\n    *   Checking $k = 29$: $29 \\pmod 6 = 5 \\neq 3$.\n    *   Checking $k = 37$: $37 \\pmod 6 = 1 \\neq 3$.\n    *   Checking $k = 45$: $45 \\pmod 6 = 3$. (Match!)\n4.  **Sum the results**: The integers satisfying both conditions are $21$ and $45$. Their sum is $21 + 45 = 66$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set we are summing over\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- Explicitly evaluate the set s\n  have hs : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_lt, h8, h6⟩\n      -- Check values of x in the range [0, 49] satisfying x % 8 = 5\n      -- These are 5, 13, 21, 29, 37, 45.\n      -- Then filter those by x % 6 = 3.\n      have hx_mod : x = 21 ∨ x = 45 := by\n        revert hx_lt h8 h6\n        generalize h : x % 8 = m\n        interval_cases x <;> aesop\n      exact hx_mod\n    · rintro (rfl | rfl) <;> simp\n  -- Perform the sum over the evaluated set\n  rw [hs]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Define the set we are summing over\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- Explicitly evaluate the set s\n  have hs : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_lt, h8, h6⟩\n      -- Check values of x in the range [0, 49] satisfying x % 8 = 5\n      -- These are 5, 13, 21, 29, 37, 45.\n      -- Then filter those by x % 6 = 3.\n      have hx_mod : x = 21 ∨ x = 45 := by\n        revert hx_lt h8 h6\n        generalize h : x % 8 = m\n        interval_cases x <;> aesop\n      exact hx_mod\n    · rintro (rfl | rfl) <;> simp\n  -- Perform the sum over the evaluated set\n  rw [hs]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 13
+            },
+            "endPos": {
+              "line": 17,
+              "column": 28
+            },
+            "data": "Tactic `rcases` failed: `List.filter (fun b => decide ((fun x => x % 8 = 5 ∧ x % 6 = 3) b))\n  [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,\n    49]` is not a free variable"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 29
+            },
+            "endPos": {
+              "line": 26,
+              "column": 33
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 29
+            },
+            "endPos": {
+              "line": 26,
+              "column": 33
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 6
+            },
+            "endPos": {
+              "line": 28,
+              "column": 8
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  s\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nhs : s = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 15
+            },
+            "endPos": {
+              "line": 15,
+              "column": 25
+            },
+            "data": "This simp argument is unused:\n  mem_filter\n\nHint: Omit it from the simp argument list.\n  simp only [̵m̵e̵m̵_̵f̵i̵l̵t̵e̵r̵,̵ ̵m̵e̵m̵_̵r̵a̵n̵g̵e̵,̵[̲m̲e̲m̲_̲r̲a̲n̲g̲e̲,̲ mem_insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 27
+            },
+            "endPos": {
+              "line": 15,
+              "column": 36
+            },
+            "data": "This simp argument is unused:\n  mem_range\n\nHint: Omit it from the simp argument list.\n  simp only [mem_filter, mem_r̵a̵n̵g̵e̵,̵ ̵m̵e̵m̵_̵insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.2763230800628662
+      }
+    },
+    {
+      "index": 29,
+      "status": "FAILED",
+      "raw_text": "To solve this theorem, we need to find all integers $k$ such that $0 \\le k < 50$ and $k$ satisfies the system of congruences:\n1. $k \\equiv 5 \\pmod{8}$\n2. $k \\equiv 3 \\pmod{6}$\n\n**Proof Sketch:**\n1.  **Analyze the first congruence:** $k \\equiv 5 \\pmod{8}$ implies $k \\in \\{5, 13, 21, 29, 37, 45\\}$ for $k < 50$.\n2.  **Analyze the second congruence:** $k \\equiv 3 \\pmod{6}$ implies $k$ must be odd and $k \\equiv 0 \\pmod{3}$ is not quite right, rather $k$ is of the form $6m + 3$.\n3.  **Check candidates from the first list against the second:**\n    *   $5 \\pmod{6} = 5 \\neq 3$\n    *   $13 \\pmod{6} = 1 \\neq 3$\n    *   $21 \\pmod{6} = 3$ (Matches)\n    *   $29 \\pmod{6} = 5 \\neq 3$\n    *   $37 \\pmod{6} = 1 \\neq 3$\n    *   $45 \\pmod{6} = 3$ (Matches)\n4.  **Sum the valid elements:** The elements satisfying both conditions in the range are $21$ and $45$. Their sum is $21 + 45 = 66$.\n\n**Lean 4 Code:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We define the set we are summing over.\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We explicitly evaluate the filter.\n  have hs : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton, s]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- Since x < 50 and x % 8 = 5, x must be in {5, 13, 21, 29, 37, 45}\n      have hx8_vals : x ∈ ({5, 13, 21, 29, 37, 45} : Set ℕ) := by\n        revert hx8 hx_range\n        generalize h : x % 8 = res\n        rw [h]\n        intro hres hx50\n        interval_cases x <;> simp_all\n      rcases hx8_vals with (rfl | rfl | rfl | rfl | rfl | rfl)\n      · simp at hx6 -- 5 % 6 = 5, not 3\n      · simp at hx6 -- 13 % 6 = 1, not 3\n      · left; rfl   -- 21 % 6 = 3, matches\n      · simp at hx6 -- 29 % 6 = 5, not 3\n      · simp at hx6 -- 37 % 6 = 1, not 3\n      · right; rfl  -- 45 % 6 = 3, matches\n    · rintro (rfl | rfl) <;> simp\n  -- Apply the evaluated set to the sum\n  rw [hs]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We define the set we are summing over.\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We explicitly evaluate the filter.\n  have hs : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton, s]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- Since x < 50 and x % 8 = 5, x must be in {5, 13, 21, 29, 37, 45}\n      have hx8_vals : x ∈ ({5, 13, 21, 29, 37, 45} : Set ℕ) := by\n        revert hx8 hx_range\n        generalize h : x % 8 = res\n        rw [h]\n        intro hres hx50\n        interval_cases x <;> simp_all\n      rcases hx8_vals with (rfl | rfl | rfl | rfl | rfl | rfl)\n      · simp at hx6 -- 5 % 6 = 5, not 3\n      · simp at hx6 -- 13 % 6 = 1, not 3\n      · left; rfl   -- 21 % 6 = 3, matches\n      · simp at hx6 -- 29 % 6 = 5, not 3\n      · simp at hx6 -- 37 % 6 = 1, not 3\n      · right; rfl  -- 45 % 6 = 3, matches\n    · rintro (rfl | rfl) <;> simp\n  -- Apply the evaluated set to the sum\n  rw [hs]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 12
+            },
+            "endPos": {
+              "line": 22,
+              "column": 13
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  x % 8\nin the target expression\n  x < 50 → res = 5 → x ∈ {5, 13, 21, 29, 37, 45}\n\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nx : ℕ\nhx6 : x % 6 = 3\nres : ℕ\nh : x % 8 = res\n⊢ x < 50 → res = 5 → x ∈ {5, 13, 21, 29, 37, 45}"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 6
+            },
+            "endPos": {
+              "line": 34,
+              "column": 8
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  s\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nhs : s = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3134915828704834
+      }
+    },
+    {
+      "index": 30,
+      "status": "FAILED",
+      "raw_text": "To prove that the sum of all integers $k \\in [0, 49]$ such that $k \\equiv 5 \\pmod 8$ and $k \\equiv 3 \\pmod 6$ equals $66$, we follow these steps:\n\n### Proof Sketch\n1.  **Analyze the congruences:**\n    *   $k \\equiv 5 \\pmod 8 \\implies k = 8n + 5$.\n    *   $k \\equiv 3 \\pmod 6 \\implies k = 6m + 3$.\n2.  **Combine the conditions:**\n    *   From $k = 8n + 5$, possible values in the range $[0, 49]$ are $\\{5, 13, 21, 29, 37, 45\\}$.\n    *   From $k = 6m + 3$, possible values in the range $[0, 49]$ are $\\{3, 9, 15, 21, 27, 33, 39, 45\\}$.\n3.  **Identify the intersection:**\n    *   Checking elements of the first set against the second condition (or vice versa):\n        *   $5 \\pmod 6 = 5 \\neq 3$\n        *   $13 \\pmod 6 = 1 \\neq 3$\n        *   $21 \\pmod 6 = 3$ (Matches)\n        *   $29 \\pmod 6 = 5 \\neq 3$\n        *   $37 \\pmod 6 = 1 \\neq 3$\n        *   $45 \\pmod 6 = 3$ (Matches)\n    *   The values satisfying both conditions are $\\{21, 45\\}$.\n4.  **Sum the results:**\n    *   $21 + 45 = 66$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50), k) = 66 := by\n  -- We define the set we are summing over explicitly\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We prove that the set consists exactly of {21, 45}\n  have h_set : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- Check values of x = 8n + 5 < 50\n      match x, hx8 with\n      | 5, _ => contradiction -- 5 % 6 = 5\n      | 13, _ => contradiction -- 13 % 6 = 1\n      | 21, _ => left; rfl\n      | 29, _ => contradiction -- 29 % 6 = 5\n      | 37, _ => contradiction -- 37 % 6 = 1\n      | 45, _ => right; rfl\n      | n + 48, _ => \n        have : n + 48 < 50 := hx_range\n        -- Possible values for n are 0, 1. \n        -- If n=0, x=48 (48%8=0), if n=1, x=49 (49%8=1).\n        -- Neither satisfy x%8=5.\n        omega\n    · rintro (rfl | rfl) <;> aesop\n  -- Sum the elements of the set\n  rw [h_set]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50), k) = 66 := by\n  -- We define the set we are summing over explicitly\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We prove that the set consists exactly of {21, 45}\n  have h_set : s = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- Check values of x = 8n + 5 < 50\n      match x, hx8 with\n      | 5, _ => contradiction -- 5 % 6 = 5\n      | 13, _ => contradiction -- 13 % 6 = 1\n      | 21, _ => left; rfl\n      | 29, _ => contradiction -- 29 % 6 = 5\n      | 37, _ => contradiction -- 37 % 6 = 1\n      | 45, _ => right; rfl\n      | n + 48, _ => \n        have : n + 48 < 50 := hx_range\n        -- Possible values for n are 0, 1. \n        -- If n=0, x=48 (48%8=0), if n=1, x=49 (49%8=1).\n        -- Neither satisfy x%8=5.\n        omega\n    · rintro (rfl | rfl) <;> aesop\n  -- Sum the elements of the set\n  rw [h_set]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 13
+            },
+            "endPos": {
+              "line": 17,
+              "column": 33
+            },
+            "data": "Tactic `rcases` failed: `List.filter (fun b => decide ((fun x => x % 8 = 5 ∧ x % 6 = 3) b))\n  [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,\n    49]` is not a free variable"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 6
+            },
+            "endPos": {
+              "line": 34,
+              "column": 11
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  s\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nh_set : s = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 15
+            },
+            "endPos": {
+              "line": 15,
+              "column": 25
+            },
+            "data": "This simp argument is unused:\n  mem_filter\n\nHint: Omit it from the simp argument list.\n  simp only [̵m̵e̵m̵_̵f̵i̵l̵t̵e̵r̵,̵ ̵m̵e̵m̵_̵r̵a̵n̵g̵e̵,̵[̲m̲e̲m̲_̲r̲a̲n̲g̲e̲,̲ mem_insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 27
+            },
+            "endPos": {
+              "line": 15,
+              "column": 36
+            },
+            "data": "This simp argument is unused:\n  mem_range\n\nHint: Omit it from the simp argument list.\n  simp only [mem_filter, mem_r̵a̵n̵g̵e̵,̵ ̵m̵e̵m̵_̵insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.2840762138366699
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "To solve the theorem, we analyze the conditions $x \\equiv 5 \\pmod 8$ and $x \\equiv 3 \\pmod 6$ for $x \\in [0, 49]$.\n\n**Proof Sketch:**\n1.  **System of Congruences**: We have two linear congruences:\n    *   $x \\equiv 5 \\pmod 8 \\implies x \\in \\{5, 13, 21, 29, 37, 45, \\dots\\}$\n    *   $x \\equiv 3 \\pmod 6 \\implies x \\in \\{3, 9, 15, 21, 27, 33, 39, 45, \\dots\\}$\n2.  **Intersection**: Within the range $0 \\le x < 50$, the values satisfying both conditions are $21$ and $45$.\n    *   $21 \\pmod 8 = 5$ and $21 \\pmod 6 = 3$.\n    *   $45 \\pmod 8 = 5$ and $45 \\pmod 6 = 3$.\n3.  **Summation**: The sum of these values is $21 + 45 = 66$.\n4.  **Verification**: We can verify that no other values in $\\{0, \\dots, 49\\}$ satisfy the constraints. Since the least common multiple of 8 and 6 is 24, solutions repeat every 24 units. Starting from 21, the solutions are $21, 21+24=45, 45+24=69, \\dots$. Within the range $[0, 49]$, only 21 and 45 qualify.\n\n**Lean 4 Implementation:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We define the set we are summing over.\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We explicitly list the elements of the set.\n  have h_s : s = {21, 45} := by\n    apply Finset.ext\n    intro x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- Use the Chinese Remainder Theorem logic or manual check\n      -- Since 24 is lcm(8, 6), solutions are x ≡ 21 (mod 24)\n      have : x % 24 = 21 := by\n        match hx8 : x % 8, hx6 : x % 6 with\n        | 5, 3 => \n          -- Logic to show x % 24 = 21\n          -- k = 8m + 5, 8m + 5 ≡ 3 [6] => 2m + 5 ≡ 3 [6] => 2m ≡ -2 ≡ 4 [6] => m ≡ 2 [3]\n          -- m = 3j + 2 => x = 8(3j + 2) + 5 = 24j + 16 + 5 = 24j + 21\n          exact Nat.mod_eq_of_mod_and_mod_eq_of_lcm_eq (by norm_num) (by norm_num) (by norm_num) hx8 hx6\n      \n      rcases (Nat.div_add_mod x 24) with h_div\n      rw [this] at h_div\n      have h_q : x / 24 < 3 := by linarith\n      interval_cases h_x_div : x / 24\n      · left; rw [h_x_div] at h_div; simp at h_div; exact h_div\n      · right; rw [h_x_div] at h_div; simp at h_div; exact h_div\n      · rw [h_x_div] at h_div; linarith\n    · rintro (rfl | rfl) <;> simp\n  -- Now compute the sum.\n  rw [h_s]\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- We define the set we are summing over.\n  let s := Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50)\n  -- We explicitly list the elements of the set.\n  have h_s : s = {21, 45} := by\n    apply Finset.ext\n    intro x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · rintro ⟨hx_range, hx8, hx6⟩\n      -- Use the Chinese Remainder Theorem logic or manual check\n      -- Since 24 is lcm(8, 6), solutions are x ≡ 21 (mod 24)\n      have : x % 24 = 21 := by\n        match hx8 : x % 8, hx6 : x % 6 with\n        | 5, 3 => \n          -- Logic to show x % 24 = 21\n          -- k = 8m + 5, 8m + 5 ≡ 3 [6] => 2m + 5 ≡ 3 [6] => 2m ≡ -2 ≡ 4 [6] => m ≡ 2 [3]\n          -- m = 3j + 2 => x = 8(3j + 2) + 5 = 24j + 16 + 5 = 24j + 21\n          exact Nat.mod_eq_of_mod_and_mod_eq_of_lcm_eq (by norm_num) (by norm_num) (by norm_num) hx8 hx6\n      \n      rcases (Nat.div_add_mod x 24) with h_div\n      rw [this] at h_div\n      have h_q : x / 24 < 3 := by linarith\n      interval_cases h_x_div : x / 24\n      · left; rw [h_x_div] at h_div; simp at h_div; exact h_div\n      · right; rw [h_x_div] at h_div; simp at h_div; exact h_div\n      · rw [h_x_div] at h_div; linarith\n    · rintro (rfl | rfl) <;> simp\n  -- Now compute the sum.\n  rw [h_s]\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 13
+            },
+            "endPos": {
+              "line": 18,
+              "column": 33
+            },
+            "data": "Tactic `rcases` failed: `List.filter (fun b => decide ((fun x => x % 8 = 5 ∧ x % 6 = 3) b))\n  [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,\n    49]` is not a free variable"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 29
+            },
+            "endPos": {
+              "line": 36,
+              "column": 33
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 29
+            },
+            "endPos": {
+              "line": 36,
+              "column": 33
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 6
+            },
+            "endPos": {
+              "line": 38,
+              "column": 9
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  s\nin the target expression\n  ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66\n\ns : Finset ℕ := {x ∈ range 50 | x % 8 = 5 ∧ x % 6 = 3}\nh_s : s = {21, 45}\n⊢ ∑ k ∈ range 50 with k % 8 = 5 ∧ k % 6 = 3, k = 66"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 16,
+              "column": 15
+            },
+            "endPos": {
+              "line": 16,
+              "column": 25
+            },
+            "data": "This simp argument is unused:\n  mem_filter\n\nHint: Omit it from the simp argument list.\n  simp only [̵m̵e̵m̵_̵f̵i̵l̵t̵e̵r̵,̵ ̵m̵e̵m̵_̵r̵a̵n̵g̵e̵,̵[̲m̲e̲m̲_̲r̲a̲n̲g̲e̲,̲ mem_insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 16,
+              "column": 27
+            },
+            "endPos": {
+              "line": 16,
+              "column": 36
+            },
+            "data": "This simp argument is unused:\n  mem_range\n\nHint: Omit it from the simp argument list.\n  simp only [mem_filter, mem_r̵a̵n̵g̵e̵,̵ ̵m̵e̵m̵_̵insert, mem_singleton]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.19843792915344238
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "To prove that the sum of all integers $k$ in the range $[0, 49]$ satisfying $k \\equiv 5 \\pmod 8$ and $k \\equiv 3 \\pmod 6$ is 66, we follow these steps:\n\n1.  **Analyze the congruences**:\n    -   $k \\equiv 5 \\pmod 8 \\implies k \\in \\{5, 13, 21, 29, 37, 45, \\dots\\}$.\n    -   $k \\equiv 3 \\pmod 6 \\implies k \\in \\{3, 9, 15, 21, 27, 33, 39, 45, \\dots\\}$.\n2.  **Find the intersection within the range $[0, 49]$**:\n    -   Checking elements of the first set:\n        -   $5 \\pmod 6 = 5 \\neq 3$.\n        -   $13 \\pmod 6 = 1 \\neq 3$.\n        -   $21 \\pmod 6 = 3$. (Match)\n        -   $29 \\pmod 6 = 5 \\neq 3$.\n        -   $37 \\pmod 6 = 1 \\neq 3$.\n        -   $45 \\pmod 6 = 3$. (Match)\n    -   The elements satisfying both conditions are $\\{21, 45\\}$.\n3.  **Sum the elements**:\n    -   $21 + 45 = 66$.\n\nIn the Lean proof, we evaluate the finite set explicitly using `decide` or computational normalization.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Evaluate the filter over the finite range [0, 49]\n  have h : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · intro ⟨hx_range, hx_mod8, hx_mod6⟩\n      -- x % 8 = 5 means x = 8n + 5. Since x < 50, n \\in {0, 1, 2, 3, 4, 5}\n      have : x ∈ [5, 13, 21, 29, 37, 45] := by\n        revert hx_range hx_mod8\n        interval_cases x <;> aesop\n      rcases this with rfl | rfl | rfl | rfl | rfl | rfl <;> aesop\n    · intro h\n      rcases h with rfl | rfl <;> aesop\n  rw [h]\n  -- Sum the resulting set\n  simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_149 :\n  (∑ k ∈ Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range (50:ℕ)), k) = 66 := by\n  -- Evaluate the filter over the finite range [0, 49]\n  have h : Finset.filter (fun x => x % 8 = 5 ∧ x % 6 = 3) (Finset.range 50) = {21, 45} := by\n    ext x\n    simp only [mem_filter, mem_range, mem_insert, mem_singleton]\n    constructor\n    · intro ⟨hx_range, hx_mod8, hx_mod6⟩\n      -- x % 8 = 5 means x = 8n + 5. Since x < 50, n \\in {0, 1, 2, 3, 4, 5}\n      have : x ∈ [5, 13, 21, 29, 37, 45] := by\n        revert hx_range hx_mod8\n        interval_cases x <;> aesop\n      rcases this with rfl | rfl | rfl | rfl | rfl | rfl <;> aesop\n    · intro h\n      rcases h with rfl | rfl <;> aesop\n  rw [h]\n  -- Sum the resulting set\n  simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 8
+            },
+            "endPos": {
+              "line": 19,
+              "column": 24
+            },
+            "data": "interval_cases failed: could not find upper bound on x"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 23
+            },
+            "endPos": {
+              "line": 20,
+              "column": 26
+            },
+            "data": "Tactic `rcases` failed: `[13, 21, 29, 37, 45]` is not a free variable"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2352461814880371
+      }
+    }
+  ]
+}

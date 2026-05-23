@@ -1,0 +1,1178 @@
+{
+  "problem": "problems/miniF2F-test/algebra_apb4leq8ta4pb4.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 15:11:17",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 0,
+    "completed_count": 0,
+    "solved": false
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "To prove the inequality $(a + b)^4 \\leq 8(a^4 + b^4)$ for $a, b > 0$, we can use the Power Mean Inequality or Jensen's Inequality.\n\n**Proof Sketch:**\n1.  **Jensen's Inequality:** Consider the function $f(x) = x^4$. Since $f''(x) = 12x^2 \\geq 0$ for all $x \\in \\mathbb{R}$, $f$ is a convex function.\n2.  By the definition of convexity: $f(\\frac{a+b}{2}) \\leq \\frac{f(a) + f(b)}{2}$.\n3.  Substituting $f(x) = x^4$, we get: $(\\frac{a+b}{2})^4 \\leq \\frac{a^4 + b^4}{2}$.\n4.  Expanding the left side: $\\frac{(a+b)^4}{16} \\leq \\frac{a^4 + b^4}{2}$.\n5.  Multiplying both sides by 16 yields: $(a+b)^4 \\leq 8(a^4 + b^4)$.\n\nAlternatively, one can expand $(a+b)^4$ and use the AM-GM inequality or Rearrangement inequality to bound the cross terms, but the convexity argument is the most direct.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact Filter.eventually_of_forall (fun _ => Nat.even_iff_exists_two_nsmul.mpr ⟨2, rfl⟩)\n  \n  -- Apply Jensen's inequality for two points with weights 1/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (show 0 ≤ (1/2 : ℝ) by linarith) (show 0 ≤ (1/2 : ℝ) by linarith) (show 1/2 + 1/2 = (1 : ℝ) by linarith)\n  \n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  \n  -- Manipulate the inequality: ((a+b)/2)^4 <= (a^4 + b^4)/2\n  have h1 : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := h_jensen\n  \n  -- Expand the power on the left\n  have h2 : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rw [div_pow] at h1\n    norm_num at h1\n    exact h1\n  \n  -- Multiply by 16 to get the final result\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact Filter.eventually_of_forall (fun _ => Nat.even_iff_exists_two_nsmul.mpr ⟨2, rfl⟩)\n  \n  -- Apply Jensen's inequality for two points with weights 1/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (show 0 ≤ (1/2 : ℝ) by linarith) (show 0 ≤ (1/2 : ℝ) by linarith) (show 1/2 + 1/2 = (1 : ℝ) by linarith)\n  \n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  \n  -- Manipulate the inequality: ((a+b)/2)^4 <= (a^4 + b^4)/2\n  have h1 : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := h_jensen\n  \n  -- Expand the power on the left\n  have h2 : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rw [div_pow] at h1\n    norm_num at h1\n    exact h1\n  \n  -- Multiply by 16 to get the final result\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 48
+            },
+            "endPos": {
+              "line": 10,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.06784963607788086
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "To prove the inequality $(a+b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we can utilize the power mean inequality or Jensen's inequality.\n\n### Proof Sketch:\n1. **Convexity**: Consider the function $f(x) = x^4$. Since $f''(x) = 12x^2 \\ge 0$, the function is convex on $\\mathbb{R}$.\n2. **Jensen's Inequality**: For any $a, b \\in \\mathbb{R}$, Jensen's inequality states:\n   $$\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$$\n3. **Rearrangement**: Multiply both sides by $2^4 = 16$:\n   $$(a+b)^4 \\le 16 \\cdot \\frac{a^4 + b^4}{2}$$\n   $$(a+b)^4 \\le 8(a^4 + b^4)$$\n4. This result holds for all $a, b \\in \\mathbb{R}$, which includes the given condition $a, b > 0$.\n\n### Lean 4 Code:\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  -- Jensen's inequality for f(x) = x^4 with weights 1/2, 1/2\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_bit0 2\n  \n  -- Apply Jensen's inequality: ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  simp only [smul_eq_mul] at h_jensen\n  \n  -- Manipulate the inequality to the target form\n  -- ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2\n  -- (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2\n  have h1 : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h1] at h_jensen\n  \n  -- Multiply both sides by 16\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  -- Jensen's inequality for f(x) = x^4 with weights 1/2, 1/2\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_bit0 2\n  \n  -- Apply Jensen's inequality: ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  simp only [smul_eq_mul] at h_jensen\n  \n  -- Manipulate the inequality to the target form\n  -- ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2\n  -- (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2\n  have h1 : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h1] at h_jensen\n  \n  -- Multiply both sides by 16\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 48
+            },
+            "endPos": {
+              "line": 11,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.04953312873840332
+      }
+    },
+    {
+      "index": 3,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a+b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we utilize the convexity of the function $f(x) = x^4$ on the interval $(0, \\infty)$.\n\n**Proof Sketch:**\n1.  **Convexity:** The function $f(x) = x^4$ is convex because its second derivative $f''(x) = 12x^2$ is non-negative for all $x$.\n2.  **Jensen's Inequality:** For a convex function $f$, we have $f(\\frac{a+b}{2}) \\le \\frac{f(a) + f(b)}{2}$.\n3.  **Application:** Applying this to $f(x) = x^4$:\n    $$\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$$\n4.  **Algebraic Manipulation:**\n    $$\\frac{(a+b)^4}{2^4} \\le \\frac{a^4 + b^4}{2}$$\n    $$\\frac{(a+b)^4}{16} \\le \\frac{a^4 + b^4}{2}$$\n    Multiplying both sides by 16 gives:\n    $$(a+b)^4 \\le 8(a^4 + b^4)$$\n\nThis confirms the inequality for any $a, b \\in \\mathbb{R}$, including the case where $a, b > 0$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  let f : ℝ → ℝ := (· ^ 4)\n  have h_conv : ConvexOn ℝ Set.univ f := convexOn_pow 4\n  -- Apply Jensen's Inequality for two points with weights 1/2\n  have h_jensen := h_conv.2 (Set.mem_univ a) (Set.mem_univ b) (show 0 ≤ (1/2 : ℝ) by linarith) (show 0 ≤ (1/2 : ℝ) by linarith) (show 1/2 + 1/2 = (1 : ℝ) by linarith)\n  simp only [f] at h_jensen\n  -- Simplify the Jensen's expression\n  have h1 : (1 / 2 * a + 1 / 2 * b) ^ 4 = ((a + b) / 2) ^ 4 := by ring\n  rw [h1] at h_jensen\n  have h2 : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h2] at h_jensen\n  -- Rearrange to the final form\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by ring\n    _ ≤ 16 * (1 / 2 * a ^ 4 + 1 / 2 * b ^ 4) := by rel [h_jensen]\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  let f : ℝ → ℝ := (· ^ 4)\n  have h_conv : ConvexOn ℝ Set.univ f := convexOn_pow 4\n  -- Apply Jensen's Inequality for two points with weights 1/2\n  have h_jensen := h_conv.2 (Set.mem_univ a) (Set.mem_univ b) (show 0 ≤ (1/2 : ℝ) by linarith) (show 0 ≤ (1/2 : ℝ) by linarith) (show 1/2 + 1/2 = (1 : ℝ) by linarith)\n  simp only [f] at h_jensen\n  -- Simplify the Jensen's expression\n  have h1 : (1 / 2 * a + 1 / 2 * b) ^ 4 = ((a + b) / 2) ^ 4 := by ring\n  rw [h1] at h_jensen\n  have h2 : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h2] at h_jensen\n  -- Rearrange to the final form\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by ring\n    _ ≤ 16 * (1 / 2 * a ^ 4 + 1 / 2 * b ^ 4) := by rel [h_jensen]\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 41
+            },
+            "endPos": {
+              "line": 11,
+              "column": 55
+            },
+            "data": "Type mismatch\n  convexOn_pow 4\nhas type\n  ConvexOn ?m.91 (Set.Ici 0) fun x => x ^ 4\nbut is expected to have type\n  ConvexOn ℝ Set.univ f"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.07326459884643555
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a + b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we can use the power mean inequality or Cauchy-Schwarz.\n\n**Proof Sketch:**\n1.  By the Power Mean Inequality (or convexity of $f(x) = x^4$), for any $a, b \\in \\mathbb{R}$, we have $\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$.\n2.  Expanding the left side gives $\\frac{(a+b)^4}{2^4} = \\frac{(a+b)^4}{16}$.\n3.  So, $\\frac{(a+b)^4}{16} \\le \\frac{a^4 + b^4}{2}$.\n4.  Multiplying both sides by 16 yields $(a + b)^4 \\le 8(a^4 + b^4)$.\n5.  This inequality actually holds for all $a, b \\in \\mathbb{R}$ because $x \\mapsto x^4$ is a convex function.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  -- Power mean inequality: ((a + b) / 2)^4 <= (a^4 + b^4) / 2\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_bit0 (even_bit0 even_one)\n  \n  -- Apply Jensen's Inequality for two points\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  \n  -- Transform h_jensen: ((a + b) / 2)^4 <= (a^4 + b^4) / 2\n  have h1 : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rw [← mul_add] at h_jensen\n    exact h_jensen\n\n  -- Simplify ((a + b) / 2)^4 to (a + b)^4 / 16\n  have h2 : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    field_simp\n  \n  rw [h2] at h1\n  -- Multiply by 16 on both sides\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by field_simp\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2) := by rel [h1]\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  -- Power mean inequality: ((a + b) / 2)^4 <= (a^4 + b^4) / 2\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_bit0 (even_bit0 even_one)\n  \n  -- Apply Jensen's Inequality for two points\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  \n  -- Transform h_jensen: ((a + b) / 2)^4 <= (a^4 + b^4) / 2\n  have h1 : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rw [← mul_add] at h_jensen\n    exact h_jensen\n\n  -- Simplify ((a + b) / 2)^4 to (a + b)^4 / 16\n  have h2 : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    field_simp\n  \n  rw [h2] at h1\n  -- Multiply by 16 on both sides\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by field_simp\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2) := by rel [h1]\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 48
+            },
+            "endPos": {
+              "line": 11,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.061336517333984375
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a + b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we utilize the convexity of the function $f(x) = x^4$.\n\n**Proof Sketch:**\n1.  **Convexity:** The function $f(x) = x^4$ is convex on $\\mathbb{R}$ because its second derivative $f''(x) = 12x^2$ is non-negative.\n2.  **Jensen's Inequality:** For a convex function $f$, the inequality $f(\\frac{a+b}{2}) \\le \\frac{f(a) + f(b)}{2}$ holds.\n3.  **Application:** Applying this to $f(x) = x^4$, we get:\n    $\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$\n4.  **Simplification:**\n    $\\frac{(a+b)^4}{16} \\le \\frac{a^4 + b^4}{2}$\n5.  **Conclusion:** Multiplying both sides by 16 yields $(a + b)^4 \\le 8(a^4 + b^4)$. Note that the condition $a, b > 0$ is sufficient but the inequality actually holds for all $a, b \\in \\mathbb{R}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  let f : ℝ → ℝ := (· ^ 4)\n  have h_conv : ConvexOn ℝ Set.univ f := convexOn_pow 4\n  -- Apply Jensen's inequality for two points with weights 1/2\n  have h_jensen := h_conv.2 (Set.mem_univ a) (Set.mem_univ b) \n    (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  simp only [f] at h_jensen\n  -- Simplify the left hand side: ((1/2)*a + (1/2)*b)^4 = ((a+b)/2)^4\n  have h_lhs : (1 / 2 * a + 1 / 2 * b) ^ 4 = (a + b) ^ 4 / 16 := by\n    ring\n  -- Simplify the right hand side: (1/2)*a^4 + (1/2)*b^4 = (a^4 + b^4)/2\n  have h_rhs : 1 / 2 * a ^ 4 + 1 / 2 * b ^ 4 = (a ^ 4 + b ^ 4) / 2 := by\n    ring\n  rw [h_lhs, h_rhs] at h_jensen\n  -- Multiply by 16 to get the final inequality\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  let f : ℝ → ℝ := (· ^ 4)\n  have h_conv : ConvexOn ℝ Set.univ f := convexOn_pow 4\n  -- Apply Jensen's inequality for two points with weights 1/2\n  have h_jensen := h_conv.2 (Set.mem_univ a) (Set.mem_univ b) \n    (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  simp only [f] at h_jensen\n  -- Simplify the left hand side: ((1/2)*a + (1/2)*b)^4 = ((a+b)/2)^4\n  have h_lhs : (1 / 2 * a + 1 / 2 * b) ^ 4 = (a + b) ^ 4 / 16 := by\n    ring\n  -- Simplify the right hand side: (1/2)*a^4 + (1/2)*b^4 = (a^4 + b^4)/2\n  have h_rhs : 1 / 2 * a ^ 4 + 1 / 2 * b ^ 4 = (a ^ 4 + b ^ 4) / 2 := by\n    ring\n  rw [h_lhs, h_rhs] at h_jensen\n  -- Multiply by 16 to get the final inequality\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 41
+            },
+            "endPos": {
+              "line": 11,
+              "column": 55
+            },
+            "data": "Type mismatch\n  convexOn_pow 4\nhas type\n  ConvexOn ?m.91 (Set.Ici 0) fun x => x ^ 4\nbut is expected to have type\n  ConvexOn ℝ Set.univ f"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.08133769035339355
+      }
+    },
+    {
+      "index": 6,
+      "status": "FAILED",
+      "raw_text": "To prove the inequality $(a+b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we can utilize the power mean inequality or Jensen's inequality for convex functions.\n\n**Proof Sketch:**\n1. Let $f(x) = x^4$. Since $f''(x) = 12x^2 \\ge 0$, $f$ is a convex function on $\\mathbb{R}$.\n2. By Jensen's Inequality for $n=2$ with weights $w_1 = w_2 = \\frac{1}{2}$:\n   $f\\left(\\frac{a+b}{2}\\right) \\le \\frac{f(a) + f(b)}{2}$\n3. Substituting $f(x) = x^4$:\n   $\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$\n4. Expanding the left side:\n   $\\frac{(a+b)^4}{16} \\le \\frac{a^4 + b^4}{2}$\n5. Multiplying both sides by 16:\n   $(a+b)^4 \\le 8(a^4 + b^4)$\n\nAlternatively, one can use the Cauchy-Schwarz inequality twice or the AM-GM inequality, but the convexity of $x^4$ provides the most direct path.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.isEven\n  \n  -- Apply Jensen's Inequality for two points with weights 1/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) \n    (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  \n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  \n  -- Rearrange the inequality\n  have h_left : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := h_jensen\n  \n  -- Expand the power on the left\n  have h_expand : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    convert h_left using 1\n    field_simp\n  \n  -- Final multiplication to reach the goal\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.isEven\n  \n  -- Apply Jensen's Inequality for two points with weights 1/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) \n    (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  \n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  \n  -- Rearrange the inequality\n  have h_left : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := h_jensen\n  \n  -- Expand the power on the left\n  have h_expand : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    convert h_left using 1\n    field_simp\n  \n  -- Final multiplication to reach the goal\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 48
+            },
+            "endPos": {
+              "line": 10,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.0680532455444336
+      }
+    },
+    {
+      "index": 7,
+      "status": "FAILED",
+      "raw_text": "To prove the inequality $(a+b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we can utilize the power mean inequality or Cauchy-Schwarz.\n\n**Proof Sketch:**\n1.  **Convexity of $f(x) = x^4$:** Since $f(x) = x^4$ is convex for $x \\in \\mathbb{R}$ (because $f''(x) = 12x^2 \\ge 0$), we can apply Jensen's Inequality.\n2.  **Jensen's Inequality:** For $a, b \\in \\mathbb{R}$, Jensen's gives $\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$.\n3.  **Algebraic Manipulation:** \n    *   $\\frac{(a+b)^4}{2^4} \\le \\frac{a^4 + b^4}{2}$\n    *   $\\frac{(a+b)^4}{16} \\le \\frac{a^4 + b^4}{2}$\n    *   Multiplying both sides by 16 yields $(a+b)^4 \\le 8(a^4 + b^4)$.\n4.  The condition $a, b > 0$ is given, though the inequality actually holds for all real $a, b$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.isEv\n  -- Applying Jensen's Inequality for two points a and b with weights 1/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (show 0 ≤ (1/2 : ℝ) by linarith) \n    (show 0 ≤ (1/2 : ℝ) by linarith) (show (1/2 : ℝ) + 1/2 = 1 by linarith)\n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  -- Now we have ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2\n  -- Rearrange to get the target inequality\n  have h_left : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by \n    field_simp\n    ring\n  rw [h_left] at h_jensen\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.isEv\n  -- Applying Jensen's Inequality for two points a and b with weights 1/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (show 0 ≤ (1/2 : ℝ) by linarith) \n    (show 0 ≤ (1/2 : ℝ) by linarith) (show (1/2 : ℝ) + 1/2 = 1 by linarith)\n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  -- Now we have ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2\n  -- Rearrange to get the target inequality\n  have h_left : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by \n    field_simp\n    ring\n  rw [h_left] at h_jensen\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 48
+            },
+            "endPos": {
+              "line": 10,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.06476354598999023
+      }
+    },
+    {
+      "index": 8,
+      "status": "FAILED",
+      "raw_text": "To prove the inequality $(a + b)^4 \\leq 8(a^4 + b^4)$ for $a, b > 0$, we can utilize the power mean inequality or basic convex analysis. Specifically, the function $f(x) = x^4$ is convex on $\\mathbb{R}$.\n\n**Proof Sketch:**\n1.  **Convexity:** Let $f(x) = x^4$. Since $f''(x) = 12x^2 \\ge 0$, $f$ is convex.\n2.  **Jensen's Inequality:** For any $a, b \\in \\mathbb{R}$, Jensen's inequality states:\n    $f\\left(\\frac{a + b}{2}\\right) \\leq \\frac{f(a) + f(b)}{2}$\n3.  **Substitution:** Plugging in $f(x) = x^4$:\n    $\\left(\\frac{a + b}{2}\\right)^4 \\leq \\frac{a^4 + b^4}{2}$\n4.  **Algebraic Manipulation:**\n    $\\frac{(a + b)^4}{16} \\leq \\frac{a^4 + b^4}{2}$\n    Multiplying both sides by 16 yields:\n    $(a + b)^4 \\leq 8(a^4 + b^4)$\n\nThis result holds for all $a, b \\in \\mathbb{R}$, though the problem specifies $a, b > 0$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  -- By Jensen's Inequality: ((a + b) / 2)^4 ≤ (a^4 + b^4) / 2\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow 4\n  \n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith) (by linarith) (by linarith)\n  simp only [one_div, smul_eq_mul] at h_jensen\n  \n  -- h_jensen: ((1/2) * a + (1/2) * b)^4 ≤ (1/2) * a^4 + (1/2) * b^4\n  -- Rewriting left side: ((a + b) / 2)^4 = (a + b)^4 / 16\n  have h_lhs : ((1 / 2 : ℝ) * a + (1 / 2 : ℝ) * b) ^ 4 = (a + b) ^ 4 / 16 := by\n    ring\n  \n  have h_rhs : (1 / 2 : ℝ) * a ^ 4 + (1 / 2 : ℝ) * b ^ 4 = (a ^ 4 + b ^ 4) / 2 := by\n    ring\n    \n  rw [h_lhs, h_rhs] at h_jensen\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  -- By Jensen's Inequality: ((a + b) / 2)^4 ≤ (a^4 + b^4) / 2\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow 4\n  \n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith) (by linarith) (by linarith)\n  simp only [one_div, smul_eq_mul] at h_jensen\n  \n  -- h_jensen: ((1/2) * a + (1/2) * b)^4 ≤ (1/2) * a^4 + (1/2) * b^4\n  -- Rewriting left side: ((a + b) / 2)^4 = (a + b)^4 / 16\n  have h_lhs : ((1 / 2 : ℝ) * a + (1 / 2 : ℝ) * b) ^ 4 = (a + b) ^ 4 / 16 := by\n    ring\n  \n  have h_rhs : (1 / 2 : ℝ) * a ^ 4 + (1 / 2 : ℝ) * b ^ 4 = (a ^ 4 + b ^ 4) / 2 := by\n    ring\n    \n  rw [h_lhs, h_rhs] at h_jensen\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 48
+            },
+            "endPos": {
+              "line": 11,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.04548501968383789
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "To prove $(a + b)^4 \\leq 8(a^4 + b^4)$ for $a, b > 0$, we can use the Power Mean Inequality or Hölder's Inequality. Specifically, the power mean inequality states that for $p \\geq 1$:\n$\\left(\\frac{a+b}{2}\\right)^p \\leq \\frac{a^p + b^p}{2}$\nSetting $p = 4$, we get:\n$\\left(\\frac{a+b}{2}\\right)^4 \\leq \\frac{a^4 + b^4}{2}$\nExpanding the left side:\n$\\frac{(a+b)^4}{16} \\leq \\frac{a^4 + b^4}{2}$\nMultiplying both sides by 16:\n$(a+b)^4 \\leq 8(a^4 + b^4)$\n\nIn Lean, we can apply the convexity of $f(x) = x^4$ on $[0, \\infty)$ using `convexOn_pow`.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4 on the interval [0, +∞)\n  let f : ℝ → ℝ := (· ^ 4)\n  have h_conv : ConvexOn ℝ (Set.Ici 0) f := convexOn_pow 4\n  -- Apply Jensen's Inequality for two points: f((a+b)/2) ≤ (f(a) + f(b))/2\n  have ha : a ∈ Set.Ici 0 := Set.mem_Ici.mpr h₀.1.le\n  have hb : b ∈ Set.Ici 0 := Set.mem_Ici.mpr h₀.2.le\n  have h_jensen := h_conv.2 ha hb (by norm_num : 0 ≤ (1/2 : ℝ)) (by norm_num : 0 ≤ (1/2 : ℝ)) (by norm_num)\n  -- Simplify the Jensen inequality: ((1/2)a + (1/2)b)^4 ≤ (1/2)a^4 + (1/2)b^4\n  simp only [f] at h_jensen\n  have h_lhs : (1 / 2 * a + 1 / 2 * b) ^ 4 = ((a + b) / 2) ^ 4 := by ring\n  rw [h_lhs] at h_jensen\n  -- Expand ((a+b)/2)^4 to (a+b)^4 / 16\n  have h_expand : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h_expand] at h_jensen\n  -- Rearrange the inequality: (a+b)^4 / 16 ≤ (a^4 + b^4) / 2\n  -- Multiply both sides by 16 to get the final form\n  have h_final : (a + b) ^ 4 ≤ 16 * ((1 / 2) * a ^ 4 + (1 / 2) * b ^ 4) := (le_div_iff₀' (by norm_num)).mp h_jensen\n  calc\n    (a + b) ^ 4 ≤ 16 * ((1 / 2) * a ^ 4 + (1 / 2) * b ^ 4) := h_final\n    _ = 16 * ((a ^ 4 + b ^ 4) / 2) := by ring\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4 on the interval [0, +∞)\n  let f : ℝ → ℝ := (· ^ 4)\n  have h_conv : ConvexOn ℝ (Set.Ici 0) f := convexOn_pow 4\n  -- Apply Jensen's Inequality for two points: f((a+b)/2) ≤ (f(a) + f(b))/2\n  have ha : a ∈ Set.Ici 0 := Set.mem_Ici.mpr h₀.1.le\n  have hb : b ∈ Set.Ici 0 := Set.mem_Ici.mpr h₀.2.le\n  have h_jensen := h_conv.2 ha hb (by norm_num : 0 ≤ (1/2 : ℝ)) (by norm_num : 0 ≤ (1/2 : ℝ)) (by norm_num)\n  -- Simplify the Jensen inequality: ((1/2)a + (1/2)b)^4 ≤ (1/2)a^4 + (1/2)b^4\n  simp only [f] at h_jensen\n  have h_lhs : (1 / 2 * a + 1 / 2 * b) ^ 4 = ((a + b) / 2) ^ 4 := by ring\n  rw [h_lhs] at h_jensen\n  -- Expand ((a+b)/2)^4 to (a+b)^4 / 16\n  have h_expand : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h_expand] at h_jensen\n  -- Rearrange the inequality: (a+b)^4 / 16 ≤ (a^4 + b^4) / 2\n  -- Multiply both sides by 16 to get the final form\n  have h_final : (a + b) ^ 4 ≤ 16 * ((1 / 2) * a ^ 4 + (1 / 2) * b ^ 4) := (le_div_iff₀' (by norm_num)).mp h_jensen\n  calc\n    (a + b) ^ 4 ≤ 16 * ((1 / 2) * a ^ 4 + (1 / 2) * b ^ 4) := h_final\n    _ = 16 * ((a ^ 4 + b ^ 4) / 2) := by ring\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 6
+            },
+            "endPos": {
+              "line": 19,
+              "column": 11
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (1 / 2 * a + 1 / 2 * b) ^ 4\nin the target expression\n  ((1 / 2) • a + (1 / 2) • b) ^ 4 ≤ (1 / 2) • a ^ 4 + (1 / 2) • b ^ 4\n\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\nh_conv : ConvexOn ℝ (Set.Ici 0) f\nha : a ∈ Set.Ici 0\nhb : b ∈ Set.Ici 0\nh_jensen : ((1 / 2) • a + (1 / 2) • b) ^ 4 ≤ (1 / 2) • a ^ 4 + (1 / 2) • b ^ 4\nh_lhs : (1 / 2 * a + 1 / 2 * b) ^ 4 = ((a + b) / 2) ^ 4\n⊢ (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.20361924171447754
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "To prove $(a + b)^4 \\leq 8(a^4 + b^4)$ for $a, b > 0$, we use the properties of convex functions, specifically Jensen's Inequality.\n\n**Proof Sketch:**\n1. Let $f(x) = x^4$. Since $f''(x) = 12x^2 \\geq 0$, $f$ is a convex function on $\\mathbb{R}$.\n2. By Jensen's Inequality for the convex function $f(x) = x^4$ and weights $w_1 = w_2 = \\frac{1}{2}$, we have:\n   $$f\\left(\\frac{a+b}{2}\\right) \\leq \\frac{f(a) + f(b)}{2}$$\n3. Substituting the definition of $f$:\n   $$\\left(\\frac{a+b}{2}\\right)^4 \\leq \\frac{a^4 + b^4}{2}$$\n4. Expanding the left side:\n   $$\\frac{(a+b)^4}{16} \\leq \\frac{a^4 + b^4}{2}$$\n5. Multiplying both sides by 16:\n   $$(a+b)^4 \\leq 8(a^4 + b^4)$$\n\nThis inequality holds for all real $a, b$, so the condition $a, b > 0$ is sufficient but not strictly necessary.\n\n**Lean 4 Code:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  let f : ℝ → ℝ := fun x => x ^ 4\n  have h_conv : ConvexOn ℝ Set.univ f := by\n    apply convexOn_pow\n    exact le_refl 0\n  \n  -- Apply Jensen's Inequality for two points with weights 1/2, 1/2\n  have h_jensen := h_conv.2 (Set.mem_univ a) (Set.mem_univ b) \n    (show 0 ≤ (1/2 : ℝ) by linarith) (show 0 ≤ (1/2 : ℝ) by linarith) (by linarith)\n  \n  simp only [f] at h_jensen\n  \n  -- Calculate and rearrange terms\n  have h_lhs : (1 / 2 * a + 1 / 2 * b) ^ 4 = ((a + b) / 2) ^ 4 := by ring\n  rw [h_lhs] at h_jensen\n  \n  have h_pow : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h_pow] at h_jensen\n  \n  -- Final step: multiply by 16 to get the desired inequality\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by linarith\n    _ ≤ 16 * (1 / 2 * a ^ 4 + 1 / 2 * b ^ 4) := by rel [h_jensen]\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  let f : ℝ → ℝ := fun x => x ^ 4\n  have h_conv : ConvexOn ℝ Set.univ f := by\n    apply convexOn_pow\n    exact le_refl 0\n  \n  -- Apply Jensen's Inequality for two points with weights 1/2, 1/2\n  have h_jensen := h_conv.2 (Set.mem_univ a) (Set.mem_univ b) \n    (show 0 ≤ (1/2 : ℝ) by linarith) (show 0 ≤ (1/2 : ℝ) by linarith) (by linarith)\n  \n  simp only [f] at h_jensen\n  \n  -- Calculate and rearrange terms\n  have h_lhs : (1 / 2 * a + 1 / 2 * b) ^ 4 = ((a + b) / 2) ^ 4 := by ring\n  rw [h_lhs] at h_jensen\n  \n  have h_pow : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h_pow] at h_jensen\n  \n  -- Final step: multiply by 16 to get the desired inequality\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by linarith\n    _ ≤ 16 * (1 / 2 * a ^ 4 + 1 / 2 * b ^ 4) := by rel [h_jensen]\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 4
+            },
+            "endPos": {
+              "line": 12,
+              "column": 22
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@convexOn_pow`\n  ConvexOn ?𝕜 (Set.Ici 0) fun x => x ^ ?n\nwith the goal\n  ConvexOn ℝ Set.univ f\n\nNote: The full type of `@convexOn_pow` is\n  ∀ {𝕜 : Type ?u.2312} [inst : CommRing 𝕜] [inst_1 : LinearOrder 𝕜] [IsStrictOrderedRing 𝕜] (n : ℕ),\n    ConvexOn 𝕜 (Set.Ici 0) fun x => x ^ n\n\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\n⊢ ConvexOn ℝ Set.univ f"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 74
+            },
+            "endPos": {
+              "line": 17,
+              "column": 82
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\nh_conv : ConvexOn ℝ Set.univ f\na✝ : 1 / 2 + 1 / 2 < 1\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 6
+            },
+            "endPos": {
+              "line": 23,
+              "column": 11
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (1 / 2 * a + 1 / 2 * b) ^ 4\nin the target expression\n  ((1 / 2) • a + (1 / 2) • b) ^ 4 ≤ (1 / 2) • a ^ 4 + (1 / 2) • b ^ 4\n\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\nh_conv : ConvexOn ℝ Set.univ f\nh_jensen : ((1 / 2) • a + (1 / 2) • b) ^ 4 ≤ (1 / 2) • a ^ 4 + (1 / 2) • b ^ 4\nh_lhs : (1 / 2 * a + 1 / 2 * b) ^ 4 = ((a + b) / 2) ^ 4\n⊢ (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2998085021972656
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "To prove the inequality $(a + b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we utilize the convexity of the function $f(x) = x^4$ or the Power Mean Inequality.\n\n### Proof Sketch\n1.  **Convexity Approach**: The function $f(x) = x^4$ is convex on $\\mathbb{R}$ because $f''(x) = 12x^2 \\ge 0$.\n2.  By **Jensen's Inequality** for a convex function:\n    $f\\left(\\frac{a+b}{2}\\right) \\le \\frac{f(a) + f(b)}{2}$\n3.  Substituting $f(x) = x^4$:\n    $\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$\n4.  Expand the left side:\n    $\\frac{(a+b)^4}{16} \\le \\frac{a^4 + b^4}{2}$\n5.  Multiply both sides by 16:\n    $(a+b)^4 \\le 8(a^4 + b^4)$\n\nThis inequality holds for all $a, b \\in \\mathbb{R}$, though the hypothesis $a, b > 0$ is provided.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.isEven\n  \n  -- Apply Jensen's Inequality for two variables\n  -- f((a+b)/2) ≤ (f(a) + f(b))/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith) (by linarith) (by simp)\n  \n  -- Simplify the Jensen inequality: ((a+b)/2)^4 ≤ (a^4 + b^4)/2\n  simp only [smul_eq_mul] at h_jensen\n  \n  -- Rearrange to get (a+b)^4 ≤ 8 * (a^4 + b^4)\n  have h_pow : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    field_simp\n    ring\n    \n  rw [h_pow] at h_jensen\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.isEven\n  \n  -- Apply Jensen's Inequality for two variables\n  -- f((a+b)/2) ≤ (f(a) + f(b))/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith) (by linarith) (by simp)\n  \n  -- Simplify the Jensen inequality: ((a+b)/2)^4 ≤ (a^4 + b^4)/2\n  simp only [smul_eq_mul] at h_jensen\n  \n  -- Rearrange to get (a+b)^4 ≤ 8 * (a^4 + b^4)\n  have h_pow : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    field_simp\n    ring\n    \n  rw [h_pow] at h_jensen\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 48
+            },
+            "endPos": {
+              "line": 10,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.04793548583984375
+      }
+    },
+    {
+      "index": 12,
+      "status": "FAILED",
+      "raw_text": "To prove the inequality $(a+b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we can use the Power Mean Inequality or Jensen's Inequality.\n\n### Proof Sketch\n1.  **Convexity:** Consider the function $f(x) = x^4$ for $x > 0$. The second derivative $f''(x) = 12x^2$ is positive, so $f$ is strictly convex.\n2.  **Jensen's Inequality:** For a convex function $f$, we have $f\\left(\\frac{a+b}{2}\\right) \\le \\frac{f(a) + f(b)}{2}$.\n3.  **Application:** Applying this to $f(x) = x^4$:\n    $$\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$$\n4.  **Expansion:**\n    $$\\frac{(a+b)^4}{2^4} \\le \\frac{a^4 + b^4}{2}$$\n    $$\\frac{(a+b)^4}{16} \\le \\frac{a^4 + b^4}{2}$$\n5.  **Conclusion:** Multiplying both sides by 16 gives:\n    $$(a+b)^4 \\le \\frac{16}{2}(a^4 + b^4) = 8(a^4 + b^4)$$\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  -- Power mean inequality or Jensen's inequality: ((a+b)/2)^4 <= (a^4 + b^4)/2\n  have h_convex : ConvexOn ℝ (Set.Ici 0) (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact rfl\n  \n  -- Apply Jensen's Inequality for two points a and b with weights 1/2, 1/2\n  have h_jensen := h_convex.2 (show 0 ≤ a from h₀.1.le) (show 0 ≤ b from h₀.2.le) \n    (show 0 ≤ (1/2 : ℝ) by norm_num) (show 0 ≤ (1/2 : ℝ) by norm_num) (by norm_num)\n  \n  -- Simplify the Jensen expression\n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  rw [← add_div] at h_jensen\n  \n  -- We have ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2\n  -- Now manipulate the powers and constants\n  have h_left : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    field_simp\n    ring\n  \n  rw [h_left] at h_jensen\n  \n  -- Multiply by 16 on both sides\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by field_simp\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2)       := (mul_le_mul_left (show 0 < (16 : ℝ) by norm_num)).mpr h_jensen\n    _ = 8 * (a ^ 4 + b ^ 4)             := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  -- Power mean inequality or Jensen's inequality: ((a+b)/2)^4 <= (a^4 + b^4)/2\n  have h_convex : ConvexOn ℝ (Set.Ici 0) (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact rfl\n  \n  -- Apply Jensen's Inequality for two points a and b with weights 1/2, 1/2\n  have h_jensen := h_convex.2 (show 0 ≤ a from h₀.1.le) (show 0 ≤ b from h₀.2.le) \n    (show 0 ≤ (1/2 : ℝ) by norm_num) (show 0 ≤ (1/2 : ℝ) by norm_num) (by norm_num)\n  \n  -- Simplify the Jensen expression\n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  rw [← add_div] at h_jensen\n  \n  -- We have ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2\n  -- Now manipulate the powers and constants\n  have h_left : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    field_simp\n    ring\n  \n  rw [h_left] at h_jensen\n  \n  -- Multiply by 16 on both sides\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by field_simp\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2)       := (mul_le_mul_left (show 0 < (16 : ℝ) by norm_num)).mpr h_jensen\n    _ = 8 * (a ^ 4 + b ^ 4)             := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 18
+            },
+            "endPos": {
+              "line": 11,
+              "column": 57
+            },
+            "data": "failed to synthesize instance of type class\n  SMul ℝ ℕ\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 18
+            },
+            "endPos": {
+              "line": 11,
+              "column": 57
+            },
+            "data": "failed to synthesize instance of type class\n  SMul ℝ ℕ\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 4
+            },
+            "endPos": {
+              "line": 12,
+              "column": 22
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@convexOn_pow`\n  ConvexOn ?𝕜 (Set.Ici (0 : ?𝕜)) fun x => x ^ ?n\nwith the goal\n  ConvexOn ℝ (Set.Ici (0 : ℕ)) fun x => x ^ 4\n\nNote: The full type of `@convexOn_pow` is\n  ∀ {𝕜 : Type ?u.15140} [inst : CommRing 𝕜] [inst_1 : LinearOrder 𝕜] [IsStrictOrderedRing 𝕜] (n : ℕ),\n    ConvexOn 𝕜 (Set.Ici 0) fun x => x ^ n\n\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\n⊢ ConvexOn ℝ (Set.Ici 0) fun x => x ^ 4"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 19
+            },
+            "endPos": {
+              "line": 16,
+              "column": 27
+            },
+            "data": "Unknown identifier `h_convex`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 8,
+              "column": 101
+            },
+            "endPos": {
+              "line": 35,
+              "column": 50
+            },
+            "data": "unsolved goals\ncase refine_1\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\n⊢ SMul ℝ ℕ"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.17484021186828613
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "To prove the inequality $(a+b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we can utilize the power mean inequality or Jensen's inequality applied to the convex function $f(x) = x^4$ for $x > 0$.\n\n**Proof Sketch:**\n1. Since $f(x) = x^4$ is convex on $\\mathbb{R}$ (because $f''(x) = 12x^2 \\ge 0$), we apply Jensen's inequality.\n2. Jensen's inequality states that for a convex function $f$, $\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$.\n3. Expanding the left side: $\\frac{(a+b)^4}{2^4} = \\frac{(a+b)^4}{16}$.\n4. So, $\\frac{(a+b)^4}{16} \\le \\frac{a^4 + b^4}{2}$.\n5. Multiplying both sides by 16 yields $(a+b)^4 \\le 8(a^4 + b^4)$.\n\nAlternatively, one can use the AM-GM inequality or the Cauchy-Schwarz inequality twice:\n$(a+b)^2 \\le 2(a^2 + b^2)$ and $((a^2 + b^2))^2 \\le 2(a^4 + b^4)$.\nCombining these gives $(a+b)^4 \\le (2(a^2+b^2))^2 = 4(a^2+b^2)^2 \\le 4(2(a^4+b^4)) = 8(a^4+b^4)$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  -- Jensen's inequality states ((a + b) / 2)^4 ≤ (a^4 + b^4) / 2\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_bit0 (bit0 1)\n  \n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (by norm_num : (0 : ℝ) ≤ 1/2) (by norm_num : (0 : ℝ) ≤ 1/2) (by norm_num)\n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  \n  -- We have ((1/2) * a + (1/2) * b)^4 ≤ (1/2) * a^4 + (1/2) * b^4\n  -- Which is ((a + b) / 2)^4 ≤ (a^4 + b^4) / 2\n  have h1 : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rw [← mul_add] at h_jensen\n    exact h_jensen\n\n  -- Transform h1 into the desired form\n  have h2 : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    convert h1 using 1\n    field_simp\n  \n  -- Multiply both sides by 16\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  -- Jensen's inequality states ((a + b) / 2)^4 ≤ (a^4 + b^4) / 2\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_bit0 (bit0 1)\n  \n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (by norm_num : (0 : ℝ) ≤ 1/2) (by norm_num : (0 : ℝ) ≤ 1/2) (by norm_num)\n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  \n  -- We have ((1/2) * a + (1/2) * b)^4 ≤ (1/2) * a^4 + (1/2) * b^4\n  -- Which is ((a + b) / 2)^4 ≤ (a^4 + b^4) / 2\n  have h1 : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rw [← mul_add] at h_jensen\n    exact h_jensen\n\n  -- Transform h1 into the desired form\n  have h2 : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    convert h1 using 1\n    field_simp\n  \n  -- Multiply both sides by 16\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 48
+            },
+            "endPos": {
+              "line": 11,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.049681901931762695
+      }
+    },
+    {
+      "index": 14,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a + b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we can utilize the power mean inequality or convexity.\n\n### Proof Sketch\n1. **Convexity**: The function $f(x) = x^4$ is convex on $(0, \\infty)$ because $f''(x) = 12x^2 \\ge 0$.\n2. **Jensen's Inequality**: For any $a, b \\in \\mathbb{R}$, Jensen's inequality for $f(x) = x^4$ states:\n   $$\\left(\\frac{a + b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$$\n3. **Rearrangement**:\n   - Multiply both sides by $2^4 = 16$:\n     $$(a + b)^4 \\le 16 \\cdot \\frac{a^4 + b^4}{2}$$\n   - Simplify the right side:\n     $$(a + b)^4 \\le 8(a^4 + b^4)$$\n4. This holds for all $a, b \\in \\mathbb{R}$, which covers the given condition $a, b > 0$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  -- By Jensen's Inequality: ((a + b) / 2)^4 ≤ (a^4 + b^4) / 2\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.isEven\n  \n  -- Apply Jensen's for two points with weights 1/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) \n    (show 0 ≤ (1/2 : ℝ) by norm_num) (show 0 ≤ (1/2 : ℝ) by norm_num) (by norm_num)\n  \n  simp only [one_div, inv_pow'] at h_jensen\n  \n  -- h_jensen currently is: (1/2 * a + 1/2 * b)^4 ≤ 1/2 * a^4 + 1/2 * b^4\n  -- This simplifies to: ((a + b) / 2)^4 ≤ (a^4 + b^4) / 2\n  have h1 : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rw [← mul_add] at h_jensen\n    exact h_jensen\n\n  -- Expand the left side: (a+b)^4 / 16 ≤ (a^4 + b^4) / 2\n  have h2 : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rw [div_pow] at h1\n    norm_num at h1\n    exact h1\n\n  -- Multiply both sides by 16 to get the final inequality\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  -- By Jensen's Inequality: ((a + b) / 2)^4 ≤ (a^4 + b^4) / 2\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.isEven\n  \n  -- Apply Jensen's for two points with weights 1/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) \n    (show 0 ≤ (1/2 : ℝ) by norm_num) (show 0 ≤ (1/2 : ℝ) by norm_num) (by norm_num)\n  \n  simp only [one_div, inv_pow'] at h_jensen\n  \n  -- h_jensen currently is: (1/2 * a + 1/2 * b)^4 ≤ 1/2 * a^4 + 1/2 * b^4\n  -- This simplifies to: ((a + b) / 2)^4 ≤ (a^4 + b^4) / 2\n  have h1 : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rw [← mul_add] at h_jensen\n    exact h_jensen\n\n  -- Expand the left side: (a+b)^4 / 16 ≤ (a^4 + b^4) / 2\n  have h2 : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rw [div_pow] at h1\n    norm_num at h1\n    exact h1\n\n  -- Multiply both sides by 16 to get the final inequality\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 48
+            },
+            "endPos": {
+              "line": 11,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.059972286224365234
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "To prove the inequality $(a + b)^4 \\leq 8(a^4 + b^4)$ for $a, b > 0$, we can utilize the power mean inequality or Jensen's inequality for convex functions.\n\n### Proof Sketch\n1.  **Convexity:** The function $f(x) = x^4$ is convex on $\\mathbb{R}$ because $f''(x) = 12x^2 \\geq 0$.\n2.  **Jensen's Inequality:** For a convex function $f$, we have $f\\left(\\frac{a+b}{2}\\right) \\leq \\frac{f(a) + f(b)}{2}$.\n3.  **Application:** Applying this to $f(x) = x^4$ gives:\n    $$\\left(\\frac{a+b}{2}\\right)^4 \\leq \\frac{a^4 + b^4}{2}$$\n4.  **Rearrangement:**\n    $$\\frac{(a+b)^4}{2^4} \\leq \\frac{a^4 + b^4}{2}$$\n    $$\\frac{(a+b)^4}{16} \\leq \\frac{a^4 + b^4}{2}$$\n    $$(a+b)^4 \\leq \\frac{16}{2}(a^4 + b^4) = 8(a^4 + b^4)$$\nThe condition $a, b > 0$ is given, though the inequality actually holds for all $a, b \\in \\mathbb{R}$ due to the convexity of $x^4$ globally.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_bit0 2\n  -- Apply Jensen's Inequality for two points\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  simp only [smul_eq_mul] at h_jensen\n  -- Rearrange the inequality\n  have h_calc : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    convert h_jensen using 1\n    · ring\n    · ring\n  -- Final scale by 16\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by ring\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2) := by rel [h_calc]\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_bit0 2\n  -- Apply Jensen's Inequality for two points\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  simp only [smul_eq_mul] at h_jensen\n  -- Rearrange the inequality\n  have h_calc : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    convert h_jensen using 1\n    · ring\n    · ring\n  -- Final scale by 16\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by ring\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2) := by rel [h_calc]\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 48
+            },
+            "endPos": {
+              "line": 10,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.08605527877807617
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "To prove the inequality $(a + b)^4 \\leq 8(a^4 + b^4)$ for $a, b > 0$, we can utilize the power mean inequality or Jensen's inequality.\n\n**Proof Sketch:**\n1. **Convexity:** Consider the function $f(x) = x^4$. Since $f''(x) = 12x^2 \\ge 0$, $f$ is convex on $\\mathbb{R}$.\n2. **Jensen's Inequality:** For any $a, b \\in \\mathbb{R}$, Jensen's inequality states:\n   $f\\left(\\frac{a+b}{2}\\right) \\le \\frac{f(a) + f(b)}{2}$\n3. **Application:** Substituting $f(x) = x^4$ gives:\n   $\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$\n4. **Algebraic Manipulation:**\n   $\\frac{(a+b)^4}{2^4} \\le \\frac{a^4 + b^4}{2}$\n   $\\frac{(a+b)^4}{16} \\le \\frac{a^4 + b^4}{2}$\n   Multiplying both sides by $16$ yields:\n   $(a+b)^4 \\le 8(a^4 + b^4)$\n\n**Lean 4 Implementation:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.is_even\n  -- Apply Jensen's Inequality for two points with weights 1/2, 1/2\n  have h_jensen := h_convex.set_combine (Set.mem_univ a) (Set.mem_univ b) \n    (show 0 ≤ (1/2 : ℝ) by linarith) (show 0 ≤ (1/2 : ℝ) by linarith) (show 1/2 + 1/2 = (1 : ℝ) by linarith)\n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  -- Rearrange the inequality\n  -- ( (a+b)/2 )^4 ≤ (a^4 + b^4)/2\n  have h1 : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := h_jensen\n  -- Expand the left side: (a+b)^4 / 16 ≤ (a^4 + b^4) / 2\n  have h2 : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rw [div_pow] at h1\n    norm_num at h1\n    exact h1\n  -- Multiply by 16 to get the final result\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.is_even\n  -- Apply Jensen's Inequality for two points with weights 1/2, 1/2\n  have h_jensen := h_convex.set_combine (Set.mem_univ a) (Set.mem_univ b) \n    (show 0 ≤ (1/2 : ℝ) by linarith) (show 0 ≤ (1/2 : ℝ) by linarith) (show 1/2 + 1/2 = (1 : ℝ) by linarith)\n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  -- Rearrange the inequality\n  -- ( (a+b)/2 )^4 ≤ (a^4 + b^4)/2\n  have h1 : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := h_jensen\n  -- Expand the left side: (a+b)^4 / 16 ≤ (a^4 + b^4) / 2\n  have h2 : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rw [div_pow] at h1\n    norm_num at h1\n    exact h1\n  -- Multiply by 16 to get the final result\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 48
+            },
+            "endPos": {
+              "line": 10,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.08890271186828613
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "To prove the inequality $(a+b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we can utilize the power mean inequality or Jensen's inequality for convex functions. Specifically, the function $f(x) = x^4$ is convex on $\\mathbb{R}$.\n\n**Proof Sketch:**\n1.  **Convexity:** The function $f(x) = x^4$ is convex because $f''(x) = 12x^2 \\ge 0$.\n2.  **Jensen's Inequality:** For a convex function $f$, we have $f(\\frac{a+b}{2}) \\le \\frac{f(a) + f(b)}{2}$.\n3.  **Application:** Applying this to $f(x) = x^4$, we get:\n    $\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$\n4.  **Expansion:** $\\frac{(a+b)^4}{16} \\le \\frac{a^4 + b^4}{2}$.\n5.  **Conclusion:** Multiplying both sides by 16 yields $(a+b)^4 \\le 8(a^4 + b^4)$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  let f : ℝ → ℝ := fun x => x ^ 4\n  have h_conv : ConvexOn ℝ Set.univ f := by\n    apply convexOn_pow\n    exact even_four.isEven\n  -- Apply Jensen's Inequality for two points\n  have h_jensen := h_conv.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  simp only [f] at h_jensen\n  -- Simplify the Jensen's expression: ((1/2)a + (1/2)b)^4 ≤ (1/2)a^4 + (1/2)b^4\n  have h1 : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    convert h_jensen using 1\n    · ring\n    · ring\n  -- Rearrange to the target inequality\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) / 2) ^ 4 := by field_simp; ring\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2)      := by rel [h1]\n    _ = 8 * (a ^ 4 + b ^ 4)             := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  let f : ℝ → ℝ := fun x => x ^ 4\n  have h_conv : ConvexOn ℝ Set.univ f := by\n    apply convexOn_pow\n    exact even_four.isEven\n  -- Apply Jensen's Inequality for two points\n  have h_jensen := h_conv.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  simp only [f] at h_jensen\n  -- Simplify the Jensen's expression: ((1/2)a + (1/2)b)^4 ≤ (1/2)a^4 + (1/2)b^4\n  have h1 : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    convert h_jensen using 1\n    · ring\n    · ring\n  -- Rearrange to the target inequality\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) / 2) ^ 4 := by field_simp; ring\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2)      := by rel [h1]\n    _ = 8 * (a ^ 4 + b ^ 4)             := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 4
+            },
+            "endPos": {
+              "line": 12,
+              "column": 22
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@convexOn_pow`\n  ConvexOn ?𝕜 (Set.Ici 0) fun x => x ^ ?n\nwith the goal\n  ConvexOn ℝ Set.univ f\n\nNote: The full type of `@convexOn_pow` is\n  ∀ {𝕜 : Type ?u.2312} [inst : CommRing 𝕜] [inst_1 : LinearOrder 𝕜] [IsStrictOrderedRing 𝕜] (n : ℕ),\n    ConvexOn 𝕜 (Set.Ici 0) fun x => x ^ n\n\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\n⊢ ConvexOn ℝ Set.univ f"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 126
+            },
+            "endPos": {
+              "line": 15,
+              "column": 134
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\nh_conv : ConvexOn ℝ Set.univ f\na✝ : 1 / 2 + 1 / 2 < 1\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 4
+            },
+            "endPos": {
+              "line": 20,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase h.e'_3\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\nh_conv : ConvexOn ℝ Set.univ f\nh_jensen : ((1 / 2) • a + (1 / 2) • b) ^ 4 ≤ (1 / 2) • a ^ 4 + (1 / 2) • b ^ 4\n⊢ a * b ^ 3 * (1 / 4) + a ^ 2 * b ^ 2 * (3 / 8) + a ^ 3 * b * (1 / 4) + a ^ 4 * (1 / 16) + b ^ 4 * (1 / 16) =\n    (1 / 2) • a * ((1 / 2) • b) ^ 3 * 4 + ((1 / 2) • a) ^ 2 * ((1 / 2) • b) ^ 2 * 6 +\n          ((1 / 2) • a) ^ 3 * (1 / 2) • b * 4 +\n        ((1 / 2) • a) ^ 4 +\n      ((1 / 2) • b) ^ 4"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 4
+            },
+            "endPos": {
+              "line": 21,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase h.e'_4\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\nh_conv : ConvexOn ℝ Set.univ f\nh_jensen : ((1 / 2) • a + (1 / 2) • b) ^ 4 ≤ (1 / 2) • a ^ 4 + (1 / 2) • b ^ 4\n⊢ a ^ 4 * (1 / 2) + b ^ 4 * (1 / 2) = (1 / 2) • a ^ 4 + (1 / 2) • b ^ 4"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5517313480377197
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "Proof Sketch:\n1. By the convexity of the function $f(x) = x^4$ on the interval $(0, \\infty)$ (since $f''(x) = 12x^2 \\ge 0$), we can apply Jensen's Inequality.\n2. For $a, b > 0$, Jensen's Inequality states: $\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$.\n3. Expanding the power of the denominator: $\\frac{(a+b)^4}{16} \\le \\frac{a^4 + b^4}{2}$.\n4. Multiplying both sides by 16 yields: $(a+b)^4 \\le 8(a^4 + b^4)$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  let f := fun (x : ℝ) => x ^ 4\n  have h_conv : ConvexOn ℝ (Set.Ici 0) f := by\n    apply convexOn_pow\n    exact rfl\n  -- Apply Jensen's Inequality for two points a and b\n  have ha : a ∈ Set.Ici 0 := le_of_lt h₀.1\n  have hb : b ∈ Set.Ici 0 := le_of_lt h₀.2\n  have h_jensen := h_conv.2 ha hb (by norm_num : (0 : ℝ) ≤ 1/2) (by norm_num : (0 : ℝ) ≤ 1/2) (by norm_num)\n  simp only [f] at h_jensen\n  -- Simplify: ((1/2)*a + (1/2)*b)^4 <= (1/2)*a^4 + (1/2)*b^4\n  -- ( (a+b)/2 )^4 <= (a^4 + b^4)/2\n  have h1 : (1 / 2 * a + 1 / 2 * b) = (a + b) / 2 := by ring\n  have h2 : 1 / 2 * a ^ 4 + 1 / 2 * b ^ 4 = (a ^ 4 + b ^ 4) / 2 := by ring\n  rw [h1, h2] at h_jensen\n  -- ((a+b)^4)/16 <= (a^4 + b^4)/2\n  have h3 : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h3] at h_jensen\n  -- Multiply by 16 to get the final result\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  let f := fun (x : ℝ) => x ^ 4\n  have h_conv : ConvexOn ℝ (Set.Ici 0) f := by\n    apply convexOn_pow\n    exact rfl\n  -- Apply Jensen's Inequality for two points a and b\n  have ha : a ∈ Set.Ici 0 := le_of_lt h₀.1\n  have hb : b ∈ Set.Ici 0 := le_of_lt h₀.2\n  have h_jensen := h_conv.2 ha hb (by norm_num : (0 : ℝ) ≤ 1/2) (by norm_num : (0 : ℝ) ≤ 1/2) (by norm_num)\n  simp only [f] at h_jensen\n  -- Simplify: ((1/2)*a + (1/2)*b)^4 <= (1/2)*a^4 + (1/2)*b^4\n  -- ( (a+b)/2 )^4 <= (a^4 + b^4)/2\n  have h1 : (1 / 2 * a + 1 / 2 * b) = (a + b) / 2 := by ring\n  have h2 : 1 / 2 * a ^ 4 + 1 / 2 * b ^ 4 = (a ^ 4 + b ^ 4) / 2 := by ring\n  rw [h1, h2] at h_jensen\n  -- ((a+b)^4)/16 <= (a^4 + b^4)/2\n  have h3 : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h3] at h_jensen\n  -- Multiply by 16 to get the final result\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 4
+            },
+            "endPos": {
+              "line": 13,
+              "column": 13
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 6
+            },
+            "endPos": {
+              "line": 23,
+              "column": 8
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  1 / 2 * a + 1 / 2 * b\nin the target expression\n  ((1 / 2) • a + (1 / 2) • b) ^ 4 ≤ (1 / 2) • a ^ 4 + (1 / 2) • b ^ 4\n\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\nh_conv : ConvexOn ℝ (Set.Ici 0) f\nha : a ∈ Set.Ici 0\nhb : b ∈ Set.Ici 0\nh_jensen : ((1 / 2) • a + (1 / 2) • b) ^ 4 ≤ (1 / 2) • a ^ 4 + (1 / 2) • b ^ 4\nh1 : 1 / 2 * a + 1 / 2 * b = (a + b) / 2\nh2 : 1 / 2 * a ^ 4 + 1 / 2 * b ^ 4 = (a ^ 4 + b ^ 4) / 2\n⊢ (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.23921608924865723
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "To prove the inequality $(a+b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we can utilize the power mean inequality or Jensen's Inequality. Since the function $f(x) = x^4$ is convex for $x \\in \\mathbb{R}$, Jensen's Inequality implies:\n$$\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$$\nExpanding the left side gives:\n$$\\frac{(a+b)^4}{2^4} \\le \\frac{a^4 + b^4}{2} \\implies \\frac{(a+b)^4}{16} \\le \\frac{a^4 + b^4}{2}$$\nMultiplying both sides by 16 yields:\n$$(a+b)^4 \\le 8(a^4 + b^4)$$\nAlternatively, this can be proven by expansion and applying the AM-GM inequality to terms like $a^3b + ab^3$ and $a^2b^2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use Jensen's Inequality for the convex function f(x) = x^4\n  let f : ℝ → ℝ := fun x => x ^ 4\n  have h_convex : ConvexOn ℝ Set.univ f := by\n    apply convexOn_pow\n    exact even_four.isEven\n  \n  -- Jensen's inequality: f((a+b)/2) ≤ (f(a) + f(b))/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (show 0 ≤ (1/2 : ℝ) by linarith) (show 0 ≤ (1/2 : ℝ) by linarith) (by linarith)\n  simp only [f] at h_jensen\n  \n  -- Manipulate the expression to get the desired inequality\n  have h1 : ((1 / 2 : ℝ) * a + (1 / 2 : ℝ) * b) ^ 4 = ((a + b) / 2) ^ 4 := by ring\n  rw [h1] at h_jensen\n  have h2 : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h2] at h_jensen\n  \n  -- Multiply both sides by 16\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by ring\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2) := by rel [h_jensen]\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use Jensen's Inequality for the convex function f(x) = x^4\n  let f : ℝ → ℝ := fun x => x ^ 4\n  have h_convex : ConvexOn ℝ Set.univ f := by\n    apply convexOn_pow\n    exact even_four.isEven\n  \n  -- Jensen's inequality: f((a+b)/2) ≤ (f(a) + f(b))/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (show 0 ≤ (1/2 : ℝ) by linarith) (show 0 ≤ (1/2 : ℝ) by linarith) (by linarith)\n  simp only [f] at h_jensen\n  \n  -- Manipulate the expression to get the desired inequality\n  have h1 : ((1 / 2 : ℝ) * a + (1 / 2 : ℝ) * b) ^ 4 = ((a + b) / 2) ^ 4 := by ring\n  rw [h1] at h_jensen\n  have h2 : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h2] at h_jensen\n  \n  -- Multiply both sides by 16\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by ring\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2) := by rel [h_jensen]\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 4
+            },
+            "endPos": {
+              "line": 12,
+              "column": 22
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@convexOn_pow`\n  ConvexOn ?𝕜 (Set.Ici 0) fun x => x ^ ?n\nwith the goal\n  ConvexOn ℝ Set.univ f\n\nNote: The full type of `@convexOn_pow` is\n  ∀ {𝕜 : Type ?u.2312} [inst : CommRing 𝕜] [inst_1 : LinearOrder 𝕜] [IsStrictOrderedRing 𝕜] (n : ℕ),\n    ConvexOn 𝕜 (Set.Ici 0) fun x => x ^ n\n\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\n⊢ ConvexOn ℝ Set.univ f"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 134
+            },
+            "endPos": {
+              "line": 16,
+              "column": 142
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\nh_convex : ConvexOn ℝ Set.univ f\na✝ : 1 / 2 + 1 / 2 < 1\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 6
+            },
+            "endPos": {
+              "line": 21,
+              "column": 8
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (1 / 2 * a + 1 / 2 * b) ^ 4\nin the target expression\n  ((1 / 2) • a + (1 / 2) • b) ^ 4 ≤ (1 / 2) • a ^ 4 + (1 / 2) • b ^ 4\n\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\nh_convex : ConvexOn ℝ Set.univ f\nh_jensen : ((1 / 2) • a + (1 / 2) • b) ^ 4 ≤ (1 / 2) • a ^ 4 + (1 / 2) • b ^ 4\nh1 : (1 / 2 * a + 1 / 2 * b) ^ 4 = ((a + b) / 2) ^ 4\n⊢ (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.27290987968444824
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "To prove the inequality $(a + b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we can utilize the power mean inequality or Jensen's inequality.\n\n### Proof Sketch:\n1.  **Convexity:** The function $f(x) = x^4$ is convex on $\\mathbb{R}$ because its second derivative $f''(x) = 12x^2$ is non-negative.\n2.  **Jensen's Inequality:** For a convex function $f$, we have $f\\left(\\frac{a+b}{2}\\right) \\le \\frac{f(a) + f(b)}{2}$.\n3.  **Application:** Applying this to $f(x) = x^4$, we get:\n    $$\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$$\n4.  **Algebraic Manipulation:**\n    $$\\frac{(a+b)^4}{2^4} \\le \\frac{a^4 + b^4}{2}$$\n    $$\\frac{(a+b)^4}{16} \\le \\frac{a^4 + b^4}{2}$$\n    $$(a+b)^4 \\le \\frac{16}{2}(a^4 + b^4) = 8(a^4 + b^4)$$\n5.  This confirms the desired inequality.\n\n### Lean 4 Code:\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Using the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.isEven\n  \n  -- Apply Jensen's Inequality for two points with weights 1/2\n  have h_jensen := h_convex.2 (show 0 ≤ (1/2 : ℝ) by norm_num) \n                               (show 0 ≤ (1/2 : ℝ) by norm_num) \n                               (show 1/2 + 1/2 = (1 : ℝ) by norm_num)\n                               (Set.mem_univ a) (Set.mem_univ b)\n  \n  -- Simplify Jensen's: ((1/2)*a + (1/2)*b)^4 ≤ (1/2)*a^4 + (1/2)*b^4\n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  rw [← add_div] at h_jensen\n  \n  -- (a+b)^4 / 16 ≤ (a^4 + b^4) / 2\n  have h_lhs : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    ring\n  \n  rw [h_lhs] at h_jensen\n  \n  -- Multiply both sides by 16 to get the final form\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by ring\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2) := by rel [h_jensen]\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Using the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.isEven\n  \n  -- Apply Jensen's Inequality for two points with weights 1/2\n  have h_jensen := h_convex.2 (show 0 ≤ (1/2 : ℝ) by norm_num) \n                               (show 0 ≤ (1/2 : ℝ) by norm_num) \n                               (show 1/2 + 1/2 = (1 : ℝ) by norm_num)\n                               (Set.mem_univ a) (Set.mem_univ b)\n  \n  -- Simplify Jensen's: ((1/2)*a + (1/2)*b)^4 ≤ (1/2)*a^4 + (1/2)*b^4\n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  rw [← add_div] at h_jensen\n  \n  -- (a+b)^4 / 16 ≤ (a^4 + b^4) / 2\n  have h_lhs : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    ring\n  \n  rw [h_lhs] at h_jensen\n  \n  -- Multiply both sides by 16 to get the final form\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by ring\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2) := by rel [h_jensen]\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 48
+            },
+            "endPos": {
+              "line": 10,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.06183767318725586
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "To prove the inequality $(a + b)^4 \\leq 8(a^4 + b^4)$ for $a, b > 0$, we can utilize the power mean inequality or Jensen's inequality.\n\n### Proof Sketch\n1. **Convexity**: Consider the function $f(x) = x^4$. Since $f''(x) = 12x^2 \\geq 0$ for all $x \\in \\mathbb{R}$, $f(x)$ is a convex function.\n2. **Jensen's Inequality**: For any $a, b \\in \\mathbb{R}$, Jensen's inequality states that $f(\\frac{a+b}{2}) \\leq \\frac{f(a) + f(b)}{2}$.\n3. **Application**:\n   $$ \\left( \\frac{a+b}{2} \\right)^4 \\leq \\frac{a^4 + b^4}{2} $$\n4. **Simplification**:\n   Multiply both sides by $2^4 = 16$:\n   $$ (a + b)^4 \\leq 16 \\cdot \\frac{a^4 + b^4}{2} $$\n   $$ (a + b)^4 \\leq 8(a^4 + b^4) $$\nThe condition $a, b > 0$ is actually more restrictive than necessary, as the inequality holds for all real $a, b$ due to the convexity of $x^4$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use Jensen's Inequality for the convex function f(x) = x^4\n  -- or simply use the fact that (a+b)^4 / 16 <= (a^4 + b^4) / 2\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_bit0 2\n  \n  -- Apply the definition of convexity: f((a+b)/2) <= (f(a) + f(b))/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  simp only [smul_eq_mul] at h_jensen\n  \n  -- Rearrange the inequality\n  -- ((1/2)*a + (1/2)*b)^4 <= (1/2)*a^4 + (1/2)*b^4\n  -- ((a+b)/2)^4 <= (a^4 + b^4)/2\n  -- (a+b)^4 / 16 <= (a^4 + b^4)/2\n  -- (a+b)^4 <= 8 * (a^4 + b^4)\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) / 2) ^ 4 := by \n      field_simp\n      ring\n    _ = 16 * ((1/2) * a + (1/2) * b) ^ 4 := by ring_nf\n    _ ≤ 16 * ((1/2) * a ^ 4 + (1/2) * b ^ 4) := by \n      apply mul_le_mul_of_nonneg_left h_jensen\n      norm_num\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use Jensen's Inequality for the convex function f(x) = x^4\n  -- or simply use the fact that (a+b)^4 / 16 <= (a^4 + b^4) / 2\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_bit0 2\n  \n  -- Apply the definition of convexity: f((a+b)/2) <= (f(a) + f(b))/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  simp only [smul_eq_mul] at h_jensen\n  \n  -- Rearrange the inequality\n  -- ((1/2)*a + (1/2)*b)^4 <= (1/2)*a^4 + (1/2)*b^4\n  -- ((a+b)/2)^4 <= (a^4 + b^4)/2\n  -- (a+b)^4 / 16 <= (a^4 + b^4)/2\n  -- (a+b)^4 <= 8 * (a^4 + b^4)\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) / 2) ^ 4 := by \n      field_simp\n      ring\n    _ = 16 * ((1/2) * a + (1/2) * b) ^ 4 := by ring_nf\n    _ ≤ 16 * ((1/2) * a ^ 4 + (1/2) * b ^ 4) := by \n      apply mul_le_mul_of_nonneg_left h_jensen\n      norm_num\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 48
+            },
+            "endPos": {
+              "line": 11,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.11390495300292969
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a + b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we can use the power mean inequality or Cauchy-Schwarz. \n\n**Proof Sketch:**\n1.  By Jensen's Inequality applied to the convex function $f(x) = x^4$ on $(0, \\infty)$, we have:\n    $\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$.\n2.  Expanding the left side: $\\frac{(a+b)^4}{2^4} = \\frac{(a+b)^4}{16}$.\n3.  The inequality becomes $\\frac{(a+b)^4}{16} \\le \\frac{a^4 + b^4}{2}$.\n4.  Multiplying both sides by 16 gives $(a+b)^4 \\le 8(a^4 + b^4)$.\n\nAlternatively, one can use the AM-GM inequality or expand the terms and apply $a^4 + b^4 \\ge a^3b + ab^3$ and $a^4 + b^4 \\ge 2a^2b^2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Using the power mean inequality / convexity of x ↦ x^4\n  -- Specifically: ((a + b) / 2)^4 ≤ (a^4 + b^4) / 2\n  have h_convex : ConvexOn ℝ (Set.Ici 0) (fun x => x ^ 4) := by\n    apply convexOn_pow 4\n  \n  have ha : a ∈ Set.Ici 0 := le_of_lt h₀.1\n  have hb : b ∈ Set.Ici 0 := le_of_lt h₀.2\n  \n  -- Apply Jensen's for two points with weights 1/2\n  have hj := h_convex.2 ha hb (show 0 ≤ (1/2 : ℝ) by linarith) (show 0 ≤ (1/2 : ℝ) by linarith) (by linarith)\n  simp only [one_div, inv_mul_eq_div] at hj\n  \n  -- hj: ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2\n  have h1 : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    ring\n  \n  rw [h1] at hj\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Using the power mean inequality / convexity of x ↦ x^4\n  -- Specifically: ((a + b) / 2)^4 ≤ (a^4 + b^4) / 2\n  have h_convex : ConvexOn ℝ (Set.Ici 0) (fun x => x ^ 4) := by\n    apply convexOn_pow 4\n  \n  have ha : a ∈ Set.Ici 0 := le_of_lt h₀.1\n  have hb : b ∈ Set.Ici 0 := le_of_lt h₀.2\n  \n  -- Apply Jensen's for two points with weights 1/2\n  have hj := h_convex.2 ha hb (show 0 ≤ (1/2 : ℝ) by linarith) (show 0 ≤ (1/2 : ℝ) by linarith) (by linarith)\n  simp only [one_div, inv_mul_eq_div] at hj\n  \n  -- hj: ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2\n  have h1 : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    ring\n  \n  rw [h1] at hj\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 18
+            },
+            "endPos": {
+              "line": 11,
+              "column": 57
+            },
+            "data": "failed to synthesize instance of type class\n  SMul ℝ ℕ\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 18
+            },
+            "endPos": {
+              "line": 11,
+              "column": 57
+            },
+            "data": "failed to synthesize instance of type class\n  SMul ℝ ℕ\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 4
+            },
+            "endPos": {
+              "line": 12,
+              "column": 24
+            },
+            "data": "Tactic `apply` failed: could not unify the type of `convexOn_pow 4`\n  ConvexOn ?m.97 (Set.Ici (0 : ?m.97)) fun x => x ^ 4\nwith the goal\n  ConvexOn ℝ (Set.Ici (0 : ℕ)) fun x => x ^ 4\n\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\n⊢ ConvexOn ℝ (Set.Ici 0) fun x => x ^ 4"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 13
+            },
+            "endPos": {
+              "line": 18,
+              "column": 21
+            },
+            "data": "Unknown identifier `h_convex`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 8,
+              "column": 101
+            },
+            "endPos": {
+              "line": 26,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase refine_1\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nha : a ∈ Set.Ici 0\nhb : b ∈ Set.Ici 0\n⊢ SMul ℝ ℕ"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2070779800415039
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "To prove $(a + b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we utilize the power mean inequality or Jensen's inequality.\n\n**Proof Sketch:**\n1.  **Jensen's Inequality:** Consider the function $f(x) = x^4$. Since $f''(x) = 12x^2 \\ge 0$, $f$ is convex on $\\mathbb{R}$.\n2.  By Jensen's inequality for two variables with equal weights $w_1 = w_2 = \\frac{1}{2}$:\n    $$ \\left( \\frac{a + b}{2} \\right)^4 \\le \\frac{a^4 + b^4}{2} $$\n3.  Expanding the left side:\n    $$ \\frac{(a + b)^4}{2^4} \\le \\frac{a^4 + b^4}{2} $$\n    $$ \\frac{(a + b)^4}{16} \\le \\frac{a^4 + b^4}{2} $$\n4.  Multiplying both sides by 16:\n    $$ (a + b)^4 \\le \\frac{16}{2} (a^4 + b^4) = 8(a^4 + b^4) $$\n5.  Since $a, b > 0$, all terms are well-defined and the inequality holds.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  let f := fun (x : ℝ) => x ^ 4\n  have h_convex : ConvexOn ℝ Set.univ f := by\n    apply convexOn_pow\n    exact even_four.isEven\n  \n  -- Apply Jensen's Inequality: f((a+b)/2) ≤ (f(a) + f(b))/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) \n    (show 0 ≤ (1/2 : ℝ) by linarith) (show 0 ≤ (1/2 : ℝ) by linarith) (by linarith)\n  \n  simp only [f] at h_jensen\n  -- Simplify: ((1/2)a + (1/2)b)^4 ≤ (a^4 + b^4)/2\n  -- which is ((a+b)/2)^4 ≤ (a^4 + b^4)/2\n  have h1 : ((1 / 2 : ℝ) * a + (1 / 2 : ℝ) * b) = (a + b) / 2 := by linarith\n  rw [h1] at h_jensen\n  \n  -- (a+b)^4 / 16 ≤ (a^4 + b^4) / 2\n  have h2 : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    field_simp\n    ring\n  \n  rw [h2] at h_jensen\n  \n  -- Multiply by 16 to get the final result\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by field_simp\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2) := by rel [h_jensen]\n    _ = 8 * (a ^ 4 + b ^ 4) := by linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  let f := fun (x : ℝ) => x ^ 4\n  have h_convex : ConvexOn ℝ Set.univ f := by\n    apply convexOn_pow\n    exact even_four.isEven\n  \n  -- Apply Jensen's Inequality: f((a+b)/2) ≤ (f(a) + f(b))/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) \n    (show 0 ≤ (1/2 : ℝ) by linarith) (show 0 ≤ (1/2 : ℝ) by linarith) (by linarith)\n  \n  simp only [f] at h_jensen\n  -- Simplify: ((1/2)a + (1/2)b)^4 ≤ (a^4 + b^4)/2\n  -- which is ((a+b)/2)^4 ≤ (a^4 + b^4)/2\n  have h1 : ((1 / 2 : ℝ) * a + (1 / 2 : ℝ) * b) = (a + b) / 2 := by linarith\n  rw [h1] at h_jensen\n  \n  -- (a+b)^4 / 16 ≤ (a^4 + b^4) / 2\n  have h2 : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    field_simp\n    ring\n  \n  rw [h2] at h_jensen\n  \n  -- Multiply by 16 to get the final result\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by field_simp\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2) := by rel [h_jensen]\n    _ = 8 * (a ^ 4 + b ^ 4) := by linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 4
+            },
+            "endPos": {
+              "line": 12,
+              "column": 22
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@convexOn_pow`\n  ConvexOn ?𝕜 (Set.Ici 0) fun x => x ^ ?n\nwith the goal\n  ConvexOn ℝ Set.univ f\n\nNote: The full type of `@convexOn_pow` is\n  ∀ {𝕜 : Type ?u.2311} [inst : CommRing 𝕜] [inst_1 : LinearOrder 𝕜] [IsStrictOrderedRing 𝕜] (n : ℕ),\n    ConvexOn 𝕜 (Set.Ici 0) fun x => x ^ n\n\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\n⊢ ConvexOn ℝ Set.univ f"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 74
+            },
+            "endPos": {
+              "line": 17,
+              "column": 82
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\nh_convex : ConvexOn ℝ Set.univ f\na✝ : 1 / 2 + 1 / 2 < 1\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 6
+            },
+            "endPos": {
+              "line": 23,
+              "column": 8
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  1 / 2 * a + 1 / 2 * b\nin the target expression\n  ((1 / 2) • a + (1 / 2) • b) ^ 4 ≤ (1 / 2) • a ^ 4 + (1 / 2) • b ^ 4\n\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\nh_convex : ConvexOn ℝ Set.univ f\nh_jensen : ((1 / 2) • a + (1 / 2) • b) ^ 4 ≤ (1 / 2) • a ^ 4 + (1 / 2) • b ^ 4\nh1 : 1 / 2 * a + 1 / 2 * b = (a + b) / 2\n⊢ (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.33303022384643555
+      }
+    },
+    {
+      "index": 24,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a + b)^4 \\leq 8(a^4 + b^4)$ for $a, b > 0$, we utilize the convexity of the function $f(x) = x^4$.\n\n### Proof Sketch\n1. **Convexity**: The function $f(x) = x^4$ is convex on $\\mathbb{R}$ because its second derivative $f''(x) = 12x^2$ is non-negative.\n2. **Jensen's Inequality**: For any $a, b \\in \\mathbb{R}$, Jensen's inequality for a convex function $f$ with weights $w_1 = w_2 = \\frac{1}{2}$ states:\n   $$f\\left(\\frac{a + b}{2}\\right) \\leq \\frac{f(a) + f(b)}{2}$$\n3. **Application**: Substituting $f(x) = x^4$:\n   $$\\left(\\frac{a + b}{2}\\right)^4 \\leq \\frac{a^4 + b^4}{2}$$\n4. **Algebraic Manipulation**:\n   $$\\frac{(a + b)^4}{2^4} \\leq \\frac{a^4 + b^4}{2}$$\n   $$\\frac{(a + b)^4}{16} \\leq \\frac{a^4 + b^4}{2}$$\n   Multiplying both sides by 16:\n   $$(a + b)^4 \\leq 16 \\cdot \\frac{a^4 + b^4}{2} = 8(a^4 + b^4)$$\n\nThe condition $a, b > 0$ is given but the inequality actually holds for all $a, b \\in \\mathbb{R}$ due to the convexity of $x^4$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  let f : ℝ → ℝ := (· ^ 4)\n  have h_conv : ConvexOn ℝ Set.univ f := convexOn_pow 4\n  -- Apply Jensen's Inequality for two points with weights 1/2, 1/2\n  have h_jensen := h_conv.2 (Set.mem_univ a) (Set.mem_univ b) (show 0 ≤ (1/2 : ℝ) by linarith) \n    (show 0 ≤ (1/2 : ℝ) by linarith) (show (1/2 : ℝ) + 1/2 = 1 by linarith)\n  -- Simplify the Jensen's expression\n  simp only [one_div, f] at h_jensen\n  -- Rearrange (a/2 + b/2)^4 to ((a+b)/2)^4\n  have h_split : (1 / 2 * a + 1 / 2 * b) = (a + b) / 2 := by linarith\n  rw [h_split] at h_jensen\n  -- Expand ((a+b)/2)^4\n  have h_pow : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    field_simp\n    ring\n  rw [h_pow] at h_jensen\n  -- Final algebraic steps to reach the goal\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by field_simp\n    _ ≤ 16 * (1 / 2 * a ^ 4 + 1 / 2 * b ^ 4) := by rel [h_jensen]\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  let f : ℝ → ℝ := (· ^ 4)\n  have h_conv : ConvexOn ℝ Set.univ f := convexOn_pow 4\n  -- Apply Jensen's Inequality for two points with weights 1/2, 1/2\n  have h_jensen := h_conv.2 (Set.mem_univ a) (Set.mem_univ b) (show 0 ≤ (1/2 : ℝ) by linarith) \n    (show 0 ≤ (1/2 : ℝ) by linarith) (show (1/2 : ℝ) + 1/2 = 1 by linarith)\n  -- Simplify the Jensen's expression\n  simp only [one_div, f] at h_jensen\n  -- Rearrange (a/2 + b/2)^4 to ((a+b)/2)^4\n  have h_split : (1 / 2 * a + 1 / 2 * b) = (a + b) / 2 := by linarith\n  rw [h_split] at h_jensen\n  -- Expand ((a+b)/2)^4\n  have h_pow : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    field_simp\n    ring\n  rw [h_pow] at h_jensen\n  -- Final algebraic steps to reach the goal\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by field_simp\n    _ ≤ 16 * (1 / 2 * a ^ 4 + 1 / 2 * b ^ 4) := by rel [h_jensen]\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 41
+            },
+            "endPos": {
+              "line": 11,
+              "column": 55
+            },
+            "data": "Type mismatch\n  convexOn_pow 4\nhas type\n  ConvexOn ?m.91 (Set.Ici 0) fun x => x ^ 4\nbut is expected to have type\n  ConvexOn ℝ Set.univ f"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.12347245216369629
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a + b)^4 \\leq 8(a^4 + b^4)$ for $a, b > 0$, we utilize the convexity of the function $f(x) = x^4$ on the interval $(0, \\infty)$.\n\n**Proof Sketch:**\n1. Let $f(x) = x^4$. This function is convex on $\\mathbb{R}$ because $f''(x) = 12x^2 \\geq 0$.\n2. By Jensen's Inequality for a convex function, for any $a, b \\in \\mathbb{R}$:\n   $f\\left(\\frac{a+b}{2}\\right) \\leq \\frac{f(a) + f(b)}{2}$\n3. Substituting $f(x) = x^4$:\n   $\\left(\\frac{a+b}{2}\\right)^4 \\leq \\frac{a^4 + b^4}{2}$\n4. Simplify the left side:\n   $\\frac{(a+b)^4}{2^4} = \\frac{(a+b)^4}{16} \\leq \\frac{a^4 + b^4}{2}$\n5. Multiply both sides by 16:\n   $(a+b)^4 \\leq 16 \\cdot \\frac{a^4 + b^4}{2} = 8(a^4 + b^4)$\n6. This completes the proof.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  let f : ℝ → ℝ := fun x => x ^ 4\n  have h_convex : ConvexOn ℝ Set.univ f := by\n    apply convexOn_pow\n    exact even_bit0 2\n  \n  -- Apply Jensen's Inequality for two points with weights 1/2, 1/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) \n    (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  \n  simp only [f] at h_jensen\n  \n  -- Simplify: ( (a+b)/2 )^4 ≤ (a^4 + b^4)/2\n  have h1 : ((1 / 2 : ℝ) * a + (1 / 2 : ℝ) * b) ^ 4 = ((a + b) / 2) ^ 4 := by ring\n  rw [h1] at h_jensen\n  \n  have h2 : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h2] at h_jensen\n  \n  -- Multiply both sides by 16 to get the desired inequality\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by ring\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2) := by rel [h_jensen]\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  let f : ℝ → ℝ := fun x => x ^ 4\n  have h_convex : ConvexOn ℝ Set.univ f := by\n    apply convexOn_pow\n    exact even_bit0 2\n  \n  -- Apply Jensen's Inequality for two points with weights 1/2, 1/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) \n    (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  \n  simp only [f] at h_jensen\n  \n  -- Simplify: ( (a+b)/2 )^4 ≤ (a^4 + b^4)/2\n  have h1 : ((1 / 2 : ℝ) * a + (1 / 2 : ℝ) * b) ^ 4 = ((a + b) / 2) ^ 4 := by ring\n  rw [h1] at h_jensen\n  \n  have h2 : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h2] at h_jensen\n  \n  -- Multiply both sides by 16 to get the desired inequality\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by ring\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2) := by rel [h_jensen]\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 4
+            },
+            "endPos": {
+              "line": 12,
+              "column": 22
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@convexOn_pow`\n  ConvexOn ?𝕜 (Set.Ici 0) fun x => x ^ ?n\nwith the goal\n  ConvexOn ℝ Set.univ f\n\nNote: The full type of `@convexOn_pow` is\n  ∀ {𝕜 : Type ?u.2312} [inst : CommRing 𝕜] [inst_1 : LinearOrder 𝕜] [IsStrictOrderedRing 𝕜] (n : ℕ),\n    ConvexOn 𝕜 (Set.Ici 0) fun x => x ^ n\n\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\n⊢ ConvexOn ℝ Set.univ f"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 68
+            },
+            "endPos": {
+              "line": 17,
+              "column": 76
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\nh_convex : ConvexOn ℝ Set.univ f\na✝ : 1 / 2 + 1 / 2 < 1\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 6
+            },
+            "endPos": {
+              "line": 23,
+              "column": 8
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (1 / 2 * a + 1 / 2 * b) ^ 4\nin the target expression\n  ((1 / 2) • a + (1 / 2) • b) ^ 4 ≤ (1 / 2) • a ^ 4 + (1 / 2) • b ^ 4\n\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\nh_convex : ConvexOn ℝ Set.univ f\nh_jensen : ((1 / 2) • a + (1 / 2) • b) ^ 4 ≤ (1 / 2) • a ^ 4 + (1 / 2) • b ^ 4\nh1 : (1 / 2 * a + 1 / 2 * b) ^ 4 = ((a + b) / 2) ^ 4\n⊢ (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.25235867500305176
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "To prove $(a + b)^4 \\leq 8(a^4 + b^4)$ for $a, b > 0$, we can use Jensen's Inequality or power mean inequalities.\n\n**Proof Sketch:**\n1.  **Convexity:** The function $f(x) = x^4$ is convex on $\\mathbb{R}$ because its second derivative $f''(x) = 12x^2$ is non-negative.\n2.  **Jensen's Inequality:** For a convex function $f$, we have $f(\\frac{a+b}{2}) \\leq \\frac{f(a) + f(b)}{2}$.\n3.  **Application:**\n    $$ \\left(\\frac{a+b}{2}\\right)^4 \\leq \\frac{a^4 + b^4}{2} $$\n4.  **Algebraic Simplification:**\n    $$ \\frac{(a+b)^4}{16} \\leq \\frac{a^4 + b^4}{2} $$\n    Multiplying both sides by 16 gives:\n    $$ (a+b)^4 \\leq 8(a^4 + b^4) $$\n\nThis inequality holds for all $a, b \\in \\mathbb{R}$, though the hypothesis $a, b > 0$ is provided.\n\n**Lean 4 Code:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  let f : ℝ → ℝ := λ x => x ^ 4\n  have h_conv : ConvexOn ℝ Set.univ f := by\n    apply convexOn_pow\n    exact even_four.isEv\n  -- Apply Jensen's Inequality for two points with weights 1/2\n  have h_jensen := h_conv.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith) (by linarith) (by linarith)\n  simp only [f] at h_jensen\n  -- Simplify the expression (1/2 * a + 1/2 * b) to (a + b) / 2\n  have h_sum : (1 / 2 : ℝ) * a + (1 / 2 : ℝ) * b = (a + b) / 2 := by ring\n  rw [h_sum] at h_jensen\n  -- Expand the left side: ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16\n  have h_pow : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h_pow] at h_jensen\n  -- Rearrange to get the final inequality\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  let f : ℝ → ℝ := λ x => x ^ 4\n  have h_conv : ConvexOn ℝ Set.univ f := by\n    apply convexOn_pow\n    exact even_four.isEv\n  -- Apply Jensen's Inequality for two points with weights 1/2\n  have h_jensen := h_conv.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith) (by linarith) (by linarith)\n  simp only [f] at h_jensen\n  -- Simplify the expression (1/2 * a + 1/2 * b) to (a + b) / 2\n  have h_sum : (1 / 2 : ℝ) * a + (1 / 2 : ℝ) * b = (a + b) / 2 := by ring\n  rw [h_sum] at h_jensen\n  -- Expand the left side: ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16\n  have h_pow : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h_pow] at h_jensen\n  -- Rearrange to get the final inequality\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 4
+            },
+            "endPos": {
+              "line": 12,
+              "column": 22
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@convexOn_pow`\n  ConvexOn ?𝕜 (Set.Ici 0) fun x => x ^ ?n\nwith the goal\n  ConvexOn ℝ Set.univ f\n\nNote: The full type of `@convexOn_pow` is\n  ∀ {𝕜 : Type ?u.2312} [inst : CommRing 𝕜] [inst_1 : LinearOrder 𝕜] [IsStrictOrderedRing 𝕜] (n : ℕ),\n    ConvexOn 𝕜 (Set.Ici 0) fun x => x ^ n\n\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\n⊢ ConvexOn ℝ Set.univ f"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 94
+            },
+            "endPos": {
+              "line": 15,
+              "column": 102
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\nh_conv : ConvexOn ℝ Set.univ f\na✝ : b + b < 1\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 6
+            },
+            "endPos": {
+              "line": 19,
+              "column": 11
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  1 / 2 * a + 1 / 2 * b\nin the target expression\n  (b • a + b • b) ^ 4 ≤ b • a ^ 4 + b • b ^ 4\n\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nf : ℝ → ℝ := fun x => x ^ 4\nh_conv : ConvexOn ℝ Set.univ f\nh_jensen : (b • a + b • b) ^ 4 ≤ b • a ^ 4 + b • b ^ 4\nh_sum : 1 / 2 * a + 1 / 2 * b = (a + b) / 2\n⊢ (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.22271370887756348
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "To prove the inequality $(a+b)^4 \\le 8(a^4+b^4)$ for $a, b > 0$, we can use the Power Mean Inequality or Jensen's Inequality. Since $f(x) = x^4$ is a convex function for $x \\in \\mathbb{R}$, Jensen's Inequality states:\n$$\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$$\nMultiplying both sides by $2^4 = 16$ yields:\n$$(a+b)^4 \\le 16 \\cdot \\frac{a^4 + b^4}{2} = 8(a^4 + b^4)$$\nAlternatively, we can use the Cauchy-Schwarz inequality twice or expand the difference $8(a^4+b^4) - (a+b)^4 = 7a^4 - 4a^3b - 6a^2b^2 - 4ab^3 + 7b^4 = (a-b)^2(7a^2 + 10ab + 7b^2)$, which is clearly non-negative since the quadratic factor has a negative discriminant or can be seen as a sum of squares.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Using Jensen's Inequality for the convex function f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_bit0 (bit0 1)\n  \n  -- Jensen's inequality: ((a + b) / 2)^4 <= (a^4 + b^4) / 2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (show 0 ≤ (1/2 : ℝ) by linarith) \n    (show 0 ≤ (1/2 : ℝ) by linarith) (show (1/2 : ℝ) + 1/2 = 1 by linarith)\n  \n  simp only [smul_eq_mul] at h_jensen\n  \n  -- Transform h_jensen: (a + b)^4 / 16 <= (a^4 + b^4) / 2\n  have h_left : ((1 / 2 : ℝ) * a + (1 / 2 : ℝ) * b) ^ 4 = ((a + b) / 2) ^ 4 := by ring\n  rw [h_left] at h_jensen\n  \n  have h_pow_div : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h_pow_div] at h_jensen\n  \n  -- Multiply by 16 to get the final inequality\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Using Jensen's Inequality for the convex function f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_bit0 (bit0 1)\n  \n  -- Jensen's inequality: ((a + b) / 2)^4 <= (a^4 + b^4) / 2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (show 0 ≤ (1/2 : ℝ) by linarith) \n    (show 0 ≤ (1/2 : ℝ) by linarith) (show (1/2 : ℝ) + 1/2 = 1 by linarith)\n  \n  simp only [smul_eq_mul] at h_jensen\n  \n  -- Transform h_jensen: (a + b)^4 / 16 <= (a^4 + b^4) / 2\n  have h_left : ((1 / 2 : ℝ) * a + (1 / 2 : ℝ) * b) ^ 4 = ((a + b) / 2) ^ 4 := by ring\n  rw [h_left] at h_jensen\n  \n  have h_pow_div : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by ring\n  rw [h_pow_div] at h_jensen\n  \n  -- Multiply by 16 to get the final inequality\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 48
+            },
+            "endPos": {
+              "line": 10,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.10180258750915527
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "To prove the inequality $(a+b)^4 \\le 8(a^4+b^4)$ for $a, b > 0$, we can use the convexity of the power function $f(x) = x^4$ or the Power Mean Inequality.\n\n**Proof Sketch:**\n1.  **Convexity:** The function $f(x) = x^4$ is convex on $\\mathbb{R}$ because $f''(x) = 12x^2 \\ge 0$.\n2.  **Jensen's Inequality:** For any $a, b \\in \\mathbb{R}$, Jensen's inequality for $f(x) = x^4$ states that:\n    $\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$\n3.  **Algebraic Rearrangement:**\n    $\\frac{(a+b)^4}{2^4} \\le \\frac{a^4 + b^4}{2}$\n    $\\frac{(a+b)^4}{16} \\le \\frac{a^4 + b^4}{2}$\n4.  Multiply both sides by 16:\n    $(a + b)^4 \\le 8(a^4 + b^4)$.\nNote: The condition $a, b > 0$ is actually not required for this specific inequality as $x^4$ is convex everywhere on $\\mathbb{R}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  -- Jensen's inequality for f(x) = x^4: ((a + b) / 2)^4 ≤ (a^4 + b^4) / 2\n  have h_convex : ConvexOn ℝ Set.univ (fun x : ℝ => x ^ 4) := by\n    apply convexOn_pow\n    exact (even_two.mul 2).atLeast_two\n  \n  -- Apply Jensen's for two points with weights 1/2, 1/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) \n    (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  \n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  \n  -- Now we have ((a + b) / 2)^4 ≤ (a^4 + b^4) / 2\n  -- Simplify the LHS: (a + b)^4 / 16 ≤ (a^4 + b^4) / 2\n  have h_lhs : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    ring\n  \n  rw [h_lhs] at h_jensen\n  \n  -- Multiply by 16 to get (a + b)^4 ≤ 8 * (a^4 + b^4)\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4\n  -- Jensen's inequality for f(x) = x^4: ((a + b) / 2)^4 ≤ (a^4 + b^4) / 2\n  have h_convex : ConvexOn ℝ Set.univ (fun x : ℝ => x ^ 4) := by\n    apply convexOn_pow\n    exact (even_two.mul 2).atLeast_two\n  \n  -- Apply Jensen's for two points with weights 1/2, 1/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) \n    (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith : 0 ≤ (1/2 : ℝ)) (by linarith)\n  \n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  \n  -- Now we have ((a + b) / 2)^4 ≤ (a^4 + b^4) / 2\n  -- Simplify the LHS: (a + b)^4 / 16 ≤ (a^4 + b^4) / 2\n  have h_lhs : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    ring\n  \n  rw [h_lhs] at h_jensen\n  \n  -- Multiply by 16 to get (a + b)^4 ≤ 8 * (a^4 + b^4)\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 4
+            },
+            "endPos": {
+              "line": 12,
+              "column": 22
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@convexOn_pow`\n  ConvexOn ?𝕜 (Set.Ici 0) fun x => x ^ ?n\nwith the goal\n  ConvexOn ℝ Set.univ fun x => x ^ 4\n\nNote: The full type of `@convexOn_pow` is\n  ∀ {𝕜 : Type ?u.2302} [inst : CommRing 𝕜] [inst_1 : LinearOrder 𝕜] [IsStrictOrderedRing 𝕜] (n : ℕ),\n    ConvexOn 𝕜 (Set.Ici 0) fun x => x ^ n\n\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\n⊢ ConvexOn ℝ Set.univ fun x => x ^ 4"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 68
+            },
+            "endPos": {
+              "line": 17,
+              "column": 76
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nh_convex : ConvexOn ℝ Set.univ fun x => x ^ 4\na✝ : 1 / 2 + 1 / 2 < 1\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 6
+            },
+            "endPos": {
+              "line": 26,
+              "column": 11
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ((a + b) / 2) ^ 4\nin the target expression\n  (2⁻¹ • a + 2⁻¹ • b) ^ 4 ≤ 2⁻¹ • a ^ 4 + 2⁻¹ • b ^ 4\n\na b : ℝ\nh₀ : 0 < a ∧ 0 < b\nh_convex : ConvexOn ℝ Set.univ fun x => x ^ 4\nh_jensen : (2⁻¹ • a + 2⁻¹ • b) ^ 4 ≤ 2⁻¹ • a ^ 4 + 2⁻¹ • b ^ 4\nh_lhs : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16\n⊢ (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4)"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 19,
+              "column": 22
+            },
+            "endPos": {
+              "line": 19,
+              "column": 36
+            },
+            "data": "This simp argument is unused:\n  inv_mul_eq_div\n\nHint: Omit it from the simp argument list.\n  simp only [one_div,̵ ̵i̵n̵v̵_̵m̵u̵l̵_̵e̵q̵_̵d̵i̵v̵] at h_jensen\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.25198841094970703
+      }
+    },
+    {
+      "index": 29,
+      "status": "FAILED",
+      "raw_text": "To prove $(a + b)^4 \\leq 8(a^4 + b^4)$ for $a, b > 0$:\n\n### Proof Sketch\n1.  **Convexity Argument**: The function $f(x) = x^4$ is convex on $\\mathbb{R}$ because its second derivative $f''(x) = 12x^2$ is non-negative.\n2.  **Jensen's Inequality**: For a convex function $f$, we have $f\\left(\\frac{a+b}{2}\\right) \\leq \\frac{f(a) + f(b)}{2}$.\n3.  **Application**: Applying this to $f(x) = x^4$:\n    $$\\left(\\frac{a+b}{2}\\right)^4 \\leq \\frac{a^4 + b^4}{2}$$\n4.  **Algebraic Simplification**:\n    $$\\frac{(a+b)^4}{16} \\leq \\frac{a^4 + b^4}{2}$$\n    Multiplying both sides by 16 yields:\n    $$(a+b)^4 \\leq 8(a^4 + b^4)$$\nThe condition $a, b > 0$ is actually more restrictive than needed (it holds for all $a, b \\in \\mathbb{R}$), but it satisfies the theorem's requirements.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.isEv\n  \n  -- Apply Jensen's Inequality for two points\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith) (by linarith) (by linarith)\n  simp only [one_div, inv_pow'] at h_jensen\n  \n  -- Simplify the Jensen result: ((a+b)/2)^4 <= (a^4 + b^4)/2\n  have h_spec : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    convert h_jensen\n    ring\n  \n  -- Expand the left side and multiply by 16 to get the final form\n  have h_expand : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rw [div_pow] at h_spec\n    norm_num at h_spec\n    exact h_spec\n    \n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.isEv\n  \n  -- Apply Jensen's Inequality for two points\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (by linarith) (by linarith) (by linarith)\n  simp only [one_div, inv_pow'] at h_jensen\n  \n  -- Simplify the Jensen result: ((a+b)/2)^4 <= (a^4 + b^4)/2\n  have h_spec : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    convert h_jensen\n    ring\n  \n  -- Expand the left side and multiply by 16 to get the final form\n  have h_expand : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rw [div_pow] at h_spec\n    norm_num at h_spec\n    exact h_spec\n    \n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 48
+            },
+            "endPos": {
+              "line": 10,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1172189712524414
+      }
+    },
+    {
+      "index": 30,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a + b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we can use the convexity of the function $f(x) = x^4$.\n\n**Proof Sketch:**\n1.  **Convexity:** The function $f(x) = x^4$ is convex on $\\mathbb{R}$ because its second derivative $f''(x) = 12x^2$ is non-negative.\n2.  **Jensen's Inequality:** For a convex function $f$, the inequality $f(\\frac{a+b}{2}) \\le \\frac{f(a) + f(b)}{2}$ holds.\n3.  **Application:** Applying this to $f(x) = x^4$ gives:\n    $$\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$$\n4.  **Algebraic Manipulation:**\n    $$\\frac{(a+b)^4}{2^4} \\le \\frac{a^4 + b^4}{2}$$\n    $$\\frac{(a+b)^4}{16} \\le \\frac{a^4 + b^4}{2}$$\n    $$(a+b)^4 \\le 16 \\cdot \\frac{a^4 + b^4}{2} = 8(a^4 + b^4)$$\nThe condition $a, b > 0$ is given, though the inequality holds for all $a, b \\in \\mathbb{R}$ due to the global convexity of $x^4$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use Jensen's Inequality for the convex function f(x) = x^4\n  -- Specifically, f((a+b)/2) ≤ (f(a) + f(b))/2\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.nat_even\n  \n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (show 0 ≤ (1/2 : ℝ) by norm_num) \n    (show 0 ≤ (1/2 : ℝ) by norm_num) (show 1/2 + 1/2 = (1 : ℝ) by norm_num)\n  \n  simp only [one_div, smul_eq_mul] at h_jensen\n  \n  -- h_jensen is (1/2 * a + 1/2 * b) ^ 4 ≤ 1/2 * a ^ 4 + 1/2 * b ^ 4\n  -- Rearrange to ( (a+b)/2 )^4 ≤ (a^4 + b^4) / 2\n  have h1 : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rw [← mul_add] at h_jensen\n    exact h_jensen\n  \n  -- (a+b)^4 / 16 ≤ (a^4 + b^4) / 2\n  have h2 : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rwa [div_pow] at h1\n    norm_num\n  \n  -- Multiply both sides by 16\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by norm_num\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2) := (mul_le_mul_left (show 0 < (16 : ℝ) by norm_num)).mpr h2\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use Jensen's Inequality for the convex function f(x) = x^4\n  -- Specifically, f((a+b)/2) ≤ (f(a) + f(b))/2\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.nat_even\n  \n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (show 0 ≤ (1/2 : ℝ) by norm_num) \n    (show 0 ≤ (1/2 : ℝ) by norm_num) (show 1/2 + 1/2 = (1 : ℝ) by norm_num)\n  \n  simp only [one_div, smul_eq_mul] at h_jensen\n  \n  -- h_jensen is (1/2 * a + 1/2 * b) ^ 4 ≤ 1/2 * a ^ 4 + 1/2 * b ^ 4\n  -- Rearrange to ( (a+b)/2 )^4 ≤ (a^4 + b^4) / 2\n  have h1 : ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rw [← mul_add] at h_jensen\n    exact h_jensen\n  \n  -- (a+b)^4 / 16 ≤ (a^4 + b^4) / 2\n  have h2 : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    rwa [div_pow] at h1\n    norm_num\n  \n  -- Multiply both sides by 16\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by norm_num\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2) := (mul_le_mul_left (show 0 < (16 : ℝ) by norm_num)).mpr h2\n    _ = 8 * (a ^ 4 + b ^ 4) := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 48
+            },
+            "endPos": {
+              "line": 11,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.14907407760620117
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "To prove $(a + b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we follow these steps:\n\n### Proof Sketch\n1.  **Convexity Argument**: The function $f(x) = x^4$ is strictly convex on $\\mathbb{R}$ because $f''(x) = 12x^2 \\ge 0$.\n2.  **Jensen's Inequality**: For any $a, b \\in \\mathbb{R}$, Jensen's inequality for the convex function $x^4$ states:\n    $$\\left(\\frac{a + b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$$\n3.  **Algebraic Manipulation**:\n    $$\\frac{(a + b)^4}{2^4} \\le \\frac{a^4 + b^4}{2}$$\n    $$\\frac{(a + b)^4}{16} \\le \\frac{a^4 + b^4}{2}$$\n4.  Multiply both sides by 16:\n    $$(a + b)^4 \\le \\frac{16}{2}(a^4 + b^4) = 8(a^4 + b^4)$$\nThe condition $a, b > 0$ is sufficient but not strictly necessary for the inequality to hold, as $x^4$ is convex over all real numbers.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.to_nat_even\n  \n  -- Apply Jensen's Inequality for two points with weights 1/2, 1/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) \n    (show 0 ≤ (1/2 : ℝ) by norm_num) \n    (show 0 ≤ (1/2 : ℝ) by norm_num) \n    (show (1/2 : ℝ) + 1/2 = 1 by norm_num)\n  \n  -- Simplify the Jensen's expression\n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  \n  -- We have ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2\n  -- Now manipulate the powers and constants\n  have h_lhs : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    field_simp\n    norm_num\n  \n  rw [h_lhs] at h_jensen\n  \n  -- Multiply both sides by 16 to get the desired result\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- Use the convexity of f(x) = x^4\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_four.to_nat_even\n  \n  -- Apply Jensen's Inequality for two points with weights 1/2, 1/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) \n    (show 0 ≤ (1/2 : ℝ) by norm_num) \n    (show 0 ≤ (1/2 : ℝ) by norm_num) \n    (show (1/2 : ℝ) + 1/2 = 1 by norm_num)\n  \n  -- Simplify the Jensen's expression\n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  \n  -- We have ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2\n  -- Now manipulate the powers and constants\n  have h_lhs : ((a + b) / 2) ^ 4 = (a + b) ^ 4 / 16 := by\n    field_simp\n    norm_num\n  \n  rw [h_lhs] at h_jensen\n  \n  -- Multiply both sides by 16 to get the desired result\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 48
+            },
+            "endPos": {
+              "line": 10,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.09532904624938965
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "To prove the inequality $(a+b)^4 \\le 8(a^4 + b^4)$ for $a, b > 0$, we can utilize the power mean inequality or Cauchy-Schwarz.\n\n**Proof Sketch:**\n1.  By the power mean inequality (or the convexity of $f(x) = x^4$), we have:\n    $$\\left(\\frac{a+b}{2}\\right)^4 \\le \\frac{a^4 + b^4}{2}$$\n2.  Expanding the left side gives:\n    $$\\frac{(a+b)^4}{2^4} = \\frac{(a+b)^4}{16} \\le \\frac{a^4 + b^4}{2}$$\n3.  Multiplying both sides by $16$:\n    $$(a+b)^4 \\le 16 \\cdot \\frac{a^4 + b^4}{2} = 8(a^4 + b^4)$$\n4.  Alternatively, one can expand $(a+b)^4$ and use AM-GM or the fact that $a^4 + b^4 - 2a^2b^2 = (a^2-b^2)^2 \\ge 0$ repeatedly to bound the cross terms.\n\nHere is the formal proof in Lean 4:\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4 on ℝ\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_bit0 2\n  -- Apply Jensen's Inequality for two points a and b with weights 1/2, 1/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (show 0 ≤ (1/2 : ℝ) by linarith) (show 0 ≤ (1/2 : ℝ) by linarith) (by linarith)\n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  -- h_jensen: ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2\n  have h1 : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    convert h_jensen using 1\n    field_simp\n  -- Multiply by 16 to get the desired result\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by field_simp\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2)       := by rel [h1]\n    _ = 8 * (a ^ 4 + b ^ 4)              := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_apb4leq8ta4pb4 (a b : ℝ) (h₀ : 0 < a ∧ 0 < b) : (a + b) ^ 4 ≤ 8 * (a ^ 4 + b ^ 4) := by\n  -- We use the convexity of f(x) = x^4 on ℝ\n  have h_convex : ConvexOn ℝ Set.univ (fun x => x ^ 4) := by\n    apply convexOn_pow\n    exact even_bit0 2\n  -- Apply Jensen's Inequality for two points a and b with weights 1/2, 1/2\n  have h_jensen := h_convex.2 (Set.mem_univ a) (Set.mem_univ b) (show 0 ≤ (1/2 : ℝ) by linarith) (show 0 ≤ (1/2 : ℝ) by linarith) (by linarith)\n  simp only [one_div, inv_mul_eq_div] at h_jensen\n  -- h_jensen: ((a + b) / 2) ^ 4 ≤ (a ^ 4 + b ^ 4) / 2\n  have h1 : (a + b) ^ 4 / 16 ≤ (a ^ 4 + b ^ 4) / 2 := by\n    convert h_jensen using 1\n    field_simp\n  -- Multiply by 16 to get the desired result\n  calc\n    (a + b) ^ 4 = 16 * ((a + b) ^ 4 / 16) := by field_simp\n    _ ≤ 16 * ((a ^ 4 + b ^ 4) / 2)       := by rel [h1]\n    _ = 8 * (a ^ 4 + b ^ 4)              := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 48
+            },
+            "endPos": {
+              "line": 10,
+              "column": 53
+            },
+            "data": "typeclass instance problem is stuck\n  HPow ?m.76 ℕ ?m.60\n\nNote: Lean will not try to resolve this typeclass instance problem because the first type argument to `HPow` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.\n\nHint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck."
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.09725522994995117
+      }
+    }
+  ]
+}

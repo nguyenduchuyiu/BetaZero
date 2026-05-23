@@ -93,8 +93,8 @@ class BestFirstRollout:
             self.failure_handler = failure_handler
         self.reward_assigner = reward_assigner or DependencyRewardAssigner(lean, reward)
         self.last_search_metadata: dict = {}
-        self._tactic_feedback_by_state: dict[ProofState, list[str]] = {}
-        self._skeleton_feedback_by_state: dict[ProofState, list[str]] = {}
+        self._tactic_feedback_by_state: dict[ProofState, list[tuple[Action | None, str]]] = {}
+        self._skeleton_feedback_by_state: dict[ProofState, list[tuple[Action | None, str]]] = {}
         self._blocked_new_skeleton_due_to_active_commit = 0
         self._duplicate_skeleton_actions = 0
 
@@ -511,7 +511,7 @@ class BestFirstRollout:
                                 skeleton,
                                 target_child_index,
                                 child_state=state,
-                                tactic_feedbacks=self._tactic_feedback_by_state.get(state, []),
+                                tactic_feedbacks=self.get_best_feedbacks(state, "tactic", graph),
                             )
                         )
                         continue
@@ -525,7 +525,7 @@ class BestFirstRollout:
                                 skeleton,
                                 target_child_index,
                                 child_state=state,
-                                skeleton_feedbacks=self._skeleton_feedback_by_state.get(state, []),
+                                skeleton_feedbacks=self.get_best_feedbacks(state, "skeleton", graph),
                             )
                         )
                         continue
@@ -533,16 +533,16 @@ class BestFirstRollout:
                     self.prompt_builder.build(
                         state,
                         action_type,
-                        tactic_feedbacks=self._tactic_feedback_by_state.get(state, []),
-                        skeleton_feedbacks=self._skeleton_feedback_by_state.get(state, []),
+                        tactic_feedbacks=self.get_best_feedbacks(state, "tactic", graph),
+                        skeleton_feedbacks=self.get_best_feedbacks(state, "skeleton", graph),
                     )
                 )
             batches = self.policy.sample(states, action_type, k, prompts=prompts)
             feedbacks = self.executor.execute(graph, states, batches, action_type, self._budget, prompts=prompts)
             if action_type == "tactic":
-                self.record_tactic_feedback(states, feedbacks)
+                self.record_tactic_feedback(graph, states, feedbacks)
             elif action_type == "skeleton":
-                self.record_skeleton_feedback(states, feedbacks)
+                self.record_skeleton_feedback(graph, states, feedbacks)
         counts: dict[ProofState, int] = defaultdict(int)
         action_stats = {
             "budget_used": self._budget.used - budget_before,
@@ -569,8 +569,37 @@ class BestFirstRollout:
     def is_sorrified_action(self, action: Action) -> bool:
         return (action.prompt or "").startswith("[SYNTHETIC_PATCH]")
 
+    def get_best_feedbacks(
+        self,
+        state: ProofState,
+        action_type: str,
+        graph: ANDORGraph,
+    ) -> list[str]:
+        feedbacks_with_actions = (
+            self._tactic_feedback_by_state.get(state, [])
+            if action_type == "tactic"
+            else self._skeleton_feedback_by_state.get(state, [])
+        )
+        if not feedbacks_with_actions:
+            return []
+
+        # Calculate Q values dynamically
+        q_values = self.reward.compute_returns(graph)
+
+        def get_q(item: tuple[Action | None, str]) -> float:
+            action, _ = item
+            if action is None:
+                return -999.0
+            return q_values.get(action, 0.0)
+
+        # Sort in ascending order so that the highest Q-value ones are at the end.
+        # This matches prompt.py slicing of [-max_feedbacks:]
+        sorted_feedbacks = sorted(feedbacks_with_actions, key=get_q)
+        return [block for _, block in sorted_feedbacks]
+
     def record_tactic_feedback(
         self,
+        graph: ANDORGraph,
         states: list[ProofState],
         feedbacks: list[list[tuple[str, str, str] | None]],
     ) -> None:
@@ -582,10 +611,17 @@ class BestFirstRollout:
                 if not lean_feedback:
                     continue
                 block = self.prompt_builder.format_tactic_feedback(checked_code, lean_feedback)
-                self._tactic_feedback_by_state.setdefault(state, []).append(block)
+                # Find matching action in graph
+                matching_action = None
+                for action in graph.get_actions(state):
+                    if action.verify_code == checked_code or (action.verify_code and action.verify_code.strip() == checked_code.strip()):
+                        matching_action = action
+                        break
+                self._tactic_feedback_by_state.setdefault(state, []).append((matching_action, block))
 
     def record_skeleton_feedback(
         self,
+        graph: ANDORGraph,
         states: list[ProofState],
         feedbacks: list[list[tuple[str, str, str] | None]],
     ) -> None:
@@ -597,7 +633,13 @@ class BestFirstRollout:
                 if not lean_feedback:
                     continue
                 block = self.prompt_builder.format_skeleton_feedback(checked_code, lean_feedback)
-                self._skeleton_feedback_by_state.setdefault(state, []).append(block)
+                # Find matching action in graph
+                matching_action = None
+                for action in graph.get_actions(state):
+                    if action.verify_code == checked_code or (action.verify_code and action.verify_code.strip() == checked_code.strip()):
+                        matching_action = action
+                        break
+                self._skeleton_feedback_by_state.setdefault(state, []).append((matching_action, block))
 
     def update_best_tactic_r_env(
         self,

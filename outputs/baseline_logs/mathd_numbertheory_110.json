@@ -1,0 +1,2715 @@
+{
+  "problem": "problems/miniF2F-test/mathd_numbertheory_110.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 15:52:24",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 0,
+    "completed_count": 0,
+    "solved": false
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a - b) \\equiv 6 \\pmod{10}$ given the system of congruences, we follow these steps:\n\n1.  **Represent the congruences**: We are given:\n    *   (1) $a + b \\equiv 2 \\pmod{10}$\n    *   (2) $2a + b \\equiv 1 \\pmod{10}$\n2.  **Solve for $a$**: Subtracting (1) from (2) yields:\n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n    $a \\equiv -1 \\equiv 9 \\pmod{10}$\n3.  **Solve for $b$**: Substitute $a \\equiv 9$ back into (1):\n    $9 + b \\equiv 2 \\pmod{10}$\n    $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$\n4.  **Calculate $a - b$**:\n    $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$\n5.  **Conclusion**: Since $b \\le a$, the natural number subtraction $a - b$ is consistent with the modular arithmetic result, specifically $(a - b) \\pmod{10} = 6$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Convert congruences to ZMod 10 for easier algebraic manipulation\n  have h1_z : (a : ZMod 10) + (b : ZMod 10) = 2 := by\n    rw [← Nat.cast_add]\n    exact ZMod.eq_iff_modEq_nat.mpr h₁\n  have h2_z : 2 * (a : ZMod 10) + (b : ZMod 10) = 1 := by\n    rw [← Nat.cast_mul, ← Nat.cast_add]\n    exact ZMod.eq_iff_modEq_nat.mpr h₂\n  \n  -- Subtract the first equation from the second to find 'a'\n  have h_a_z : (a : ZMod 10) = -1 := by\n    linear_combination h2_z - h1_z\n  \n  -- Substitute 'a' into the first equation to find 'b'\n  have h_b_z : (b : ZMod 10) = 3 := by\n    linear_combination h1_z - h_a_z\n  \n  -- Calculate (a - b) in ZMod 10\n  have h_sub_z : ((a - b : ℕ) : ZMod 10) = 6 := by\n    rw [Nat.cast_sub h₀]\n    rw [h_a_z, h_b_z]\n    norm_num\n  \n  -- Convert back from ZMod 10 to the natural number modulo result\n  exact (ZMod.eq_iff_modEq_nat.mp h_sub_z).symm.mod_eq\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Convert congruences to ZMod 10 for easier algebraic manipulation\n  have h1_z : (a : ZMod 10) + (b : ZMod 10) = 2 := by\n    rw [← Nat.cast_add]\n    exact ZMod.eq_iff_modEq_nat.mpr h₁\n  have h2_z : 2 * (a : ZMod 10) + (b : ZMod 10) = 1 := by\n    rw [← Nat.cast_mul, ← Nat.cast_add]\n    exact ZMod.eq_iff_modEq_nat.mpr h₂\n  \n  -- Subtract the first equation from the second to find 'a'\n  have h_a_z : (a : ZMod 10) = -1 := by\n    linear_combination h2_z - h1_z\n  \n  -- Substitute 'a' into the first equation to find 'b'\n  have h_b_z : (b : ZMod 10) = 3 := by\n    linear_combination h1_z - h_a_z\n  \n  -- Calculate (a - b) in ZMod 10\n  have h_sub_z : ((a - b : ℕ) : ZMod 10) = 6 := by\n    rw [Nat.cast_sub h₀]\n    rw [h_a_z, h_b_z]\n    norm_num\n  \n  -- Convert back from ZMod 10 to the natural number modulo result\n  exact (ZMod.eq_iff_modEq_nat.mp h_sub_z).symm.mod_eq",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 10
+            },
+            "endPos": {
+              "line": 13,
+              "column": 35
+            },
+            "data": "Unknown constant `ZMod.eq_iff_modEq_nat.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 8
+            },
+            "endPos": {
+              "line": 15,
+              "column": 22
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ↑?m * ↑?n\nin the target expression\n  2 * ↑a + ↑b = 1\n\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh1_z : ↑a + ↑b = 2\n⊢ 2 * ↑a + ↑b = 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 48
+            },
+            "endPos": {
+              "line": 30,
+              "column": 12
+            },
+            "data": "unsolved goals\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh1_z : ↑a + ↑b = 2\nh2_z : 2 * ↑a + ↑b = 1\nh_a_z : ↑a = -1\nh_b_z : ↑b = 3\n⊢ -4 = 6"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 9
+            },
+            "endPos": {
+              "line": 33,
+              "column": 33
+            },
+            "data": "Unknown constant `ZMod.eq_iff_modEq_nat.mp`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.9119858741760254
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a - b) \\pmod{10} = 6$ given $(a + b) \\equiv 2 \\pmod{10}$ and $(2a + b) \\equiv 1 \\pmod{10}$, we use the properties of modular arithmetic:\n\n1.  **Find $a \\pmod{10}$:** Subtract the first congruence from the second:\n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n    $a \\equiv -1 \\equiv 9 \\pmod{10}$.\n2.  **Find $b \\pmod{10}$:** Substitute $a \\equiv 9$ into the first congruence:\n    $9 + b \\equiv 2 \\pmod{10}$\n    $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$.\n3.  **Calculate $(a - b) \\pmod{10}$:**\n    $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\n4.  Since $b \\le a$, $a - b$ is non-negative, and thus $(a - b) \\pmod{10} = 6$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use modular arithmetic properties to isolate 'a'\n  -- (2*a + b) - (a + b) ≡ 1 - 2 [MOD 10]\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + b ≡ 2 [ZMOD 10] := mod_cast h₁\n    have h2_z : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := mod_cast h₂\n    have h_sub := h2_z.sub h1_z\n    ring_nf at h_sub\n    exact h_sub\n\n  -- Simplify a ≡ -1 ≡ 9 [MOD 10]\n  have ha_mod : a % 10 = 9 := by\n    apply Int.ofNat_inj.mp\n    push_cast\n    rw [ha]\n    norm_num\n\n  -- Substitute a into h1 to find b mod 10\n  have hb : (9 : ℤ) + b ≡ 2 [ZMOD 10] := by\n    have h1_z : (a : ℤ) + b ≡ 2 [ZMOD 10] := mod_cast h₁\n    rw [← ha_mod] at h1_z\n    norm_cast at h1_z\n  \n  have hb_mod : b % 10 = 3 := by\n    apply Int.ofNat_inj.mp\n    push_cast\n    have : (b : ℤ) ≡ 2 - 9 [ZMOD 10] := by\n      convert hb.sub_left (rfl : (9 : ℤ) ≡ 9 [ZMOD 10])\n      simp\n    rw [this]\n    norm_num\n\n  -- Calculate (a - b) % 10\n  rw [Nat.sub_mod h₀, ha_mod, hb_mod]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use modular arithmetic properties to isolate 'a'\n  -- (2*a + b) - (a + b) ≡ 1 - 2 [MOD 10]\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + b ≡ 2 [ZMOD 10] := mod_cast h₁\n    have h2_z : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := mod_cast h₂\n    have h_sub := h2_z.sub h1_z\n    ring_nf at h_sub\n    exact h_sub\n\n  -- Simplify a ≡ -1 ≡ 9 [MOD 10]\n  have ha_mod : a % 10 = 9 := by\n    apply Int.ofNat_inj.mp\n    push_cast\n    rw [ha]\n    norm_num\n\n  -- Substitute a into h1 to find b mod 10\n  have hb : (9 : ℤ) + b ≡ 2 [ZMOD 10] := by\n    have h1_z : (a : ℤ) + b ≡ 2 [ZMOD 10] := mod_cast h₁\n    rw [← ha_mod] at h1_z\n    norm_cast at h1_z\n  \n  have hb_mod : b % 10 = 3 := by\n    apply Int.ofNat_inj.mp\n    push_cast\n    have : (b : ℤ) ≡ 2 - 9 [ZMOD 10] := by\n      convert hb.sub_left (rfl : (9 : ℤ) ≡ 9 [ZMOD 10])\n      simp\n    rw [this]\n    norm_num\n\n  -- Calculate (a - b) % 10\n  rw [Nat.sub_mod h₀, ha_mod, hb_mod]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 15
+            },
+            "data": "Type mismatch\n  h_sub\nhas type\n  ↑a * Nat.rawCast 1 ≡ -1 [ZMOD 10]\nbut is expected to have type\n  ↑a ≡ 1 - 2 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 8
+            },
+            "endPos": {
+              "line": 29,
+              "column": 16
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  9\nin the target expression\n  ↑a + ↑b ≡ 2 [ZMOD 10]\n\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nha_mod : a % 10 = 9\nh1_z : ↑a + ↑b ≡ 2 [ZMOD 10]\n⊢ 9 + ↑b ≡ 2 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 26
+            },
+            "endPos": {
+              "line": 36,
+              "column": 55
+            },
+            "data": "Application type mismatch: The argument\n  rfl\nhas type\n  9 % 10 = 9 % 10\nof sort `Prop` but is expected to have type\n  ℤ\nof sort `Type` in the application\n  Int.ModEq.sub_left rfl"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 40
+            },
+            "endPos": {
+              "line": 37,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase h.e'_2\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nha_mod : a % 10 = 9\nhb : 9 + ↑b ≡ 2 [ZMOD 10]\n⊢ ↑b = sorry () - (9 + ↑b)\n\ncase h.e'_3.h.e'_5\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nha_mod : a % 10 = 9\nhb : 9 + ↑b ≡ 2 [ZMOD 10]\n⊢ 2 = sorry\n\ncase h.e'_3.h.e'_6.h.e'_2\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nha_mod : a % 10 = 9\nhb : 9 + ↑b ≡ 2 [ZMOD 10]\n⊢ 9 = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 42,
+              "column": 6
+            },
+            "endPos": {
+              "line": 42,
+              "column": 17
+            },
+            "data": "Unknown constant `Nat.sub_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 56
+            },
+            "endPos": {
+              "line": 43,
+              "column": 10
+            },
+            "data": "unsolved goals\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nha_mod : a % 10 = 9\nhb : 9 + ↑b ≡ 2 [ZMOD 10]\nhb_mod : b % 10 = 3\n⊢ (a - b) % 10 = 6"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.38912248611450195
+      }
+    },
+    {
+      "index": 3,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we analyze the system of linear congruences modulo 10:\n1. $a + b \\equiv 2 \\pmod{10}$\n2. $2a + b \\equiv 1 \\pmod{10}$\n\nSubtracting the first equation from the second yields:\n$(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n$a \\equiv -1 \\equiv 9 \\pmod{10}$\n\nSubstituting $a \\equiv 9$ back into the first equation:\n$9 + b \\equiv 2 \\pmod{10}$\n$b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$\n\nFinally, we calculate $(a - b) \\pmod{10}$:\n$a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$\nSince $b \\le a$, the natural number difference $a - b$ is consistent with the modular result, giving $(a - b) \\% 10 = 6$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Convert congruences to Zmod 10\n  have h1_z : (a + b : ℤ) ≡ 2 [ZMOD 10] := by \n    norm_cast at h₁\n  have h2_z : (2 * a + b : ℤ) ≡ 1 [ZMOD 10] := by \n    norm_cast at h₂\n  \n  -- Subtract h1_z from h2_z to isolate a\n  have ha_z : (a : ℤ) ≡ (1 - 2) [ZMOD 10] := by\n    have h_sub := Int.ModEq.sub h2_z h1_z\n    ring_nf at h_sub\n    exact h_sub\n  \n  -- Substitute a into h1_z to isolate b\n  have hb_z : (b : ℤ) ≡ (2 - (-1)) [ZMOD 10] := by\n    have h_sub := Int.ModEq.sub h1_z ha_z\n    ring_nf at h_sub\n    exact h_sub\n  \n  -- Calculate (a - b) mod 10\n  have hab_z : (a - b : ℤ) ≡ (-1 - 3) [ZMOD 10] := by\n    apply Int.ModEq.sub ha_z hb_z\n  \n  -- Convert the integer congruence back to natural number modulo\n  have h_final_z : (a - b : ℤ) ≡ 6 [ZMOD 10] := by\n    convert hab_z using 1\n    show (-4 : ℤ) ≡ 6 [ZMOD 10]\n    exact rfl\n\n  -- Use h₀ to bridge the gap between ℤ and ℕ subtraction\n  rw [← Int.ofNat_mod_ordered, Int.ofNat_sub h₀]\n  exact Int.ModEq.mod_eq h_final_z\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Convert congruences to Zmod 10\n  have h1_z : (a + b : ℤ) ≡ 2 [ZMOD 10] := by \n    norm_cast at h₁\n  have h2_z : (2 * a + b : ℤ) ≡ 1 [ZMOD 10] := by \n    norm_cast at h₂\n  \n  -- Subtract h1_z from h2_z to isolate a\n  have ha_z : (a : ℤ) ≡ (1 - 2) [ZMOD 10] := by\n    have h_sub := Int.ModEq.sub h2_z h1_z\n    ring_nf at h_sub\n    exact h_sub\n  \n  -- Substitute a into h1_z to isolate b\n  have hb_z : (b : ℤ) ≡ (2 - (-1)) [ZMOD 10] := by\n    have h_sub := Int.ModEq.sub h1_z ha_z\n    ring_nf at h_sub\n    exact h_sub\n  \n  -- Calculate (a - b) mod 10\n  have hab_z : (a - b : ℤ) ≡ (-1 - 3) [ZMOD 10] := by\n    apply Int.ModEq.sub ha_z hb_z\n  \n  -- Convert the integer congruence back to natural number modulo\n  have h_final_z : (a - b : ℤ) ≡ 6 [ZMOD 10] := by\n    convert hab_z using 1\n    show (-4 : ℤ) ≡ 6 [ZMOD 10]\n    exact rfl\n\n  -- Use h₀ to bridge the gap between ℤ and ℕ subtraction\n  rw [← Int.ofNat_mod_ordered, Int.ofNat_sub h₀]\n  exact Int.ModEq.mod_eq h_final_z",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 43
+            },
+            "endPos": {
+              "line": 12,
+              "column": 19
+            },
+            "data": "unsolved goals\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\n⊢ ↑a + ↑b ≡ 2 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 47
+            },
+            "endPos": {
+              "line": 14,
+              "column": 19
+            },
+            "data": "unsolved goals\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh1_z : ↑a + ↑b ≡ 2 [ZMOD 10]\n⊢ 2 * ↑a + ↑b ≡ 1 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 4
+            },
+            "endPos": {
+              "line": 20,
+              "column": 15
+            },
+            "data": "Type mismatch\n  h_sub\nhas type\n  ↑a * Nat.rawCast 1 ≡ -1 [ZMOD 10]\nbut is expected to have type\n  ↑a ≡ 1 - 2 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 4
+            },
+            "endPos": {
+              "line": 35,
+              "column": 31
+            },
+            "data": "'show' tactic failed, pattern\n  -4 ≡ 6 [ZMOD 10]\nis not definitionally equal to target\n  6 = -1 - 3"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 39,
+              "column": 8
+            },
+            "endPos": {
+              "line": 39,
+              "column": 29
+            },
+            "data": "Unknown constant `Int.ofNat_mod_ordered`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 56
+            },
+            "endPos": {
+              "line": 40,
+              "column": 34
+            },
+            "data": "unsolved goals\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh1_z : ↑a + ↑b ≡ 2 [ZMOD 10]\nh2_z : 2 * ↑a + ↑b ≡ 1 [ZMOD 10]\nha_z : ↑a ≡ 1 - 2 [ZMOD 10]\nhb_z : ↑b ≡ 2 - -1 [ZMOD 10]\nhab_z : ↑a - ↑b ≡ -1 - 3 [ZMOD 10]\nh_final_z : ↑a - ↑b ≡ 6 [ZMOD 10]\n⊢ (a - b) % 10 = 6"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.38456130027770996
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a - b) \\equiv 6 \\pmod{10}$ given the system of linear congruences:\n1. $a + b \\equiv 2 \\pmod{10}$\n2. $2a + b \\equiv 1 \\pmod{10}$\n\n**Proof Sketch:**\n1. Subtract the first congruence from the second: $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$.\n2. This simplifies to $a \\equiv -1 \\equiv 9 \\pmod{10}$.\n3. Substitute $a \\equiv 9$ back into the first congruence: $9 + b \\equiv 2 \\pmod{10}$.\n4. Solve for $b$: $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$.\n5. Calculate the difference: $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\n6. Since $b \\le a$, $(a - b) \\pmod{10}$ is exactly the residue of the difference.\n\n**Lean 4 Code:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use modular arithmetic properties to isolate 'a'\n  -- (2a + b) - (a + b) ≡ 1 - 2 [MOD 10]\n  have ha : a ≡ 9 [MOD 10] := by\n    have h : (2 * a + b) - (a + b) ≡ 1 - 2 [ZMOD 10] := by\n      apply Int.ModEq.sub h₂ h₁\n    simp only [Int.ofNat_add, Int.ofNat_mul, Int.ofNat_succ, Int.ofNat_zero] at h\n    ring_nf at h\n    -- h is a ≡ -1 [ZMOD 10]\n    rw [Nat.modEq_iff_int_modEq]\n    convert h using 1\n    simp [Int.ofNat_mod]\n    norm_num\n  \n  -- Substitute 'a' back into h₁ to find 'b'\n  -- 9 + b ≡ 2 [MOD 10] => b ≡ -7 ≡ 3 [MOD 10]\n  have hb : b ≡ 3 [MOD 10] := by\n    have h : (a + b) - a ≡ 2 - 9 [ZMOD 10] := by\n      apply Int.ModEq.sub h₁ (Nat.modEq_iff_int_modEq.mp ha)\n    simp only [Int.ofNat_add] at h\n    ring_nf at h\n    rw [Nat.modEq_iff_int_modEq]\n    convert h using 1\n    simp [Int.ofNat_mod]\n    norm_num\n\n  -- Calculate (a - b) % 10\n  -- a - b ≡ 9 - 3 ≡ 6 [MOD 10]\n  have hab : (a - b) ≡ 6 [MOD 10] := by\n    rw [Nat.modEq_iff_int_modEq]\n    have h_sub : (a : ℤ) - (b : ℤ) ≡ 9 - 3 [ZMOD 10] := \n      Int.ModEq.sub (Nat.modEq_iff_int_modEq.mp ha) (Nat.modEq_iff_int_modEq.mp hb)\n    convert h_sub using 1\n    · simp [Int.ofNat_sub h₀]\n    · norm_num\n  \n  exact hab\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use modular arithmetic properties to isolate 'a'\n  -- (2a + b) - (a + b) ≡ 1 - 2 [MOD 10]\n  have ha : a ≡ 9 [MOD 10] := by\n    have h : (2 * a + b) - (a + b) ≡ 1 - 2 [ZMOD 10] := by\n      apply Int.ModEq.sub h₂ h₁\n    simp only [Int.ofNat_add, Int.ofNat_mul, Int.ofNat_succ, Int.ofNat_zero] at h\n    ring_nf at h\n    -- h is a ≡ -1 [ZMOD 10]\n    rw [Nat.modEq_iff_int_modEq]\n    convert h using 1\n    simp [Int.ofNat_mod]\n    norm_num\n  \n  -- Substitute 'a' back into h₁ to find 'b'\n  -- 9 + b ≡ 2 [MOD 10] => b ≡ -7 ≡ 3 [MOD 10]\n  have hb : b ≡ 3 [MOD 10] := by\n    have h : (a + b) - a ≡ 2 - 9 [ZMOD 10] := by\n      apply Int.ModEq.sub h₁ (Nat.modEq_iff_int_modEq.mp ha)\n    simp only [Int.ofNat_add] at h\n    ring_nf at h\n    rw [Nat.modEq_iff_int_modEq]\n    convert h using 1\n    simp [Int.ofNat_mod]\n    norm_num\n\n  -- Calculate (a - b) % 10\n  -- a - b ≡ 9 - 3 ≡ 6 [MOD 10]\n  have hab : (a - b) ≡ 6 [MOD 10] := by\n    rw [Nat.modEq_iff_int_modEq]\n    have h_sub : (a : ℤ) - (b : ℤ) ≡ 9 - 3 [ZMOD 10] := \n      Int.ModEq.sub (Nat.modEq_iff_int_modEq.mp ha) (Nat.modEq_iff_int_modEq.mp hb)\n    convert h_sub using 1\n    · simp [Int.ofNat_sub h₀]\n    · norm_num\n  \n  exact hab",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 26
+            },
+            "endPos": {
+              "line": 14,
+              "column": 28
+            },
+            "data": "Application type mismatch: The argument\n  h₂\nhas type\n  2 * a + b ≡ 1 [MOD 10]\nbut is expected to have type\n  ?m.78 ≡ ?m.79 [ZMOD ?m.77]\nin the application\n  Int.ModEq.sub h₂"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 15
+            },
+            "endPos": {
+              "line": 15,
+              "column": 28
+            },
+            "data": "Unknown constant `Int.ofNat_add`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 30
+            },
+            "endPos": {
+              "line": 15,
+              "column": 43
+            },
+            "data": "Unknown constant `Int.ofNat_mul`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 45
+            },
+            "endPos": {
+              "line": 15,
+              "column": 59
+            },
+            "data": "Unknown constant `Int.ofNat_succ`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 8
+            },
+            "endPos": {
+              "line": 18,
+              "column": 31
+            },
+            "data": "Unknown constant `Nat.modEq_iff_int_modEq`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 26
+            },
+            "endPos": {
+              "line": 27,
+              "column": 28
+            },
+            "data": "Application type mismatch: The argument\n  h₁\nhas type\n  a + b ≡ 2 [MOD 10]\nbut is expected to have type\n  ?m.117 ≡ ?m.118 [ZMOD ?m.116]\nin the application\n  Int.ModEq.sub h₁"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 30
+            },
+            "endPos": {
+              "line": 27,
+              "column": 56
+            },
+            "data": "Unknown constant `Nat.modEq_iff_int_modEq.mp`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 15
+            },
+            "endPos": {
+              "line": 28,
+              "column": 28
+            },
+            "data": "Unknown constant `Int.ofNat_add`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 8
+            },
+            "endPos": {
+              "line": 30,
+              "column": 31
+            },
+            "data": "Unknown constant `Nat.modEq_iff_int_modEq`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 8
+            },
+            "endPos": {
+              "line": 38,
+              "column": 31
+            },
+            "data": "Unknown constant `Nat.modEq_iff_int_modEq`"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 61
+            },
+            "endPos": {
+              "line": 15,
+              "column": 75
+            },
+            "data": "This simp argument is unused:\n  Int.ofNat_zero\n\nHint: Omit it from the simp argument list.\n  simp only [Int.ofNat_add, Int.ofNat_mul, Int.ofNat_succ,̵ ̵I̵n̵t̵.̵o̵f̵N̵a̵t̵_̵z̵e̵r̵o̵] at h\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.20555472373962402
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "To solve for $(a - b) \\pmod{10}$, we use the given system of linear congruences:\n1. $a + b \\equiv 2 \\pmod{10}$\n2. $2a + b \\equiv 1 \\pmod{10}$\n\n**Proof Sketch:**\n1. Subtract the first congruence from the second:\n   $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n   $a \\equiv -1 \\equiv 9 \\pmod{10}$.\n2. Substitute $a \\equiv 9$ back into the first congruence:\n   $9 + b \\equiv 2 \\pmod{10}$\n   $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$.\n3. Calculate $(a - b) \\pmod{10}$:\n   $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\n4. Since we need to show $(a - b) \\% 10 = 6$, and the result of the subtraction is non-negative (given $b \\le a$), the result follows directly from the properties of modular arithmetic.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use modular arithmetic properties to isolate a and b\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1z : (a : ℤ) + b ≡ 2 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₁\n    have h2z : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₂\n    convert Int.ModEq.sub h2z h1z using 1\n    ring\n  \n  have hb : b ≡ (2 - (1 - 2) : ℤ) [ZMOD 10] := by\n    have h1z : (a : ℤ) + b ≡ 2 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₁\n    convert Int.ModEq.sub h1z ha using 1\n    ring\n    \n  -- Calculate a - b modulo 10\n  have hab : (a : ℤ) - b ≡ (1 - 2) - (2 - (1 - 2)) [ZMOD 10] := Int.ModEq.sub ha hb\n  \n  -- Simplify the expression on the right\n  have hab_sim : (a : ℤ) - b ≡ -4 [ZMOD 10] := by\n    convert hab using 1\n    norm_num\n\n  -- Convert -4 mod 10 to 6 mod 10\n  have hab_pos : (a : ℤ) - b ≡ 6 [ZMOD 10] := by\n    convert hab_sim using 1\n    exact Int.modEq_sub_fac 10 1\n\n  -- Convert back to Nat using the fact that b ≤ a\n  rw [← Int.ofNat_modEq_iff, Int.ofNat_sub h₀]\n  exact hab_pos\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use modular arithmetic properties to isolate a and b\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1z : (a : ℤ) + b ≡ 2 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₁\n    have h2z : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₂\n    convert Int.ModEq.sub h2z h1z using 1\n    ring\n  \n  have hb : b ≡ (2 - (1 - 2) : ℤ) [ZMOD 10] := by\n    have h1z : (a : ℤ) + b ≡ 2 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₁\n    convert Int.ModEq.sub h1z ha using 1\n    ring\n    \n  -- Calculate a - b modulo 10\n  have hab : (a : ℤ) - b ≡ (1 - 2) - (2 - (1 - 2)) [ZMOD 10] := Int.ModEq.sub ha hb\n  \n  -- Simplify the expression on the right\n  have hab_sim : (a : ℤ) - b ≡ -4 [ZMOD 10] := by\n    convert hab using 1\n    norm_num\n\n  -- Convert -4 mod 10 to 6 mod 10\n  have hab_pos : (a : ℤ) - b ≡ 6 [ZMOD 10] := by\n    convert hab_sim using 1\n    exact Int.modEq_sub_fac 10 1\n\n  -- Convert back to Nat using the fact that b ≤ a\n  rw [← Int.ofNat_modEq_iff, Int.ofNat_sub h₀]\n  exact hab_pos",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 44
+            },
+            "endPos": {
+              "line": 12,
+              "column": 71
+            },
+            "data": "Unknown constant `Int.modEq_iff_nat_modEq.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 48
+            },
+            "endPos": {
+              "line": 13,
+              "column": 75
+            },
+            "data": "Unknown constant `Int.modEq_iff_nat_modEq.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 44
+            },
+            "endPos": {
+              "line": 18,
+              "column": 71
+            },
+            "data": "Unknown constant `Int.modEq_iff_nat_modEq.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 4
+            },
+            "endPos": {
+              "line": 28,
+              "column": 12
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 31
+            },
+            "endPos": {
+              "line": 33,
+              "column": 32
+            },
+            "data": "numerals are data in Lean, but the expected type is a proposition\n  ?m.400 ≡ ?m.401 [ZMOD ?m.402] : Prop"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 8
+            },
+            "endPos": {
+              "line": 36,
+              "column": 27
+            },
+            "data": "Unknown constant `Int.ofNat_modEq_iff`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 56
+            },
+            "endPos": {
+              "line": 37,
+              "column": 15
+            },
+            "data": "unsolved goals\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nhb : ↑b ≡ 2 - (1 - 2) [ZMOD 10]\nhab : ↑a - ↑b ≡ 1 - 2 - (2 - (1 - 2)) [ZMOD 10]\nhab_sim : ↑a - ↑b ≡ -4 [ZMOD 10]\nhab_pos : ↑a - ↑b ≡ 6 [ZMOD 10]\n⊢ (a - b) % 10 = 6"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 33,
+              "column": 10
+            },
+            "endPos": {
+              "line": 33,
+              "column": 27
+            },
+            "data": "`Int.modEq_sub_fac` has been deprecated: Use `Int.sub_modulus_mul_modEq_iff` instead\n\nNote: The updated constant has a different type:\n  ∀ {n a b c : ℤ}, a - n * b ≡ c [ZMOD n] ↔ a ≡ c [ZMOD n]\ninstead of\n  ∀ {a b n : ℤ} (c : ℤ), a ≡ b [ZMOD n] → a - n * c ≡ b [ZMOD n]"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.2022850513458252
+      }
+    },
+    {
+      "index": 6,
+      "status": "FAILED",
+      "raw_text": "To solve this problem, we use the properties of modular arithmetic.\n\n### Proof Sketch\n1.  **Given Congruences**:\n    *   (1) $a + b \\equiv 2 \\pmod{10}$\n    *   (2) $2a + b \\equiv 1 \\pmod{10}$\n2.  **Find $a$**:\n    Subtract equation (1) from equation (2):\n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n    $a \\equiv -1 \\equiv 9 \\pmod{10}$.\n3.  **Find $b$**:\n    Substitute $a \\equiv 9$ into equation (1):\n    $9 + b \\equiv 2 \\pmod{10}$\n    $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$.\n4.  **Calculate $a - b$**:\n    $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\n5.  **Final Result**:\n    Since $(a - b) \\equiv 6 \\pmod{10}$, it follows by the definition of the modulo operator in Lean (which returns a value in $[0, 9]$ for divisor 10) that $(a - b) \\% 10 = 6$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use modular arithmetic properties to isolate a\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1z : (a : ℤ) + b ≡ 2 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₁\n    have h2z : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₂\n    convert Int.ModEq.sub h2z h1z using 1\n    ring\n  \n  -- Simplify a ≡ -1 ≡ 9 [ZMOD 10]\n  have ha_val : a ≡ 9 [ZMOD 10] := by\n    convert ha using 1\n    norm_num\n  \n  -- Use modular arithmetic to isolate b\n  have hb : b ≡ (2 - 9 : ℤ) [ZMOD 10] := by\n    have h1z : (a : ℤ) + b ≡ 2 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₁\n    convert Int.ModEq.sub h1z ha_val using 1\n    ring\n    \n  -- Simplify b ≡ -7 ≡ 3 [ZMOD 10]\n  have hb_val : b ≡ 3 [ZMOD 10] := by\n    convert hb using 1\n    norm_num\n\n  -- Calculate a - b ≡ 9 - 3 ≡ 6 [ZMOD 10]\n  have hab : (a : ℤ) - b ≡ 9 - 3 [ZMOD 10] := Int.ModEq.sub ha_val hb_val\n  have hab_val : (a : ℤ) - b ≡ 6 [ZMOD 10] := hab\n  \n  -- Convert back to Nat property\n  have h_nat : (a - b) % 10 = 6 % 10 := by\n    rw [← Int.natCast_modEq_iff]\n    push_cast\n    rw [Int.ofNat_sub h₀]\n    exact hab_val\n  \n  exact h_nat\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use modular arithmetic properties to isolate a\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1z : (a : ℤ) + b ≡ 2 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₁\n    have h2z : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₂\n    convert Int.ModEq.sub h2z h1z using 1\n    ring\n  \n  -- Simplify a ≡ -1 ≡ 9 [ZMOD 10]\n  have ha_val : a ≡ 9 [ZMOD 10] := by\n    convert ha using 1\n    norm_num\n  \n  -- Use modular arithmetic to isolate b\n  have hb : b ≡ (2 - 9 : ℤ) [ZMOD 10] := by\n    have h1z : (a : ℤ) + b ≡ 2 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₁\n    convert Int.ModEq.sub h1z ha_val using 1\n    ring\n    \n  -- Simplify b ≡ -7 ≡ 3 [ZMOD 10]\n  have hb_val : b ≡ 3 [ZMOD 10] := by\n    convert hb using 1\n    norm_num\n\n  -- Calculate a - b ≡ 9 - 3 ≡ 6 [ZMOD 10]\n  have hab : (a : ℤ) - b ≡ 9 - 3 [ZMOD 10] := Int.ModEq.sub ha_val hb_val\n  have hab_val : (a : ℤ) - b ≡ 6 [ZMOD 10] := hab\n  \n  -- Convert back to Nat property\n  have h_nat : (a - b) % 10 = 6 % 10 := by\n    rw [← Int.natCast_modEq_iff]\n    push_cast\n    rw [Int.ofNat_sub h₀]\n    exact hab_val\n  \n  exact h_nat",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 44
+            },
+            "endPos": {
+              "line": 12,
+              "column": 71
+            },
+            "data": "Unknown constant `Int.modEq_iff_nat_modEq.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 48
+            },
+            "endPos": {
+              "line": 13,
+              "column": 75
+            },
+            "data": "Unknown constant `Int.modEq_iff_nat_modEq.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 35
+            },
+            "endPos": {
+              "line": 20,
+              "column": 12
+            },
+            "data": "unsolved goals\ncase h.e'_3\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 44
+            },
+            "endPos": {
+              "line": 24,
+              "column": 71
+            },
+            "data": "Unknown constant `Int.modEq_iff_nat_modEq.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 35
+            },
+            "endPos": {
+              "line": 31,
+              "column": 12
+            },
+            "data": "unsolved goals\ncase h.e'_3\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nha_val : ↑a ≡ 9 [ZMOD 10]\nhb : ↑b ≡ 2 - 9 [ZMOD 10]\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 39,
+              "column": 8
+            },
+            "endPos": {
+              "line": 39,
+              "column": 31
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?m.400 ≡ ?m.401 [MOD ?m.402]\nin the target expression\n  (a - b) % 10 = 6 % 10\n\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nha_val : ↑a ≡ 9 [ZMOD 10]\nhb : ↑b ≡ 2 - 9 [ZMOD 10]\nhb_val : ↑b ≡ 3 [ZMOD 10]\nhab : ↑a - ↑b ≡ 9 - 3 [ZMOD 10]\nhab_val : ↑a - ↑b ≡ 6 [ZMOD 10]\n⊢ (a - b) % 10 = 6 % 10"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.20878338813781738
+      }
+    },
+    {
+      "index": 7,
+      "status": "FAILED",
+      "raw_text": "To prove the statement $(a - b) \\equiv 6 \\pmod{10}$, we use the properties of modular arithmetic.\n\n### Proof Sketch:\n1.  **Given Equations:**\n    *   (1) $a + b \\equiv 2 \\pmod{10}$\n    *   (2) $2a + b \\equiv 1 \\pmod{10}$\n2.  **Solve for $a$:**\n    Subtract equation (1) from equation (2):\n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n    $a \\equiv -1 \\pmod{10} \\implies a \\equiv 9 \\pmod{10}$.\n3.  **Solve for $b$:**\n    Substitute $a \\equiv 9$ into equation (1):\n    $9 + b \\equiv 2 \\pmod{10}$\n    $b \\equiv 2 - 9 \\pmod{10} \\implies b \\equiv -7 \\pmod{10} \\implies b \\equiv 3 \\pmod{10}$.\n4.  **Calculate $a - b$:**\n    $a - b \\equiv 9 - 3 \\pmod{10} \\equiv 6 \\pmod{10}$.\n5.  **Conclusion:**\n    Since $a - b \\equiv 6 \\pmod{10}$, it follows by definition that $(a - b) \\% 10 = 6$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) % 10 = 2 % 10)\n  (h₂ : (2 * a + b) % 10 = 1 % 10) : (a - b) % 10 = 6 := by\n  -- Convert to ZMod 10 for easier calculation\n  have h1_z : (a + b : ZMod 10) = 2 := by\n    rw [← ZMod.eq_iff_modEq_nat] at h₁\n    exact h₁\n  have h2_z : (2 * a + b : ZMod 10) = 1 := by\n    rw [← ZMod.eq_iff_modEq_nat] at h₂\n    exact h₂\n  \n  -- Subtract h1_z from h2_z to isolate a\n  have ha : (a : ZMod 10) = -1 := by\n    linear_combination h2_z - h1_z\n  \n  -- Substitute a into h1_z to find b\n  have hb : (b : ZMod 10) = 3 := by\n    rw [ha] at h1_z\n    linear_combination h1_z\n    \n  -- Calculate (a - b) in ZMod 10\n  have hab : (a - b : ZMod 10) = 6 := by\n    rw [ZMod.coe_sub h₀, ha, hb]\n    decide\n\n  -- Convert back to Nat mod 10\n  rw [ZMod.eq_iff_modEq_nat] at hab\n  exact hab\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) % 10 = 2 % 10)\n  (h₂ : (2 * a + b) % 10 = 1 % 10) : (a - b) % 10 = 6 := by\n  -- Convert to ZMod 10 for easier calculation\n  have h1_z : (a + b : ZMod 10) = 2 := by\n    rw [← ZMod.eq_iff_modEq_nat] at h₁\n    exact h₁\n  have h2_z : (2 * a + b : ZMod 10) = 1 := by\n    rw [← ZMod.eq_iff_modEq_nat] at h₂\n    exact h₂\n  \n  -- Subtract h1_z from h2_z to isolate a\n  have ha : (a : ZMod 10) = -1 := by\n    linear_combination h2_z - h1_z\n  \n  -- Substitute a into h1_z to find b\n  have hb : (b : ZMod 10) = 3 := by\n    rw [ha] at h1_z\n    linear_combination h1_z\n    \n  -- Calculate (a - b) in ZMod 10\n  have hab : (a - b : ZMod 10) = 6 := by\n    rw [ZMod.coe_sub h₀, ha, hb]\n    decide\n\n  -- Convert back to Nat mod 10\n  rw [ZMod.eq_iff_modEq_nat] at hab\n  exact hab",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 10
+            },
+            "endPos": {
+              "line": 12,
+              "column": 31
+            },
+            "data": "Unknown constant `ZMod.eq_iff_modEq_nat`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 10
+            },
+            "endPos": {
+              "line": 15,
+              "column": 31
+            },
+            "data": "Unknown constant `ZMod.eq_iff_modEq_nat`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 8
+            },
+            "endPos": {
+              "line": 29,
+              "column": 20
+            },
+            "data": "Unknown constant `ZMod.coe_sub`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 6
+            },
+            "endPos": {
+              "line": 33,
+              "column": 27
+            },
+            "data": "Unknown constant `ZMod.eq_iff_modEq_nat`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 57
+            },
+            "endPos": {
+              "line": 34,
+              "column": 11
+            },
+            "data": "unsolved goals\na b : ℕ\nh₀ : b ≤ a\nh₁ : (a + b) % 10 = 2 % 10\nh₂ : (2 * a + b) % 10 = 1 % 10\nh1_z : ↑a + ↑b = 2\nh2_z : 2 * ↑a + ↑b = 1\nha : ↑a = -1\nhb : ↑b = 3\nhab : ↑a - ↑b = 6\n⊢ (a - b) % 10 = 6"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.7299108505249023
+      }
+    },
+    {
+      "index": 8,
+      "status": "FAILED",
+      "raw_text": "To solve for $(a - b) \\pmod{10}$, we use the given system of linear congruences:\n1. $a + b \\equiv 2 \\pmod{10}$\n2. $2a + b \\equiv 1 \\pmod{10}$\n\n**Proof Sketch:**\n1. Subtract the first congruence from the second:\n   $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n   $a \\equiv -1 \\equiv 9 \\pmod{10}$.\n2. Substitute $a \\equiv 9$ back into the first congruence:\n   $9 + b \\equiv 2 \\pmod{10}$\n   $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$.\n3. Calculate $(a - b) \\pmod{10}$:\n   $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\n4. Since $b \\le a$, $a - b$ is a non-negative integer, so $(a - b) \\% 10 = 6$.\n\nIn Lean, we use the `Nat.ModEq` properties to manipulate the congruences.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- From (2a + b) ≡ 1 and (a + b) ≡ 2, we subtract to find a\n  -- (2a + b) - (a + b) ≡ 1 - 2 [MOD 10]\n  -- However, since we are in Nat, we must be careful with subtraction.\n  -- We can use the property: if x + y ≡ z, then x ≡ z - y\n  have ha : a ≡ 9 [MOD 10] := by\n    have h3 : (a + (a + b)) ≡ 1 [MOD 10] := by\n      rw [← add_assoc, two_mul] at h₂\n      exact h₂\n    -- a + 2 ≡ 1 [MOD 10] (substituting h1)\n    have h4 : a + 2 ≡ 1 [MOD 10] := Nat.ModEq.add_right_cancel h₁ h3\n    -- a + 2 ≡ 11 [MOD 10]\n    have h5 : a + 2 ≡ 11 [MOD 10] := h4.trans (by rfl)\n    exact Nat.ModEq.add_right_cancel (rfl : 2 ≡ 2 [MOD 10]) h5\n\n  -- Now find b: 9 + b ≡ 2 [MOD 10]\n  have hb : b ≡ 3 [MOD 10] := by\n    have h6 : 9 + b ≡ 2 [MOD 10] := Nat.ModEq.add_left_cancel ha h₁\n    have h7 : 9 + b ≡ 13 [MOD 10] := h6.trans (by rfl)\n    exact Nat.ModEq.add_left_cancel (rfl : 9 ≡ 9 [MOD 10]) h7\n\n  -- Finally, compute (a - b) % 10\n  -- a - b ≡ 9 - 3 ≡ 6 [MOD 10]\n  have h_diff : (a - b) ≡ (9 - 3) [MOD 10] := Nat.ModEq.sub ha hb h₀ (by norm_num)\n  exact h_diff\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- From (2a + b) ≡ 1 and (a + b) ≡ 2, we subtract to find a\n  -- (2a + b) - (a + b) ≡ 1 - 2 [MOD 10]\n  -- However, since we are in Nat, we must be careful with subtraction.\n  -- We can use the property: if x + y ≡ z, then x ≡ z - y\n  have ha : a ≡ 9 [MOD 10] := by\n    have h3 : (a + (a + b)) ≡ 1 [MOD 10] := by\n      rw [← add_assoc, two_mul] at h₂\n      exact h₂\n    -- a + 2 ≡ 1 [MOD 10] (substituting h1)\n    have h4 : a + 2 ≡ 1 [MOD 10] := Nat.ModEq.add_right_cancel h₁ h3\n    -- a + 2 ≡ 11 [MOD 10]\n    have h5 : a + 2 ≡ 11 [MOD 10] := h4.trans (by rfl)\n    exact Nat.ModEq.add_right_cancel (rfl : 2 ≡ 2 [MOD 10]) h5\n\n  -- Now find b: 9 + b ≡ 2 [MOD 10]\n  have hb : b ≡ 3 [MOD 10] := by\n    have h6 : 9 + b ≡ 2 [MOD 10] := Nat.ModEq.add_left_cancel ha h₁\n    have h7 : 9 + b ≡ 13 [MOD 10] := h6.trans (by rfl)\n    exact Nat.ModEq.add_left_cancel (rfl : 9 ≡ 9 [MOD 10]) h7\n\n  -- Finally, compute (a - b) % 10\n  -- a - b ≡ 9 - 3 ≡ 6 [MOD 10]\n  have h_diff : (a - b) ≡ (9 - 3) [MOD 10] := Nat.ModEq.sub ha hb h₀ (by norm_num)\n  exact h_diff",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 10
+            },
+            "endPos": {
+              "line": 16,
+              "column": 21
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a + (?b + ?c)\nin the target expression\n  2 * a + b ≡ 1 [MOD 10]\n\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\n⊢ a + (a + b) ≡ 1 [MOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 66
+            },
+            "endPos": {
+              "line": 19,
+              "column": 68
+            },
+            "data": "Application type mismatch: The argument\n  h3\nhas type\n  a + (a + b) ≡ 1 [MOD 10]\nbut is expected to have type\n  a + 2 + (a + b) ≡ 1 + 2 [MOD 10]\nin the application\n  ModEq.add_right_cancel h₁ h3"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 65
+            },
+            "endPos": {
+              "line": 26,
+              "column": 67
+            },
+            "data": "Application type mismatch: The argument\n  h₁\nhas type\n  a + b ≡ 2 [MOD 10]\nbut is expected to have type\n  a + (9 + b) ≡ 9 + 2 [MOD 10]\nin the application\n  ModEq.add_left_cancel ha h₁"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 50
+            },
+            "endPos": {
+              "line": 27,
+              "column": 53
+            },
+            "data": "Tactic `rfl` failed: The left-hand side\n  2\nis not definitionally equal to the right-hand side\n  13\n\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : a ≡ 9 [MOD 10]\nh6 : 9 + b ≡ 2 [MOD 10]\n⊢ 2 ≡ 13 [MOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 59
+            },
+            "endPos": {
+              "line": 28,
+              "column": 61
+            },
+            "data": "Application type mismatch: The argument\n  h7\nhas type\n  9 + b ≡ 13 [MOD 10]\nbut is expected to have type\n  9 + b ≡ 9 + 3 [MOD 10]\nin the application\n  ModEq.add_left_cancel rfl h7"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 60
+            },
+            "endPos": {
+              "line": 32,
+              "column": 62
+            },
+            "data": "Application type mismatch: The argument\n  ha\nhas type\n  a ≡ 9 [MOD 10]\nbut is expected to have type\n  b ≤ a\nin the application\n  ModEq.sub ha"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 70
+            },
+            "endPos": {
+              "line": 32,
+              "column": 81
+            },
+            "data": "unsolved goals\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : a ≡ 9 [MOD 10]\nhb : b ≡ 3 [MOD 10]\n⊢ b ≡ 3 [MOD 10]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.18702077865600586
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a - b) \\pmod{10} = 6$ given the modular congruences:\n1.  $a + b \\equiv 2 \\pmod{10}$\n2.  $2a + b \\equiv 1 \\pmod{10}$\n\n**Proof Sketch:**\n1.  Subtract the first congruence from the second:\n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n    $a \\equiv -1 \\equiv 9 \\pmod{10}$\n2.  Substitute $a \\equiv 9$ back into the first congruence:\n    $9 + b \\equiv 2 \\pmod{10}$\n    $b \\equiv 2 - 9 = -7 \\equiv 3 \\pmod{10}$\n3.  Calculate $a - b \\pmod{10}$:\n    $a - b \\equiv 9 - 3 = 6 \\pmod{10}$\n4.  Since $b \\leq a$, $a - b \\geq 0$, so $(a - b) \\pmod{10} = 6$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use Int to handle subtraction and modular arithmetic properties easily\n  have h1_int : (a : ℤ) + b ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n  have h2_int : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := by exact_mod_cast h₂\n  \n  -- Subtract h1_int from h2_int to find a mod 10\n  have ha : (a : ℤ) ≡ -1 [ZMOD 10] := by\n    have h_sub := Int.ModEq.sub h2_int h1_int\n    ring_nf at h_sub\n    exact h_sub\n    \n  -- Use h1_int and ha to find b mod 10\n  have hb : (b : ℤ) ≡ 3 [ZMOD 10] := by\n    have h_sub := Int.ModEq.sub h1_int ha\n    ring_nf at h_sub\n    exact h_sub\n    \n  -- Calculate (a - b) mod 10\n  have hab : (a : ℤ) - b ≡ -1 - 3 [ZMOD 10] := Int.ModEq.sub ha hb\n  have hab_final : (a : ℤ) - b ≡ 6 [ZMOD 10] := by\n    convert hab using 1\n    norm_num\n  \n  -- Convert back to natural numbers\n  rw [← Int.ofNat_mod_eq_iff]\n  push_cast\n  rw [Int.ofNat_sub h₀]\n  exact hab_final\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use Int to handle subtraction and modular arithmetic properties easily\n  have h1_int : (a : ℤ) + b ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n  have h2_int : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := by exact_mod_cast h₂\n  \n  -- Subtract h1_int from h2_int to find a mod 10\n  have ha : (a : ℤ) ≡ -1 [ZMOD 10] := by\n    have h_sub := Int.ModEq.sub h2_int h1_int\n    ring_nf at h_sub\n    exact h_sub\n    \n  -- Use h1_int and ha to find b mod 10\n  have hb : (b : ℤ) ≡ 3 [ZMOD 10] := by\n    have h_sub := Int.ModEq.sub h1_int ha\n    ring_nf at h_sub\n    exact h_sub\n    \n  -- Calculate (a - b) mod 10\n  have hab : (a : ℤ) - b ≡ -1 - 3 [ZMOD 10] := Int.ModEq.sub ha hb\n  have hab_final : (a : ℤ) - b ≡ 6 [ZMOD 10] := by\n    convert hab using 1\n    norm_num\n  \n  -- Convert back to natural numbers\n  rw [← Int.ofNat_mod_eq_iff]\n  push_cast\n  rw [Int.ofNat_sub h₀]\n  exact hab_final",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 4
+            },
+            "endPos": {
+              "line": 18,
+              "column": 15
+            },
+            "data": "Type mismatch\n  h_sub\nhas type\n  ↑a * Nat.rawCast 1 ≡ -1 [ZMOD 10]\nbut is expected to have type\n  ↑a ≡ -1 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 48
+            },
+            "endPos": {
+              "line": 30,
+              "column": 12
+            },
+            "data": "unsolved goals\ncase h.e'_3\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh1_int : ↑a + ↑b ≡ 2 [ZMOD 10]\nh2_int : 2 * ↑a + ↑b ≡ 1 [ZMOD 10]\nha : ↑a ≡ -1 [ZMOD 10]\nhb : ↑b ≡ 3 [ZMOD 10]\nhab : ↑a - ↑b ≡ -1 - 3 [ZMOD 10]\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 8
+            },
+            "endPos": {
+              "line": 33,
+              "column": 28
+            },
+            "data": "Unknown constant `Int.ofNat_mod_eq_iff`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 56
+            },
+            "endPos": {
+              "line": 36,
+              "column": 17
+            },
+            "data": "unsolved goals\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh1_int : ↑a + ↑b ≡ 2 [ZMOD 10]\nh2_int : 2 * ↑a + ↑b ≡ 1 [ZMOD 10]\nha : ↑a ≡ -1 [ZMOD 10]\nhb : ↑b ≡ 3 [ZMOD 10]\nhab : ↑a - ↑b ≡ -1 - 3 [ZMOD 10]\nhab_final : ↑a - ↑b ≡ 6 [ZMOD 10]\n⊢ (a - b) % 10 = 6"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2974672317504883
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Subtract the Congruences**: We are given:\n    *   (1) $a + b \\equiv 2 \\pmod{10}$\n    *   (2) $2a + b \\equiv 1 \\pmod{10}$\n    Subtracting (1) from (2) yields $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$, which simplifies to $a \\equiv -1 \\equiv 9 \\pmod{10}$.\n2.  **Solve for $b$**: Substitute $a \\equiv 9$ back into (1): $9 + b \\equiv 2 \\pmod{10}$. Subtracting 9 from both sides gives $b \\equiv -7 \\equiv 3 \\pmod{10}$.\n3.  **Calculate $a - b$**: Using the results $a \\equiv 9$ and $b \\equiv 3$, we have $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\n4.  **Final Result**: Since $b \\le a$, $a - b$ is a non-negative integer. The property $(a - b) \\equiv 6 \\pmod{10}$ implies $(a - b) \\pmod{10} = 6$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Subtracting h₁ from h₂ to find a mod 10\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + b ≡ 2 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₁\n    have h2_z : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₂\n    calc (a : ℤ) = (2 * a + b) - (a + b) := by ring\n      _ ≡ 1 - 2 [ZMOD 10] := Int.ModEq.sub h2_z h1_z\n  \n  -- Use ha to find b mod 10 using h₁\n  have hb : (b : ℤ) ≡ (2 - (a : ℤ)) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + b ≡ 2 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₁\n    calc (b : ℤ) = (a + b) - a := by ring\n      _ ≡ 2 - (a : ℤ) [ZMOD 10] := Int.ModEq.sub h1_z (Int.ModEq.refl _)\n\n  -- Calculate (a - b) mod 10\n  have h_diff : (a : ℤ) - b ≡ (-1) - (2 - (-1)) [ZMOD 10] := by\n    apply Int.ModEq.sub ha\n    rw [hb]\n    apply Int.ModEq.sub (Int.ModEq.refl 2) ha\n\n  -- Simplify the congruence\n  have h_final_z : (a : ℤ) - b ≡ 6 [ZMOD 10] := by\n    calc (a : ℤ) - b ≡ -1 - (2 - (-1)) [ZMOD 10] := h_diff\n      _ = -4 [ZMOD 10] := by ring_nf\n      _ ≡ 6 [ZMOD 10] := by norm_num [Int.ModEq]\n\n  -- Convert back to Nat using the condition b ≤ a\n  rw [← Int.coe_nat_modEq_iff] at h_final_z\n  push_cast at h_final_z\n  rw [Int.ofNat_sub h₀] at h_final_z\n  exact h_final_z\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Subtracting h₁ from h₂ to find a mod 10\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + b ≡ 2 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₁\n    have h2_z : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₂\n    calc (a : ℤ) = (2 * a + b) - (a + b) := by ring\n      _ ≡ 1 - 2 [ZMOD 10] := Int.ModEq.sub h2_z h1_z\n  \n  -- Use ha to find b mod 10 using h₁\n  have hb : (b : ℤ) ≡ (2 - (a : ℤ)) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + b ≡ 2 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₁\n    calc (b : ℤ) = (a + b) - a := by ring\n      _ ≡ 2 - (a : ℤ) [ZMOD 10] := Int.ModEq.sub h1_z (Int.ModEq.refl _)\n\n  -- Calculate (a - b) mod 10\n  have h_diff : (a : ℤ) - b ≡ (-1) - (2 - (-1)) [ZMOD 10] := by\n    apply Int.ModEq.sub ha\n    rw [hb]\n    apply Int.ModEq.sub (Int.ModEq.refl 2) ha\n\n  -- Simplify the congruence\n  have h_final_z : (a : ℤ) - b ≡ 6 [ZMOD 10] := by\n    calc (a : ℤ) - b ≡ -1 - (2 - (-1)) [ZMOD 10] := h_diff\n      _ = -4 [ZMOD 10] := by ring_nf\n      _ ≡ 6 [ZMOD 10] := by norm_num [Int.ModEq]\n\n  -- Convert back to Nat using the condition b ≤ a\n  rw [← Int.coe_nat_modEq_iff] at h_final_z\n  push_cast at h_final_z\n  rw [Int.ofNat_sub h₀] at h_final_z\n  exact h_final_z",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 12
+            },
+            "endPos": {
+              "line": 32,
+              "column": 18
+            },
+            "data": "unexpected token '[ZMOD'; expected ':='"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 45
+            },
+            "endPos": {
+              "line": 12,
+              "column": 72
+            },
+            "data": "Unknown constant `Int.modEq_iff_nat_modEq.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 49
+            },
+            "endPos": {
+              "line": 13,
+              "column": 76
+            },
+            "data": "Unknown constant `Int.modEq_iff_nat_modEq.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 45
+            },
+            "endPos": {
+              "line": 19,
+              "column": 72
+            },
+            "data": "Unknown constant `Int.modEq_iff_nat_modEq.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 8
+            },
+            "endPos": {
+              "line": 26,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ↑b % 10\nin the target expression\n  ↑b ≡ 2 - -1 [ZMOD 10]\n\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nhb : ↑b ≡ 2 - ↑a [ZMOD 10]\n⊢ ↑b ≡ 2 - -1 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 56
+            },
+            "endPos": {
+              "line": 32,
+              "column": 12
+            },
+            "data": "unsolved goals\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nhb : ↑b ≡ 2 - ↑a [ZMOD 10]\nh_diff : ↑a - ↑b ≡ -1 - (2 - -1) [ZMOD 10]\nh_final_z : ↑a - ↑b ≡ 6 [ZMOD 10]\n⊢ (a - b) % 10 = 6"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.12330102920532227
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a - b) \\equiv 6 \\pmod{10}$ given the system of linear congruences, we follow these steps:\n\n### Proof Sketch\n1.  **Extract Linear Congruences**:\n    From the problem, we have:\n    - (1) $a + b \\equiv 2 \\pmod{10}$\n    - (2) $2a + b \\equiv 1 \\pmod{10}$\n2.  **Solve for $a$**:\n    Subtract equation (1) from equation (2):\n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n    $a \\equiv -1 \\equiv 9 \\pmod{10}$.\n3.  **Solve for $b$**:\n    Substitute $a \\equiv 9$ into equation (1):\n    $9 + b \\equiv 2 \\pmod{10}$\n    $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$.\n4.  **Calculate $a - b$**:\n    $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\n5.  **Final Result**:\n    Since $b \\le a$, $a - b$ is a non-negative integer. The property $x \\equiv y \\pmod{m}$ for non-negative $x$ implies $x \\% m = y \\% m$. Thus $(a - b) \\% 10 = 6 \\% 10 = 6$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Subtract (a + b) ≡ 2 from (2a + b) ≡ 1 to find a mod 10\n  have ha : a ≡ 9 [MOD 10] := by\n    have h_sub := Nat.ModEq.sub h₂ h₁\n    simp [Nat.add_sub_add_right] at h_sub\n    -- 2a - a = a. Note: 1 - 2 mod 10 is 9.\n    -- In Nat.ModEq, we handle subtraction by adding the modulus.\n    have : (2 * a) - a = a := by rw [two_mul, Nat.add_sub_cancel]\n    rw [this] at h_sub\n    exact h_sub\n\n  -- Substitute a mod 10 into a + b ≡ 2 to find b mod 10\n  have hb : b ≡ 3 [MOD 10] := by\n    -- a + b ≡ 2 => 9 + b ≡ 2 mod 10\n    have h_sub : (a + b) ≡ (9 + b) [MOD 10] := Nat.ModEq.add_right b ha\n    have h_trans := Nat.ModEq.trans (Nat.ModEq.symm h_sub) h₁\n    -- 9 + b ≡ 2 mod 10 implies b ≡ 3 mod 10 (since 9 + 3 = 12 ≡ 2)\n    have : (9 + b) ≡ (9 + 3) [MOD 10] := by\n      exact Nat.ModEq.trans h_trans (by decide)\n    exact Nat.ModEq.add_left_cancel' 9 this\n\n  -- Calculate (a - b) mod 10\n  have h_diff : (a - b) ≡ (9 - 3) [MOD 10] := Nat.ModEq.sub_nat h₀ ha hb\n  \n  -- Since a - b is ≡ 6 [MOD 10], its remainder is 6\n  rw [Nat.ModEq] at h_diff\n  exact h_diff\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Subtract (a + b) ≡ 2 from (2a + b) ≡ 1 to find a mod 10\n  have ha : a ≡ 9 [MOD 10] := by\n    have h_sub := Nat.ModEq.sub h₂ h₁\n    simp [Nat.add_sub_add_right] at h_sub\n    -- 2a - a = a. Note: 1 - 2 mod 10 is 9.\n    -- In Nat.ModEq, we handle subtraction by adding the modulus.\n    have : (2 * a) - a = a := by rw [two_mul, Nat.add_sub_cancel]\n    rw [this] at h_sub\n    exact h_sub\n\n  -- Substitute a mod 10 into a + b ≡ 2 to find b mod 10\n  have hb : b ≡ 3 [MOD 10] := by\n    -- a + b ≡ 2 => 9 + b ≡ 2 mod 10\n    have h_sub : (a + b) ≡ (9 + b) [MOD 10] := Nat.ModEq.add_right b ha\n    have h_trans := Nat.ModEq.trans (Nat.ModEq.symm h_sub) h₁\n    -- 9 + b ≡ 2 mod 10 implies b ≡ 3 mod 10 (since 9 + 3 = 12 ≡ 2)\n    have : (9 + b) ≡ (9 + 3) [MOD 10] := by\n      exact Nat.ModEq.trans h_trans (by decide)\n    exact Nat.ModEq.add_left_cancel' 9 this\n\n  -- Calculate (a - b) mod 10\n  have h_diff : (a - b) ≡ (9 - 3) [MOD 10] := Nat.ModEq.sub_nat h₀ ha hb\n  \n  -- Since a - b is ≡ 6 [MOD 10], its remainder is 6\n  rw [Nat.ModEq] at h_diff\n  exact h_diff",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 35
+            },
+            "endPos": {
+              "line": 12,
+              "column": 37
+            },
+            "data": "Application type mismatch: The argument\n  h₁\nhas type\n  a + b ≡ 2 [MOD 10]\nbut is expected to have type\n  ?m.51 ≤ ?m.49\nin the application\n  ModEq.sub ?m.52 h₁"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 46
+            },
+            "endPos": {
+              "line": 31,
+              "column": 63
+            },
+            "data": "Unknown constant `Nat.ModEq.sub_nat`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.10449099540710449
+      }
+    },
+    {
+      "index": 12,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we analyze the given system of linear congruences modulo 10:\n1.  $a + b \\equiv 2 \\pmod{10}$\n2.  $2a + b \\equiv 1 \\pmod{10}$\n\nSubtracting the first equation from the second gives:\n$(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n$a \\equiv -1 \\equiv 9 \\pmod{10}$\n\nSubstituting $a \\equiv 9$ back into the first equation:\n$9 + b \\equiv 2 \\pmod{10}$\n$b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$\n\nNow, we calculate the difference $a - b \\pmod{10}$:\n$a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$\n\nSince $b \\le a$, the natural number subtraction $a - b$ is consistent with the integer subtraction, so $(a - b) \\% 10 = 6$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Convert congruences to Zmod 10\n  have ha : (a : ZMod 10) + b = 2 := by exact_mod_cast h₁\n  have hb : 2 * (a : ZMod 10) + b = 1 := by exact_mod_cast h₂\n  \n  -- Solve the system: (2a + b) - (a + b) = 1 - 2\n  have h_sub : (2 * (a : ZMod 10) + b) - (a + b) = 1 - 2 := by rw [ha, hb]\n  have h_a_val : (a : ZMod 10) = 9 := by\n    rw [add_comm (2 * (a : ZMod 10)) b, add_comm (a : ZMod 10) b, add_sub_add_left_eq_sub] at h_sub\n    simp at h_sub\n    exact h_sub\n    \n  -- Substitute a back to find b\n  have h_b_val : (b : ZMod 10) = 3 := by\n    rw [h_a_val] at ha\n    have h_b : (b : ZMod 10) = 2 - 9 := eq_sub_of_add_eq ha\n    simp at h_b\n    exact h_b\n\n  -- Calculate (a - b) mod 10\n  have h_diff_zmod : ((a - b : ℕ) : ZMod 10) = 6 := by\n    rw [Nat.cast_sub h₀]\n    rw [h_a_val, h_b_val]\n    norm_num\n    \n  -- Convert back to natural number modulo\n  exact ZMod.val_eq_iff.mp h_diff_zmod\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Convert congruences to Zmod 10\n  have ha : (a : ZMod 10) + b = 2 := by exact_mod_cast h₁\n  have hb : 2 * (a : ZMod 10) + b = 1 := by exact_mod_cast h₂\n  \n  -- Solve the system: (2a + b) - (a + b) = 1 - 2\n  have h_sub : (2 * (a : ZMod 10) + b) - (a + b) = 1 - 2 := by rw [ha, hb]\n  have h_a_val : (a : ZMod 10) = 9 := by\n    rw [add_comm (2 * (a : ZMod 10)) b, add_comm (a : ZMod 10) b, add_sub_add_left_eq_sub] at h_sub\n    simp at h_sub\n    exact h_sub\n    \n  -- Substitute a back to find b\n  have h_b_val : (b : ZMod 10) = 3 := by\n    rw [h_a_val] at ha\n    have h_b : (b : ZMod 10) = 2 - 9 := eq_sub_of_add_eq ha\n    simp at h_b\n    exact h_b\n\n  -- Calculate (a - b) mod 10\n  have h_diff_zmod : ((a - b : ℕ) : ZMod 10) = 6 := by\n    rw [Nat.cast_sub h₀]\n    rw [h_a_val, h_b_val]\n    norm_num\n    \n  -- Convert back to natural number modulo\n  exact ZMod.val_eq_iff.mp h_diff_zmod",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 40
+            },
+            "endPos": {
+              "line": 11,
+              "column": 57
+            },
+            "data": "mod_cast has type\n  a + b ≡ 2 [MOD 10]\nbut is expected to have type\n  ↑(a + b) = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 44
+            },
+            "endPos": {
+              "line": 12,
+              "column": 61
+            },
+            "data": "mod_cast has type\n  2 * a + b ≡ 1 [MOD 10]\nbut is expected to have type\n  ↑(2 * a + b) = 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 4
+            },
+            "endPos": {
+              "line": 18,
+              "column": 17
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 57
+            },
+            "endPos": {
+              "line": 24,
+              "column": 59
+            },
+            "data": "Application type mismatch: The argument\n  ha\nhas type\n  9 + ↑b = 2\nbut is expected to have type\n  ↑b + 9 = 2\nin the application\n  eq_sub_of_add_eq ha"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 8
+            },
+            "endPos": {
+              "line": 35,
+              "column": 26
+            },
+            "data": "Unknown constant `ZMod.val_eq_iff.mp`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.8565061092376709
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a - b) \\pmod{10} = 6$, we start with the given system of linear congruences modulo 10:\n1. $a + b \\equiv 2 \\pmod{10}$\n2. $2a + b \\equiv 1 \\pmod{10}$\n\n**Proof Sketch:**\n1.  **Find $a \\pmod{10}$:** Subtract the first equation from the second:\n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n    $a \\equiv -1 \\equiv 9 \\pmod{10}$\n2.  **Find $b \\pmod{10}$:** Substitute $a \\equiv 9$ into the first equation:\n    $9 + b \\equiv 2 \\pmod{10}$\n    $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$\n3.  **Find $(a - b) \\pmod{10}$:**\n    $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$\n4.  **Final Step:** Since $a \\ge b$, $a - b$ is a natural number, and $(a - b) \\pmod{10} = 6$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Subtract the two congruences to find a mod 10\n  have ha : a % 10 = 9 := by\n    have h_sub := Nat.ModEq.add_right_cancel (Nat.ModEq.symm h₁) h₂\n    -- (2*a + b) - (a + b) = a, but we must handle subtraction carefully in ℕ\n    -- Using ZMod is cleaner for linear systems\n    let a' : ZMod 10 := a\n    let b' : ZMod 10 := b\n    have h1' : a' + b' = 2 := by exact_mod_cast h₁\n    have h2' : 2 * a' + b' = 1 := by exact_mod_cast h₂\n    have ha' : a' = 9 := by linear_combination h2' - h1'\n    exact ZMod.val_eq_iff.mp ha'\n  \n  -- Substitute a back to find b mod 10\n  have hb : b % 10 = 3 := by\n    let a' : ZMod 10 := a\n    let b' : ZMod 10 := b\n    have h1' : a' + b' = 2 := by exact_mod_cast h₁\n    have ha' : a' = 9 := by exact_mod_cast ha\n    have hb' : b' = 3 := by linear_combination h1' - ha'\n    exact ZMod.val_eq_iff.mp hb'\n\n  -- Calculate (a - b) % 10\n  have : (a : ℤ) ≡ 9 [ZMOD 10] := by\n    rw [Int.modEq_iff_Nat_modEq]\n    exact ha\n  have : (b : ℤ) ≡ 3 [ZMOD 10] := by\n    rw [Int.modEq_iff_Nat_modEq]\n    exact hb\n  have h_diff : (a - b : ℤ) ≡ 9 - 3 [ZMOD 10] := Int.ModEq.sub ‹_› ‹_›\n  \n  -- Convert back to ℕ using the property b ≤ a\n  rw [Int.ModEq] at h_diff\n  have h_nat_diff : (a - b) % 10 = 6 % 10 := by\n    zify [h₀]\n    exact h_diff\n  exact h_nat_diff\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Subtract the two congruences to find a mod 10\n  have ha : a % 10 = 9 := by\n    have h_sub := Nat.ModEq.add_right_cancel (Nat.ModEq.symm h₁) h₂\n    -- (2*a + b) - (a + b) = a, but we must handle subtraction carefully in ℕ\n    -- Using ZMod is cleaner for linear systems\n    let a' : ZMod 10 := a\n    let b' : ZMod 10 := b\n    have h1' : a' + b' = 2 := by exact_mod_cast h₁\n    have h2' : 2 * a' + b' = 1 := by exact_mod_cast h₂\n    have ha' : a' = 9 := by linear_combination h2' - h1'\n    exact ZMod.val_eq_iff.mp ha'\n  \n  -- Substitute a back to find b mod 10\n  have hb : b % 10 = 3 := by\n    let a' : ZMod 10 := a\n    let b' : ZMod 10 := b\n    have h1' : a' + b' = 2 := by exact_mod_cast h₁\n    have ha' : a' = 9 := by exact_mod_cast ha\n    have hb' : b' = 3 := by linear_combination h1' - ha'\n    exact ZMod.val_eq_iff.mp hb'\n\n  -- Calculate (a - b) % 10\n  have : (a : ℤ) ≡ 9 [ZMOD 10] := by\n    rw [Int.modEq_iff_Nat_modEq]\n    exact ha\n  have : (b : ℤ) ≡ 3 [ZMOD 10] := by\n    rw [Int.modEq_iff_Nat_modEq]\n    exact hb\n  have h_diff : (a - b : ℤ) ≡ 9 - 3 [ZMOD 10] := Int.ModEq.sub ‹_› ‹_›\n  \n  -- Convert back to ℕ using the property b ≤ a\n  rw [Int.ModEq] at h_diff\n  have h_nat_diff : (a - b) % 10 = 6 % 10 := by\n    zify [h₀]\n    exact h_diff\n  exact h_nat_diff",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 65
+            },
+            "endPos": {
+              "line": 12,
+              "column": 67
+            },
+            "data": "Application type mismatch: The argument\n  h₂\nhas type\n  2 * a + b ≡ 1 [MOD 10]\nbut is expected to have type\n  ?m.53 + 2 ≡ ?m.54 + (a + b) [MOD 10]\nin the application\n  ModEq.add_right_cancel (ModEq.symm h₁) h₂"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 33
+            },
+            "endPos": {
+              "line": 26,
+              "column": 50
+            },
+            "data": "mod_cast has type\n  a + b ≡ 2 [MOD 10]\nbut is expected to have type\n  a' + b' = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 28
+            },
+            "endPos": {
+              "line": 27,
+              "column": 45
+            },
+            "data": "mod_cast has type\n  a % 10 = 9\nbut is expected to have type\n  a' = 9"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 28
+            },
+            "endPos": {
+              "line": 28,
+              "column": 46
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : a % 10 = 9\na' : ZMod 10 := ⋯\nb' : ZMod 10 := ⋯\nh1' : a' + b' = 2\nha' : a' = 9\n⊢ -10 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 10
+            },
+            "endPos": {
+              "line": 29,
+              "column": 28
+            },
+            "data": "Unknown constant `ZMod.val_eq_iff.mp`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 8
+            },
+            "endPos": {
+              "line": 33,
+              "column": 31
+            },
+            "data": "Unknown constant `Int.modEq_iff_Nat_modEq`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 8
+            },
+            "endPos": {
+              "line": 36,
+              "column": 31
+            },
+            "data": "Unknown constant `Int.modEq_iff_Nat_modEq`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.585883378982544
+      }
+    },
+    {
+      "index": 14,
+      "status": "FAILED",
+      "raw_text": "To prove $(a - b) \\equiv 6 \\pmod{10}$ given the modular equations:\n1.  $a + b \\equiv 2 \\pmod{10}$\n2.  $2a + b \\equiv 1 \\pmod{10}$\n\n**Proof Sketch:**\n1.  Subtract the first congruence from the second:\n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n    $a \\equiv -1 \\pmod{10}$\n    $a \\equiv 9 \\pmod{10}$\n2.  Substitute $a \\equiv 9$ back into the first equation:\n    $9 + b \\equiv 2 \\pmod{10}$\n    $b \\equiv 2 - 9 \\pmod{10}$\n    $b \\equiv -7 \\pmod{10}$\n    $b \\equiv 3 \\pmod{10}$\n3.  Calculate $a - b \\pmod{10}$:\n    $a - b \\equiv 9 - 3 \\pmod{10}$\n    $a - b \\equiv 6 \\pmod{10}$\n4.  Since $b \\le a$, the natural number subtraction $a - b$ matches the modular result.\n\n**Lean 4 Implementation:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use modular arithmetic properties to isolate a\n  have h3 : a % 10 = ( (2 * a + b) - (a + b) + 10 ) % 10 := by\n    rw [Nat.sub_add_comm (show a + b ≤ 2 * a + b by linarith)]\n    simp\n  have h_a : a ≡ 9 [MOD 10] := by\n    have h_sub : (2 * a + b) - (a + b) = a := by\n      rw [Nat.add_comm a b, ← Nat.add_assoc]\n      apply Nat.add_sub_cancel\n    rw [← h_sub]\n    apply Nat.ModEq.add_right_cancel (a + b)\n    rw [h_sub, h₂]\n    have h_aux : (2 + 9) % 10 = 1 := rfl\n    rw [← h_aux]\n    exact Nat.ModEq.add h₁ (by rfl)\n  \n  -- Use h_a to solve for b\n  have h_b : b ≡ 3 [MOD 10] := by\n    apply Nat.ModEq.add_left_cancel a\n    rw [h₁, h_a]\n    exact rfl\n\n  -- Compute (a - b) % 10\n  have h_diff : (a - b) % 10 = (a % 10 + 10 - b % 10) % 10 := by\n    exact Nat.mod_sub_assoc h₀ 10\n  \n  rw [h_diff, h_a, h_b]\n  exact rfl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use modular arithmetic properties to isolate a\n  have h3 : a % 10 = ( (2 * a + b) - (a + b) + 10 ) % 10 := by\n    rw [Nat.sub_add_comm (show a + b ≤ 2 * a + b by linarith)]\n    simp\n  have h_a : a ≡ 9 [MOD 10] := by\n    have h_sub : (2 * a + b) - (a + b) = a := by\n      rw [Nat.add_comm a b, ← Nat.add_assoc]\n      apply Nat.add_sub_cancel\n    rw [← h_sub]\n    apply Nat.ModEq.add_right_cancel (a + b)\n    rw [h_sub, h₂]\n    have h_aux : (2 + 9) % 10 = 1 := rfl\n    rw [← h_aux]\n    exact Nat.ModEq.add h₁ (by rfl)\n  \n  -- Use h_a to solve for b\n  have h_b : b ≡ 3 [MOD 10] := by\n    apply Nat.ModEq.add_left_cancel a\n    rw [h₁, h_a]\n    exact rfl\n\n  -- Compute (a - b) % 10\n  have h_diff : (a - b) % 10 = (a % 10 + 10 - b % 10) % 10 := by\n    exact Nat.mod_sub_assoc h₀ 10\n  \n  rw [h_diff, h_a, h_b]\n  exact rfl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 8
+            },
+            "endPos": {
+              "line": 12,
+              "column": 61
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  2 * a + b + ?m.80 - (a + b)\nin the target expression\n  a % 10 = (2 * a + b - (a + b) + 10) % 10\n\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\n⊢ a % 10 = (2 * a + b - (a + b) + 10) % 10"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 28
+            },
+            "endPos": {
+              "line": 16,
+              "column": 43
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?n + (?m + ?k)\nin the target expression\n  2 * a + b - (b + a) = a\n\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh3 : a % 10 = (2 * a + b - (a + b) + 10) % 10\n⊢ 2 * a + b - (b + a) = a"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 38
+            },
+            "endPos": {
+              "line": 19,
+              "column": 43
+            },
+            "data": "Type mismatch\n  a + b\nhas type\n  ℕ\nof sort `outParam Type` but is expected to have type\n  ?m.145 ≡ ?m.146 [MOD ?m.142]\nof sort `Prop`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 15
+            },
+            "endPos": {
+              "line": 20,
+              "column": 17
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (2 * a + b) % 10\nin the target expression\n  a + ?m.145 ≡ 9 + ?m.146 [MOD 10]\n\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh3 : a % 10 = (2 * a + b - (a + b) + 10) % 10\nh_sub : 2 * a + b - (a + b) = a\n⊢ a + ?m.145 ≡ 9 + ?m.146 [MOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 36
+            },
+            "endPos": {
+              "line": 27,
+              "column": 37
+            },
+            "data": "Application type mismatch: The argument\n  a\nhas type\n  ℕ\nof sort `Type` but is expected to have type\n  ?m.161 ≡ ?m.162 [MOD ?m.160]\nof sort `Prop` in the application\n  ModEq.add_left_cancel a"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 8
+            },
+            "endPos": {
+              "line": 28,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (a + b) % 10\nin the target expression\n  ?m.161 + b ≡ ?m.162 + 3 [MOD 10]\n\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh3 : a % 10 = (2 * a + b - (a + b) + 10) % 10\nh_a : a ≡ 9 [MOD 10]\n⊢ ?m.161 + b ≡ ?m.162 + 3 [MOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 10
+            },
+            "endPos": {
+              "line": 33,
+              "column": 27
+            },
+            "data": "Unknown constant `Nat.mod_sub_assoc`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 2
+            },
+            "endPos": {
+              "line": 36,
+              "column": 11
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2943761348724365
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "To solve the theorem `mathd_numbertheory_110`, we follow this proof sketch:\n\n1.  **System of Congruences**: We are given two linear congruences modulo 10:\n    *   (1) $a + b \\equiv 2 \\pmod{10}$\n    *   (2) $2a + b \\equiv 1 \\pmod{10}$\n2.  **Solve for $a$**: Subtracting (1) from (2) yields $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$, which simplifies to $a \\equiv -1 \\equiv 9 \\pmod{10}$.\n3.  **Solve for $b$**: Substituting $a \\equiv 9$ back into (1) gives $9 + b \\equiv 2 \\pmod{10}$, which implies $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$.\n4.  **Calculate $a - b$**: Using the values found, $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\n5.  **Final Result**: Since the modulo operator `%` in Lean for natural numbers represents the remainder in $[0, 9]$, and $a - b \\equiv 6 \\pmod{10}$ with $a \\ge b$, it follows that $(a - b) \\pmod{10} = 6$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use the property that congruences can be subtracted\n  -- a = (2a + b) - (a + b)\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1_int : (a : ℤ) + b ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have h2_int : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := by exact_mod_cast h₂\n    have h_sub := Int.ModEq.sub h2_int h1_int\n    ring_nf at h_sub\n    exact h_sub\n  \n  -- b = (a + b) - a\n  have hb : b ≡ (2 - (-1) : ℤ) [ZMOD 10] := by\n    have h1_int : (a : ℤ) + b ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have h_sub := Int.ModEq.sub h1_int ha\n    ring_nf at h_sub\n    exact h_sub\n\n  -- Now calculate (a - b) mod 10\n  have hab : (a : ℤ) - b ≡ (-1 - 3 : ℤ) [ZMOD 10] := by\n    apply Int.ModEq.sub ha hb\n  \n  have hab_6 : (a : ℤ) - b ≡ 6 [ZMOD 10] := by\n    convert hab using 1\n    show (-4 : ℤ) ≡ 6 [ZMOD 10]\n    unfold Int.ModEq\n    decide\n\n  -- Convert the integer congruence back to natural number modulo\n  rw [← Nat.cast_id ((a - b) % 10)]\n  rw [Int. Nat_cast_mod, Int.cast_sub h₀]\n  exact hab_6\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use the property that congruences can be subtracted\n  -- a = (2a + b) - (a + b)\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1_int : (a : ℤ) + b ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have h2_int : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := by exact_mod_cast h₂\n    have h_sub := Int.ModEq.sub h2_int h1_int\n    ring_nf at h_sub\n    exact h_sub\n  \n  -- b = (a + b) - a\n  have hb : b ≡ (2 - (-1) : ℤ) [ZMOD 10] := by\n    have h1_int : (a : ℤ) + b ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have h_sub := Int.ModEq.sub h1_int ha\n    ring_nf at h_sub\n    exact h_sub\n\n  -- Now calculate (a - b) mod 10\n  have hab : (a : ℤ) - b ≡ (-1 - 3 : ℤ) [ZMOD 10] := by\n    apply Int.ModEq.sub ha hb\n  \n  have hab_6 : (a : ℤ) - b ≡ 6 [ZMOD 10] := by\n    convert hab using 1\n    show (-4 : ℤ) ≡ 6 [ZMOD 10]\n    unfold Int.ModEq\n    decide\n\n  -- Convert the integer congruence back to natural number modulo\n  rw [← Nat.cast_id ((a - b) % 10)]\n  rw [Int. Nat_cast_mod, Int.cast_sub h₀]\n  exact hab_6",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 15
+            },
+            "data": "Type mismatch\n  h_sub\nhas type\n  ↑a * Nat.rawCast 1 ≡ -1 [ZMOD 10]\nbut is expected to have type\n  ↑a ≡ 1 - 2 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 4
+            },
+            "endPos": {
+              "line": 32,
+              "column": 31
+            },
+            "data": "'show' tactic failed, pattern\n  -4 ≡ 6 [ZMOD 10]\nis not definitionally equal to target\n  6 = -1 - 3"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 6
+            },
+            "endPos": {
+              "line": 38,
+              "column": 23
+            },
+            "data": "Invalid rewrite argument: Expected an equality or iff proof or definition name, but `?m.243` is a value of type\n  ?m.242"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.29106616973876953
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we analyze the system of linear congruences modulo 10:\n1.  $(a + b) \\equiv 2 \\pmod{10}$\n2.  $(2a + b) \\equiv 1 \\pmod{10}$\n\nBy subtracting the first equation from the second:\n$(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n$a \\equiv -1 \\equiv 9 \\pmod{10}$\n\nSubstituting $a \\equiv 9$ back into the first equation:\n$9 + b \\equiv 2 \\pmod{10}$\n$b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$\n\nFinally, calculating the difference $a - b$:\n$a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$\nSince $b \\le a$, $a - b$ is a non-negative integer, so $(a - b) \\pmod{10} = 6$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Subtracting h₁ from h₂ to isolate a\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1_z : (a + b : ℤ) ≡ 2 [ZMOD 10] := by \n      simp [Int.modEq_iff_nat_modEq, h₁]\n    have h2_z : (2 * a + b : 2 * (a : ℤ) + b) ≡ 1 [ZMOD 10] := by \n      simp [Int.modEq_iff_nat_modEq, h₂]\n    have h_sub := h2_z.add_right_neg h1_z\n    ring_nf at h_sub\n    exact h_sub\n  \n  -- Use ha to find b\n  have hb : b ≡ (2 - 9 : ℤ) [ZMOD 10] := by\n    have h1_z : (a + b : ℤ) ≡ 2 [ZMOD 10] := by \n      simp [Int.modEq_iff_nat_modEq, h₁]\n    have ha_val : (a : ℤ) ≡ 9 [ZMOD 10] := by\n      convert ha using 1\n      exact Int.modEq_zero.mpr rfl\n    have h_sub := h1_z.add_right_neg ha_val\n    ring_nf at h_sub\n    exact h_sub\n  \n  -- Calculate (a - b) mod 10\n  have hab : (a - b : ℤ) ≡ (9 - 3 : ℤ) [ZMOD 10] := by\n    have ha_val : (a : ℤ) ≡ 9 [ZMOD 10] := by\n      convert ha using 1\n      exact Int.modEq_zero.mpr rfl\n    have hb_val : (b : ℤ) ≡ 3 [ZMOD 10] := by\n      convert hb using 1\n      exact Int.modEq_zero.mpr rfl\n    exact ha_val.add_right_neg hb_val\n  \n  -- Final conversion to Nat\n  rw [Nat.modEq_iff_nzmod]\n  convert hab using 1\n  · simp [h₀]\n  · exact Int.modEq_zero.mpr rfl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Subtracting h₁ from h₂ to isolate a\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1_z : (a + b : ℤ) ≡ 2 [ZMOD 10] := by \n      simp [Int.modEq_iff_nat_modEq, h₁]\n    have h2_z : (2 * a + b : 2 * (a : ℤ) + b) ≡ 1 [ZMOD 10] := by \n      simp [Int.modEq_iff_nat_modEq, h₂]\n    have h_sub := h2_z.add_right_neg h1_z\n    ring_nf at h_sub\n    exact h_sub\n  \n  -- Use ha to find b\n  have hb : b ≡ (2 - 9 : ℤ) [ZMOD 10] := by\n    have h1_z : (a + b : ℤ) ≡ 2 [ZMOD 10] := by \n      simp [Int.modEq_iff_nat_modEq, h₁]\n    have ha_val : (a : ℤ) ≡ 9 [ZMOD 10] := by\n      convert ha using 1\n      exact Int.modEq_zero.mpr rfl\n    have h_sub := h1_z.add_right_neg ha_val\n    ring_nf at h_sub\n    exact h_sub\n  \n  -- Calculate (a - b) mod 10\n  have hab : (a - b : ℤ) ≡ (9 - 3 : ℤ) [ZMOD 10] := by\n    have ha_val : (a : ℤ) ≡ 9 [ZMOD 10] := by\n      convert ha using 1\n      exact Int.modEq_zero.mpr rfl\n    have hb_val : (b : ℤ) ≡ 3 [ZMOD 10] := by\n      convert hb using 1\n      exact Int.modEq_zero.mpr rfl\n    exact ha_val.add_right_neg hb_val\n  \n  -- Final conversion to Nat\n  rw [Nat.modEq_iff_nzmod]\n  convert hab using 1\n  · simp [h₀]\n  · exact Int.modEq_zero.mpr rfl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 12
+            },
+            "endPos": {
+              "line": 13,
+              "column": 35
+            },
+            "data": "Unknown constant `Int.modEq_iff_nat_modEq`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 6
+            },
+            "endPos": {
+              "line": 13,
+              "column": 40
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 29
+            },
+            "endPos": {
+              "line": 14,
+              "column": 44
+            },
+            "data": "failed to synthesize instance of type class\n  HAdd ℤ ℕ (Sort ?u.1030)\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 16
+            },
+            "endPos": {
+              "line": 14,
+              "column": 45
+            },
+            "data": "Application type mismatch: The argument\n  2 * a + b\nhas type\n  2 * ↑a + b\nbut is expected to have type\n  ℤ\nin the application\n  Int.ModEq 10 (2 * a + b)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 12
+            },
+            "endPos": {
+              "line": 23,
+              "column": 35
+            },
+            "data": "Unknown constant `Int.modEq_iff_nat_modEq`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 6
+            },
+            "endPos": {
+              "line": 23,
+              "column": 40
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 12
+            },
+            "endPos": {
+              "line": 26,
+              "column": 30
+            },
+            "data": "Unknown constant `Int.modEq_zero.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 23
+            },
+            "endPos": {
+              "line": 27,
+              "column": 36
+            },
+            "data": "Invalid field `add_right_neg`: The environment does not contain `Eq.add_right_neg`, so it is not possible to project the field `add_right_neg` from an expression\n  h1_z\nof type `(↑a + ↑b) % 10 = 2 % 10`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 12
+            },
+            "endPos": {
+              "line": 35,
+              "column": 30
+            },
+            "data": "Unknown constant `Int.modEq_zero.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 12
+            },
+            "endPos": {
+              "line": 38,
+              "column": 30
+            },
+            "data": "Unknown constant `Int.modEq_zero.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 39,
+              "column": 17
+            },
+            "endPos": {
+              "line": 39,
+              "column": 30
+            },
+            "data": "Invalid field `add_right_neg`: The environment does not contain `Eq.add_right_neg`, so it is not possible to project the field `add_right_neg` from an expression\n  ha_val\nof type `↑a % 10 = 9 % 10`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 42,
+              "column": 6
+            },
+            "endPos": {
+              "line": 42,
+              "column": 25
+            },
+            "data": "Unknown constant `Nat.modEq_iff_nzmod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 56
+            },
+            "endPos": {
+              "line": 45,
+              "column": 32
+            },
+            "data": "unsolved goals\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nhb : ↑b ≡ 2 - 9 [ZMOD 10]\nhab : ↑a - ↑b ≡ 9 - 3 [ZMOD 10]\n⊢ (a - b) % 10 = 6"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3106563091278076
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "To solve this problem, we use the properties of modular arithmetic.\n\n### Proof Sketch\n1.  We are given two congruences:\n    -   (1) $a + b \\equiv 2 \\pmod{10}$\n    -   (2) $2a + b \\equiv 1 \\pmod{10}$\n2.  Subtracting (1) from (2) allows us to isolate $a$:\n    -   $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n    -   $a \\equiv -1 \\equiv 9 \\pmod{10}$\n3.  Substituting $a \\equiv 9$ back into (1):\n    -   $9 + b \\equiv 2 \\pmod{10}$\n    -   $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$\n4.  Now calculate $a - b \\pmod{10}$:\n    -   $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$\n5.  Since we need $(a - b) \\% 10$, and $a - b$ is non-negative (given $b \\leq a$), the result follows directly from the definition of the modulo operator in Lean.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Subtract the two congruences to solve for a\n  have h_a : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + (b : ℤ) ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have h2_z : 2 * (a : ℤ) + (b : ℤ) ≡ 1 [ZMOD 10] := by exact_mod_cast h₂\n    have h_diff := Int.ModEq.sub h2_z h1_z\n    ring_nf at h_diff\n    exact h_diff\n  \n  -- Use h_a to solve for b in the first congruence\n  have h_b : (b : ℤ) ≡ (2 - (1 - 2) : ℤ) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + (b : ℤ) ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have h_sub := Int.ModEq.sub h1_z h_a\n    ring_nf at h_sub\n    exact h_sub\n\n  -- Calculate (a - b) modulo 10\n  have h_final_z : (a : ℤ) - (b : ℤ) ≡ (1 - 2) - (2 - (1 - 2)) [ZMOD 10] := \n    Int.ModEq.sub h_a h_b\n\n  -- Simplify the integer congruence to 6\n  have h_simplify : ((1 - 2) - (2 - (1 - 2)) : ℤ) = -4 := by norm_num\n  rw [h_simplify] at h_final_z\n  \n  -- Note that -4 is congruent to 6 modulo 10\n  have h_pos : -4 ≡ 6 [ZMOD 10] := by norm_num [Int.ModEq]\n  have h_res_z : (a : ℤ) - (b : ℤ) ≡ 6 [ZMOD 10] := Int.ModEq.trans h_final_z h_pos\n\n  -- Convert back to natural number modulo\n  have h_nat_cast : ((a - b : ℕ) : ℤ) = (a : ℤ) - (b : ℤ) := by\n    exact Int.ofNat_sub h₀\n  rw [h_nat_cast] at h_res_z\n  \n  -- The final step relating ZMOD to %\n  exact Int.ofNat_inj.mp h_res_z\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Subtract the two congruences to solve for a\n  have h_a : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + (b : ℤ) ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have h2_z : 2 * (a : ℤ) + (b : ℤ) ≡ 1 [ZMOD 10] := by exact_mod_cast h₂\n    have h_diff := Int.ModEq.sub h2_z h1_z\n    ring_nf at h_diff\n    exact h_diff\n  \n  -- Use h_a to solve for b in the first congruence\n  have h_b : (b : ℤ) ≡ (2 - (1 - 2) : ℤ) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + (b : ℤ) ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have h_sub := Int.ModEq.sub h1_z h_a\n    ring_nf at h_sub\n    exact h_sub\n\n  -- Calculate (a - b) modulo 10\n  have h_final_z : (a : ℤ) - (b : ℤ) ≡ (1 - 2) - (2 - (1 - 2)) [ZMOD 10] := \n    Int.ModEq.sub h_a h_b\n\n  -- Simplify the integer congruence to 6\n  have h_simplify : ((1 - 2) - (2 - (1 - 2)) : ℤ) = -4 := by norm_num\n  rw [h_simplify] at h_final_z\n  \n  -- Note that -4 is congruent to 6 modulo 10\n  have h_pos : -4 ≡ 6 [ZMOD 10] := by norm_num [Int.ModEq]\n  have h_res_z : (a : ℤ) - (b : ℤ) ≡ 6 [ZMOD 10] := Int.ModEq.trans h_final_z h_pos\n\n  -- Convert back to natural number modulo\n  have h_nat_cast : ((a - b : ℕ) : ℤ) = (a : ℤ) - (b : ℤ) := by\n    exact Int.ofNat_sub h₀\n  rw [h_nat_cast] at h_res_z\n  \n  -- The final step relating ZMOD to %\n  exact Int.ofNat_inj.mp h_res_z",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 16
+            },
+            "data": "Type mismatch\n  h_diff\nhas type\n  ↑a * Nat.rawCast 1 ≡ -1 [ZMOD 10]\nbut is expected to have type\n  ↑a ≡ 1 - 2 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 40,
+              "column": 6
+            },
+            "endPos": {
+              "line": 40,
+              "column": 16
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ↑(a - b)\nin the target expression\n  ↑a - ↑b ≡ 6 [ZMOD 10]\n\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh_a : ↑a ≡ 1 - 2 [ZMOD 10]\nh_b : ↑b ≡ 2 - (1 - 2) [ZMOD 10]\nh_final_z : ↑a - ↑b ≡ -4 [ZMOD 10]\nh_simplify : 1 - 2 - (2 - (1 - 2)) = -4\nh_pos : -4 ≡ 6 [ZMOD 10]\nh_res_z : ↑a - ↑b ≡ 6 [ZMOD 10]\nh_nat_cast : ↑(a - b) = ↑a - ↑b\n⊢ (a - b) % 10 = 6"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3818025588989258
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "To prove $(a - b) \\pmod{10} = 6$ given the congruences $a + b \\equiv 2 \\pmod{10}$ and $2a + b \\equiv 1 \\pmod{10}$:\n\n### Proof Sketch\n1.  **Subtract the first congruence from the second**: \n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$, which simplifies to $a \\equiv -1 \\equiv 9 \\pmod{10}$.\n2.  **Substitute $a$ back into the first congruence**:\n    $9 + b \\equiv 2 \\pmod{10} \\implies b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$.\n3.  **Calculate $a - b \\pmod{10}$**:\n    $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\n4.  **Relate the modulo operator to congruence**:\n    Since $a - b \\equiv 6 \\pmod{10}$, it follows by the definition of the `%` operator in Lean (which matches the standard Euclidean remainder for natural numbers) that $(a - b) \\% 10 = 6$. Note that $a \\ge b$ is given, ensuring $a - b$ is defined within natural numbers consistently with the integer congruence.\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Convert natural number congruences to integer congruences for easier arithmetic\n  have ha : (a : ℤ) ≡ 9 [ZMOD 10] := by\n    have h : (2 * a + b : ℤ) - (a + b : ℤ) ≡ 1 - 2 [ZMOD 10] := by\n      rel [h₁, h₂]\n    simp at h\n    convert h using 1\n    norm_num\n  \n  have hb : (b : ℤ) ≡ 3 [ZMOD 10] := by\n    have h : (a + b : ℤ) - a ≡ 2 - 9 [ZMOD 10] := by\n      rel [h₁, ha]\n    simp at h\n    convert h using 1\n    norm_num\n\n  -- Calculate (a - b) mod 10\n  have hab : (a - b : ℤ) ≡ 9 - 3 [ZMOD 10] := by\n    rel [ha, hb]\n  \n  -- Translate integer congruence back to natural number modulo\n  have h_diff : (a - b : ℤ) ≡ 6 [ZMOD 10] := by\n    exact hab\n  \n  -- Since b ≤ a, (a - b : ℤ) is simply (a - b : ℕ)\n  have h_cast : (a - b : ℤ) = (↑(a - b) : ℤ) := by\n    rw [Int.ofNat_sub h₀]\n  \n  rw [h_cast] at h_diff\n  exact Int.ofNat_inj.mp (Int.ModEq.eq_of_lt_of_ge h_diff (by norm_num) (by norm_num))\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Convert natural number congruences to integer congruences for easier arithmetic\n  have ha : (a : ℤ) ≡ 9 [ZMOD 10] := by\n    have h : (2 * a + b : ℤ) - (a + b : ℤ) ≡ 1 - 2 [ZMOD 10] := by\n      rel [h₁, h₂]\n    simp at h\n    convert h using 1\n    norm_num\n  \n  have hb : (b : ℤ) ≡ 3 [ZMOD 10] := by\n    have h : (a + b : ℤ) - a ≡ 2 - 9 [ZMOD 10] := by\n      rel [h₁, ha]\n    simp at h\n    convert h using 1\n    norm_num\n\n  -- Calculate (a - b) mod 10\n  have hab : (a - b : ℤ) ≡ 9 - 3 [ZMOD 10] := by\n    rel [ha, hb]\n  \n  -- Translate integer congruence back to natural number modulo\n  have h_diff : (a - b : ℤ) ≡ 6 [ZMOD 10] := by\n    exact hab\n  \n  -- Since b ≤ a, (a - b : ℤ) is simply (a - b : ℕ)\n  have h_cast : (a - b : ℤ) = (↑(a - b) : ℤ) := by\n    rw [Int.ofNat_sub h₀]\n  \n  rw [h_cast] at h_diff\n  exact Int.ofNat_inj.mp (Int.ModEq.eq_of_lt_of_ge h_diff (by norm_num) (by norm_num))",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 6
+            },
+            "endPos": {
+              "line": 13,
+              "column": 18
+            },
+            "data": "rel failed, cannot prove goal by 'substituting' the listed relationships. The steps which could not be automatically justified were:\n2 * ↑a + ↑b ≡ 1 [ZMOD 10]\n↑a + ↑b ≡ 2 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 37
+            },
+            "endPos": {
+              "line": 16,
+              "column": 12
+            },
+            "data": "unsolved goals\ncase h.e'_2\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh : 2 * ↑a - ↑a ≡ -1 [ZMOD 10]\n⊢ ↑a = 2 * ↑a - ↑a\n\ncase h.e'_3\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh : 2 * ↑a - ↑a ≡ -1 [ZMOD 10]\n⊢ 9 = -1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 6
+            },
+            "endPos": {
+              "line": 20,
+              "column": 18
+            },
+            "data": "rel failed, cannot prove goal by 'substituting' the listed relationships. The steps which could not be automatically justified were:\n↑a + ↑b ≡ 2 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 37
+            },
+            "endPos": {
+              "line": 23,
+              "column": 12
+            },
+            "data": "unsolved goals\ncase h.e'_3\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 9 [ZMOD 10]\nh : ↑b ≡ -7 [ZMOD 10]\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 26
+            },
+            "endPos": {
+              "line": 38,
+              "column": 50
+            },
+            "data": "Unknown constant `Int.ModEq.eq_of_lt_of_ge`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.30916380882263184
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a - b) \\pmod{10} = 6$, we use the properties of modular arithmetic given the constraints:\n1.  From $a + b \\equiv 2 \\pmod{10}$, we can express $b$ in terms of $a$: $b \\equiv 2 - a \\pmod{10}$.\n2.  Substitute this into the second congruence: $2a + b \\equiv 2a + (2 - a) \\equiv a + 2 \\pmod{10}$.\n3.  Given $2a + b \\equiv 1 \\pmod{10}$, we have $a + 2 \\equiv 1 \\pmod{10}$, which implies $a \\equiv -1 \\equiv 9 \\pmod{10}$.\n4.  Substitute $a \\equiv 9$ back into the first equation: $9 + b \\equiv 2 \\pmod{10}$, which implies $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$.\n5.  Finally, calculate $a - b \\pmod{10}$: $9 - 3 = 6$. Thus, $(a - b) \\equiv 6 \\pmod{10}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  /-\n  We have:\n  1) a + b ≡ 2 [MOD 10]\n  2) 2a + b ≡ 1 [MOD 10]\n  Subtracting (1) from (2) gives:\n  (2a + b) - (a + b) ≡ 1 - 2 [MOD 10]\n  a ≡ -1 ≡ 9 [MOD 10]\n  Substituting a into (1):\n  9 + b ≡ 2 [MOD 10]\n  b ≡ -7 ≡ 3 [MOD 10]\n  Then a - b ≡ 9 - 3 ≡ 6 [MOD 10]\n  -/\n  have h_sub : (2 * a + b) - (a + b) ≡ (1 : ℤ) - 2 [ZMOD 10] := by\n    apply Int.ModEq.sub\n    · exact_mod_cast h₂\n    · exact_mod_cast h₁\n  \n  have h_a_val : (a : ℤ) ≡ -1 [ZMOD 10] := by\n    ring_nf at h_sub\n    exact h_sub\n    \n  have h_b_val : (b : ℤ) ≡ 3 [ZMOD 10] := by\n    have : (a : ℤ) + b ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have : (-1 : ℤ) + b ≡ 2 [ZMOD 10] := Int.ModEq.trans (Int.ModEq.add_right b (Int.ModEq.symm h_a_val)) this\n    have h_b : (b : ℤ) ≡ 3 [ZMOD 10] := by\n      convert Int.ModEq.add_left 1 this using 1\n      · ring\n      · ring\n    exact h_b\n\n  have h_diff : (a : ℤ) - b ≡ (-1 : ℤ) - 3 [ZMOD 10] := Int.ModEq.sub h_a_val h_b_val\n  have h_diff_val : (a : ℤ) - b ≡ -4 [ZMOD 10] := h_diff\n  have h_diff_final : (a : ℤ) - b ≡ 6 [ZMOD 10] := Int.ModEq.trans h_diff_val (by decide)\n  \n  -- Convert from ZMOD back to Nat mod\n  have h_nat_diff : (a - b : ℕ) % 10 = 6 % 10 := by\n    have h_le : (b : ℤ) ≤ (a : ℤ) := Int.ofNat_le.mpr h₀\n    exact_mod_cast Int.modEq_iff_nat_modEq.mp h_diff_final\n  \n  rw [h_nat_diff]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  /-\n  We have:\n  1) a + b ≡ 2 [MOD 10]\n  2) 2a + b ≡ 1 [MOD 10]\n  Subtracting (1) from (2) gives:\n  (2a + b) - (a + b) ≡ 1 - 2 [MOD 10]\n  a ≡ -1 ≡ 9 [MOD 10]\n  Substituting a into (1):\n  9 + b ≡ 2 [MOD 10]\n  b ≡ -7 ≡ 3 [MOD 10]\n  Then a - b ≡ 9 - 3 ≡ 6 [MOD 10]\n  -/\n  have h_sub : (2 * a + b) - (a + b) ≡ (1 : ℤ) - 2 [ZMOD 10] := by\n    apply Int.ModEq.sub\n    · exact_mod_cast h₂\n    · exact_mod_cast h₁\n  \n  have h_a_val : (a : ℤ) ≡ -1 [ZMOD 10] := by\n    ring_nf at h_sub\n    exact h_sub\n    \n  have h_b_val : (b : ℤ) ≡ 3 [ZMOD 10] := by\n    have : (a : ℤ) + b ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have : (-1 : ℤ) + b ≡ 2 [ZMOD 10] := Int.ModEq.trans (Int.ModEq.add_right b (Int.ModEq.symm h_a_val)) this\n    have h_b : (b : ℤ) ≡ 3 [ZMOD 10] := by\n      convert Int.ModEq.add_left 1 this using 1\n      · ring\n      · ring\n    exact h_b\n\n  have h_diff : (a : ℤ) - b ≡ (-1 : ℤ) - 3 [ZMOD 10] := Int.ModEq.sub h_a_val h_b_val\n  have h_diff_val : (a : ℤ) - b ≡ -4 [ZMOD 10] := h_diff\n  have h_diff_final : (a : ℤ) - b ≡ 6 [ZMOD 10] := Int.ModEq.trans h_diff_val (by decide)\n  \n  -- Convert from ZMOD back to Nat mod\n  have h_nat_diff : (a - b : ℕ) % 10 = 6 % 10 := by\n    have h_le : (b : ℤ) ≤ (a : ℤ) := Int.ofNat_le.mpr h₀\n    exact_mod_cast Int.modEq_iff_nat_modEq.mp h_diff_final\n  \n  rw [h_nat_diff]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 4
+            },
+            "endPos": {
+              "line": 29,
+              "column": 15
+            },
+            "data": "Type mismatch\n  h_sub\nhas type\n  ↑a * Nat.rawCast 1 ≡ -1 [ZMOD 10]\nbut is expected to have type\n  ↑a ≡ -1 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 6
+            },
+            "endPos": {
+              "line": 37,
+              "column": 12
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 47,
+              "column": 19
+            },
+            "endPos": {
+              "line": 47,
+              "column": 45
+            },
+            "data": "Unknown constant `Int.modEq_iff_nat_modEq.mp`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 50,
+              "column": 2
+            },
+            "endPos": {
+              "line": 50,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.305572509765625
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "To solve for $(a - b) \\pmod{10}$, we use the given system of linear congruences:\n1. $a + b \\equiv 2 \\pmod{10}$\n2. $2a + b \\equiv 1 \\pmod{10}$\n\n**Proof Sketch:**\n1. Subtract the first congruence from the second:\n   $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n   $a \\equiv -1 \\equiv 9 \\pmod{10}$.\n2. Substitute $a \\equiv 9$ back into the first congruence:\n   $9 + b \\equiv 2 \\pmod{10}$\n   $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$.\n3. Calculate $(a - b) \\pmod{10}$:\n   $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\n4. Since $b \\le a$, $a - b$ is non-negative, so $(a - b) \\% 10 = 6$.\n\nIn Lean, we handle the natural number arithmetic carefully, using properties of `Nat.ModEq`.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- From h₁: a + b ≡ 2 [MOD 10]\n  -- From h₂: 2a + b ≡ 1 [MOD 10]\n  -- Subtracting these: (2a + b) - (a + b) ≡ 1 - 2 [MOD 10]\n  -- However, Nat.ModEq works best with addition.\n  -- 2a + b = a + (a + b).\n  have h3 : (a + (a + b)) ≡ 1 [MOD 10] := by\n    rw [← Nat.add_assoc, Nat.two_mul] at h₂\n    exact h₂\n  \n  -- Since a + b ≡ 2 [MOD 10], we have a + 2 ≡ 1 [MOD 10]\n  have h4 : (a + 2) ≡ 1 [MOD 10] := Nat.ModEq.add_right_cancel_n_mod h₁ h3\n  \n  -- a + 2 ≡ 1 ≡ 11 [MOD 10] => a ≡ 9 [MOD 10]\n  have h5 : (a + 2) ≡ 11 [MOD 10] := h4.trans (by rfl)\n  have h6 : a ≡ 9 [MOD 10] := Nat.ModEq.add_right_cancel h5\n  \n  -- Substitute a into h₁: 9 + b ≡ 2 [MOD 10]\n  have h7 : (9 + b) ≡ 2 [MOD 10] := Nat.ModEq.add_left_cancel_n_mod h6 h₁\n  \n  -- 9 + b ≡ 2 ≡ 12 [MOD 10] => b ≡ 3 [MOD 10]\n  have h8 : (9 + b) ≡ 12 [MOD 10] := h7.trans (by rfl)\n  have h9 : b ≡ 3 [MOD 10] := Nat.ModEq.add_left_cancel h8\n  \n  -- We want (a - b) % 10.\n  -- a ≡ 9, b ≡ 3 implies a - b ≡ 9 - 3 ≡ 6 [MOD 10]\n  -- Since b ≤ a, (a - b) + b = a\n  have h10 : (a - b) + b ≡ 9 [MOD 10] := by\n    rw [Nat.sub_add_cancel h₀]\n    exact h6\n  \n  -- (a - b) + 3 ≡ 9 [MOD 10]\n  have h11 : (a - b) + 3 ≡ 9 [MOD 10] := Nat.ModEq.add_right_cancel_n_mod h9 h10\n  \n  -- a - b ≡ 6 [MOD 10]\n  have h12 : (a - b) ≡ 6 [MOD 10] := Nat.ModEq.add_right_cancel h11\n  \n  exact h12\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- From h₁: a + b ≡ 2 [MOD 10]\n  -- From h₂: 2a + b ≡ 1 [MOD 10]\n  -- Subtracting these: (2a + b) - (a + b) ≡ 1 - 2 [MOD 10]\n  -- However, Nat.ModEq works best with addition.\n  -- 2a + b = a + (a + b).\n  have h3 : (a + (a + b)) ≡ 1 [MOD 10] := by\n    rw [← Nat.add_assoc, Nat.two_mul] at h₂\n    exact h₂\n  \n  -- Since a + b ≡ 2 [MOD 10], we have a + 2 ≡ 1 [MOD 10]\n  have h4 : (a + 2) ≡ 1 [MOD 10] := Nat.ModEq.add_right_cancel_n_mod h₁ h3\n  \n  -- a + 2 ≡ 1 ≡ 11 [MOD 10] => a ≡ 9 [MOD 10]\n  have h5 : (a + 2) ≡ 11 [MOD 10] := h4.trans (by rfl)\n  have h6 : a ≡ 9 [MOD 10] := Nat.ModEq.add_right_cancel h5\n  \n  -- Substitute a into h₁: 9 + b ≡ 2 [MOD 10]\n  have h7 : (9 + b) ≡ 2 [MOD 10] := Nat.ModEq.add_left_cancel_n_mod h6 h₁\n  \n  -- 9 + b ≡ 2 ≡ 12 [MOD 10] => b ≡ 3 [MOD 10]\n  have h8 : (9 + b) ≡ 12 [MOD 10] := h7.trans (by rfl)\n  have h9 : b ≡ 3 [MOD 10] := Nat.ModEq.add_left_cancel h8\n  \n  -- We want (a - b) % 10.\n  -- a ≡ 9, b ≡ 3 implies a - b ≡ 9 - 3 ≡ 6 [MOD 10]\n  -- Since b ≤ a, (a - b) + b = a\n  have h10 : (a - b) + b ≡ 9 [MOD 10] := by\n    rw [Nat.sub_add_cancel h₀]\n    exact h6\n  \n  -- (a - b) + 3 ≡ 9 [MOD 10]\n  have h11 : (a - b) + 3 ≡ 9 [MOD 10] := Nat.ModEq.add_right_cancel_n_mod h9 h10\n  \n  -- a - b ≡ 6 [MOD 10]\n  have h12 : (a - b) ≡ 6 [MOD 10] := Nat.ModEq.add_right_cancel h11\n  \n  exact h12",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 8
+            },
+            "endPos": {
+              "line": 16,
+              "column": 23
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?n + (?m + ?k)\nin the target expression\n  2 * a + b ≡ 1 [MOD 10]\n\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\n⊢ a + (a + b) ≡ 1 [MOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 36
+            },
+            "endPos": {
+              "line": 20,
+              "column": 68
+            },
+            "data": "Unknown constant `Nat.ModEq.add_right_cancel_n_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 30
+            },
+            "endPos": {
+              "line": 24,
+              "column": 59
+            },
+            "data": "Type mismatch\n  ModEq.add_right_cancel h5\nhas type\n  ?m.91 + (a + 2) ≡ ?m.92 + 11 [MOD 10] → ?m.91 ≡ ?m.92 [MOD 10]\nbut is expected to have type\n  a ≡ 9 [MOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 36
+            },
+            "endPos": {
+              "line": 27,
+              "column": 67
+            },
+            "data": "Unknown constant `Nat.ModEq.add_left_cancel_n_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 30
+            },
+            "endPos": {
+              "line": 31,
+              "column": 58
+            },
+            "data": "Type mismatch\n  ModEq.add_left_cancel h8\nhas type\n  9 + b + ?m.133 ≡ 12 + ?m.134 [MOD 10] → ?m.133 ≡ ?m.134 [MOD 10]\nbut is expected to have type\n  b ≡ 3 [MOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 41,
+              "column": 41
+            },
+            "endPos": {
+              "line": 41,
+              "column": 73
+            },
+            "data": "Unknown constant `Nat.ModEq.add_right_cancel_n_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 37
+            },
+            "endPos": {
+              "line": 44,
+              "column": 67
+            },
+            "data": "Type mismatch\n  ModEq.add_right_cancel h11\nhas type\n  ?m.180 + (a - b + 3) ≡ ?m.181 + 9 [MOD 10] → ?m.180 ≡ ?m.181 [MOD 10]\nbut is expected to have type\n  a - b ≡ 6 [MOD 10]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.12292265892028809
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a - b) \\pmod{10} = 6$ given the modular congruences $a + b \\equiv 2 \\pmod{10}$ and $2a + b \\equiv 1 \\pmod{10}$:\n\n1.  **Isolate $a$**: Subtract the first congruence from the second:\n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n    $a \\equiv -1 \\equiv 9 \\pmod{10}$.\n2.  **Isolate $b$**: Substitute $a \\equiv 9$ into the first congruence:\n    $9 + b \\equiv 2 \\pmod{10}$\n    $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$.\n3.  **Calculate $a - b$**:\n    $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\n4.  **Final Result**: Since $0 \\le 6 < 10$, the remainder $(a - b) \\% 10$ is exactly 6.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  /- Subtract the two congruences to find a mod 10 -/\n  have ha : a ≡ 9 [MOD 10] := by\n    have h_sub := Nat.ModEq.sub h₂ h₁\n    simp [Nat.add_sub_add_right] at h_sub\n    -- (2*a - a) % 10 = (1 - 2) % 10. In Nat, 1-2 is 0, so we handle it via Int.\n    have h_int : (a : ℤ) ≡ -1 [ZMOD 10] := by\n      have h1_z : (a + b : ℤ) ≡ 2 [ZMOD 10] := Nat.ModEq.cast h₁\n      have h2_z : (2 * a + b : 2 * a + b) ≡ 1 [ZMOD 10] := Nat.ModEq.cast h₂\n      have res := Int.ModEq.sub h2_z h1_z\n      ring_nf at res\n      exact res\n    exact Int.ModEq.extract_nat h_int (by norm_num)\n  \n  /- Use a mod 10 to find b mod 10 -/\n  have hb : b ≡ 3 [MOD 10] := by\n    have h_sum : (a + b : ℤ) ≡ 2 [ZMOD 10] := Nat.ModEq.cast h₁\n    have ha_z : (a : ℤ) ≡ 9 [ZMOD 10] := Nat.ModEq.cast ha\n    have hb_z : (b : ℤ) ≡ 2 - 9 [ZMOD 10] := Int.ModEq.sub_left h_sum ha_z\n    exact Int.ModEq.extract_nat hb_z (by norm_num)\n  \n  /- Calculate (a - b) mod 10 -/\n  have hab : (a - b : ℤ) ≡ 9 - 3 [ZMOD 10] := by\n    apply Int.ModEq.sub (Nat.ModEq.cast ha) (Nat.ModEq.cast hb)\n  \n  /- Convert back to Nat and conclude -/\n  have hab_nat : (a - b) ≡ 6 [MOD 10] := by\n    rw [← Int.natCast_modEq_iff]\n    push_cast\n    convert hab using 1\n    exact Int.ofNat_sub h₀\n  \n  exact hab_nat\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  /- Subtract the two congruences to find a mod 10 -/\n  have ha : a ≡ 9 [MOD 10] := by\n    have h_sub := Nat.ModEq.sub h₂ h₁\n    simp [Nat.add_sub_add_right] at h_sub\n    -- (2*a - a) % 10 = (1 - 2) % 10. In Nat, 1-2 is 0, so we handle it via Int.\n    have h_int : (a : ℤ) ≡ -1 [ZMOD 10] := by\n      have h1_z : (a + b : ℤ) ≡ 2 [ZMOD 10] := Nat.ModEq.cast h₁\n      have h2_z : (2 * a + b : 2 * a + b) ≡ 1 [ZMOD 10] := Nat.ModEq.cast h₂\n      have res := Int.ModEq.sub h2_z h1_z\n      ring_nf at res\n      exact res\n    exact Int.ModEq.extract_nat h_int (by norm_num)\n  \n  /- Use a mod 10 to find b mod 10 -/\n  have hb : b ≡ 3 [MOD 10] := by\n    have h_sum : (a + b : ℤ) ≡ 2 [ZMOD 10] := Nat.ModEq.cast h₁\n    have ha_z : (a : ℤ) ≡ 9 [ZMOD 10] := Nat.ModEq.cast ha\n    have hb_z : (b : ℤ) ≡ 2 - 9 [ZMOD 10] := Int.ModEq.sub_left h_sum ha_z\n    exact Int.ModEq.extract_nat hb_z (by norm_num)\n  \n  /- Calculate (a - b) mod 10 -/\n  have hab : (a - b : ℤ) ≡ 9 - 3 [ZMOD 10] := by\n    apply Int.ModEq.sub (Nat.ModEq.cast ha) (Nat.ModEq.cast hb)\n  \n  /- Convert back to Nat and conclude -/\n  have hab_nat : (a - b) ≡ 6 [MOD 10] := by\n    rw [← Int.natCast_modEq_iff]\n    push_cast\n    convert hab using 1\n    exact Int.ofNat_sub h₀\n  \n  exact hab_nat",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 35
+            },
+            "endPos": {
+              "line": 12,
+              "column": 37
+            },
+            "data": "Application type mismatch: The argument\n  h₁\nhas type\n  a + b ≡ 2 [MOD 10]\nbut is expected to have type\n  ?m.51 ≤ ?m.49\nin the application\n  ModEq.sub ?m.52 h₁"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 46
+            },
+            "endPos": {
+              "line": 25,
+              "column": 60
+            },
+            "data": "Unknown constant `Nat.ModEq.cast`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 41
+            },
+            "endPos": {
+              "line": 26,
+              "column": 55
+            },
+            "data": "Unknown constant `Nat.ModEq.cast`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 64
+            },
+            "endPos": {
+              "line": 27,
+              "column": 69
+            },
+            "data": "Application type mismatch: The argument\n  h_sum\nhas type\n  ↑a + ↑b ≡ 2 [ZMOD 10]\nof sort `Prop` but is expected to have type\n  ℤ\nof sort `Type` in the application\n  Int.ModEq.sub_left h_sum"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 10
+            },
+            "endPos": {
+              "line": 28,
+              "column": 31
+            },
+            "data": "Unknown constant `Int.ModEq.extract_nat`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 25
+            },
+            "endPos": {
+              "line": 32,
+              "column": 39
+            },
+            "data": "Unknown constant `Nat.ModEq.cast`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 45
+            },
+            "endPos": {
+              "line": 32,
+              "column": 59
+            },
+            "data": "Unknown constant `Nat.ModEq.cast`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2810049057006836
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a - b) \\equiv 6 \\pmod{10}$ given the linear congruences:\n1.  $a + b \\equiv 2 \\pmod{10}$\n2.  $2a + b \\equiv 1 \\pmod{10}$\n\n**Proof Sketch:**\n1.  Subtract the first congruence from the second:\n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n    $a \\equiv -1 \\equiv 9 \\pmod{10}$\n2.  Substitute $a \\equiv 9$ back into the first congruence:\n    $9 + b \\equiv 2 \\pmod{10}$\n    $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$\n3.  Calculate $a - b$ modulo 10:\n    $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$\n4.  Since we are working with natural numbers and $b \\le a$, the result $(a - b) \\% 10 = 6$ follows directly from the properties of the modulo operator.\n\n**Lean 4 Code:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use Int to handle negative intermediate results in modular arithmetic\n  have h_sub : (2 * a + b : ℤ) - (a + b : ℤ) ≡ 1 - 2 [ZMOD 10] := by\n    apply Int.ModEq.sub h₂ h₁\n  \n  -- Simplify the subtraction to find a mod 10\n  have h_a : (a : ℤ) ≡ -1 [ZMOD 10] := by\n    convert h_sub using 1\n    ring\n  \n  -- Substitute a into h₁ to find b mod 10\n  have h_b : (b : ℤ) ≡ 2 - (-1) [ZMOD 10] := by\n    have h_a_plus_b : (a : ℤ) + (b : ℤ) ≡ 2 [ZMOD 10] := h₁\n    calc\n      (b : ℤ) = (a + b : ℤ) - (a : ℤ) := by ring\n      _ ≡ 2 - (-1) [ZMOD 10] := Int.ModEq.sub h₁ h_a\n\n  have h_b_val : (b : ℤ) ≡ 3 [ZMOD 10] := h_b\n\n  -- Calculate (a - b) mod 10\n  have h_diff : (a : ℤ) - (b : ℤ) ≡ -1 - 3 [ZMOD 10] := Int.ModEq.sub h_a h_b_val\n  \n  -- Show that -4 is congruent to 6 mod 10\n  have h_diff_6 : (a : ℤ) - (b : ℤ) ≡ 6 [ZMOD 10] := by\n    trans (-4 : ℤ)\n    · exact h_diff\n    · rfl\n\n  -- Convert back to Nat using the fact that b <= a\n  rw [← Int.coe_nat_modEq_iff]\n  push_cast\n  rw [Int.ofNat_sub h₀]\n  exact h_diff_6\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use Int to handle negative intermediate results in modular arithmetic\n  have h_sub : (2 * a + b : ℤ) - (a + b : ℤ) ≡ 1 - 2 [ZMOD 10] := by\n    apply Int.ModEq.sub h₂ h₁\n  \n  -- Simplify the subtraction to find a mod 10\n  have h_a : (a : ℤ) ≡ -1 [ZMOD 10] := by\n    convert h_sub using 1\n    ring\n  \n  -- Substitute a into h₁ to find b mod 10\n  have h_b : (b : ℤ) ≡ 2 - (-1) [ZMOD 10] := by\n    have h_a_plus_b : (a : ℤ) + (b : ℤ) ≡ 2 [ZMOD 10] := h₁\n    calc\n      (b : ℤ) = (a + b : ℤ) - (a : ℤ) := by ring\n      _ ≡ 2 - (-1) [ZMOD 10] := Int.ModEq.sub h₁ h_a\n\n  have h_b_val : (b : ℤ) ≡ 3 [ZMOD 10] := h_b\n\n  -- Calculate (a - b) mod 10\n  have h_diff : (a : ℤ) - (b : ℤ) ≡ -1 - 3 [ZMOD 10] := Int.ModEq.sub h_a h_b_val\n  \n  -- Show that -4 is congruent to 6 mod 10\n  have h_diff_6 : (a : ℤ) - (b : ℤ) ≡ 6 [ZMOD 10] := by\n    trans (-4 : ℤ)\n    · exact h_diff\n    · rfl\n\n  -- Convert back to Nat using the fact that b <= a\n  rw [← Int.coe_nat_modEq_iff]\n  push_cast\n  rw [Int.ofNat_sub h₀]\n  exact h_diff_6",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 24
+            },
+            "endPos": {
+              "line": 12,
+              "column": 26
+            },
+            "data": "Application type mismatch: The argument\n  h₂\nhas type\n  2 * a + b ≡ 1 [MOD 10]\nbut is expected to have type\n  ?m.71 ≡ ?m.72 [ZMOD ?m.70]\nin the application\n  Int.ModEq.sub h₂"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 57
+            },
+            "endPos": {
+              "line": 21,
+              "column": 59
+            },
+            "data": "Type mismatch\n  h₁\nhas type\n  a + b ≡ 2 [MOD 10]\nbut is expected to have type\n  ↑a + ↑b ≡ 2 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 46
+            },
+            "endPos": {
+              "line": 24,
+              "column": 48
+            },
+            "data": "Application type mismatch: The argument\n  h₁\nhas type\n  a + b ≡ 2 [MOD 10]\nbut is expected to have type\n  ↑a + ↑b ≡ 2 [ZMOD 10]\nin the application\n  Int.ModEq.sub h₁"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 8
+            },
+            "endPos": {
+              "line": 38,
+              "column": 29
+            },
+            "data": "Unknown constant `Int.coe_nat_modEq_iff`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 56
+            },
+            "endPos": {
+              "line": 41,
+              "column": 16
+            },
+            "data": "unsolved goals\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh_sub : 2 * ↑a + ↑b - (↑a + ↑b) ≡ 1 - 2 [ZMOD 10]\nh_a : ↑a ≡ -1 [ZMOD 10]\nh_b : ↑b ≡ 2 - -1 [ZMOD 10]\nh_b_val : ↑b ≡ 3 [ZMOD 10]\nh_diff : ↑a - ↑b ≡ -1 - 3 [ZMOD 10]\nh_diff_6 : ↑a - ↑b ≡ 6 [ZMOD 10]\n⊢ (a - b) % 10 = 6"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.39762115478515625
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "To prove $(a - b) \\equiv 6 \\pmod{10}$, we use the given system of linear congruences:\n1. $a + b \\equiv 2 \\pmod{10}$\n2. $2a + b \\equiv 1 \\pmod{10}$\n\nSubtracting the first equation from the second yields:\n$(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n$a \\equiv -1 \\equiv 9 \\pmod{10}$\n\nSubstituting $a \\equiv 9$ back into the first equation:\n$9 + b \\equiv 2 \\pmod{10}$\n$b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$\n\nFinally, calculate the difference:\n$a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\nSince $b \\le a$, $a - b$ is a natural number, and $(a - b) \\pmod{10} = 6$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Subtract the two congruences to solve for a\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1z : (a : ℤ) + b ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have h2z : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := by exact_mod_cast h₂\n    have h_sub := h2z.sub h1z\n    ring_nf at h_sub\n    exact h_sub\n  \n  -- Simplify a ≡ -1 ≡ 9 [ZMOD 10]\n  have ha_val : (a : ℤ) ≡ 9 [ZMOD 10] := by\n    convert ha using 1\n    simp [Int.mod_ten_eq_one_iff_at_least_nine_etc]\n    norm_num\n\n  -- Substitute a back into h1 to solve for b\n  have hb : (b : ℤ) ≡ (2 - 9 : ℤ) [ZMOD 10] := by\n    have h1z : (a : ℤ) + b ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have h_sub := h1z.sub ha_val\n    ring_nf at h_sub\n    exact h_sub\n\n  -- Simplify b ≡ -7 ≡ 3 [ZMOD 10]\n  have hb_val : (b : ℤ) ≡ 3 [ZMOD 10] := by\n    convert hb using 1\n    norm_num\n    rfl\n\n  -- Compute (a - b) mod 10\n  have hdiff : (a : ℤ) - b ≡ 9 - 3 [ZMOD 10] := ha_val.sub hb_val\n  have hdiff_val : (a : ℤ) - b ≡ 6 [ZMOD 10] := by\n    convert hdiff\n    norm_num\n\n  -- Convert back to natural number result\n  rw [← Int.natCast_mod_eq_iff]\n  push_cast\n  rw [Int.ofNat_sub h₀]\n  exact hdiff_val\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Subtract the two congruences to solve for a\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1z : (a : ℤ) + b ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have h2z : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := by exact_mod_cast h₂\n    have h_sub := h2z.sub h1z\n    ring_nf at h_sub\n    exact h_sub\n  \n  -- Simplify a ≡ -1 ≡ 9 [ZMOD 10]\n  have ha_val : (a : ℤ) ≡ 9 [ZMOD 10] := by\n    convert ha using 1\n    simp [Int.mod_ten_eq_one_iff_at_least_nine_etc]\n    norm_num\n\n  -- Substitute a back into h1 to solve for b\n  have hb : (b : ℤ) ≡ (2 - 9 : ℤ) [ZMOD 10] := by\n    have h1z : (a : ℤ) + b ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have h_sub := h1z.sub ha_val\n    ring_nf at h_sub\n    exact h_sub\n\n  -- Simplify b ≡ -7 ≡ 3 [ZMOD 10]\n  have hb_val : (b : ℤ) ≡ 3 [ZMOD 10] := by\n    convert hb using 1\n    norm_num\n    rfl\n\n  -- Compute (a - b) mod 10\n  have hdiff : (a : ℤ) - b ≡ 9 - 3 [ZMOD 10] := ha_val.sub hb_val\n  have hdiff_val : (a : ℤ) - b ≡ 6 [ZMOD 10] := by\n    convert hdiff\n    norm_num\n\n  -- Convert back to natural number result\n  rw [← Int.natCast_mod_eq_iff]\n  push_cast\n  rw [Int.ofNat_sub h₀]\n  exact hdiff_val",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 15
+            },
+            "data": "Type mismatch\n  h_sub\nhas type\n  ↑a * Nat.rawCast 1 ≡ -1 [ZMOD 10]\nbut is expected to have type\n  ↑a ≡ 1 - 2 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 10
+            },
+            "endPos": {
+              "line": 21,
+              "column": 50
+            },
+            "data": "Unknown constant `Int.mod_ten_eq_one_iff_at_least_nine_etc`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 41
+            },
+            "endPos": {
+              "line": 22,
+              "column": 12
+            },
+            "data": "unsolved goals\ncase h.e'_3\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 4
+            },
+            "endPos": {
+              "line": 35,
+              "column": 7
+            },
+            "data": "Tactic `rfl` failed: Expected the goal to be a binary relation\n\nHint: Reflexivity tactics can only be used on goals of the form `x ~ x` or `R x x`\n\ncase h.e'_3\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nha_val : ↑a ≡ 9 [ZMOD 10]\nhb : ↑b ≡ 2 - 9 [ZMOD 10]\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 41,
+              "column": 4
+            },
+            "endPos": {
+              "line": 41,
+              "column": 12
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 8
+            },
+            "endPos": {
+              "line": 44,
+              "column": 30
+            },
+            "data": "Unknown constant `Int.natCast_mod_eq_iff`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 56
+            },
+            "endPos": {
+              "line": 47,
+              "column": 17
+            },
+            "data": "unsolved goals\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nha_val : ↑a ≡ 9 [ZMOD 10]\nhb : ↑b ≡ 2 - 9 [ZMOD 10]\nhb_val : ↑b ≡ 3 [ZMOD 10]\nhdiff : ↑a - ↑b ≡ 9 - 3 [ZMOD 10]\nhdiff_val : ↑a - ↑b ≡ 6 [ZMOD 10]\n⊢ (a - b) % 10 = 6"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.40195417404174805
+      }
+    },
+    {
+      "index": 24,
+      "status": "FAILED",
+      "raw_text": "To solve this problem, we use the properties of modular arithmetic. We are given two linear congruences in terms of $a$ and $b$ modulo 10:\n1. $a + b \\equiv 2 \\pmod{10}$\n2. $2a + b \\equiv 1 \\pmod{10}$\n\n**Proof Sketch:**\n1. Subtract the first congruence from the second:\n   $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n   $a \\equiv -1 \\equiv 9 \\pmod{10}$.\n2. Substitute $a \\equiv 9 \\pmod{10}$ into the first congruence:\n   $9 + b \\equiv 2 \\pmod{10}$\n   $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$.\n3. Calculate the difference $a - b \\pmod{10}$:\n   $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\n4. Since $(a - b) \\pmod{10}$ is defined as the remainder in $[0, 9]$, and $6$ is in this range, we conclude $(a - b) \\% 10 = 6$.\n\nIn Lean, we use the `ZMod` or `Nat.ModEq` tactics to handle the modular arithmetic and `Int` conversions to handle potential negative results during subtraction before taking the final modulus.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Convert congruences to ZMod 10 for easier calculation\n  have h1_z : (a + b : ZMod 10) = 2 := by \n    rw [← ZMod.eq_iff_modEq_nat] at h₁\n    exact h₁\n  have h2_z : (2 * a + b : ZMod 10) = 1 := by \n    rw [← ZMod.eq_iff_modEq_nat] at h₂\n    exact h₂\n  \n  -- Subtract equations to find 'a' in ZMod 10\n  have ha : (a : ZMod 10) = 9 := by\n    calc (a : ZMod 10) = (2 * a + b) - (a + b) := by ring\n      _ = 1 - 2 := by rw [h1_z, h2_z]\n      _ = 9 := rfl\n  \n  -- Find 'b' in ZMod 10\n  have hb : (b : ZMod 10) = 3 := by\n    calc (b : ZMod 10) = (a + b) - a := by ring\n      _ = 2 - 9 := by rw [h1_z, ha]\n      _ = 3 := rfl\n      \n  -- Find 'a - b' in ZMod 10\n  have hab : ((a - b : ℕ) : ZMod 10) = 6 := by\n    rw [Nat.cast_sub h₀]\n    calc (a : ZMod 10) - b = 9 - 3 := by rw [ha, hb]\n      _ = 6 := rfl\n      \n  -- Convert back to Nat modulus\n  rw [← ZMod.eq_iff_modEq_nat] at hab\n  exact hab\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Convert congruences to ZMod 10 for easier calculation\n  have h1_z : (a + b : ZMod 10) = 2 := by \n    rw [← ZMod.eq_iff_modEq_nat] at h₁\n    exact h₁\n  have h2_z : (2 * a + b : ZMod 10) = 1 := by \n    rw [← ZMod.eq_iff_modEq_nat] at h₂\n    exact h₂\n  \n  -- Subtract equations to find 'a' in ZMod 10\n  have ha : (a : ZMod 10) = 9 := by\n    calc (a : ZMod 10) = (2 * a + b) - (a + b) := by ring\n      _ = 1 - 2 := by rw [h1_z, h2_z]\n      _ = 9 := rfl\n  \n  -- Find 'b' in ZMod 10\n  have hb : (b : ZMod 10) = 3 := by\n    calc (b : ZMod 10) = (a + b) - a := by ring\n      _ = 2 - 9 := by rw [h1_z, ha]\n      _ = 3 := rfl\n      \n  -- Find 'a - b' in ZMod 10\n  have hab : ((a - b : ℕ) : ZMod 10) = 6 := by\n    rw [Nat.cast_sub h₀]\n    calc (a : ZMod 10) - b = 9 - 3 := by rw [ha, hb]\n      _ = 6 := rfl\n      \n  -- Convert back to Nat modulus\n  rw [← ZMod.eq_iff_modEq_nat] at hab\n  exact hab",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 10
+            },
+            "endPos": {
+              "line": 12,
+              "column": 31
+            },
+            "data": "Unknown constant `ZMod.eq_iff_modEq_nat`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 10
+            },
+            "endPos": {
+              "line": 15,
+              "column": 31
+            },
+            "data": "Unknown constant `ZMod.eq_iff_modEq_nat`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 8
+            },
+            "endPos": {
+              "line": 37,
+              "column": 29
+            },
+            "data": "Unknown constant `ZMod.eq_iff_modEq_nat`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 56
+            },
+            "endPos": {
+              "line": 38,
+              "column": 11
+            },
+            "data": "unsolved goals\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh1_z : ↑a + ↑b = 2\nh2_z : 2 * ↑a + ↑b = 1\nha : ↑a = 9\nhb : ↑b = 3\nhab : ↑(a - b) = 6\n⊢ (a - b) % 10 = 6"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5381884574890137
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we analyze the system of linear congruences in $\\mathbb{Z}_{10}$:\n1.  From $a + b \\equiv 2 \\pmod{10}$ and $2a + b \\equiv 1 \\pmod{10}$, we subtract the first equation from the second to isolate $a$:\n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10} \\implies a \\equiv -1 \\equiv 9 \\pmod{10}$.\n2.  Substitute $a \\equiv 9$ back into the first equation:\n    $9 + b \\equiv 2 \\pmod{10} \\implies b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$.\n3.  Calculate the difference $a - b \\pmod{10}$:\n    $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\n4.  Since $b \\le a$, the term $a - b$ is a non-negative integer, so $(a - b) \\pmod{10}$ is exactly $6$.\n\nIn Lean, we use `ZMod 10` to handle the modular arithmetic naturally.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Convert congruences to ZMod 10\n  have h1 : (a : ZMod 10) + b = 2 := by \n    rw [Nat.modEq_iff_zmod_eq] at h₁\n    exact h₁\n  have h2 : 2 * (a : ZMod 10) + b = 1 := by \n    rw [Nat.modEq_iff_zmod_eq] at h₂\n    exact h₂\n  \n  -- Solve for a and b in ZMod 10\n  have ha : (a : ZMod 10) = 9 := by\n    calc (a : ZMod 10) = (2 * a + b) - (a + b) := by ring\n      _ = 1 - 2 := by rw [h1, h2]\n      _ = 9 := by rfl\n      \n  have hb : (b : ZMod 10) = 3 := by\n    calc (b : ZMod 10) = (a + b) - a := by ring\n      _ = 2 - 9 := by rw [h1, ha]\n      _ = 3 := by rfl\n      \n  -- Calculate (a - b) % 10\n  have hab : ((a - b) : ZMod 10) = 6 := by\n    rw [Nat.cast_sub h₀]\n    rw [ha, hb]\n    rfl\n    \n  -- Final conversion from ZMod back to Nat mod\n  rw [← ZMod.val_eq_6_iff_mod_eq_6]\n  exact ZMod.val_nat_cast (a - b)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Convert congruences to ZMod 10\n  have h1 : (a : ZMod 10) + b = 2 := by \n    rw [Nat.modEq_iff_zmod_eq] at h₁\n    exact h₁\n  have h2 : 2 * (a : ZMod 10) + b = 1 := by \n    rw [Nat.modEq_iff_zmod_eq] at h₂\n    exact h₂\n  \n  -- Solve for a and b in ZMod 10\n  have ha : (a : ZMod 10) = 9 := by\n    calc (a : ZMod 10) = (2 * a + b) - (a + b) := by ring\n      _ = 1 - 2 := by rw [h1, h2]\n      _ = 9 := by rfl\n      \n  have hb : (b : ZMod 10) = 3 := by\n    calc (b : ZMod 10) = (a + b) - a := by ring\n      _ = 2 - 9 := by rw [h1, ha]\n      _ = 3 := by rfl\n      \n  -- Calculate (a - b) % 10\n  have hab : ((a - b) : ZMod 10) = 6 := by\n    rw [Nat.cast_sub h₀]\n    rw [ha, hb]\n    rfl\n    \n  -- Final conversion from ZMod back to Nat mod\n  rw [← ZMod.val_eq_6_iff_mod_eq_6]\n  exact ZMod.val_nat_cast (a - b)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 8
+            },
+            "endPos": {
+              "line": 12,
+              "column": 29
+            },
+            "data": "Unknown constant `Nat.modEq_iff_zmod_eq`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 8
+            },
+            "endPos": {
+              "line": 15,
+              "column": 29
+            },
+            "data": "Unknown constant `Nat.modEq_iff_zmod_eq`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 8
+            },
+            "endPos": {
+              "line": 31,
+              "column": 23
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ↑(a - b)\nin the target expression\n  ↑a - ↑b = 6\n\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh1 : ↑a + ↑b = 2\nh2 : 2 * ↑a + ↑b = 1\nha : ↑a = 9\nhb : ↑b = 3\n⊢ ↑a - ↑b = 6"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 8
+            },
+            "endPos": {
+              "line": 36,
+              "column": 34
+            },
+            "data": "Unknown constant `ZMod.val_eq_6_iff_mod_eq_6`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 56
+            },
+            "endPos": {
+              "line": 37,
+              "column": 33
+            },
+            "data": "unsolved goals\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh1 : ↑a + ↑b = 2\nh2 : 2 * ↑a + ↑b = 1\nha : ↑a = 9\nhb : ↑b = 3\nhab : ↑a - ↑b = 6\n⊢ (a - b) % 10 = 6"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5222842693328857
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we analyze the system of linear congruences modulo 10.\n\n**Proof Sketch:**\n1.  We are given two congruences:\n    -   (1) $a + b \\equiv 2 \\pmod{10}$\n    -   (2) $2a + b \\equiv 1 \\pmod{10}$\n2.  Subtracting (1) from (2) yields:\n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n    $a \\equiv -1 \\equiv 9 \\pmod{10}$\n3.  Substitute $a \\equiv 9$ back into (1):\n    $9 + b \\equiv 2 \\pmod{10}$\n    $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$\n4.  Calculate the difference $a - b \\pmod{10}$:\n    $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$\n5.  Since $(a - b) \\pmod{10}$ is by definition the unique integer $r \\in [0, 9]$ such that $a - b \\equiv r \\pmod{10}$, and $6$ is in this range, we conclude $(a - b) \\% 10 = 6$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Subtract the two congruences to solve for a\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + b ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have h2_z : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := by exact_mod_cast h₂\n    have h_diff := h2_z.sub h1_z\n    ring_nf at h_diff\n    exact h_diff\n  \n  -- Simplify a modulo 10\n  have ha_mod : (a : ℤ) ≡ 9 [ZMOD 10] := by\n    convert ha using 1\n    simp [Int.mod_eq_emod]\n\n  -- Solve for b using the first congruence\n  have hb : (b : ℤ) ≡ (2 - 9 : ℤ) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + b ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have h_sub := h1_z.sub ha_mod\n    ring_nf at h_sub\n    exact h_sub\n\n  -- Simplify b modulo 10\n  have hb_mod : (b : ℤ) ≡ 3 [ZMOD 10] := by\n    convert hb using 1\n    simp [Int.mod_eq_emod]\n\n  -- Calculate (a - b) modulo 10\n  have hab : (a : ℤ) - (b : ℤ) ≡ 9 - 3 [ZMOD 10] := ha_mod.sub hb_mod\n  \n  -- Since b <= a, (a - b) as Nat is the same as (a - b) as Int\n  have h_nat : (a - b : ℕ) = (a : ℤ) - (b : ℤ) := by\n    simp [Int.ofNat_sub h₀]\n  \n  -- Final step: extract the result from the integer congruence\n  rw [h_nat]\n  exact Int.mod_eq_of_lt (by norm_num) (by norm_num) hab\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Subtract the two congruences to solve for a\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + b ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have h2_z : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := by exact_mod_cast h₂\n    have h_diff := h2_z.sub h1_z\n    ring_nf at h_diff\n    exact h_diff\n  \n  -- Simplify a modulo 10\n  have ha_mod : (a : ℤ) ≡ 9 [ZMOD 10] := by\n    convert ha using 1\n    simp [Int.mod_eq_emod]\n\n  -- Solve for b using the first congruence\n  have hb : (b : ℤ) ≡ (2 - 9 : ℤ) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + b ≡ 2 [ZMOD 10] := by exact_mod_cast h₁\n    have h_sub := h1_z.sub ha_mod\n    ring_nf at h_sub\n    exact h_sub\n\n  -- Simplify b modulo 10\n  have hb_mod : (b : ℤ) ≡ 3 [ZMOD 10] := by\n    convert hb using 1\n    simp [Int.mod_eq_emod]\n\n  -- Calculate (a - b) modulo 10\n  have hab : (a : ℤ) - (b : ℤ) ≡ 9 - 3 [ZMOD 10] := ha_mod.sub hb_mod\n  \n  -- Since b <= a, (a - b) as Nat is the same as (a - b) as Int\n  have h_nat : (a - b : ℕ) = (a : ℤ) - (b : ℤ) := by\n    simp [Int.ofNat_sub h₀]\n  \n  -- Final step: extract the result from the integer congruence\n  rw [h_nat]\n  exact Int.mod_eq_of_lt (by norm_num) (by norm_num) hab",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 16
+            },
+            "data": "Type mismatch\n  h_diff\nhas type\n  ↑a * Nat.rawCast 1 ≡ -1 [ZMOD 10]\nbut is expected to have type\n  ↑a ≡ 1 - 2 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 10
+            },
+            "endPos": {
+              "line": 21,
+              "column": 25
+            },
+            "data": "Unknown constant `Int.mod_eq_emod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 41
+            },
+            "endPos": {
+              "line": 21,
+              "column": 26
+            },
+            "data": "unsolved goals\ncase h.e'_3\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 10
+            },
+            "endPos": {
+              "line": 33,
+              "column": 25
+            },
+            "data": "Unknown constant `Int.mod_eq_emod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 41
+            },
+            "endPos": {
+              "line": 33,
+              "column": 26
+            },
+            "data": "unsolved goals\ncase h.e'_3\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nha_mod : ↑a ≡ 9 [ZMOD 10]\nhb : ↑b ≡ 2 - 9 [ZMOD 10]\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 43,
+              "column": 6
+            },
+            "endPos": {
+              "line": 43,
+              "column": 11
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ↑(a - b)\nin the target expression\n  (a - b) % 10 = 6\n\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nha_mod : ↑a ≡ 9 [ZMOD 10]\nhb : ↑b ≡ 2 - 9 [ZMOD 10]\nhb_mod : ↑b ≡ 3 [ZMOD 10]\nhab : ↑a - ↑b ≡ 9 - 3 [ZMOD 10]\nh_nat : ↑(a - b) = ↑a - ↑b\n⊢ (a - b) % 10 = 6"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4028041362762451
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a - b) \\equiv 6 \\pmod{10}$, we use the given system of linear congruences:\n1. $a + b \\equiv 2 \\pmod{10}$\n2. $2a + b \\equiv 1 \\pmod{10}$\n\n**Proof Sketch:**\n1. Subtract the first congruence from the second:\n   $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n   $a \\equiv -1 \\equiv 9 \\pmod{10}$.\n2. Substitute $a \\equiv 9$ back into the first congruence:\n   $9 + b \\equiv 2 \\pmod{10}$\n   $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$.\n3. Calculate the difference $a - b \\pmod{10}$:\n   $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\n4. Since $b \\le a$, $(a - b) \\pmod{10}$ is exactly the remainder of the non-negative integer $a - b$ divided by $10$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- From h₁: a + b ≡ 2 [MOD 10]\n  -- From h₂: 2a + b ≡ 1 [MOD 10]\n  -- Subtracting the two congruences to find a\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1z : (a : ℤ) + b ≡ 2 [ZMOD 10] := h₁\n    have h2z : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := h₂\n    convert Int.ModEq.sub h2z h1z using 1\n    ring\n  \n  -- Simplifying a ≡ -1 ≡ 9 [ZMOD 10]\n  have ha_mod : (a : ℤ) ≡ 9 [ZMOD 10] := by\n    convert ha using 1\n    norm_num\n  \n  -- Substituting a into h₁ to find b\n  have hb : (9 : ℤ) + b ≡ 2 [ZMOD 10] := by\n    rw [← ha_mod]\n    exact h₁\n\n  have hb_mod : (b : ℤ) ≡ -7 [ZMOD 10] := by\n    have := Int.ModEq.sub_right 9 hb\n    ring_nf at this\n    exact this\n\n  -- Calculating a - b mod 10\n  have hab : (a : ℤ) - (b : ℤ) ≡ 9 - (-7) [ZMOD 10] := Int.ModEq.sub ha_mod hb_mod\n  \n  -- Simplifying a - b ≡ 16 ≡ 6 [ZMOD 10]\n  have hab_final : (a : ℤ) - (b : ℤ) ≡ 6 [ZMOD 10] := by\n    convert hab using 1\n    norm_num\n  \n  -- Convert back to natural number modulo\n  zify [h₀] at hab_final\n  exact hab_final\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- From h₁: a + b ≡ 2 [MOD 10]\n  -- From h₂: 2a + b ≡ 1 [MOD 10]\n  -- Subtracting the two congruences to find a\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1z : (a : ℤ) + b ≡ 2 [ZMOD 10] := h₁\n    have h2z : 2 * (a : ℤ) + b ≡ 1 [ZMOD 10] := h₂\n    convert Int.ModEq.sub h2z h1z using 1\n    ring\n  \n  -- Simplifying a ≡ -1 ≡ 9 [ZMOD 10]\n  have ha_mod : (a : ℤ) ≡ 9 [ZMOD 10] := by\n    convert ha using 1\n    norm_num\n  \n  -- Substituting a into h₁ to find b\n  have hb : (9 : ℤ) + b ≡ 2 [ZMOD 10] := by\n    rw [← ha_mod]\n    exact h₁\n\n  have hb_mod : (b : ℤ) ≡ -7 [ZMOD 10] := by\n    have := Int.ModEq.sub_right 9 hb\n    ring_nf at this\n    exact this\n\n  -- Calculating a - b mod 10\n  have hab : (a : ℤ) - (b : ℤ) ≡ 9 - (-7) [ZMOD 10] := Int.ModEq.sub ha_mod hb_mod\n  \n  -- Simplifying a - b ≡ 16 ≡ 6 [ZMOD 10]\n  have hab_final : (a : ℤ) - (b : ℤ) ≡ 6 [ZMOD 10] := by\n    convert hab using 1\n    norm_num\n  \n  -- Convert back to natural number modulo\n  zify [h₀] at hab_final\n  exact hab_final",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 44
+            },
+            "endPos": {
+              "line": 14,
+              "column": 46
+            },
+            "data": "Type mismatch\n  h₁\nhas type\n  a + b ≡ 2 [MOD 10]\nbut is expected to have type\n  ↑a + ↑b ≡ 2 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 48
+            },
+            "endPos": {
+              "line": 15,
+              "column": 50
+            },
+            "data": "Type mismatch\n  h₂\nhas type\n  2 * a + b ≡ 1 [MOD 10]\nbut is expected to have type\n  2 * ↑a + ↑b ≡ 1 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 41
+            },
+            "endPos": {
+              "line": 22,
+              "column": 12
+            },
+            "data": "unsolved goals\ncase h.e'_3\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 8
+            },
+            "endPos": {
+              "line": 26,
+              "column": 16
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  9 % 10\nin the target expression\n  9 + ↑b ≡ 2 [ZMOD 10]\n\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nha_mod : ↑a ≡ 9 [ZMOD 10]\n⊢ 9 + ↑b ≡ 2 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 54
+            },
+            "endPos": {
+              "line": 40,
+              "column": 12
+            },
+            "data": "unsolved goals\ncase h.e'_3\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nha_mod : ↑a ≡ 9 [ZMOD 10]\nhb : 9 + ↑b ≡ 2 [ZMOD 10]\nhb_mod : ↑b ≡ -7 [ZMOD 10]\nhab : ↑a - ↑b ≡ 9 - -7 [ZMOD 10]\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 2
+            },
+            "endPos": {
+              "line": 44,
+              "column": 17
+            },
+            "data": "Type mismatch\n  hab_final\nhas type\n  ↑a - ↑b ≡ 6 [ZMOD 10]\nbut is expected to have type\n  (a - b) % 10 = 6"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.36725473403930664
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a - b) \\pmod{10} = 6$ given the congruences $a + b \\equiv 2 \\pmod{10}$ and $2a + b \\equiv 1 \\pmod{10}$, we follow these steps:\n\n### Proof Sketch:\n1.  **Isolate $a$**: Subtract the first congruence from the second:\n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n    $a \\equiv -1 \\equiv 9 \\pmod{10}$.\n2.  **Isolate $b$**: Substitute $a \\equiv 9$ into the first congruence:\n    $9 + b \\equiv 2 \\pmod{10}$\n    $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$.\n3.  **Calculate $a - b$**: Subtract the results:\n    $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\n4.  **Finalize**: Since $b \\leq a$, $a - b$ is a non-negative integer, so $(a - b) \\pmod{10} = 6$.\n\n---\n\n### Lean 4 Code:\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Step 1: Solve for a mod 10\n  -- (2a + b) - (a + b) ≡ 1 - 2 [MOD 10]\n  have ha : a ≡ 9 [MOD 10] := by\n    have h_sub := Nat.ModEq.sub h₂ h₁\n    simp [Nat.add_sub_add_right] at h_sub\n    -- Since 1 < 2, we treat it in Z mod 10 or adjust\n    have : (2 * a + b) % 10 = 1 := h₂\n    have : (a + b) % 10 = 2 := h₁\n    zify [h₀]\n    have : ((2 * a + b : ℤ) - (a + b : ℤ)) % 10 = (1 - 2 : ℤ) % 10 := by\n      apply Int.ModEq.sub\n      · exact Int.modEq_iff_mod_eq.mpr rfl\n      · exact Int.modEq_iff_mod_eq.mpr rfl\n    simp at this\n    exact Int.modEq_iff_mod_eq.mp this\n\n  -- Step 2: Solve for b mod 10\n  -- a + b ≡ 2 [MOD 10] => 9 + b ≡ 2 [MOD 10] => b ≡ 3 [MOD 10]\n  have hb : b ≡ 3 [MOD 10] := by\n    have h_sub : (a + b) % 10 = 2 := h₁\n    have h_a_mod : a % 10 = 9 := ha\n    zify\n    have : ((a + b : ℤ) - (a : ℤ)) % 10 = (2 - 9 : ℤ) % 10 := by\n      apply Int.ModEq.sub\n      · exact Int.modEq_iff_mod_eq.mpr rfl\n      · exact Int.modEq_iff_mod_eq.mpr rfl\n    simp at this\n    exact Int.modEq_iff_mod_eq.mp this\n\n  -- Step 3: Calculate (a - b) mod 10\n  zify [h₀]\n  have : ((a : ℤ) - (b : ℤ)) % 10 = (9 - 3 : ℤ) % 10 := by\n    apply Int.ModEq.sub\n    · exact Int.modEq_iff_mod_eq.mpr ha\n    · exact Int.modEq_iff_mod_eq.mpr hb\n  norm_num at this\n  exact this\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Step 1: Solve for a mod 10\n  -- (2a + b) - (a + b) ≡ 1 - 2 [MOD 10]\n  have ha : a ≡ 9 [MOD 10] := by\n    have h_sub := Nat.ModEq.sub h₂ h₁\n    simp [Nat.add_sub_add_right] at h_sub\n    -- Since 1 < 2, we treat it in Z mod 10 or adjust\n    have : (2 * a + b) % 10 = 1 := h₂\n    have : (a + b) % 10 = 2 := h₁\n    zify [h₀]\n    have : ((2 * a + b : ℤ) - (a + b : ℤ)) % 10 = (1 - 2 : ℤ) % 10 := by\n      apply Int.ModEq.sub\n      · exact Int.modEq_iff_mod_eq.mpr rfl\n      · exact Int.modEq_iff_mod_eq.mpr rfl\n    simp at this\n    exact Int.modEq_iff_mod_eq.mp this\n\n  -- Step 2: Solve for b mod 10\n  -- a + b ≡ 2 [MOD 10] => 9 + b ≡ 2 [MOD 10] => b ≡ 3 [MOD 10]\n  have hb : b ≡ 3 [MOD 10] := by\n    have h_sub : (a + b) % 10 = 2 := h₁\n    have h_a_mod : a % 10 = 9 := ha\n    zify\n    have : ((a + b : ℤ) - (a : ℤ)) % 10 = (2 - 9 : ℤ) % 10 := by\n      apply Int.ModEq.sub\n      · exact Int.modEq_iff_mod_eq.mpr rfl\n      · exact Int.modEq_iff_mod_eq.mpr rfl\n    simp at this\n    exact Int.modEq_iff_mod_eq.mp this\n\n  -- Step 3: Calculate (a - b) mod 10\n  zify [h₀]\n  have : ((a : ℤ) - (b : ℤ)) % 10 = (9 - 3 : ℤ) % 10 := by\n    apply Int.ModEq.sub\n    · exact Int.modEq_iff_mod_eq.mpr ha\n    · exact Int.modEq_iff_mod_eq.mpr hb\n  norm_num at this\n  exact this",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 35
+            },
+            "endPos": {
+              "line": 13,
+              "column": 37
+            },
+            "data": "Application type mismatch: The argument\n  h₁\nhas type\n  a + b ≡ 2 [MOD 10]\nbut is expected to have type\n  ?m.51 ≤ ?m.49\nin the application\n  ModEq.sub ?m.52 h₁"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 4
+            },
+            "endPos": {
+              "line": 31,
+              "column": 8
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 43,
+              "column": 12
+            },
+            "endPos": {
+              "line": 43,
+              "column": 36
+            },
+            "data": "Unknown constant `Int.modEq_iff_mod_eq.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 12
+            },
+            "endPos": {
+              "line": 44,
+              "column": 36
+            },
+            "data": "Unknown constant `Int.modEq_iff_mod_eq.mpr`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.20247530937194824
+      }
+    },
+    {
+      "index": 29,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a - b) \\equiv 6 \\pmod{10}$ given the system of congruences, we can use the properties of modular arithmetic.\n\n### Proof Sketch\n1.  **Given Congruences:**\n    *   (1) $a + b \\equiv 2 \\pmod{10}$\n    *   (2) $2a + b \\equiv 1 \\pmod{10}$\n2.  **Solve for $a$:**\n    Subtract equation (1) from equation (2):\n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n    $a \\equiv -1 \\equiv 9 \\pmod{10}$\n3.  **Solve for $b$:**\n    Substitute $a \\equiv 9$ into equation (1):\n    $9 + b \\equiv 2 \\pmod{10}$\n    $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$\n4.  **Calculate $a - b$:**\n    $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$\n5.  **Conclusion:**\n    Since $b \\le a$, $a - b \\ge 0$, and the definition of the modulo operator in Lean for natural numbers `(a - b) % 10` matches the residue class $6 \\pmod{10}$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Convert congruences to ZMod 10 for easier algebraic manipulation\n  have h1' : (a + b : ZMod 10) = 2 := by \n    rw [← ZMod.eq_iff_modEq_nat] at h₁\n    exact h₁\n  have h2' : (2 * a + b : ZMod 10) = 1 := by \n    rw [← ZMod.eq_iff_modEq_nat] at h₂\n    exact h₂\n  \n  -- Subtracting the two equations yields a mod 10\n  have ha : (a : ZMod 10) = 1 - 2 := by\n    calc (a : ZMod 10) = (2 * a + b) - (a + b) := by ring\n      _ = 1 - 2 := by rw [h1', h2']\n  \n  -- Substituting a back into the first equation yields b mod 10\n  have hb : (b : ZMod 10) = 2 - (1 - 2) := by\n    rw [← ha, h1']\n    ring\n    \n  -- Calculate (a - b) mod 10\n  have hab : (a - b : ZMod 10) = (a : ZMod 10) - (b : ZMod 10) := by\n    rw [ZMod.coe_nat_sub h₀]\n  \n  have final_zmod : (a - b : ZMod 10) = 6 := by\n    rw [hab, ha, hb]\n    ring\n  \n  -- Convert ZMod result back to natural number modulo result\n  exact (ZMod.eq_iff_modEq_nat).mp final_zmod\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Convert congruences to ZMod 10 for easier algebraic manipulation\n  have h1' : (a + b : ZMod 10) = 2 := by \n    rw [← ZMod.eq_iff_modEq_nat] at h₁\n    exact h₁\n  have h2' : (2 * a + b : ZMod 10) = 1 := by \n    rw [← ZMod.eq_iff_modEq_nat] at h₂\n    exact h₂\n  \n  -- Subtracting the two equations yields a mod 10\n  have ha : (a : ZMod 10) = 1 - 2 := by\n    calc (a : ZMod 10) = (2 * a + b) - (a + b) := by ring\n      _ = 1 - 2 := by rw [h1', h2']\n  \n  -- Substituting a back into the first equation yields b mod 10\n  have hb : (b : ZMod 10) = 2 - (1 - 2) := by\n    rw [← ha, h1']\n    ring\n    \n  -- Calculate (a - b) mod 10\n  have hab : (a - b : ZMod 10) = (a : ZMod 10) - (b : ZMod 10) := by\n    rw [ZMod.coe_nat_sub h₀]\n  \n  have final_zmod : (a - b : ZMod 10) = 6 := by\n    rw [hab, ha, hb]\n    ring\n  \n  -- Convert ZMod result back to natural number modulo result\n  exact (ZMod.eq_iff_modEq_nat).mp final_zmod",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 10
+            },
+            "endPos": {
+              "line": 12,
+              "column": 31
+            },
+            "data": "Unknown constant `ZMod.eq_iff_modEq_nat`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 10
+            },
+            "endPos": {
+              "line": 15,
+              "column": 31
+            },
+            "data": "Unknown constant `ZMod.eq_iff_modEq_nat`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 14
+            },
+            "endPos": {
+              "line": 25,
+              "column": 17
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ↑a + ↑b\nin the target expression\n  ↑b = 2 - ↑a\n\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh1' : ↑a + ↑b = 2\nh2' : 2 * ↑a + ↑b = 1\nha : ↑a = 1 - 2\n⊢ ↑b = 2 - ↑a"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 8
+            },
+            "endPos": {
+              "line": 30,
+              "column": 24
+            },
+            "data": "Unknown constant `ZMod.coe_nat_sub`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 45
+            },
+            "endPos": {
+              "line": 34,
+              "column": 8
+            },
+            "data": "unsolved goals\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh1' : ↑a + ↑b = 2\nh2' : 2 * ↑a + ↑b = 1\nha : ↑a = 1 - 2\nhb : ↑b = 2 - (1 - 2)\nhab : ↑a - ↑b = ↑a - ↑b\n⊢ -4 = 6"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 9
+            },
+            "endPos": {
+              "line": 37,
+              "column": 30
+            },
+            "data": "Unknown constant `ZMod.eq_iff_modEq_nat`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.7061173915863037
+      }
+    },
+    {
+      "index": 30,
+      "status": "FAILED",
+      "raw_text": "To solve for $(a - b) \\pmod{10}$, we use the given system of linear congruences:\n1.  $a + b \\equiv 2 \\pmod{10}$\n2.  $2a + b \\equiv 1 \\pmod{10}$\n\n**Proof Sketch:**\n1.  Subtract the first equation from the second to isolate $a$:\n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n    $a \\equiv -1 \\equiv 9 \\pmod{10}$.\n2.  Substitute $a \\equiv 9$ back into the first equation to solve for $b$:\n    $9 + b \\equiv 2 \\pmod{10}$\n    $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$.\n3.  Calculate $a - b \\pmod{10}$:\n    $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\n4.  Since $(a - b) \\pmod{10}$ is the remainder of the subtraction and we are given $b \\le a$, the result follows directly from the properties of modular arithmetic.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  /-\n    We have:\n    1) a + b ≡ 2 [MOD 10]\n    2) 2a + b ≡ 1 [MOD 10]\n  -/\n  have h_a : a % 10 = 9 := by\n    /- Subtract (1) from (2): (2a + b) - (a + b) ≡ 1 - 2 [MOD 10] -/\n    have h_sub := Nat.ModEq.add_right_cancel h₁ (a := b) (b := a) (c := a)\n    rw [add_comm a b] at h₁\n    have h_diff : (2 * a + b) = (a + b) + a := by\n      rw [mul_two, add_assoc, add_comm b a, ← add_assoc]\n    rw [h_diff] at h₂\n    have : (a + b) + a ≡ 2 + 9 [MOD 10] := by\n      apply Nat.ModEq.add h₁\n      rfl\n    -- Since (a + b) ≡ 2 and (a + b) + a ≡ 1, we have 2 + a ≡ 1 [MOD 10]\n    have h3 : 2 + a ≡ 1 [MOD 10] := Nat.ModEq.add_left_cancel h₁ h₂\n    -- 2 + a ≡ 1 => a ≡ -1 ≡ 9 [MOD 10]\n    have h4 : (2 + a) + 8 ≡ 1 + 8 [MOD 10] := Nat.ModEq.add_right 8 h3\n    rw [add_assoc, show 2 + 8 = 10 from rfl] at h4\n    have : 10 + a ≡ a [MOD 10] := by exact Nat.modEq_add_fac_left a rfl\n    exact Eq.trans (Eq.symm (Nat.ModEq.add_left_cancel (Nat.modEq_refl 10) h4)) rfl\n\n  have h_b : b % 10 = 3 := by\n    -- a + b ≡ 2 and a ≡ 9 => 9 + b ≡ 2 [MOD 10]\n    have h5 : a + b ≡ 9 + b [MOD 10] := Nat.ModEq.add_right b h_a\n    have h6 : 9 + b ≡ 2 [MOD 10] := Nat.ModEq.trans (Eq.symm h5) h₁\n    -- 9 + b ≡ 2 => b ≡ -7 ≡ 3 [MOD 10]\n    have h7 : (9 + b) + 1 ≡ 2 + 1 [MOD 10] := Nat.ModEq.add_right 1 h6\n    rw [add_comm 9 b, add_assoc, show 9 + 1 = 10 from rfl] at h7\n    have : b + 10 ≡ b [MOD 10] := Nat.modEq_add_fac_right b rfl\n    exact Eq.trans (Eq.symm (Nat.ModEq.add_right_cancel (Nat.modEq_refl 10) h7)) rfl\n\n  /- Now calculate (a - b) % 10 -/\n  rw [Nat.sub_mod h₀]\n  rw [h_a, h_b]\n  rfl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  /-\n    We have:\n    1) a + b ≡ 2 [MOD 10]\n    2) 2a + b ≡ 1 [MOD 10]\n  -/\n  have h_a : a % 10 = 9 := by\n    /- Subtract (1) from (2): (2a + b) - (a + b) ≡ 1 - 2 [MOD 10] -/\n    have h_sub := Nat.ModEq.add_right_cancel h₁ (a := b) (b := a) (c := a)\n    rw [add_comm a b] at h₁\n    have h_diff : (2 * a + b) = (a + b) + a := by\n      rw [mul_two, add_assoc, add_comm b a, ← add_assoc]\n    rw [h_diff] at h₂\n    have : (a + b) + a ≡ 2 + 9 [MOD 10] := by\n      apply Nat.ModEq.add h₁\n      rfl\n    -- Since (a + b) ≡ 2 and (a + b) + a ≡ 1, we have 2 + a ≡ 1 [MOD 10]\n    have h3 : 2 + a ≡ 1 [MOD 10] := Nat.ModEq.add_left_cancel h₁ h₂\n    -- 2 + a ≡ 1 => a ≡ -1 ≡ 9 [MOD 10]\n    have h4 : (2 + a) + 8 ≡ 1 + 8 [MOD 10] := Nat.ModEq.add_right 8 h3\n    rw [add_assoc, show 2 + 8 = 10 from rfl] at h4\n    have : 10 + a ≡ a [MOD 10] := by exact Nat.modEq_add_fac_left a rfl\n    exact Eq.trans (Eq.symm (Nat.ModEq.add_left_cancel (Nat.modEq_refl 10) h4)) rfl\n\n  have h_b : b % 10 = 3 := by\n    -- a + b ≡ 2 and a ≡ 9 => 9 + b ≡ 2 [MOD 10]\n    have h5 : a + b ≡ 9 + b [MOD 10] := Nat.ModEq.add_right b h_a\n    have h6 : 9 + b ≡ 2 [MOD 10] := Nat.ModEq.trans (Eq.symm h5) h₁\n    -- 9 + b ≡ 2 => b ≡ -7 ≡ 3 [MOD 10]\n    have h7 : (9 + b) + 1 ≡ 2 + 1 [MOD 10] := Nat.ModEq.add_right 1 h6\n    rw [add_comm 9 b, add_assoc, show 9 + 1 = 10 from rfl] at h7\n    have : b + 10 ≡ b [MOD 10] := Nat.modEq_add_fac_right b rfl\n    exact Eq.trans (Eq.symm (Nat.ModEq.add_right_cancel (Nat.modEq_refl 10) h7)) rfl\n\n  /- Now calculate (a - b) % 10 -/\n  rw [Nat.sub_mod h₀]\n  rw [h_a, h_b]\n  rfl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 45
+            },
+            "endPos": {
+              "line": 17,
+              "column": 47
+            },
+            "data": "Application type mismatch: The argument\n  h₁\nhas type\n  a + b ≡ 2 [MOD 10]\nbut is expected to have type\n  a ≡ ?m.53 [MOD ?m.52]\nin the application\n  ModEq.add_right_cancel h₁"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 40,
+              "column": 34
+            },
+            "endPos": {
+              "line": 40,
+              "column": 57
+            },
+            "data": "Unknown constant `Nat.modEq_add_fac_right`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 41,
+              "column": 57
+            },
+            "endPos": {
+              "line": 41,
+              "column": 71
+            },
+            "data": "Unknown constant `Nat.modEq_refl`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 6
+            },
+            "endPos": {
+              "line": 44,
+              "column": 17
+            },
+            "data": "Unknown constant `Nat.sub_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 56
+            },
+            "endPos": {
+              "line": 46,
+              "column": 5
+            },
+            "data": "unsolved goals\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nh_a : a % 10 = 9\nh_b : b % 10 = 3\n⊢ (a - b) % 10 = 6"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.17997288703918457
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "To solve for $(a - b) \\pmod{10}$ given the system of linear congruences:\n1.  $a + b \\equiv 2 \\pmod{10}$\n2.  $2a + b \\equiv 1 \\pmod{10}$\n\n**Proof Sketch:**\n1.  **Solve for $a$:** Subtract the first equation from the second:\n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n    $a \\equiv -1 \\equiv 9 \\pmod{10}$.\n2.  **Solve for $b$:** Substitute $a \\equiv 9$ back into the first equation:\n    $9 + b \\equiv 2 \\pmod{10}$\n    $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$.\n3.  **Calculate $a - b$:**\n    $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$.\n4.  Since we are working with natural numbers and $b \\le a$, the result $(a - b) \\% 10$ is exactly $6$.\n\n**Lean 4 Code:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use the properties of Modulo arithmetic in ℤ to solve for a and b\n  have h_sub : (2 * a + b : ℤ) - (a + b : ℤ) ≡ 1 - 2 [ZMOD 10] := by\n    apply Int.ModEq.sub h₂ h₁\n  \n  -- Simplify to find a ≡ 9 [ZMOD 10]\n  have ha : (a : ℤ) ≡ -1 [ZMOD 10] := by\n    ring_nf at h_sub\n    exact h_sub\n    \n  -- Substitute a into h₁ to solve for b\n  have hb : (b : ℤ) ≡ 2 - (a : ℤ) [ZMOD 10] := by\n    have h_a_add_b : (a : ℤ) + (b : ℤ) ≡ 2 [ZMOD 10] := h₁\n    calc\n      (b : ℤ) = ((a : ℤ) + (b : ℤ)) - (a : ℤ) := by ring\n      _ ≡ 2 - (a : ℤ) [ZMOD 10] := Int.ModEq.sub h₁ (refl _)\n\n  -- Substitute ha into hb\n  have hb_val : (b : ℤ) ≡ 2 - (-1) [ZMOD 10] := Int.ModEq.sub (refl _) ha\n  have hb_final : (b : ℤ) ≡ 3 [ZMOD 10] := hb_val\n\n  -- Calculate (a - b) ≡ 9 - 3 [ZMOD 10]\n  have hab : (a : ℤ) - (b : ℤ) ≡ (-1) - 3 [ZMOD 10] := Int.ModEq.sub ha hb_final\n  have hab_final : (a : ℤ) - (b : ℤ) ≡ -4 [ZMOD 10] := hab\n  \n  -- Convert ZMOD back to MOD for natural numbers\n  -- Since b ≤ a, (a - b : ℕ) corresponds to (a - b : ℤ)\n  have h_nat_cast : ((a - b : ℕ) : ℤ) = (a : ℤ) - (b : ℤ) := Int.ofNat_sub h₀\n  have h_fin : ((a - b : ℕ) : ℤ) ≡ 6 [ZMOD 10] := by\n    rw [h_nat_cast]\n    apply Int.ModEq.trans hab_final\n    norm_num [Int.ModEq]\n\n  -- Final extraction of the modulo value\n  exact Int.ofNat_inj.mp h_fin\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Use the properties of Modulo arithmetic in ℤ to solve for a and b\n  have h_sub : (2 * a + b : ℤ) - (a + b : ℤ) ≡ 1 - 2 [ZMOD 10] := by\n    apply Int.ModEq.sub h₂ h₁\n  \n  -- Simplify to find a ≡ 9 [ZMOD 10]\n  have ha : (a : ℤ) ≡ -1 [ZMOD 10] := by\n    ring_nf at h_sub\n    exact h_sub\n    \n  -- Substitute a into h₁ to solve for b\n  have hb : (b : ℤ) ≡ 2 - (a : ℤ) [ZMOD 10] := by\n    have h_a_add_b : (a : ℤ) + (b : ℤ) ≡ 2 [ZMOD 10] := h₁\n    calc\n      (b : ℤ) = ((a : ℤ) + (b : ℤ)) - (a : ℤ) := by ring\n      _ ≡ 2 - (a : ℤ) [ZMOD 10] := Int.ModEq.sub h₁ (refl _)\n\n  -- Substitute ha into hb\n  have hb_val : (b : ℤ) ≡ 2 - (-1) [ZMOD 10] := Int.ModEq.sub (refl _) ha\n  have hb_final : (b : ℤ) ≡ 3 [ZMOD 10] := hb_val\n\n  -- Calculate (a - b) ≡ 9 - 3 [ZMOD 10]\n  have hab : (a : ℤ) - (b : ℤ) ≡ (-1) - 3 [ZMOD 10] := Int.ModEq.sub ha hb_final\n  have hab_final : (a : ℤ) - (b : ℤ) ≡ -4 [ZMOD 10] := hab\n  \n  -- Convert ZMOD back to MOD for natural numbers\n  -- Since b ≤ a, (a - b : ℕ) corresponds to (a - b : ℤ)\n  have h_nat_cast : ((a - b : ℕ) : ℤ) = (a : ℤ) - (b : ℤ) := Int.ofNat_sub h₀\n  have h_fin : ((a - b : ℕ) : ℤ) ≡ 6 [ZMOD 10] := by\n    rw [h_nat_cast]\n    apply Int.ModEq.trans hab_final\n    norm_num [Int.ModEq]\n\n  -- Final extraction of the modulo value\n  exact Int.ofNat_inj.mp h_fin",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 24
+            },
+            "endPos": {
+              "line": 12,
+              "column": 26
+            },
+            "data": "Application type mismatch: The argument\n  h₂\nhas type\n  2 * a + b ≡ 1 [MOD 10]\nbut is expected to have type\n  ?m.71 ≡ ?m.72 [ZMOD ?m.70]\nin the application\n  Int.ModEq.sub h₂"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 15
+            },
+            "data": "Type mismatch\n  h_sub\nhas type\n  ↑a * Nat.rawCast 1 ≡ -1 [ZMOD 10]\nbut is expected to have type\n  ↑a ≡ -1 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 56
+            },
+            "endPos": {
+              "line": 21,
+              "column": 58
+            },
+            "data": "Type mismatch\n  h₁\nhas type\n  a + b ≡ 2 [MOD 10]\nbut is expected to have type\n  ↑a + ↑b ≡ 2 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 49
+            },
+            "endPos": {
+              "line": 24,
+              "column": 51
+            },
+            "data": "Application type mismatch: The argument\n  h₁\nhas type\n  a + b ≡ 2 [MOD 10]\nbut is expected to have type\n  ↑a + ↑b ≡ 2 [ZMOD 10]\nin the application\n  Int.ModEq.sub h₁"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 48
+            },
+            "endPos": {
+              "line": 27,
+              "column": 73
+            },
+            "data": "Type mismatch\n  Int.ModEq.sub (refl ?m.152) ha\nhas type\n  ?m.152 - ↑a ≡ ?m.152 - -1 [ZMOD 10]\nbut is expected to have type\n  ↑b ≡ 2 - -1 [ZMOD 10]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.20554852485656738
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "To prove that $(a - b) \\pmod{10} = 6$ given the system of linear congruences:\n1.  $a + b \\equiv 2 \\pmod{10}$\n2.  $2a + b \\equiv 1 \\pmod{10}$\n\n**Proof Sketch:**\n1.  Subtract the first congruence from the second:\n    $(2a + b) - (a + b) \\equiv 1 - 2 \\pmod{10}$\n    $a \\equiv -1 \\equiv 9 \\pmod{10}$\n2.  Substitute $a \\equiv 9$ back into the first congruence:\n    $9 + b \\equiv 2 \\pmod{10}$\n    $b \\equiv 2 - 9 \\equiv -7 \\equiv 3 \\pmod{10}$\n3.  Calculate the difference $a - b \\pmod{10}$:\n    $a - b \\equiv 9 - 3 \\equiv 6 \\pmod{10}$\n4.  Since $b \\le a$, $a - b$ is a non-negative integer, so $(a - b) \\% 10 = 6$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Subtract the two congruences to isolate a\n  -- (2a + b) - (a + b) ≡ 1 - 2 [MOD 10]\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + (b : ℤ) ≡ 2 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₁\n    have h2_z : 2 * (a : ℤ) + (b : ℤ) ≡ 1 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₂\n    convert Int.ModEq.sub h2_z h1_z using 1\n    ring\n  \n  -- Use a ≡ -1 ≡ 9 [ZMOD 10] to find b\n  have hb : b ≡ (2 - (-1) : ℤ) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + (b : ℤ) ≡ 2 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₁\n    have ha_val : (a : ℤ) ≡ -1 [ZMOD 10] := ha\n    convert Int.ModEq.sub h1_z ha_val using 1\n    ring\n\n  -- Compute (a - b) mod 10\n  have hab : (a : ℤ) - (b : ℤ) ≡ (-1 - 3 : ℤ) [ZMOD 10] := by\n    have hb_val : (b : ℤ) ≡ 3 [ZMOD 10] := hb\n    exact Int.ModEq.sub ha hb_val\n\n  -- Final conversion to Nat mod\n  have h_diff : (a - b : ℤ) ≡ -4 [ZMOD 10] := by\n    rw [Int.ofNat_sub h₀]\n    exact hab\n\n  have h_pos : (a - b : ℤ) ≡ 6 [ZMOD 10] := by\n    convert h_diff using 1\n    exact rfl\n\n  exact Int.modEq_iff_nat_modEq.mp h_pos\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_110 (a b : ℕ) (h₀ : b ≤ a) (h₁ : (a + b) ≡ 2 [MOD 10])\n  (h₂ : (2 * a + b) ≡ 1 [MOD 10]) : (a - b) % 10 = 6 := by\n  -- Subtract the two congruences to isolate a\n  -- (2a + b) - (a + b) ≡ 1 - 2 [MOD 10]\n  have ha : a ≡ (1 - 2 : ℤ) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + (b : ℤ) ≡ 2 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₁\n    have h2_z : 2 * (a : ℤ) + (b : ℤ) ≡ 1 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₂\n    convert Int.ModEq.sub h2_z h1_z using 1\n    ring\n  \n  -- Use a ≡ -1 ≡ 9 [ZMOD 10] to find b\n  have hb : b ≡ (2 - (-1) : ℤ) [ZMOD 10] := by\n    have h1_z : (a : ℤ) + (b : ℤ) ≡ 2 [ZMOD 10] := Int.modEq_iff_nat_modEq.mpr h₁\n    have ha_val : (a : ℤ) ≡ -1 [ZMOD 10] := ha\n    convert Int.ModEq.sub h1_z ha_val using 1\n    ring\n\n  -- Compute (a - b) mod 10\n  have hab : (a : ℤ) - (b : ℤ) ≡ (-1 - 3 : ℤ) [ZMOD 10] := by\n    have hb_val : (b : ℤ) ≡ 3 [ZMOD 10] := hb\n    exact Int.ModEq.sub ha hb_val\n\n  -- Final conversion to Nat mod\n  have h_diff : (a - b : ℤ) ≡ -4 [ZMOD 10] := by\n    rw [Int.ofNat_sub h₀]\n    exact hab\n\n  have h_pos : (a - b : ℤ) ≡ 6 [ZMOD 10] := by\n    convert h_diff using 1\n    exact rfl\n\n  exact Int.modEq_iff_nat_modEq.mp h_pos",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 51
+            },
+            "endPos": {
+              "line": 13,
+              "column": 78
+            },
+            "data": "Unknown constant `Int.modEq_iff_nat_modEq.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 55
+            },
+            "endPos": {
+              "line": 14,
+              "column": 82
+            },
+            "data": "Unknown constant `Int.modEq_iff_nat_modEq.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 51
+            },
+            "endPos": {
+              "line": 20,
+              "column": 78
+            },
+            "data": "Unknown constant `Int.modEq_iff_nat_modEq.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 8
+            },
+            "endPos": {
+              "line": 32,
+              "column": 24
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ↑(a - b)\nin the target expression\n  ↑a - ↑b ≡ -4 [ZMOD 10]\n\na b : ℕ\nh₀ : b ≤ a\nh₁ : a + b ≡ 2 [MOD 10]\nh₂ : 2 * a + b ≡ 1 [MOD 10]\nha : ↑a ≡ 1 - 2 [ZMOD 10]\nhb : ↑b ≡ 2 - -1 [ZMOD 10]\nhab : ↑a - ↑b ≡ -1 - 3 [ZMOD 10]\n⊢ ↑a - ↑b ≡ -4 [ZMOD 10]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 4
+            },
+            "endPos": {
+              "line": 37,
+              "column": 13
+            },
+            "data": "Type mismatch\n  rfl\nhas type\n  ?m.343 = ?m.343\nbut is expected to have type\n  6 = -4"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 39,
+              "column": 8
+            },
+            "endPos": {
+              "line": 39,
+              "column": 34
+            },
+            "data": "Unknown constant `Int.modEq_iff_nat_modEq.mp`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.19719314575195312
+      }
+    }
+  ]
+}

@@ -1,0 +1,638 @@
+{
+  "problem": "problems/miniF2F-test/mathd_numbertheory_37.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 16:00:00",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 24,
+    "completed_count": 24,
+    "solved": true
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we follow these steps:\n\n### Proof Sketch\n1.  **Prime Factorization of 9999**:\n    $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101 = 3^2 \\times 11 \\times 101$.\n2.  **Prime Factorization of 100001**:\n    Observe that $100001 = 100^2 + 1$. Using the factorization of $x^4 + 1$ is not direct, but we can check small primes or use the identity $x^6 + 1 = (x^2 + 1)(x^4 - x^2 + 1)$.\n    For $x=10$: $10^6 + 1 = 1000001$. That's not it.\n    Actually, $100001 = 11 \\times 9091$.\n3.  **Greatest Common Divisor (GCD)**:\n    Calculate $\\gcd(9999, 100001)$ using the Euclidean Algorithm:\n    - $100001 = 10 \\times 9999 + 11$\n    - $9999 = 909 \\times 11 + 0$\n    Thus, $\\gcd(9999, 100001) = 11$.\n4.  **Least Common Multiple (LCM)**:\n    Use the formula $\\text{lcm}(a, b) = \\frac{a \\times b}{\\gcd(a, b)}$.\n    $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11} = \\frac{9999}{11} \\times 100001 = 909 \\times 100001 = 90900909$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the property that lcm a b * gcd a b = a * b\n  have h_gcd : Nat.gcd 9999 100001 = 11 := by\n    native_decide\n  have h_mul : 9999 * 100001 = 999909999 := by\n    norm_num\n  have h_lcm_gcd := Nat.lcm_mul_gcd 9999 100001\n  rw [h_gcd, h_mul] at h_lcm_gcd\n  -- Now we have lcm * 11 = 999909999, so lcm = 999909999 / 11\n  apply Nat.eq_of_mul_eq_mul_left (show 11 > 0 by norm_num)\n  rw [h_lcm_gcd]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the property that lcm a b * gcd a b = a * b\n  have h_gcd : Nat.gcd 9999 100001 = 11 := by\n    native_decide\n  have h_mul : 9999 * 100001 = 999909999 := by\n    norm_num\n  have h_lcm_gcd := Nat.lcm_mul_gcd 9999 100001\n  rw [h_gcd, h_mul] at h_lcm_gcd\n  -- Now we have lcm * 11 = 999909999, so lcm = 999909999 / 11\n  apply Nat.eq_of_mul_eq_mul_left (show 11 > 0 by norm_num)\n  rw [h_lcm_gcd]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 6
+            },
+            "endPos": {
+              "line": 18,
+              "column": 15
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  Nat.lcm 9999 100001 * 11\nin the target expression\n  11 * Nat.lcm 9999 100001 = 11 * 90900909\n\nh_gcd : Nat.gcd 9999 100001 = 11\nh_mul : 9999 * 100001 = 999909999\nh_lcm_gcd : Nat.lcm 9999 100001 * 11 = 999909999\n⊢ 11 * Nat.lcm 9999 100001 = 11 * 90900909"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.030092477798461914
+      }
+    },
+    {
+      "index": 2,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we follow these steps:\n\n1.  **Identify Factors**: We observe that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n2.  **Identify Factors**: We observe that $100001 = 11 \\times 9091$.\n3.  **Calculate GCD**: We use the Euclidean algorithm or prime factorization to find $\\gcd(9999, 100001)$. \n    - $100001 = 10 \\times 9999 + 11$\n    - $9999 = 909 \\times 11 + 0$\n    - Thus, $\\gcd(9999, 100001) = 11$.\n4.  **Apply LCM Formula**: Use the identity $\\text{lcm}(a, b) = \\frac{a \\cdot b}{\\gcd(a, b)}$.\n    - $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11}$\n    - $\\text{lcm}(9999, 100001) = \\frac{9999}{11} \\times 100001 = 909 \\times 100001 = 90900909$.\n\nThe Lean 4 implementation uses the definition of `Nat.lcm` and evaluates it using `norm_num` or standard simplification.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the property that lcm a b = (a * b) / gcd a b\n  -- Or simply let Lean's kernel or norm_num evaluate the small constants.\n  show Nat.lcm 9999 100001 = 90900909\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the property that lcm a b = (a * b) / gcd a b\n  -- Or simply let Lean's kernel or norm_num evaluate the small constants.\n  show Nat.lcm 9999 100001 = 90900909\n  norm_num",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.011200428009033203
+      }
+    },
+    {
+      "index": 3,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we follow these steps:\n1.  **Prime Factorization/Divisibility Analysis**: \n    - Note that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n    - Note that $100001 = 11 \\times 9091$.\n2.  **Greatest Common Divisor (GCD)**: Calculate $\\text{gcd}(9999, 100001)$. Using the Euclidean algorithm:\n    - $100001 = 10 \\times 9999 + 11$.\n    - $9999 = 909 \\times 11 + 0$.\n    - Thus, $\\text{gcd}(9999, 100001) = 11$.\n3.  **Least Common Multiple (LCM) Formula**: Use the identity $\\text{lcm}(a, b) = \\frac{a \\times b}{\\text{gcd}(a, b)}$.\n    - $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11}$.\n    - $\\text{lcm}(9999, 100001) = 909 \\times 100001 = 90900909$.\n\nThe Lean 4 proof uses the built-in decision procedures for natural number normalization to confirm these arithmetic calculations.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- We use the property that lcm a b * gcd a b = a * b\n  -- First, we can compute the gcd using the Euclidean Algorithm manually or \n  -- let Lean's normalization handle the evaluation.\n  native_decide\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- We use the property that lcm a b * gcd a b = a * b\n  -- First, we can compute the gcd using the Euclidean Algorithm manually or \n  -- let Lean's normalization handle the evaluation.\n  native_decide",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.00950002670288086
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we follow these steps:\n\n1.  **Factorization**: Observe that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n2.  **Factorization**: Observe that $100001 = 11 \\times 9091$.\n3.  **GCD Calculation**: We calculate $\\gcd(9999, 100001)$. Using the Euclidean algorithm:\n    $100001 = 10 \\times 9999 + 11$\n    $9999 = 909 \\times 11 + 0$\n    Thus, $\\gcd(9999, 100001) = 11$.\n4.  **LCM Formula**: Use the identity $\\text{lcm}(a, b) = \\frac{a \\times b}{\\gcd(a, b)}$.\n5.  **Calculation**: $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11} = \\frac{9999}{11} \\times 100001 = 909 \\times 100001 = 90900909$.\n\nThe Lean 4 implementation uses the standard library's `Nat.lcm` definition and efficient normalization tactics.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the property that lcm a b * gcd a b = a * b\n  have h : Nat.lcm 9999 100001 * Nat.gcd 9999 100001 = 9999 * 100001 := by\n    exact Nat.lcm_mul_gcd 9999 100001\n  -- Calculate the gcd manually or via normalization\n  have g : Nat.gcd 9999 100001 = 11 := by\n    native_decide\n  -- Substitute g into h\n  rw [g] at h\n  -- Now we have lcm * 11 = 9999 * 100001\n  -- Perform the multiplication on the RHS\n  have m : 9999 * 100001 = 999909999 := by rfl\n  rw [m] at h\n  -- Solve for lcm by division\n  apply Nat.eq_of_mul_eq_mul_right (show 11 > 0 by norm_num)\n  rw [h]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the property that lcm a b * gcd a b = a * b\n  have h : Nat.lcm 9999 100001 * Nat.gcd 9999 100001 = 9999 * 100001 := by\n    exact Nat.lcm_mul_gcd 9999 100001\n  -- Calculate the gcd manually or via normalization\n  have g : Nat.gcd 9999 100001 = 11 := by\n    native_decide\n  -- Substitute g into h\n  rw [g] at h\n  -- Now we have lcm * 11 = 9999 * 100001\n  -- Perform the multiplication on the RHS\n  have m : 9999 * 100001 = 999909999 := by rfl\n  rw [m] at h\n  -- Solve for lcm by division\n  apply Nat.eq_of_mul_eq_mul_right (show 11 > 0 by norm_num)\n  rw [h]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 2
+            },
+            "endPos": {
+              "line": 24,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.03139543533325195
+      }
+    },
+    {
+      "index": 5,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\operatorname{lcm}(9999, 100001) = 90900909$, we follow these steps:\n\n1.  **Prime Factorization of 9999**:\n    $9999 = 9 \\times 1111 = 3^2 \\times 11 \\times 101$.\n2.  **Prime Factorization of 100001**:\n    $100001 = 11 \\times 9091$. (Note: $100001 = 10^5 + 1$, which is divisible by $10+1=11$).\n    By checking primality or division, $9091$ is prime and not a factor of $9999$ except through $11$.\n3.  **Greatest Common Divisor (GCD)**:\n    Calculate $\\gcd(9999, 100001)$ using the Euclidean algorithm:\n    $100001 = 10 \\times 9999 + 11$.\n    $9999 = 909 \\times 11 + 0$.\n    Thus, $\\gcd(9999, 100001) = 11$.\n4.  **Least Common Multiple (LCM)**:\n    Using the identity $\\operatorname{lcm}(a, b) = \\frac{a \\times b}{\\gcd(a, b)}$:\n    $\\operatorname{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11} = \\frac{9999}{11} \\times 100001 = 909 \\times 100001 = 90900909$.\n\nThe following Lean 4 code performs these calculations efficiently using the built-in normalization for constants or the Euclidean algorithm tactics.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- We can use the native dec_trivial for small enough numbers or \n  -- compute via the property relating lcm, gcd and multiplication.\n  show Nat.lcm 9999 100001 = 90900909\n  native_decide\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- We can use the native dec_trivial for small enough numbers or \n  -- compute via the property relating lcm, gcd and multiplication.\n  show Nat.lcm 9999 100001 = 90900909\n  native_decide",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.014232873916625977
+      }
+    },
+    {
+      "index": 6,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we use the relationship $\\text{lcm}(a, b) = \\frac{a \\cdot b}{\\gcd(a, b)}$.\n1.  First, observe the prime factorizations or use the Euclidean algorithm to find the greatest common divisor.\n2.  Note that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n3.  Note that $100001 = 11 \\times 9091$.\n4.  Checking divisibility: $9091$ is not divisible by $3$ (sum of digits is 19) or $101$. \n5.  Calculating $\\gcd(9999, 100001)$ yields $11$.\n6.  Thus, $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11} = 909 \\times 100001 = 90900909$.\n\nIn Lean 4, we can simply use the `norm_num` tactic which is designed to solve such arithmetic identities efficiently.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  norm_num",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.015925884246826172
+      }
+    },
+    {
+      "index": 7,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we follow these steps:\n\n1.  **Factorization**: Observe that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n2.  **Factorization**: Observe that $100001 = 11 \\times 9091$.\n3.  **GCD Calculation**: We calculate $\\gcd(9999, 100001)$. Using the Euclidean algorithm:\n    $100001 = 10 \\times 9999 + 11$\n    $9999 = 909 \\times 11 + 0$\n    Thus, $\\gcd(9999, 100001) = 11$.\n4.  **LCM Formula**: Use the identity $\\text{lcm}(a, b) = \\frac{a \\times b}{\\gcd(a, b)}$.\n5.  **Calculation**: $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11} = \\frac{9999}{11} \\times 100001 = 909 \\times 100001 = 90900909$.\n\nThe Lean proof uses the native `norm_num` tactic which efficiently handles these numerical identities.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Using the property lcm(a, b) * gcd(a, b) = a * b\n  -- and numerical normalization for the specific values.\n  show Nat.lcm 9999 100001 = 90900909\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Using the property lcm(a, b) * gcd(a, b) = a * b\n  -- and numerical normalization for the specific values.\n  show Nat.lcm 9999 100001 = 90900909\n  norm_num",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.012079238891601562
+      }
+    },
+    {
+      "index": 8,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we use the identity $\\text{lcm}(a, b) = \\frac{a \\cdot b}{\\gcd(a, b)}$.\n\n**Proof Sketch:**\n1.  First, observe that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n2.  Next, observe that $100001 = 11 \\times 9091$ or alternatively $100001 = 100100 - 99 = 1001 \\times 100 - 99$.\n3.  Perform the Euclidean Algorithm to find $\\gcd(100001, 9999)$:\n    *   $100001 = 10 \\times 9999 + 11$.\n    *   $9999 = 909 \\times 11 + 0$.\n    *   Thus, $\\gcd(9999, 100001) = 11$.\n4.  Calculate the LCM:\n    *   $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11}$.\n    *   $\\frac{9999}{11} = 909$.\n    *   $909 \\times 100001 = 90900909$.\n\nIn Lean, we can use the `norm_num` tactic which is highly efficient for specific numerical calculations involving GCD and LCM.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use norm_num to evaluate the lcm of two natural numbers.\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use norm_num to evaluate the lcm of two natural numbers.\n  norm_num",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.020247697830200195
+      }
+    },
+    {
+      "index": 9,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\operatorname{lcm}(9999, 100001) = 90900909$, we use the identity $\\operatorname{lcm}(a, b) = \\frac{a \\cdot b}{\\gcd(a, b)}$.\n1.  First, observe that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n2.  Next, observe that $100001 = 11 \\times 9091$. (Alternatively, use the Euclidean algorithm).\n3.  Calculate $\\gcd(9999, 100001)$:\n    - $100001 = 10 \\times 9999 + 11$.\n    - $9999 = 909 \\times 11 + 0$.\n    - Thus, $\\gcd(9999, 100001) = 11$.\n4.  Calculate the product and divide:\n    - $\\operatorname{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11} = 909 \\times 100001 = 90900909$.\n\nIn Lean 4, since these are concrete natural numbers, we can rely on the kernel's ability to evaluate the `lcm` function directly or provide a computational proof.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Using the definition of lcm and gcd for direct computation\n  show Nat.lcm 9999 100001 = 90900909\n  native_decide\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Using the definition of lcm and gcd for direct computation\n  show Nat.lcm 9999 100001 = 90900909\n  native_decide",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.009897708892822266
+      }
+    },
+    {
+      "index": 10,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we use the identity $\\text{lcm}(a, b) = (a \\cdot b) / \\gcd(a, b)$.\n1.  First, observe the factorizations or use the Euclidean algorithm to find the greatest common divisor (GCD).\n2.  Note that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n3.  Note that $100001 = 11 \\times 9091$.\n4.  Alternatively, use the Euclidean algorithm:\n    $100001 = 10 \\times 9999 + 11$.\n    $9999 = 909 \\times 11 + 0$.\n    Thus, $\\gcd(9999, 100001) = 11$.\n5.  The LCM is $(9999 \\times 100001) / 11 = 909 \\times 100001 = 90900909$.\n\nIn Lean 4, we can simply use the `norm_num` tactic which is highly efficient at computing GCDs and LCMs of concrete natural numbers.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use norm_num to compute the LCM of the two numbers.\n  -- norm_num is capable of handling standard arithmetic operations\n  -- including gcd and lcm for natural numbers.\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use norm_num to compute the LCM of the two numbers.\n  -- norm_num is capable of handling standard arithmetic operations\n  -- including gcd and lcm for natural numbers.\n  norm_num",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.011582612991333008
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we follow these steps:\n\n1.  **Prime Factorization / Division Analysis**: \n    - Note that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n    - Note that $100001 = 11 \\times 9091$.\n2.  **Greatest Common Divisor (GCD)**:\n    - We calculate $\\gcd(9999, 100001)$ using the Euclidean algorithm:\n        - $100001 = 10 \\times 9999 + 11$\n        - $9999 = 909 \\times 11 + 0$\n    - Thus, $\\gcd(9999, 100001) = 11$.\n3.  **Least Common Multiple (LCM) Formula**:\n    - Use the identity $\\text{lcm}(a, b) = \\frac{a \\times b}{\\gcd(a, b)}$.\n    - $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11} = 909 \\times 100001$.\n4.  **Final Calculation**:\n    - $909 \\times 100001 = 90900000 + 909 = 90900909$.\n\nThe following Lean 4 code performs this calculation using the built-in normalization for `Nat.lcm`.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Using the property lcm(a, b) * gcd(a, b) = a * b\n  have h_gcd : Nat.gcd 9999 100001 = 11 := by\n    native_decide\n  have h_lcm_gcd : Nat.lcm 9999 100001 * Nat.gcd 9999 100001 = 9999 * 100001 := by\n    exact Nat.lcm_mul_gcd 9999 100001\n  rw [h_gcd] at h_lcm_gcd\n  -- Calculation: (9999 * 100001) / 11\n  -- 9999 / 11 = 909\n  -- 909 * 100001 = 90900909\n  have h_prod : 9999 * 100001 = 999909999 := by rfl\n  rw [h_prod] at h_lcm_gcd\n  apply Nat.eq_of_mul_eq_mul_right (show 11 > 0 by norm_num)\n  rw [h_lcm_gcd]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Using the property lcm(a, b) * gcd(a, b) = a * b\n  have h_gcd : Nat.gcd 9999 100001 = 11 := by\n    native_decide\n  have h_lcm_gcd : Nat.lcm 9999 100001 * Nat.gcd 9999 100001 = 9999 * 100001 := by\n    exact Nat.lcm_mul_gcd 9999 100001\n  rw [h_gcd] at h_lcm_gcd\n  -- Calculation: (9999 * 100001) / 11\n  -- 9999 / 11 = 909\n  -- 909 * 100001 = 90900909\n  have h_prod : 9999 * 100001 = 999909999 := by rfl\n  rw [h_prod] at h_lcm_gcd\n  apply Nat.eq_of_mul_eq_mul_right (show 11 > 0 by norm_num)\n  rw [h_lcm_gcd]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 2
+            },
+            "endPos": {
+              "line": 22,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.0333714485168457
+      }
+    },
+    {
+      "index": 12,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we follow these steps:\n\n1.  **Identify Factorizations**: Observe that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$. Similarly, $100001 = 11 \\times 9091$ or more simply, check for common divisors using the Euclidean Algorithm.\n2.  **GCD Calculation**: We calculate $\\text{gcd}(9999, 100001)$. \n    $100001 = 10 \\times 9999 + 11$.\n    $9999 = 909 \\times 11 + 0$.\n    Thus, $\\text{gcd}(9999, 100001) = 11$.\n3.  **LCM Formula**: Use the identity $\\text{lcm}(a, b) = \\frac{a \\times b}{\\text{gcd}(a, b)}$.\n4.  **Computation**: \n    $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11} = \\frac{9999}{11} \\times 100001 = 909 \\times 100001 = 90900909$.\n\nIn Lean, the `norm_num` tactic can handle direct computations of `lcm`, `gcd`, and basic arithmetic on natural numbers efficiently.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use norm_num for direct calculation of lcm\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use norm_num for direct calculation of lcm\n  norm_num",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.008964776992797852
+      }
+    },
+    {
+      "index": 13,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we follow these steps:\n\n1.  **Identify Factors**: Notice that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n2.  **Identify Factors**: Notice that $100001 = 11 \\times 9091$.\n3.  **Compute GCD**: Calculate $\\gcd(9999, 100001)$. Using the Euclidean algorithm:\n    *   $100001 = 10 \\times 9999 + 11$\n    *   $9999 = 909 \\times 11 + 0$\n    *   Thus, $\\gcd(9999, 100001) = 11$.\n4.  **Lcm-Gcd Relationship**: Use the identity $\\text{lcm}(a, b) = \\frac{a \\cdot b}{\\gcd(a, b)}$.\n5.  **Calculation**:\n    *   $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11}$\n    *   $= 909 \\times 100001 = 90900909$.\n\nIn Lean 4, this can be computed directly using the `norm_num` tactic, which is efficient for specific natural number calculations involving `lcm`.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use norm_num to compute the least common multiple of specific constants.\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use norm_num to compute the least common multiple of specific constants.\n  norm_num",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.009536266326904297
+      }
+    },
+    {
+      "index": 14,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we use the standard identity $\\text{lcm}(a, b) = \\frac{a \\cdot b}{\\gcd(a, b)}$.\n\n**Proof Sketch:**\n1.  Identify $a = 9999$ and $b = 100001$.\n2.  Observe the factorization of $a$: $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n3.  Observe the factorization of $b$: $100001 = 11 \\times 9091$.\n4.  Perform the Euclidean algorithm or inspection to find $\\gcd(9999, 100001)$.\n    *   $100001 = 10 \\times 9999 + 11$.\n    *   $9999 = 909 \\times 11 + 0$.\n    *   Thus, $\\gcd(9999, 100001) = 11$.\n5.  Calculate the LCM: $\\frac{9999 \\times 100001}{11} = 909 \\times 100001 = 90900909$.\n6.  In Lean, `norm_num` is efficient enough to handle these specific constant natural number calculations directly.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the built-in decision procedure for natural number arithmetic\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the built-in decision procedure for natural number arithmetic\n  norm_num",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.00929117202758789
+      }
+    },
+    {
+      "index": 15,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we use the standard identity $\\text{lcm}(a, b) = (a \\cdot b) / \\text{gcd}(a, b)$.\n1.  **Factorization and GCD**: \n    Observe that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n    Observe that $100001 = 11 \\times 9091$.\n    Alternatively, use the Euclidean Algorithm:\n    $100001 = 10 \\times 9999 + 11$\n    $9999 = 909 \\times 11 + 0$\n    Thus, $\\gcd(9999, 100001) = 11$.\n2.  **LCM Calculation**:\n    $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11} = \\frac{9999}{11} \\times 100001 = 909 \\times 100001 = 90900909$.\n\nIn Lean 4, the `norm_num` tactic or `native_decide` can handle these computations directly as they are operations on constants.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Using the definition of lcm and evaluating\n  show Nat.lcm 9999 100001 = 90900909\n  native_decide\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Using the definition of lcm and evaluating\n  show Nat.lcm 9999 100001 = 90900909\n  native_decide",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.022335290908813477
+      }
+    },
+    {
+      "index": 16,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we use the standard algorithm for calculating the Least Common Multiple. \n\n**Proof Sketch:**\n1.  Observe that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n2.  Observe that $100001 = 11 \\times 9091$.\n3.  Calculate the Greatest Common Divisor (GCD) using the Euclidean Algorithm:\n    - $100001 = 10 \\times 9999 + 11$\n    - $9999 = 909 \\times 11 + 0$\n    - Thus, $\\text{gcd}(9999, 100001) = 11$.\n4.  Apply the relationship $\\text{lcm}(a, b) = \\frac{a \\cdot b}{\\text{gcd}(a, b)}$.\n5.  $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11} = 909 \\times 100001 = 90900909$.\n\nIn Lean 4, we can simply use the `norm_num` tactic or native computation since these are concrete natural numbers.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Using native computation for natural numbers\n  native_decide\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Using native computation for natural numbers\n  native_decide",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.012150287628173828
+      }
+    },
+    {
+      "index": 17,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we follow these steps:\n\n1.  **Factorization**: Observe the prime factorizations or divisors of both numbers. \n    *   $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n    *   $100001 = 11 \\times 9091$ (since $100001 = 100100 - 99 = 11 \\times 9100 - 11 \\times 9$).\n2.  **Greatest Common Divisor (GCD)**: Using the Euclidean algorithm:\n    *   $100001 = 10 \\times 9999 + 11$.\n    *   $9999 = 909 \\times 11 + 0$.\n    *   Thus, $\\gcd(9999, 100001) = 11$.\n3.  **Least Common Multiple (LCM) Formula**: Use the identity $\\text{lcm}(a, b) = \\frac{a \\cdot b}{\\gcd(a, b)}$.\n    *   $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11}$.\n    *   Since $9999 / 11 = 909$, the result is $909 \\times 100001 = 90900909$.\n\nIn Lean, we can compute this using the normalized definition of `lcm` which is provided by `Nat.lcm`.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Calculate using the identity lcm a b = (a * b) / gcd a b\n  show Nat.lcm 9999 100001 = 90900909\n  -- We can evaluate this directly by computation in Lean\n  native_decide\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Calculate using the identity lcm a b = (a * b) / gcd a b\n  show Nat.lcm 9999 100001 = 90900909\n  -- We can evaluate this directly by computation in Lean\n  native_decide",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.010339498519897461
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we follow these steps:\n\n1.  **Prime Factorization / Division**: We observe that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n2.  **Euclidean Algorithm**: We calculate the Greatest Common Divisor (GCD) of $9999$ and $100001$.\n    *   $100001 = 10 \\times 9999 + 11$.\n    *   $9999 = 909 \\times 11 + 0$.\n    *   Thus, $\\gcd(9999, 100001) = 11$.\n3.  **LCM Formula**: Use the identity $\\text{lcm}(a, b) = \\frac{a \\cdot b}{\\gcd(a, b)}$.\n    *   $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11}$.\n    *   $\\frac{9999}{11} = 909$.\n    *   $909 \\times 100001 = 909 \\times 100000 + 909 = 90900000 + 909 = 90900909$.\n\nThe following Lean 4 code performs these calculations efficiently.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the definition of lcm in terms of gcd: lcm a b = (a * b) / gcd a b\n  rw [Nat.lcm_def]\n  -- Calculate gcd(9999, 100001)\n  -- 100001 = 10 * 9999 + 11\n  -- 9999 = 909 * 11 + 0\n  have h_gcd : Nat.gcd 9999 100001 = 11 := by\n    apply Nat.gcd_eq_of_dvd_sub_mod\n    · show 11 ∣ 9999\n      norm_num\n    · show 100001 % 9999 = 11\n      norm_num\n  rw [h_gcd]\n  -- Final calculation\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the definition of lcm in terms of gcd: lcm a b = (a * b) / gcd a b\n  rw [Nat.lcm_def]\n  -- Calculate gcd(9999, 100001)\n  -- 100001 = 10 * 9999 + 11\n  -- 9999 = 909 * 11 + 0\n  have h_gcd : Nat.gcd 9999 100001 = 11 := by\n    apply Nat.gcd_eq_of_dvd_sub_mod\n    · show 11 ∣ 9999\n      norm_num\n    · show 100001 % 9999 = 11\n      norm_num\n  rw [h_gcd]\n  -- Final calculation\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 6
+            },
+            "endPos": {
+              "line": 10,
+              "column": 17
+            },
+            "data": "Unknown constant `Nat.lcm_def`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 8,
+              "column": 66
+            },
+            "endPos": {
+              "line": 22,
+              "column": 10
+            },
+            "data": "unsolved goals\n⊢ Nat.lcm 9999 100001 = 90900909"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.007493257522583008
+      }
+    },
+    {
+      "index": 19,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we follow these steps:\n\n1.  **Identify Factorizations**: Observe that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n2.  **Identify Factorizations**: Observe that $100001 = 11 \\times 9091$.\n3.  **Calculate GCD**: Use the Euclidean algorithm or prime factorization. \n    $100001 = 10 \\times 9999 + 11$.\n    $9999 = 909 \\times 11 + 0$.\n    Thus, $\\text{gcd}(9999, 100001) = 11$.\n4.  **Use LCM Formula**: Use the identity $\\text{lcm}(a, b) = \\frac{a \\times b}{\\text{gcd}(a, b)}$.\n    $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11} = 909 \\times 100001 = 90900909$.\n\nIn Lean, the `norm_num` tactic can compute these values directly.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Using norm_num to compute the LCM directly via its normalization procedure.\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Using norm_num to compute the LCM directly via its normalization procedure.\n  norm_num",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.009826421737670898
+      }
+    },
+    {
+      "index": 20,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we use the fundamental property $\\text{lcm}(a, b) = (a \\cdot b) / \\gcd(a, b)$.\n1.  **Calculate GCD**: We observe that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n2.  **Calculate GCD**: We observe that $100001 = 11 \\times 9091$.\n3.  Alternatively, use the Euclidean Algorithm:\n    $100001 = 10 \\times 9999 + 11$\n    $9999 = 909 \\times 11 + 0$\n    Thus, $\\gcd(9999, 100001) = 11$.\n4.  **Calculate LCM**: $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11} = \\frac{9999}{11} \\times 100001 = 909 \\times 100001 = 90900909$.\n\nIn Lean, we can compute this directly using the `norm_num` tactic which efficiently handles natural number operations including `lcm`.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the definition of lcm and gcd or let the automated tactics handle it.\n  -- norm_num is highly efficient for specific numerical identities in Nat.\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the definition of lcm and gcd or let the automated tactics handle it.\n  -- norm_num is highly efficient for specific numerical identities in Nat.\n  norm_num",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.009886026382446289
+      }
+    },
+    {
+      "index": 21,
+      "status": "SOLVED",
+      "raw_text": "To prove that the least common multiple (LCM) of 9999 and 100001 is 90900909, we can use the fundamental property that $\\text{lcm}(a, b) = (a \\cdot b) / \\gcd(a, b)$.\n\n**Proof Sketch:**\n1.  Identify the values: $a = 9999$ and $b = 100001$.\n2.  Factorize or use the Euclidean algorithm to find $\\gcd(9999, 100001)$.\n    *   $100001 = 10 \\times 9999 + 11$.\n    *   $9999 = 909 \\times 11 + 0$.\n    *   Thus, $\\gcd(9999, 100001) = 11$.\n3.  Apply the formula: $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11}$.\n4.  Perform the calculation:\n    *   $9999 / 11 = 909$.\n    *   $909 \\times 100001 = 90900909$.\n5.  In Lean 4, since these are specific natural numbers, we can use the `norm_num` tactic to evaluate the LCM directly.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Using norm_num to compute the LCM of specific constants\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Using norm_num to compute the LCM of specific constants\n  norm_num",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.010777950286865234
+      }
+    },
+    {
+      "index": 22,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we use the relationship $\\text{lcm}(a, b) = (a \\cdot b) / \\gcd(a, b)$.\n1.  **Calculate the GCD**: Using the Euclidean algorithm:\n    $100001 = 10 \\cdot 9999 + 11$\n    $9999 = 909 \\cdot 11 + 0$\n    Thus, $\\gcd(9999, 100001) = 11$.\n2.  **Calculate the Product**: $9999 \\cdot 100001 = 999909999$.\n3.  **Divide by GCD**: $999909999 / 11 = 90900909$.\n\nIn Lean 4, we can utilize the `norm_num` tactic which efficiently handles computations for natural number functions like `lcm`.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- norm_num is capable of normalizing Nat.lcm expressions by computing them\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- norm_num is capable of normalizing Nat.lcm expressions by computing them\n  norm_num",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.016893863677978516
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we follow these steps:\n\n1.  **Factorization**: Observe that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n2.  **Factorization**: Observe that $100001 = 11 \\times 9091$.\n3.  **GCD Calculation**: We use the Euclidean algorithm to find $\\gcd(9999, 100001)$.\n    *   $100001 = 10 \\times 9999 + 11$\n    *   $9999 = 909 \\times 11 + 0$\n    *   Thus, $\\gcd(9999, 100001) = 11$.\n4.  **LCM Formula**: Use the identity $\\text{lcm}(a, b) = \\frac{a \\times b}{\\gcd(a, b)}$.\n    *   $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11}$\n    *   $= \\frac{9999}{11} \\times 100001$\n    *   $= 909 \\times 100001 = 90900909$.\n\nIn Lean, we can compute this directly using the decision procedure for normalization of natural number expressions or by proving the GCD and then using the LCM identity.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the definition of lcm based on gcd\n  rw [Nat.lcm_def]\n  -- Compute the gcd: gcd 9999 100001\n  -- 100001 = 10 * 9999 + 11\n  -- 9999 = 909 * 11 + 0\n  have h_gcd : Nat.gcd 9999 100001 = 11 := by\n    apply Nat.gcd_eq_of_dvd_sub_mod\n    · show 11 ∣ 9999\n      norm_num\n    · show 11 ∣ 100001\n      norm_num\n    · show Nat.gcd (9999 / 11) (100001 / 11) = 1\n      -- gcd 909 9091 = 1\n      native_decide\n  rw [h_gcd]\n  -- Final arithmetic: (9999 * 100001) / 11\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the definition of lcm based on gcd\n  rw [Nat.lcm_def]\n  -- Compute the gcd: gcd 9999 100001\n  -- 100001 = 10 * 9999 + 11\n  -- 9999 = 909 * 11 + 0\n  have h_gcd : Nat.gcd 9999 100001 = 11 := by\n    apply Nat.gcd_eq_of_dvd_sub_mod\n    · show 11 ∣ 9999\n      norm_num\n    · show 11 ∣ 100001\n      norm_num\n    · show Nat.gcd (9999 / 11) (100001 / 11) = 1\n      -- gcd 909 9091 = 1\n      native_decide\n  rw [h_gcd]\n  -- Final arithmetic: (9999 * 100001) / 11\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 6
+            },
+            "endPos": {
+              "line": 10,
+              "column": 17
+            },
+            "data": "Unknown constant `Nat.lcm_def`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 8,
+              "column": 66
+            },
+            "endPos": {
+              "line": 25,
+              "column": 10
+            },
+            "data": "unsolved goals\n⊢ Nat.lcm 9999 100001 = 90900909"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.00947260856628418
+      }
+    },
+    {
+      "index": 24,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we follow these steps:\n\n1.  **Factorization**:\n    *   $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n    *   $100001 = 11 \\times 9091$.\n2.  **Greatest Common Divisor (GCD)**:\n    Using the Euclidean Algorithm:\n    *   $100001 = 10 \\times 9999 + 11$\n    *   $9999 = 909 \\times 11 + 0$\n    Therefore, $\\gcd(9999, 100001) = 11$.\n3.  **LCM-GCD Relationship**:\n    The least common multiple is given by $\\text{lcm}(a, b) = \\frac{a \\times b}{\\gcd(a, b)}$.\n    *   $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11}$.\n4.  **Calculation**:\n    *   $\\frac{9999}{11} = 909$.\n    *   $909 \\times 100001 = 90900000 + 909 = 90900909$.\n\nThe following Lean 4 code performs this calculation directly using the built-in normalization for `Nat.lcm`.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- We can use native calculation for small numbers in Lean\n  native_decide\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- We can use native calculation for small numbers in Lean\n  native_decide",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.008664369583129883
+      }
+    },
+    {
+      "index": 25,
+      "status": "SOLVED",
+      "raw_text": "To prove that the least common multiple (LCM) of $9999$ and $100001$ is $90900909$, we follow these steps:\n\n### Proof Sketch\n1.  **Prime Factorization / Division Analysis**:\n    *   $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n    *   $100001 = 11 \\times 9091$.\n2.  **Greatest Common Divisor (GCD)**:\n    *   Calculate $\\gcd(9999, 100001)$ using the Euclidean algorithm.\n    *   $100001 = 10 \\times 9999 + 11$.\n    *   $9999 = 909 \\times 11 + 0$.\n    *   Thus, $\\gcd(9999, 100001) = 11$.\n3.  **LCM-GCD Relation**:\n    *   Use the identity $\\text{lcm}(a, b) = \\frac{a \\times b}{\\gcd(a, b)}$.\n    *   $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11}$.\n4.  **Final Calculation**:\n    *   $\\frac{9999}{11} = 909$.\n    *   $909 \\times 100001 = 90900909$.\n\nThe Lean proof uses the `norm_num` tactic to automate the numerical evaluation of the LCM.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use norm_num to calculate the LCM of two specific natural numbers.\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use norm_num to calculate the LCM of two specific natural numbers.\n  norm_num",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.011347055435180664
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we use the relationship $\\text{lcm}(a, b) = (a \\cdot b) / \\gcd(a, b)$.\n1.  First, observe the factorizations: $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n2.  Next, observe that $100001 = 11 \\times 9091$.\n3.  Calculate the greatest common divisor $\\gcd(9999, 100001)$ using the Euclidean Algorithm:\n    - $100001 = 10 \\times 9999 + 11$\n    - $9999 = 909 \\times 11 + 0$\n    - Thus, $\\gcd(9999, 100001) = 11$.\n4.  Apply the formula: $\\text{lcm}(9999, 100001) = (9999 \\times 100001) / 11$.\n5.  $9999 / 11 = 909$.\n6.  $909 \\times 100001 = 90900909$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the property that lcm a b = (a * b) / gcd a b\n  have h_gcd : Nat.gcd 9999 100001 = 11 := by\n    -- Euclidean algorithm:\n    -- 100001 = 10 * 9999 + 11\n    -- 9999 = 909 * 11 + 0\n    show Nat.gcd 9999 100001 = 11\n    native_decide\n  \n  -- Calculate lcm using the gcd result\n  rw [Nat.lcm_def, h_gcd]\n  -- (9999 * 100001) / 11\n  -- 9999 / 11 = 909\n  -- 909 * 100001 = 90900909\n  native_decide\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the property that lcm a b = (a * b) / gcd a b\n  have h_gcd : Nat.gcd 9999 100001 = 11 := by\n    -- Euclidean algorithm:\n    -- 100001 = 10 * 9999 + 11\n    -- 9999 = 909 * 11 + 0\n    show Nat.gcd 9999 100001 = 11\n    native_decide\n  \n  -- Calculate lcm using the gcd result\n  rw [Nat.lcm_def, h_gcd]\n  -- (9999 * 100001) / 11\n  -- 9999 / 11 = 909\n  -- 909 * 100001 = 90900909\n  native_decide",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 6
+            },
+            "endPos": {
+              "line": 18,
+              "column": 17
+            },
+            "data": "Unknown constant `Nat.lcm_def`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 8,
+              "column": 66
+            },
+            "endPos": {
+              "line": 22,
+              "column": 15
+            },
+            "data": "unsolved goals\nh_gcd : Nat.gcd 9999 100001 = 11\n⊢ Nat.lcm 9999 100001 = 90900909"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.013476133346557617
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "To prove that the least common multiple (LCM) of 9,999 and 100,001 is 90,900,909, we follow these steps:\n\n### Proof Sketch\n1.  **Factorization**: Identify the prime factors of both numbers.\n    *   $9,999 = 9 \\times 1,111 = 3^2 \\times 11 \\times 101$.\n    *   $100,001 = 11 \\times 9,091$. (Note: $9,091$ is prime, but we can also use the GCD approach).\n2.  **GCD Calculation**: Calculate the Greatest Common Divisor using the Euclidean Algorithm.\n    *   $100,001 = 10 \\times 9,999 + 11$.\n    *   $9,999 = 909 \\times 11 + 0$.\n    *   Thus, $\\gcd(9999, 100001) = 11$.\n3.  **LCM Formula**: Use the relationship $\\text{lcm}(a, b) = \\frac{|a \\cdot b|}{\\gcd(a, b)}$.\n    *   $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11}$.\n    *   $= \\frac{9999}{11} \\times 100001 = 909 \\times 100001$.\n    *   $= 90,900,909$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the property: lcm a b = (a * b) / gcd a b\n  have h_gcd : Nat.gcd 9999 100001 = 11 := by\n    -- Euclidean algorithm steps\n    have step1 : 100001 = 10 * 9999 + 11 := by norm_num\n    have step2 : 9999 = 909 * 11 + 0 := by norm_num\n    rw [Nat.gcd_comm, Nat.gcd_rec 100001 9999, step1]\n    simp only [Nat.add_mod_left, Nat.gcd_rec 11 9999, step2]\n    norm_num\n  \n  -- Apply the LCM formula\n  rw [Nat.lcm_def, h_gcd]\n  -- Compute (9999 * 100001) / 11\n  -- It is easier to divide first: (9999 / 11) * 100001\n  have h_div : 9999 * 100001 / 11 = (9999 / 11) * 100001 := by\n    apply Nat.mul_div_assoc\n    norm_num\n  \n  rw [h_div]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the property: lcm a b = (a * b) / gcd a b\n  have h_gcd : Nat.gcd 9999 100001 = 11 := by\n    -- Euclidean algorithm steps\n    have step1 : 100001 = 10 * 9999 + 11 := by norm_num\n    have step2 : 9999 = 909 * 11 + 0 := by norm_num\n    rw [Nat.gcd_comm, Nat.gcd_rec 100001 9999, step1]\n    simp only [Nat.add_mod_left, Nat.gcd_rec 11 9999, step2]\n    norm_num\n  \n  -- Apply the LCM formula\n  rw [Nat.lcm_def, h_gcd]\n  -- Compute (9999 * 100001) / 11\n  -- It is easier to divide first: (9999 / 11) * 100001\n  have h_div : 9999 * 100001 / 11 = (9999 / 11) * 100001 := by\n    apply Nat.mul_div_assoc\n    norm_num\n  \n  rw [h_div]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 6
+            },
+            "endPos": {
+              "line": 19,
+              "column": 17
+            },
+            "data": "Unknown constant `Nat.lcm_def`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 8,
+              "column": 66
+            },
+            "endPos": {
+              "line": 27,
+              "column": 10
+            },
+            "data": "unsolved goals\nh_gcd : Nat.gcd 9999 100001 = 11\n⊢ Nat.lcm 9999 100001 = 90900909"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 15
+            },
+            "endPos": {
+              "line": 15,
+              "column": 31
+            },
+            "data": "This simp argument is unused:\n  Nat.add_mod_left\n\nHint: Omit it from the simp argument list.\n  simp only [Nat.a̵d̵d̵_̵m̵o̵d̵_̵l̵e̵f̵t̵,̵ ̵N̵a̵t̵.̵gcd_rec 11 9999, step2]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 33
+            },
+            "endPos": {
+              "line": 15,
+              "column": 52
+            },
+            "data": "This simp argument is unused:\n  Nat.gcd_rec 11 9999\n\nHint: Omit it from the simp argument list.\n  simp only [Nat.add_mod_left, N̵a̵t̵.̵g̵c̵d̵_̵r̵e̵c̵ ̵1̵1̵ ̵9̵9̵9̵9̵,̵ ̵step2]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.03629469871520996
+      }
+    },
+    {
+      "index": 28,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we use the fundamental property relating the Least Common Multiple (LCM) and the Greatest Common Divisor (GCD): $\\text{lcm}(a, b) = \\frac{a \\cdot b}{\\gcd(a, b)}$.\n\n**Proof Sketch:**\n1.  **Decompose the numbers:**\n    *   $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n    *   $100001 = 11 \\times 9091$.\n2.  **Find the GCD:**\n    *   Using the Euclidean algorithm or prime factorization, we determine $\\gcd(9999, 100001)$.\n    *   $100001 = 10 \\times 9999 + 11$.\n    *   $9999 = 909 \\times 11 + 0$.\n    *   Thus, $\\gcd(9999, 100001) = 11$.\n3.  **Calculate the LCM:**\n    *   $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11}$.\n    *   Divide $9999$ by $11$: $9999 / 11 = 909$.\n    *   Multiply $909 \\times 100001 = 90900909$.\n\nIn Lean 4, the `norm_num` tactic efficiently handles these natural number calculations.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use norm_num to evaluate the numerical expression for the LCM\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use norm_num to evaluate the numerical expression for the LCM\n  norm_num",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.011658191680908203
+      }
+    },
+    {
+      "index": 29,
+      "status": "FAILED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we follow these steps:\n\n### Proof Sketch\n1.  **Factorization**:\n    *   Observe that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n    *   Observe that $100001 = 11 \\times 9091$.\n2.  **Greatest Common Divisor (GCD)**:\n    *   Using the Euclidean Algorithm:\n        *   $100001 = 10 \\times 9999 + 11$\n        *   $9999 = 909 \\times 11 + 0$\n    *   Thus, $\\gcd(9999, 100001) = 11$.\n3.  **LCM-GCD Identity**:\n    *   We use the identity $\\text{lcm}(a, b) = \\frac{a \\cdot b}{\\gcd(a, b)}$.\n    *   $\\text{lcm}(9999, 100001) = \\frac{9999 \\times 100001}{11}$.\n4.  **Calculation**:\n    *   $\\frac{9999}{11} = 909$.\n    *   $909 \\times 100001 = 909 \\times (100000 + 1) = 90900000 + 909 = 90900909$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the property that lcm a b * gcd a b = a * b\n  have h_lcm_gcd : Nat.lcm 9999 100001 * Nat.gcd 9999 100001 = 9999 * 100001 := by\n    exact Nat.lcm_mul_gcd 9999 100001\n  \n  -- Calculate gcd(9999, 100001) manually or via norm_num\n  have h_gcd : Nat.gcd 9999 100001 = 11 := by\n    native_decide\n  \n  -- Substitute gcd back into the equation\n  rw [h_gcd] at h_lcm_gcd\n  \n  -- Solve for the lcm\n  -- 9999 * 100001 = 999909999\n  -- 999909999 / 11 = 90900909\n  have h_mul : 9999 * 100001 = 999909999 := by norm_num\n  rw [h_mul] at h_lcm_gcd\n  \n  -- Use division to isolate the result\n  apply Nat.eq_of_mul_eq_mul_right (show 11 > 0 by norm_num)\n  rw [h_lcm_gcd]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the property that lcm a b * gcd a b = a * b\n  have h_lcm_gcd : Nat.lcm 9999 100001 * Nat.gcd 9999 100001 = 9999 * 100001 := by\n    exact Nat.lcm_mul_gcd 9999 100001\n  \n  -- Calculate gcd(9999, 100001) manually or via norm_num\n  have h_gcd : Nat.gcd 9999 100001 = 11 := by\n    native_decide\n  \n  -- Substitute gcd back into the equation\n  rw [h_gcd] at h_lcm_gcd\n  \n  -- Solve for the lcm\n  -- 9999 * 100001 = 999909999\n  -- 999909999 / 11 = 90900909\n  have h_mul : 9999 * 100001 = 999909999 := by norm_num\n  rw [h_mul] at h_lcm_gcd\n  \n  -- Use division to isolate the result\n  apply Nat.eq_of_mul_eq_mul_right (show 11 > 0 by norm_num)\n  rw [h_lcm_gcd]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 2
+            },
+            "endPos": {
+              "line": 29,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.025935649871826172
+      }
+    },
+    {
+      "index": 30,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\operatorname{lcm}(9999, 100001) = 90900909$, we use the standard algorithm for calculating the Least Common Multiple.\n\n**Proof Sketch:**\n1.  Observe that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n2.  Observe that $100001 = 11 \\times 9091$.\n3.  Alternatively, use the relationship $\\operatorname{lcm}(a, b) = \\frac{a \\cdot b}{\\gcd(a, b)}$.\n4.  Apply the Euclidean Algorithm to find $\\gcd(9999, 100001)$:\n    *   $100001 = 10 \\times 9999 + 11$\n    *   $9999 = 909 \\times 11 + 0$\n    *   Thus, $\\gcd(9999, 100001) = 11$.\n5.  Calculate the LCM: $\\frac{9999 \\times 100001}{11} = 909 \\times 100001 = 90900909$.\n\nIn Lean, the `norm_num` tactic or direct calculation of `Nat.lcm` is sufficient to verify these arithmetic properties.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use direct evaluation for natural number lcm\n  native_decide\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use direct evaluation for natural number lcm\n  native_decide",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.008818387985229492
+      }
+    },
+    {
+      "index": 31,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we use the identity $\\text{lcm}(a, b) = (a \\cdot b) / \\text{gcd}(a, b)$. \n\n1.  **Factorization**: Observe that $9999 = 9 \\times 1111 = 9 \\times 11 \\times 101$.\n2.  **GCD Calculation**: \n    - $100001$ can be expressed relative to $9999$. Since $100001 = 10 \\times 9999 + 11$, we have $\\text{gcd}(9999, 100001) = \\text{gcd}(9999, 11)$.\n    - Since $9999 = 11 \\times 909$, the remainder is $0$, so $\\text{gcd}(9999, 11) = 11$.\n3.  **LCM Calculation**:\n    - $\\text{lcm}(9999, 100001) = (9999 \\times 100001) / 11$.\n    - $(9999 / 11) \\times 100001 = 909 \\times 100001$.\n    - $909 \\times 100001 = 90900000 + 909 = 90900909$.\n\nIn Lean 4, we can utilize the `norm_num` tactic to evaluate these natural number operations efficiently.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the definition of lcm in terms of gcd: lcm a b = (a * b) / gcd a b\n  -- Or simply allow norm_num to compute it directly.\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use the definition of lcm in terms of gcd: lcm a b = (a * b) / gcd a b\n  -- Or simply allow norm_num to compute it directly.\n  norm_num",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.008041143417358398
+      }
+    },
+    {
+      "index": 32,
+      "status": "SOLVED",
+      "raw_text": "To prove that $\\text{lcm}(9999, 100001) = 90900909$, we use the relationship $\\text{lcm}(a, b) = (a \\cdot b) / \\text{gcd}(a, b)$.\n1.  First, observe that $9999 = 9 \\cdot 1111 = 9 \\cdot 11 \\cdot 101$.\n2.  Next, factor $100001$. Note that $100001 = 11 \\cdot 9091$.\n3.  Calculate the greatest common divisor $\\text{gcd}(9999, 100001)$. Since $9999 = 3^2 \\cdot 11 \\cdot 101$ and $100001 = 11 \\cdot 9091$ (and 9091 is not divisible by 3 or 101), the gcd is 11.\n4.  Finally, $\\text{lcm}(9999, 100001) = \\frac{9999 \\cdot 100001}{11} = 909 \\cdot 100001 = 90900909$.\n\nIn Lean, we can use the `native_decide` tactic or simple normalization because these are concrete natural number calculations.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use native normalization for concrete natural number calculation\n  native_decide\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_37 : Nat.lcm 9999 100001 = 90900909 := by\n  -- Use native normalization for concrete natural number calculation\n  native_decide",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.007924795150756836
+      }
+    }
+  ]
+}

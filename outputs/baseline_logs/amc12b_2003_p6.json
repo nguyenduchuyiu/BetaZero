@@ -1,0 +1,2398 @@
+{
+  "problem": "problems/miniF2F-test/amc12b_2003_p6.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 15:25:50",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 0,
+    "completed_count": 0,
+    "solved": false
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Extract Equations from $u_k$ Definition:**\n    Given $u_k = a \\cdot r^k$, we substitute $k=1$ and $k=3$ into the given values:\n    - $u_1 = a \\cdot r = 2$\n    - $u_3 = a \\cdot r^3 = 6$\n\n2.  **Relate the Terms:**\n    Observe that $u_3 = u_1 \\cdot r^2$.\n    Substituting the known values: $6 = 2 \\cdot r^2$, which simplifies to $r^2 = 3$.\n    This implies $r = \\sqrt{3}$ or $r = -\\sqrt{3}$.\n\n3.  **Solve for $a$ ($u_0$):**\n    The goal is to find $u_0 = a \\cdot r^0 = a$.\n    From $u_1 = a \\cdot r = 2$, we have $a = 2/r$.\n    - If $r = \\sqrt{3}$, then $a = 2/\\sqrt{3}$.\n    - If $r = -\\sqrt{3}$, then $a = 2/(-\\sqrt{3}) = -(2/\\sqrt{3})$.\n\n4.  **Conclusion:**\n    The possible values for $u_0$ are $2/\\sqrt{3}$ and $-(2/\\sqrt{3})$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use h₀ to express u 1 and u 3 in terms of a and r\n  have hu1 : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have hu3 : a * r ^ 3 = 6 := by\n    rw [← h₀ 3, h₂]\n  \n  -- From a * r = 2, we know r cannot be 0\n  have r_ne_zero : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at hu1\n    norm_num at hu1\n    \n  -- u 3 = (a * r) * r^2\n  have hr2 : r^2 = 3 := by\n    have h_split : a * r^3 = (a * r) * r^2 := by ring\n    rw [h_split, hu1] at hu3\n    linarith\n    \n  -- From r^2 = 3, r = sqrt 3 or r = -sqrt 3\n  have r_cases : r = Real.sqrt 3 ∨ r = -Real.sqrt 3 := by\n    apply eq_of_sq_eq_sq\n    rw [hr2]\n    simp [Real.sq_sqrt (by norm_num : 0 ≤ (3 : ℝ))]\n    \n  -- Express u 0 in terms of a\n  have hu0 : u 0 = a := by\n    rw [h₀ 0]\n    simp\n    \n  -- Final case analysis based on r\n  rcases r_cases with r_pos | r_neg\n  · left\n    rw [hu0]\n    field_simp [r_pos] at hu1\n    exact hu1\n  · right\n    rw [hu0]\n    field_simp [r_neg] at hu1\n    replace hu1 := congr_arg (λ x => -x) hu1\n    simp at hu1\n    exact hu1\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use h₀ to express u 1 and u 3 in terms of a and r\n  have hu1 : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have hu3 : a * r ^ 3 = 6 := by\n    rw [← h₀ 3, h₂]\n  \n  -- From a * r = 2, we know r cannot be 0\n  have r_ne_zero : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at hu1\n    norm_num at hu1\n    \n  -- u 3 = (a * r) * r^2\n  have hr2 : r^2 = 3 := by\n    have h_split : a * r^3 = (a * r) * r^2 := by ring\n    rw [h_split, hu1] at hu3\n    linarith\n    \n  -- From r^2 = 3, r = sqrt 3 or r = -sqrt 3\n  have r_cases : r = Real.sqrt 3 ∨ r = -Real.sqrt 3 := by\n    apply eq_of_sq_eq_sq\n    rw [hr2]\n    simp [Real.sq_sqrt (by norm_num : 0 ≤ (3 : ℝ))]\n    \n  -- Express u 0 in terms of a\n  have hu0 : u 0 = a := by\n    rw [h₀ 0]\n    simp\n    \n  -- Final case analysis based on r\n  rcases r_cases with r_pos | r_neg\n  · left\n    rw [hu0]\n    field_simp [r_pos] at hu1\n    exact hu1\n  · right\n    rw [hu0]\n    field_simp [r_neg] at hu1\n    replace hu1 := congr_arg (λ x => -x) hu1\n    simp at hu1\n    exact hu1",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 8
+            },
+            "endPos": {
+              "line": 12,
+              "column": 14
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 10
+            },
+            "endPos": {
+              "line": 31,
+              "column": 24
+            },
+            "data": "Unknown identifier `eq_of_sq_eq_sq`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 8
+            },
+            "endPos": {
+              "line": 32,
+              "column": 11
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 45,
+              "column": 4
+            },
+            "endPos": {
+              "line": 45,
+              "column": 13
+            },
+            "data": "Type mismatch\n  hu1\nhas type\n  a * r = 2\nbut is expected to have type\n  a = 2 / √3"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 51,
+              "column": 4
+            },
+            "endPos": {
+              "line": 51,
+              "column": 13
+            },
+            "data": "Type mismatch\n  hu1\nhas type\n  a * r = 2\nbut is expected to have type\n  a = -(2 / √3)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4696471691131592
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "To prove that $u(0) = \\pm 2/\\sqrt{3}$ for a geometric sequence $u(k) = ar^k$ given $u(1)=2$ and $u(3)=6$:\n\n1.  **Express the terms using the formula**:\n    - $u(1) = ar^1 = 2$\n    - $u(3) = ar^3 = 6$\n    - $u(0) = ar^0 = a$\n2.  **Relate the terms to find $r^2$**:\n    - From $ar = 2$ and $ar^3 = 6$, we can divide the equations (noting $a \\neq 0$ and $r \\neq 0$ because $u(1)=2$):\n    - $\\frac{ar^3}{ar} = \\frac{6}{2} \\implies r^2 = 3$.\n3.  **Solve for $a$**:\n    - Since $ar = 2$, we have $a^2 r^2 = 2^2 = 4$.\n    - Substituting $r^2 = 3$, we get $3a^2 = 4$, so $a^2 = 4/3$.\n4.  **Conclude**:\n    - Taking the square root gives $a = \\pm \\sqrt{4/3} = \\pm 2/\\sqrt{3}$.\n    - Since $u(0) = a$, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Extract values for u(1) and u(3) based on the definition h₀\n  have ha1 : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have ha3 : a * r^3 = 6 := by\n    rw [← h₀ 3, h₂]\n    simp\n  -- From a * r = 2, we know a and r cannot be 0\n  have ha_nz : a ≠ 0 := by\n    intro h\n    simp [h] at ha1\n  have hr_nz : r ≠ 0 := by\n    intro h\n    simp [h] at ha1\n  -- Square the first equation: a^2 * r^2 = 4\n  have h_sq : (a * r)^2 = 4 := by\n    rw [ha1]\n    norm_num\n  -- Use a * r^3 = (a * r) * r^2 to find r^2\n  have hr2 : r^2 = 3 := by\n    have : a * r^3 = (a * r) * r^2 := by ring\n    rw [ha3, ha1] at this\n    linarith\n  -- Substitute r^2 back into a^2 * r^2 = 4\n  have ha2_val : a^2 * 3 = 4 := by\n    rw [← hr2]\n    ring_NF\n    exact h_sq\n  have ha2 : a^2 = 4 / 3 := by\n    field_simp [ha2_val]\n    linarith\n  -- u(0) = a, so we solve for a\n  have hu0 : u 0 = a := by\n    rw [h₀ 0]\n    simp\n  rw [hu0]\n  -- a^2 = 4/3 implies a = ±sqrt(4/3)\n  have : a = sqrt (4 / 3) ∨ a = -sqrt (4 / 3) := eq_sqrt_or_neg_sqrt_of_sq_eq ha2\n  cases this with\n  | inl hpos =>\n    left\n    rw [hpos, sqrt_div (by norm_num), sqrt_sq (by norm_num)]\n  | inr hneg =>\n    right\n    rw [hneg, sqrt_div (by norm_num), sqrt_sq (by norm_num)]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Extract values for u(1) and u(3) based on the definition h₀\n  have ha1 : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have ha3 : a * r^3 = 6 := by\n    rw [← h₀ 3, h₂]\n    simp\n  -- From a * r = 2, we know a and r cannot be 0\n  have ha_nz : a ≠ 0 := by\n    intro h\n    simp [h] at ha1\n  have hr_nz : r ≠ 0 := by\n    intro h\n    simp [h] at ha1\n  -- Square the first equation: a^2 * r^2 = 4\n  have h_sq : (a * r)^2 = 4 := by\n    rw [ha1]\n    norm_num\n  -- Use a * r^3 = (a * r) * r^2 to find r^2\n  have hr2 : r^2 = 3 := by\n    have : a * r^3 = (a * r) * r^2 := by ring\n    rw [ha3, ha1] at this\n    linarith\n  -- Substitute r^2 back into a^2 * r^2 = 4\n  have ha2_val : a^2 * 3 = 4 := by\n    rw [← hr2]\n    ring_NF\n    exact h_sq\n  have ha2 : a^2 = 4 / 3 := by\n    field_simp [ha2_val]\n    linarith\n  -- u(0) = a, so we solve for a\n  have hu0 : u 0 = a := by\n    rw [h₀ 0]\n    simp\n  rw [hu0]\n  -- a^2 = 4/3 implies a = ±sqrt(4/3)\n  have : a = sqrt (4 / 3) ∨ a = -sqrt (4 / 3) := eq_sqrt_or_neg_sqrt_of_sq_eq ha2\n  cases this with\n  | inl hpos =>\n    left\n    rw [hpos, sqrt_div (by norm_num), sqrt_sq (by norm_num)]\n  | inr hneg =>\n    right\n    rw [hneg, sqrt_div (by norm_num), sqrt_sq (by norm_num)]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 5
+            },
+            "endPos": null,
+            "data": "unknown tactic"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 8
+            },
+            "endPos": {
+              "line": 12,
+              "column": 14
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 8
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 32
+            },
+            "endPos": {
+              "line": 36,
+              "column": 11
+            },
+            "data": "unsolved goals\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nha1 : a * r = 2\nha3 : a * r ^ 3 = 6\nha_nz : a ≠ 0\nhr_nz : r ≠ 0\nh_sq : (a * r) ^ 2 = 4\nhr2 : r ^ 2 = 3\n⊢ a ^ 2 * r ^ 2 = 4"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 71
+            },
+            "endPos": {
+              "line": 36,
+              "column": 11
+            },
+            "data": "unsolved goals\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nha1 : a * r = 2\nha3 : a * r ^ 3 = 6\nha_nz : a ≠ 0\nhr_nz : r ≠ 0\nh_sq : (a * r) ^ 2 = 4\nhr2 : r ^ 2 = 3\nha2_val : a ^ 2 * 3 = 4\n⊢ u 0 = 2 / √3 ∨ u 0 = -(2 / √3)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4751007556915283
+      }
+    },
+    {
+      "index": 3,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Extract values from the geometric sequence formula**: Given $u_k = a \\cdot r^k$, we use $h_1$ and $h_2$ to write specific equations for $u_1$ and $u_3$.\n2.  **Relate terms**: From $u_1 = a \\cdot r^1 = 2$ and $u_3 = a \\cdot r^3 = 6$, we can express $u_3$ in terms of $u_1$: $u_3 = u_1 \\cdot r^2$.\n3.  **Solve for $r^2$**: Substituting the known values, we get $6 = 2 \\cdot r^2$, which simplifies to $r^2 = 3$.\n4.  **Relate $u_0$ and $u_1$**: From the general formula, $u_1 = u_0 \\cdot r$, which implies $u_1^2 = u_0^2 \\cdot r^2$.\n5.  **Solve for $u_0$**: Substituting $u_1 = 2$ and $r^2 = 3$ gives $4 = u_0^2 \\cdot 3$, so $u_0^2 = 4/3$. Taking the square root yields $u_0 = \\pm \\sqrt{4/3} = \\pm 2/\\sqrt{3}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Step 1: Establish the relationship between u 1 and u 3\n  have h_u1 : u 1 = a * r := by rw [h₀ 1, pow_one]\n  have h_u3 : u 3 = a * r ^ 3 := by rw [h₀ 3]\n  \n  -- Step 2: Relate u 3 to u 1 using r^2\n  -- u 3 = (a * r) * r^2 = u 1 * r^2\n  have h_u3_rel : u 3 = u 1 * r ^ 2 := by\n    rw [h_u3, h_u1, mul_assoc, ← pow_succ]\n    norm_num\n\n  -- Step 3: Solve for r^2\n  rw [h₁, h₂] at h_u3_rel\n  have hr2 : r ^ 2 = 3 := by\n    linarith\n\n  -- Step 4: Relate u 0 to u 1\n  -- u 1 = a * r, u 0 = a * r^0 = a\n  have h_u0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  \n  -- Square u 1: (u 1)^2 = (u 0 * r)^2 = (u 0)^2 * r^2\n  have h_u1_sq : (u 1)^2 = (u 0)^2 * r^2 := by\n    rw [h_u0, h_u1]\n    ring\n\n  -- Step 5: Solve for u 0\n  rw [h₁, hr2] at h_u1_sq\n  have h_u0_sq : (u 0)^2 = 4 / 3 := by\n    linarith\n  \n  -- Use the property that x^2 = y^2 implies x = y or x = -y\n  have h_target_sq : (2 / Real.sqrt 3)^2 = 4 / 3 := by\n    rw [div_pow, Real.sq_sqrt]\n    · norm_num\n    · norm_num\n  \n  rw [← h_target_sq] at h_u0_sq\n  exact pow_eq_pow_ northern_eq_zero h_u0_sq \n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Step 1: Establish the relationship between u 1 and u 3\n  have h_u1 : u 1 = a * r := by rw [h₀ 1, pow_one]\n  have h_u3 : u 3 = a * r ^ 3 := by rw [h₀ 3]\n  \n  -- Step 2: Relate u 3 to u 1 using r^2\n  -- u 3 = (a * r) * r^2 = u 1 * r^2\n  have h_u3_rel : u 3 = u 1 * r ^ 2 := by\n    rw [h_u3, h_u1, mul_assoc, ← pow_succ]\n    norm_num\n\n  -- Step 3: Solve for r^2\n  rw [h₁, h₂] at h_u3_rel\n  have hr2 : r ^ 2 = 3 := by\n    linarith\n\n  -- Step 4: Relate u 0 to u 1\n  -- u 1 = a * r, u 0 = a * r^0 = a\n  have h_u0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  \n  -- Square u 1: (u 1)^2 = (u 0 * r)^2 = (u 0)^2 * r^2\n  have h_u1_sq : (u 1)^2 = (u 0)^2 * r^2 := by\n    rw [h_u0, h_u1]\n    ring\n\n  -- Step 5: Solve for u 0\n  rw [h₁, hr2] at h_u1_sq\n  have h_u0_sq : (u 0)^2 = 4 / 3 := by\n    linarith\n  \n  -- Use the property that x^2 = y^2 implies x = y or x = -y\n  have h_target_sq : (2 / Real.sqrt 3)^2 = 4 / 3 := by\n    rw [div_pow, Real.sq_sqrt]\n    · norm_num\n    · norm_num\n  \n  rw [← h_target_sq] at h_u0_sq\n  exact pow_eq_pow_ northern_eq_zero h_u0_sq",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 31
+            },
+            "endPos": {
+              "line": 17,
+              "column": 41
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a ^ ?n * ?a\nin the target expression\n  a * r ^ 3 = a * (r * r ^ 2)\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nh_u1 : u 1 = a * r\nh_u3 : u 3 = a * r ^ 3\n⊢ a * r ^ 3 = a * (r * r ^ 2)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 46,
+              "column": 8
+            },
+            "endPos": {
+              "line": 46,
+              "column": 19
+            },
+            "data": "Unknown identifier `pow_eq_pow_`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5673151016235352
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "To solve this problem, we use the definition of a geometric sequence $u_k = a r^k$.\n1.  From $u_1 = 2$, we have $a \\cdot r^1 = 2$, which implies $r = 2/a$ (noting $a \\neq 0$ because $u_1 \\neq 0$).\n2.  From $u_3 = 6$, we have $a \\cdot r^3 = 6$.\n3.  Substituting $r = 2/a$ into the second equation gives $a \\cdot (2/a)^3 = 6$, which simplifies to $8/a^2 = 6$.\n4.  Rearranging yields $a^2 = 8/6 = 4/3$.\n5.  Taking the square root, we get $a = \\pm \\sqrt{4/3} = \\pm 2/\\sqrt{3}$.\n6.  Since $u_0 = a \\cdot r^0 = a$, the values for $u_0$ are $2/\\sqrt{3}$ or $-2/\\sqrt{3}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- From h₀, u 0 = a * r^0 = a\n  have hu0 : u 0 = a := by\n    rw [h₀ 0, pow_zero, mul_one]\n  \n  -- From h₀ and h₁, a * r = 2\n  have h_u1 : a * r = 2 := by\n    rw [← h₁, h₀ 1, pow_one]\n  \n  -- From h₀ and h₂, a * r^3 = 6\n  have h_u3 : a * r ^ 3 = 6 := by\n    rw [← h₂, h₀ 3]\n  \n  -- Note that a cannot be 0, otherwise u 1 = 0\n  have ha_ne_zero : a ≠ 0 := by\n    intro h_a_zero\n    rw [h_a_zero, zero_mul] at h_u1\n    norm_num at h_u1\n  \n  -- From a * r = 2, we have r = 2/a\n  have hr : r = 2 / a := by\n    field_simp [ha_ne_zero] at h_u1\n    exact h_u1.symm\n  \n  -- Substitute r into the equation for u 3\n  rw [hr] at h_u3\n  field_simp [ha_ne_zero] at h_u3\n  \n  -- We have 8 * a / a^3 = 6 => 8 / a^2 = 6\n  have ha2 : a^2 = 4 / 3 := by\n    linear_combination (1 / (6 * a)) * h_u3\n    field_simp [ha_ne_zero]\n    ring\n  \n  -- Since a^2 = 4/3, a = sqrt(4/3) or a = -sqrt(4/3)\n  have ha : a = Real.sqrt (4 / 3) ∨ a = -Real.sqrt (4 / 3) := by\n    apply eq_or_eq_neg_of_sq_eq_sq\n    rw [ha2]\n    apply (Real.sq_sqrt _).symm\n    norm_num\n  \n  -- u 0 = a, and sqrt(4/3) = 2/sqrt(3)\n  rw [hu0]\n  rcases ha with h_pos | h_neg\n  · left\n    rw [h_pos, Real.sqrt_div, Real.sqrt_sq] <;> norm_num\n  · right\n    rw [h_neg, Real.sqrt_div, Real.sqrt_sq] <;> norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- From h₀, u 0 = a * r^0 = a\n  have hu0 : u 0 = a := by\n    rw [h₀ 0, pow_zero, mul_one]\n  \n  -- From h₀ and h₁, a * r = 2\n  have h_u1 : a * r = 2 := by\n    rw [← h₁, h₀ 1, pow_one]\n  \n  -- From h₀ and h₂, a * r^3 = 6\n  have h_u3 : a * r ^ 3 = 6 := by\n    rw [← h₂, h₀ 3]\n  \n  -- Note that a cannot be 0, otherwise u 1 = 0\n  have ha_ne_zero : a ≠ 0 := by\n    intro h_a_zero\n    rw [h_a_zero, zero_mul] at h_u1\n    norm_num at h_u1\n  \n  -- From a * r = 2, we have r = 2/a\n  have hr : r = 2 / a := by\n    field_simp [ha_ne_zero] at h_u1\n    exact h_u1.symm\n  \n  -- Substitute r into the equation for u 3\n  rw [hr] at h_u3\n  field_simp [ha_ne_zero] at h_u3\n  \n  -- We have 8 * a / a^3 = 6 => 8 / a^2 = 6\n  have ha2 : a^2 = 4 / 3 := by\n    linear_combination (1 / (6 * a)) * h_u3\n    field_simp [ha_ne_zero]\n    ring\n  \n  -- Since a^2 = 4/3, a = sqrt(4/3) or a = -sqrt(4/3)\n  have ha : a = Real.sqrt (4 / 3) ∨ a = -Real.sqrt (4 / 3) := by\n    apply eq_or_eq_neg_of_sq_eq_sq\n    rw [ha2]\n    apply (Real.sq_sqrt _).symm\n    norm_num\n  \n  -- u 0 = a, and sqrt(4/3) = 2/sqrt(3)\n  rw [hu0]\n  rcases ha with h_pos | h_neg\n  · left\n    rw [h_pos, Real.sqrt_div, Real.sqrt_sq] <;> norm_num\n  · right\n    rw [h_neg, Real.sqrt_div, Real.sqrt_sq] <;> norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 4
+            },
+            "endPos": {
+              "line": 31,
+              "column": 19
+            },
+            "data": "Type mismatch\n  Eq.symm h_u1\nhas type\n  2 = a * r\nbut is expected to have type\n  r = 2 / a"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 39,
+              "column": 4
+            },
+            "endPos": {
+              "line": 39,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu0 : u 0 = a\nh_u1 : a * r = 2\nha_ne_zero : a ≠ 0\nhr : r = 2 / a\nh_u3 : 2 ^ 3 = a ^ 2 * 6\n⊢ -4 / 3 + a ^ 2 + a ^ 2 * a⁻¹ * Nat.rawCast 1 + a⁻¹ * (-4 / 3) = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 54,
+              "column": 30
+            },
+            "endPos": {
+              "line": 54,
+              "column": 42
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  √(?m.269 ^ 2)\nin the target expression\n  √4 / √3 = 2 / √3\n\ncase inl.h\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu0 : u 0 = a\nh_u1 : a * r = 2\nha_ne_zero : a ≠ 0\nhr : r = 2 / a\nh_u3 : 2 ^ 3 = a ^ 2 * 6\nha2 : a ^ 2 = 4 / 3\nh_pos : a = √(4 / 3)\n⊢ √4 / √3 = 2 / √3"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 56,
+              "column": 30
+            },
+            "endPos": {
+              "line": 56,
+              "column": 42
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  √(?m.279 ^ 2)\nin the target expression\n  -(√4 / √3) = -(2 / √3)\n\ncase inr.h\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu0 : u 0 = a\nh_u1 : a * r = 2\nha_ne_zero : a ≠ 0\nhr : r = 2 / a\nh_u3 : 2 ^ 3 = a ^ 2 * 6\nha2 : a ^ 2 = 4 / 3\nh_neg : a = -√(4 / 3)\n⊢ -(√4 / √3) = -(2 / √3)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2987675666809082
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we use the definition of a geometric sequence $u_k = a r^k$. Given $u_1 = 2$ and $u_3 = 6$, we can derive a system of equations:\n1.  $u_1 = a \\cdot r = 2$\n2.  $u_3 = a \\cdot r^3 = 6$\n\nFrom (1), we know $a$ and $r$ cannot be zero. Dividing (2) by (1) gives $r^2 = 3$. \nSubstituting $r^2 = 3$ back into the relationship $u_3 = u_1 \\cdot r^2$ confirms this.\nSince $r^2 = 3$, we have $r = \\pm\\sqrt{3}$.\nUsing $a = u_1 / r$, we find $a = 2 / (\\pm\\sqrt{3})$. \nSince $u_0 = a \\cdot r^0 = a$, it follows that $u_0 = \\pm 2/\\sqrt{3}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use h₀ to express u 1 and u 3 in terms of a and r\n  have hu1 : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have hu3 : a * r ^ 3 = 6 := by\n    rw [← h₀ 3, h₂]\n  \n  -- From a * r = 2, we know r cannot be zero\n  have r_ne_zero : r ≠ 0 := by\n    intro r_zero\n    rw [r_zero, mul_zero] at hu1\n    norm_num at hu1\n    \n  -- Express u 3 in terms of u 1 and r^2\n  -- u 3 = a * r^3 = (a * r) * r^2 = u 1 * r^2\n  have hr2 : 2 * r^2 = 6 := by\n    rw [pow_succ, pow_succ] at hu3\n    rw [← mul_assoc, hu1] at hu3\n    exact hu3\n    \n  have r_sq : r^2 = 3 := by linarith\n  \n  -- u 0 = a * r^0 = a\n  have hu0 : u 0 = a := by\n    rw [h₀ 0]\n    simp\n    \n  -- From a * r = 2, we have a^2 * r^2 = 4\n  have ha2 : a^2 * 3 = 4 := by\n    have h_sq := congr_arg (fun x => x^2) hu1\n    rw [mul_pow, r_sq] at h_sq\n    exact h_sq\n    \n  have ha2_final : a^2 = 4 / 3 := by linarith\n  \n  -- Use the property that x^2 = y^2 implies x = y or x = -y\n  have h_sqrt : a = 2 / Real.sqrt 3 ∨ a = - (2 / Real.sqrt 3) := by\n    have h_pow : a^2 = (2 / Real.sqrt 3)^2 := by\n      rw [div_pow, Real.sq_sqrt]\n      · norm_num\n      · norm_num\n    exact sq_eq_sq_iff_eq_or_eq_neg.mp h_pow\n    \n  rw [hu0]\n  exact h_sqrt\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use h₀ to express u 1 and u 3 in terms of a and r\n  have hu1 : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have hu3 : a * r ^ 3 = 6 := by\n    rw [← h₀ 3, h₂]\n  \n  -- From a * r = 2, we know r cannot be zero\n  have r_ne_zero : r ≠ 0 := by\n    intro r_zero\n    rw [r_zero, mul_zero] at hu1\n    norm_num at hu1\n    \n  -- Express u 3 in terms of u 1 and r^2\n  -- u 3 = a * r^3 = (a * r) * r^2 = u 1 * r^2\n  have hr2 : 2 * r^2 = 6 := by\n    rw [pow_succ, pow_succ] at hu3\n    rw [← mul_assoc, hu1] at hu3\n    exact hu3\n    \n  have r_sq : r^2 = 3 := by linarith\n  \n  -- u 0 = a * r^0 = a\n  have hu0 : u 0 = a := by\n    rw [h₀ 0]\n    simp\n    \n  -- From a * r = 2, we have a^2 * r^2 = 4\n  have ha2 : a^2 * 3 = 4 := by\n    have h_sq := congr_arg (fun x => x^2) hu1\n    rw [mul_pow, r_sq] at h_sq\n    exact h_sq\n    \n  have ha2_final : a^2 = 4 / 3 := by linarith\n  \n  -- Use the property that x^2 = y^2 implies x = y or x = -y\n  have h_sqrt : a = 2 / Real.sqrt 3 ∨ a = - (2 / Real.sqrt 3) := by\n    have h_pow : a^2 = (2 / Real.sqrt 3)^2 := by\n      rw [div_pow, Real.sq_sqrt]\n      · norm_num\n      · norm_num\n    exact sq_eq_sq_iff_eq_or_eq_neg.mp h_pow\n    \n  rw [hu0]\n  exact h_sqrt",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 8
+            },
+            "endPos": {
+              "line": 12,
+              "column": 14
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 21
+            },
+            "endPos": {
+              "line": 27,
+              "column": 24
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r\nin the target expression\n  a * (r ^ 1 * r) * r = 6\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu1 : a * r = 2\nhu3 : a * (r ^ 1 * r) * r = 6\nr_ne_zero : r ≠ 0\n⊢ 2 * r ^ 2 = 6"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 40,
+              "column": 8
+            },
+            "endPos": {
+              "line": 40,
+              "column": 15
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (?a * ?b) ^ ?n\nin the target expression\n  (fun x => x ^ 2) (a * r) = (fun x => x ^ 2) 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nr_ne_zero : r ≠ 0\nhr2 : 2 * r ^ 2 = 6\nr_sq : r ^ 2 = 3\nhu0 : u 0 = a\nh_sq : (fun x => x ^ 2) (a * r) = (fun x => x ^ 2) 2\n⊢ a ^ 2 * 3 = 4"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 49,
+              "column": 6
+            },
+            "endPos": {
+              "line": 49,
+              "column": 16
+            },
+            "data": "unsolved goals\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nr_ne_zero : r ≠ 0\nhr2 : 2 * r ^ 2 = 6\nr_sq : r ^ 2 = 3\nhu0 : u 0 = a\nha2 : a ^ 2 * 3 = 4\nha2_final : a ^ 2 = 4 / 3\n⊢ a ^ 2 = 4 / 3"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6000533103942871
+      }
+    },
+    {
+      "index": 6,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Express given terms:** Use the formula $u_k = a \\cdot r^k$.\n    *   $u_1 = a \\cdot r = 2$\n    *   $u_3 = a \\cdot r^3 = 6$\n2.  **Solve for $r^2$:** Divide $u_3$ by $u_1$:\n    *   $\\frac{a \\cdot r^3}{a \\cdot r} = \\frac{6}{2} \\implies r^2 = 3$.\n3.  **Find $a$:** Since $u_0 = a \\cdot r^0 = a$, we need to find $a$.\n    *   From $a \\cdot r = 2$, square both sides: $a^2 \\cdot r^2 = 4$.\n    *   Substitute $r^2 = 3$: $a^2 \\cdot 3 = 4 \\implies a^2 = \\frac{4}{3}$.\n4.  **Extract square root:** $a = \\pm \\sqrt{\\frac{4}{3}} = \\pm \\frac{2}{\\sqrt{3}}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- From h₀, express u₁ and u₃ in terms of a and r\n  have hu1 : a * r = 2 := by rw [← h₀ 1, h₁]; simp\n  have hu3 : a * r^3 = 6 := by rw [← h₀ 3, h₂]; simp\n  \n  -- From a * r = 2, we know a ≠ 0 and r ≠ 0\n  have ha : a ≠ 0 := by\n    intro h\n    rw [h, zero_mul] at hu1\n    norm_num at hu1\n  have hr : r ≠ 0 := by\n    intro h\n    rw [h, mul_zero] at hu1\n    norm_num at hu1\n\n  -- Calculate r^2 by dividing hu3 by hu1\n  -- a * r^3 = (a * r) * r^2\n  have hr2 : r^2 = 3 := by\n    have : a * r^3 = (a * r) * r^2 := by ring\n    rw [hu3, hu1] at this\n    linarith\n\n  -- Now find a (which is u 0)\n  -- From a * r = 2, square it: a^2 * r^2 = 4\n  have ha2 : a^2 * r^2 = 4 := by\n    have := congr_arg (λ x => x^2) hu1\n    ring_nf at this\n    exact this\n  \n  rw [hr2] at ha2\n  have ha_sq : a^2 = 4 / 3 := by linarith\n  \n  -- Use the property that x^2 = y^2 implies x = y or x = -y\n  have h_sqrt : a = sqrt (4 / 3) ∨ a = -sqrt (4 / 3) := by\n    apply eq_or_eq_neg_of_sq_eq_sq\n    rw [ha_sq]\n    have : 0 ≤ (4:ℝ)/3 := by norm_num\n    rw [sq_sqrt this]\n\n  -- Simplify sqrt(4/3) to 2/sqrt(3)\n  have h_sim : sqrt (4 / 3) = 2 / sqrt 3 := by\n    rw [sqrt_div (by norm_num), sqrt_num_sq 2 (by norm_num)]\n    norm_num\n  \n  -- u 0 = a * r^0 = a\n  have hu0 : u 0 = a := by rw [h₀ 0]; simp\n\n  rw [hu0, h_sim] at h_sqrt\n  exact h_sqrt\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- From h₀, express u₁ and u₃ in terms of a and r\n  have hu1 : a * r = 2 := by rw [← h₀ 1, h₁]; simp\n  have hu3 : a * r^3 = 6 := by rw [← h₀ 3, h₂]; simp\n  \n  -- From a * r = 2, we know a ≠ 0 and r ≠ 0\n  have ha : a ≠ 0 := by\n    intro h\n    rw [h, zero_mul] at hu1\n    norm_num at hu1\n  have hr : r ≠ 0 := by\n    intro h\n    rw [h, mul_zero] at hu1\n    norm_num at hu1\n\n  -- Calculate r^2 by dividing hu3 by hu1\n  -- a * r^3 = (a * r) * r^2\n  have hr2 : r^2 = 3 := by\n    have : a * r^3 = (a * r) * r^2 := by ring\n    rw [hu3, hu1] at this\n    linarith\n\n  -- Now find a (which is u 0)\n  -- From a * r = 2, square it: a^2 * r^2 = 4\n  have ha2 : a^2 * r^2 = 4 := by\n    have := congr_arg (λ x => x^2) hu1\n    ring_nf at this\n    exact this\n  \n  rw [hr2] at ha2\n  have ha_sq : a^2 = 4 / 3 := by linarith\n  \n  -- Use the property that x^2 = y^2 implies x = y or x = -y\n  have h_sqrt : a = sqrt (4 / 3) ∨ a = -sqrt (4 / 3) := by\n    apply eq_or_eq_neg_of_sq_eq_sq\n    rw [ha_sq]\n    have : 0 ≤ (4:ℝ)/3 := by norm_num\n    rw [sq_sqrt this]\n\n  -- Simplify sqrt(4/3) to 2/sqrt(3)\n  have h_sim : sqrt (4 / 3) = 2 / sqrt 3 := by\n    rw [sqrt_div (by norm_num), sqrt_num_sq 2 (by norm_num)]\n    norm_num\n  \n  -- u 0 = a * r^0 = a\n  have hu0 : u 0 = a := by rw [h₀ 0]; simp\n\n  rw [hu0, h_sim] at h_sqrt\n  exact h_sqrt",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 33
+            },
+            "endPos": {
+              "line": 11,
+              "column": 39
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 48
+            },
+            "endPos": {
+              "line": 12,
+              "column": 52
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 42,
+              "column": 20
+            },
+            "endPos": {
+              "line": 42,
+              "column": 24
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 42,
+              "column": 40
+            },
+            "endPos": {
+              "line": 42,
+              "column": 44
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 49,
+              "column": 15
+            },
+            "endPos": {
+              "line": 49,
+              "column": 19
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 49,
+              "column": 34
+            },
+            "endPos": {
+              "line": 49,
+              "column": 38
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt 3 : ℚ\n  \n  Nat.sqrt 3 : ℕ\n  \n  √3 : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 50,
+              "column": 18
+            },
+            "endPos": {
+              "line": 50,
+              "column": 29
+            },
+            "data": "unsolved goals\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nha : a ≠ 0\nhr : r ≠ 0\nhr2 : r ^ 2 = 3\nha2 : a ^ 2 * 3 = 4\nha_sq : a ^ 2 = 4 / 3\nh_sqrt : a = sorry ∨ a = -sorry\n⊢ 0 ≤ ?m.404"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6800570487976074
+      }
+    },
+    {
+      "index": 7,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Define the terms**: From the general term formula $u_k = a \\cdot r^k$, we express $u_1$ and $u_3$ in terms of $a$ and $r$:\n    *   $u_1 = a \\cdot r = 2$\n    *   $u_3 = a \\cdot r^3 = 6$\n2.  **Relate the terms**: Since $u_3 = (a \\cdot r) \\cdot r^2$, we substitute $u_1$ into the equation for $u_3$:\n    *   $2 \\cdot r^2 = 6 \\implies r^2 = 3$.\n3.  **Solve for $r$**: $r = \\sqrt{3}$ or $r = -\\sqrt{3}$.\n4.  **Find $a$ (which is $u_0$)**: From $u_1 = a \\cdot r = 2$, we have $a = 2/r$.\n    *   If $r = \\sqrt{3}$, then $a = 2/\\sqrt{3}$.\n    *   If $r = -\\sqrt{3}$, then $a = 2/(-\\sqrt{3}) = -(2/\\sqrt{3})$.\n5.  **Conclusion**: Since $u_0 = a \\cdot r^0 = a$, the possible values for $u_0$ are $2/\\sqrt{3}$ and $-2/\\sqrt{3}$.\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Extract values of u_1 and u_3 based on the general formula\n  have hu1 : a * r = 2 := by\n    rw [h₀ 1, pow_one] at h₁\n    exact h₁\n  have hu3 : a * r ^ 3 = 6 := by\n    rw [h₀ 3] at h₂\n    exact h₂\n  \n  -- Express u_3 in terms of u_1 and r^2\n  -- a * r^3 = (a * r) * r^2\n  have hr2 : 2 * r^2 = 6 := by\n    rw [← hu3, ← hu1]\n    ring\n  \n  -- Simplify to find r^2\n  have r_sq : r^2 = 3 := by\n    linarith\n  \n  -- Since r^2 = 3, r = ±√3\n  have r_val : r = Real.sqrt 3 ∨ r = -Real.sqrt 3 := by\n    apply eq_or_eq_neg_of_sq_eq_sq\n    rw [r_sq, Real.sq_sqrt (by linarith)]\n\n  -- Calculate u_0 = a\n  have hu0 : u 0 = a := by\n    rw [h₀ 0, pow_zero, mul_one]\n\n  -- Case analysis on r\n  cases r_val with\n  | inl hpos =>\n    left\n    rw [hu0]\n    -- From a * r = 2 and r = √3\n    have : a * Real.sqrt 3 = 2 := by rwa [hpos] at hu1\n    field_simp [this]\n  | inr hneg =>\n    right\n    rw [hu0]\n    -- From a * r = 2 and r = -√3\n    have : a * (-Real.sqrt 3) = 2 := by rwa [hneg] at hu1\n    have : -(a * Real.sqrt 3) = 2 := by linarith\n    field_simp\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Extract values of u_1 and u_3 based on the general formula\n  have hu1 : a * r = 2 := by\n    rw [h₀ 1, pow_one] at h₁\n    exact h₁\n  have hu3 : a * r ^ 3 = 6 := by\n    rw [h₀ 3] at h₂\n    exact h₂\n  \n  -- Express u_3 in terms of u_1 and r^2\n  -- a * r^3 = (a * r) * r^2\n  have hr2 : 2 * r^2 = 6 := by\n    rw [← hu3, ← hu1]\n    ring\n  \n  -- Simplify to find r^2\n  have r_sq : r^2 = 3 := by\n    linarith\n  \n  -- Since r^2 = 3, r = ±√3\n  have r_val : r = Real.sqrt 3 ∨ r = -Real.sqrt 3 := by\n    apply eq_or_eq_neg_of_sq_eq_sq\n    rw [r_sq, Real.sq_sqrt (by linarith)]\n\n  -- Calculate u_0 = a\n  have hu0 : u 0 = a := by\n    rw [h₀ 0, pow_zero, mul_one]\n\n  -- Case analysis on r\n  cases r_val with\n  | inl hpos =>\n    left\n    rw [hu0]\n    -- From a * r = 2 and r = √3\n    have : a * Real.sqrt 3 = 2 := by rwa [hpos] at hu1\n    field_simp [this]\n  | inr hneg =>\n    right\n    rw [hu0]\n    -- From a * r = 2 and r = -√3\n    have : a * (-Real.sqrt 3) = 2 := by rwa [hneg] at hu1\n    have : -(a * Real.sqrt 3) = 2 := by linarith\n    field_simp\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 39,
+              "column": 13
+            },
+            "endPos": {
+              "line": 44,
+              "column": 21
+            },
+            "data": "unsolved goals\ncase inl.h\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nhr2 : 2 * r ^ 2 = 6\nr_sq : r ^ 2 = 3\nhu0 : u 0 = a\nhpos : r = √3\nthis : a * √3 = 2\n⊢ a * √3 = 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6144428253173828
+      }
+    },
+    {
+      "index": 8,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Express given values in terms of $a$ and $r$**:\n    From $u_k = a \\cdot r^k$, we have:\n    - $u_1 = a \\cdot r = 2$\n    - $u_3 = a \\cdot r^3 = 6$\n2.  **Find the common ratio squared ($r^2$)**:\n    Dividing $u_3$ by $u_1$ gives $\\frac{a \\cdot r^3}{a \\cdot r} = \\frac{6}{2}$, which simplifies to $r^2 = 3$.\n3.  **Solve for the first term ($a = u_0$)**:\n    From $a \\cdot r = 2$, we square both sides to get $a^2 \\cdot r^2 = 4$.\n    Substituting $r^2 = 3$ gives $3a^2 = 4$, so $a^2 = 4/3$.\n4.  **Extract the square root**:\n    $a = \\pm \\sqrt{4/3} = \\pm \\frac{2}{\\sqrt{3}}$. Since $u_0 = a \\cdot r^0 = a$, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Extract equations for u 1 and u 3\n  have hu1 : a * r = 2 := by rw [← h₀ 1] at h₁; exact h₁\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3] at h₂; exact h₂\n  \n  -- From a * r = 2, we know a ≠ 0 and r ≠ 0\n  have r_ne_zero : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at hu1\n    norm_num at hu1\n    \n  -- Divide hu3 by hu1 to find r^2\n  have h_r2 : r^2 = 3 := by\n    have h_div : (a * r^3) / (a * r) = 6 / 2 := by rw [hu3, hu1]\n    field_simp [r_ne_zero] at h_div\n    -- Need to handle a = 0 case: if a=0, u1=0, but u1=2\n    have a_ne_zero : a ≠ 0 := by\n      intro ha\n      rw [ha, zero_mul] at hu1\n      norm_num at hu1\n    field_simp [a_ne_zero, r_ne_zero] at h_div\n    rw [pow_succ, pow_succ, pow_one] at h_div\n    ring_nf at h_div\n    exact h_div\n\n  -- Use a * r = 2 => (a * r)^2 = 4 => a^2 * r^2 = 4\n  have ha2 : a^2 * 3 = 4 := by\n    have h_sq : (a * r)^2 = 2^2 := by rw [hu1]; norm_num\n    rw [mul_pow, h_r2] at h_sq\n    exact h_sq\n\n  have ha_sq : a^2 = 4 / 3 := by\n    linarith\n\n  -- Solve for a\n  have ha : a = sqrt (4 / 3) ∨ a = -sqrt (4 / 3) := by\n    exact eq_sqrt_or_eq_neg_sqrt ha_sq\n\n  -- Simplify sqrt(4/3) to 2/sqrt(3)\n  have h_simp : sqrt (4 / 3) = 2 / sqrt 3 := by\n    rw [sqrt_div (by norm_num), sqrt_sq (by norm_num)]\n\n  -- u 0 = a * r^0 = a\n  have hu0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  \n  rw [hu0, h_simp] at ha\n  exact ha\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Extract equations for u 1 and u 3\n  have hu1 : a * r = 2 := by rw [← h₀ 1] at h₁; exact h₁\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3] at h₂; exact h₂\n  \n  -- From a * r = 2, we know a ≠ 0 and r ≠ 0\n  have r_ne_zero : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at hu1\n    norm_num at hu1\n    \n  -- Divide hu3 by hu1 to find r^2\n  have h_r2 : r^2 = 3 := by\n    have h_div : (a * r^3) / (a * r) = 6 / 2 := by rw [hu3, hu1]\n    field_simp [r_ne_zero] at h_div\n    -- Need to handle a = 0 case: if a=0, u1=0, but u1=2\n    have a_ne_zero : a ≠ 0 := by\n      intro ha\n      rw [ha, zero_mul] at hu1\n      norm_num at hu1\n    field_simp [a_ne_zero, r_ne_zero] at h_div\n    rw [pow_succ, pow_succ, pow_one] at h_div\n    ring_nf at h_div\n    exact h_div\n\n  -- Use a * r = 2 => (a * r)^2 = 4 => a^2 * r^2 = 4\n  have ha2 : a^2 * 3 = 4 := by\n    have h_sq : (a * r)^2 = 2^2 := by rw [hu1]; norm_num\n    rw [mul_pow, h_r2] at h_sq\n    exact h_sq\n\n  have ha_sq : a^2 = 4 / 3 := by\n    linarith\n\n  -- Solve for a\n  have ha : a = sqrt (4 / 3) ∨ a = -sqrt (4 / 3) := by\n    exact eq_sqrt_or_eq_neg_sqrt ha_sq\n\n  -- Simplify sqrt(4/3) to 2/sqrt(3)\n  have h_simp : sqrt (4 / 3) = 2 / sqrt 3 := by\n    rw [sqrt_div (by norm_num), sqrt_sq (by norm_num)]\n\n  -- u 0 = a * r^0 = a\n  have hu0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  \n  rw [hu0, h_simp] at ha\n  exact ha",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 33
+            },
+            "endPos": {
+              "line": 11,
+              "column": 39
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  u 1 = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 37
+            },
+            "endPos": {
+              "line": 12,
+              "column": 43
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 3\nin the target expression\n  u 3 = 6\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu1 : a * r = 2\n⊢ a * r ^ 3 = 6"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 28
+            },
+            "endPos": {
+              "line": 30,
+              "column": 35
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a ^ 1\nin the target expression\n  r ^ 0 * r * r * 2 = 6\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nr_ne_zero : r ≠ 0\na_ne_zero : a ≠ 0\nh_div : r ^ 0 * r * r * 2 = 6\n⊢ r ^ 2 = 3"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 48
+            },
+            "endPos": {
+              "line": 36,
+              "column": 56
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 4
+            },
+            "endPos": {
+              "line": 38,
+              "column": 14
+            },
+            "data": "Type mismatch\n  h_sq\nhas type\n  a ^ 2 * 3 = 2 ^ 2\nbut is expected to have type\n  a ^ 2 * 3 = 4"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 16
+            },
+            "endPos": {
+              "line": 44,
+              "column": 20
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 36
+            },
+            "endPos": {
+              "line": 44,
+              "column": 40
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 45,
+              "column": 10
+            },
+            "endPos": {
+              "line": 45,
+              "column": 32
+            },
+            "data": "Unknown identifier `eq_sqrt_or_eq_neg_sqrt`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 48,
+              "column": 16
+            },
+            "endPos": {
+              "line": 48,
+              "column": 20
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 48,
+              "column": 35
+            },
+            "endPos": {
+              "line": 48,
+              "column": 39
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt 3 : ℚ\n  \n  Nat.sqrt 3 : ℕ\n  \n  √3 : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 49,
+              "column": 18
+            },
+            "endPos": {
+              "line": 49,
+              "column": 29
+            },
+            "data": "unsolved goals\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nr_ne_zero : r ≠ 0\nh_r2 : r ^ 2 = 3\nha2 : a ^ 2 * 3 = 4\nha_sq : a ^ 2 = 4 / 3\nha : a = sorry ∨ a = -sorry\n⊢ 0 ≤ ?m.380"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6111164093017578
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Extract the system of equations:** From the definition $u_k = a \\cdot r^k$ and the given values:\n    *   $u_1 = a \\cdot r = 2$\n    *   $u_3 = a \\cdot r^3 = 6$\n2.  **Solve for $r^2$:** Divide the second equation by the first (noting $a \\neq 0$ and $r \\neq 0$ because $u_1 = 2$):\n    *   $\\frac{a \\cdot r^3}{a \\cdot r} = \\frac{6}{2} \\implies r^2 = 3$.\n3.  **Relate $u_0$ to $u_1$ and $r^2$:**\n    *   $u_0 = a$.\n    *   From $a \\cdot r = 2$, square both sides to get $a^2 \\cdot r^2 = 4$.\n4.  **Solve for $a$:**\n    *   Substitute $r^2 = 3$ into $a^2 \\cdot r^2 = 4$:\n    *   $a^2 \\cdot 3 = 4 \\implies a^2 = \\frac{4}{3}$.\n    *   Taking the square root: $a = \\sqrt{\\frac{4}{3}}$ or $a = -\\sqrt{\\frac{4}{3}}$.\n5.  **Simplify:**\n    *   $\\sqrt{\\frac{4}{3}} = \\frac{2}{\\sqrt{3}}$.\n    *   Thus $u_0 = \\frac{2}{\\sqrt{3}}$ or $u_0 = -\\frac{2}{\\sqrt{3}}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Step 1: Express given conditions in terms of a and r\n  have ha1 : a * r = 2 := by rw [← h₀ 1, h₁]\n  have ha3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]\n  \n  -- Step 2: Since a * r = 2, both a and r must be non-zero\n  have ha_nz : a ≠ 0 := fun h => by \n    rw [h, zero_mul] at ha1\n    exact zero_ne_bit0 1 ha1\n  have hr_nz : r ≠ 0 := fun h => by \n    rw [h, mul_zero] at ha1\n    exact zero_ne_bit0 1 ha1\n  \n  -- Step 3: Use the ratio of equations to find r^2\n  -- a * r^3 = (a * r) * r^2\n  have h_r2 : r^2 = 3 := by\n    have : a * r^3 = (a * r) * r^2 := by ring\n    rw [ha3, ha1] at this\n    linarith\n\n  -- Step 4: Relate u 0 (which is a) to r^2\n  -- Since a * r = 2, we have (a * r)^2 = 4, so a^2 * r^2 = 4\n  have ha2 : a^2 * r^2 = 4 := by\n    calc a^2 * r^2 = (a * r)^2 := by ring\n      _ = 2^2 := by rw [ha1]\n      _ = 4 := by norm_num\n\n  -- Step 5: Solve for a^2\n  rw [h_r2] at ha2\n  have ha2_val : a^2 = 4 / 3 := by\n    field_simp at ha2 ⊢\n    linarith\n  \n  -- Step 6: Conclude u 0 = a is one of the square roots\n  have hu0 : u 0 = a := by rw [h₀ 0]; simp\n  rw [hu0]\n  \n  -- a^2 = (2 / sqrt 3)^2 implies a = ± 2 / sqrt 3\n  have h_goal : a^2 = (2 / sqrt 3)^2 := by\n    rw [div_pow]\n    simp [ha2_val]\n    \n  exact eq_or_eq_neg_of_sq_eq_sq a (2 / sqrt 3) h_goal\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Step 1: Express given conditions in terms of a and r\n  have ha1 : a * r = 2 := by rw [← h₀ 1, h₁]\n  have ha3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]\n  \n  -- Step 2: Since a * r = 2, both a and r must be non-zero\n  have ha_nz : a ≠ 0 := fun h => by \n    rw [h, zero_mul] at ha1\n    exact zero_ne_bit0 1 ha1\n  have hr_nz : r ≠ 0 := fun h => by \n    rw [h, mul_zero] at ha1\n    exact zero_ne_bit0 1 ha1\n  \n  -- Step 3: Use the ratio of equations to find r^2\n  -- a * r^3 = (a * r) * r^2\n  have h_r2 : r^2 = 3 := by\n    have : a * r^3 = (a * r) * r^2 := by ring\n    rw [ha3, ha1] at this\n    linarith\n\n  -- Step 4: Relate u 0 (which is a) to r^2\n  -- Since a * r = 2, we have (a * r)^2 = 4, so a^2 * r^2 = 4\n  have ha2 : a^2 * r^2 = 4 := by\n    calc a^2 * r^2 = (a * r)^2 := by ring\n      _ = 2^2 := by rw [ha1]\n      _ = 4 := by norm_num\n\n  -- Step 5: Solve for a^2\n  rw [h_r2] at ha2\n  have ha2_val : a^2 = 4 / 3 := by\n    field_simp at ha2 ⊢\n    linarith\n  \n  -- Step 6: Conclude u 0 = a is one of the square roots\n  have hu0 : u 0 = a := by rw [h₀ 0]; simp\n  rw [hu0]\n  \n  -- a^2 = (2 / sqrt 3)^2 implies a = ± 2 / sqrt 3\n  have h_goal : a^2 = (2 / sqrt 3)^2 := by\n    rw [div_pow]\n    simp [ha2_val]\n    \n  exact eq_or_eq_neg_of_sq_eq_sq a (2 / sqrt 3) h_goal",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 33
+            },
+            "endPos": {
+              "line": 11,
+              "column": 39
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 10
+            },
+            "endPos": {
+              "line": 17,
+              "column": 22
+            },
+            "data": "Unknown identifier `zero_ne_bit0`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 10
+            },
+            "endPos": {
+              "line": 20,
+              "column": 22
+            },
+            "data": "Unknown identifier `zero_ne_bit0`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 47,
+              "column": 27
+            },
+            "endPos": {
+              "line": 47,
+              "column": 31
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt 3 : ℚ\n  \n  Nat.sqrt 3 : ℕ\n  \n  √3 : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 47,
+              "column": 40
+            },
+            "endPos": {
+              "line": 49,
+              "column": 18
+            },
+            "data": "unsolved goals\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nha1 : a * r = 2\nha3 : a * r ^ 3 = 6\nha_nz : a ≠ 0\nhr_nz : r ≠ 0\nh_r2 : r ^ 2 = 3\nha2 : a ^ 2 * 3 = 4\nha2_val : a ^ 2 = 4 / 3\nhu0 : u 0 = a\n⊢ 4 / 3 = 2 ^ 2 / sorry () ^ 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 51,
+              "column": 40
+            },
+            "endPos": {
+              "line": 51,
+              "column": 44
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt 3 : ℚ\n  \n  Nat.sqrt 3 : ℕ\n  \n  √3 : ℝ"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6742191314697266
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Extract $a$ and $r$ from the given terms:** \n    Using $h_0$, we have $u_1 = a \\cdot r^1 = ar$ and $u_3 = a \\cdot r^3 = ar^3$.\n2.  **Establish equations based on $h_1$ and $h_2$:**\n    $ar = 2$ and $ar^3 = 6$.\n3.  **Solve for $r^2$:**\n    Since $ar = 2$, $a$ and $r$ must be non-zero. Dividing the two equations gives $\\frac{ar^3}{ar} = \\frac{6}{2}$, which simplifies to $r^2 = 3$.\n4.  **Solve for $a$ (which is $u_0$):**\n    From $h_0$, $u_0 = a \\cdot r^0 = a$.\n    Square the equation $ar = 2$ to get $a^2 r^2 = 4$.\n    Substitute $r^2 = 3$ to get $3a^2 = 4$, hence $a^2 = 4/3$.\n5.  **Final result:**\n    Taking the square root gives $a = \\pm \\sqrt{4/3} = \\pm 2/\\sqrt{3}$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use the explicit definitions of u 1 and u 3\n  have hu1 : a * r = 2 := by rw [← h₀ 1, h₁]; simp\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]\n  \n  -- u 0 is just a\n  have hu0 : u 0 = a := by rw [h₀ 0]; simp\n  \n  -- From a * r = 2, we know a and r are non-zero\n  have ha : a ≠ 0 := fun h => by \n    simp [h] at hu1\n  have hr : r ≠ 0 := fun h => by \n    simp [h] at hu1\n    \n  -- Express r^3 as r * r^2\n  have hu3' : a * r * r^2 = 6 := by\n    rw [← hu3]\n    ring\n    \n  -- Substitute a * r = 2 into the equation\n  rw [hu1] at hu3'\n  have hr2 : r^2 = 3 := by linarith\n  \n  -- Use (a * r)^2 = a^2 * r^2\n  have h_sq : (a * r)^2 = 2^2 := by rw [hu1]\n  simp [pow_two] at h_sq\n  rw [hr2] at h_sq\n  \n  -- We have 3 * a^2 = 4\n  have ha2 : a^2 = 4 / 3 := by linarith\n  \n  -- Solve a^2 = 4/3 for a\n  have h_sol := eq_sqrt_or_eq_neg_sqrt_of_sq_eq_wait ha2\n  rw [Real.sqrt_div (sq_nonneg 2) (by linarith), Real.sqrt_sq (by linarith)] at h_sol\n  \n  -- Substitute back to u 0\n  rw [hu0]\n  exact h_sol\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use the explicit definitions of u 1 and u 3\n  have hu1 : a * r = 2 := by rw [← h₀ 1, h₁]; simp\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]\n  \n  -- u 0 is just a\n  have hu0 : u 0 = a := by rw [h₀ 0]; simp\n  \n  -- From a * r = 2, we know a and r are non-zero\n  have ha : a ≠ 0 := fun h => by \n    simp [h] at hu1\n  have hr : r ≠ 0 := fun h => by \n    simp [h] at hu1\n    \n  -- Express r^3 as r * r^2\n  have hu3' : a * r * r^2 = 6 := by\n    rw [← hu3]\n    ring\n    \n  -- Substitute a * r = 2 into the equation\n  rw [hu1] at hu3'\n  have hr2 : r^2 = 3 := by linarith\n  \n  -- Use (a * r)^2 = a^2 * r^2\n  have h_sq : (a * r)^2 = 2^2 := by rw [hu1]\n  simp [pow_two] at h_sq\n  rw [hr2] at h_sq\n  \n  -- We have 3 * a^2 = 4\n  have ha2 : a^2 = 4 / 3 := by linarith\n  \n  -- Solve a^2 = 4/3 for a\n  have h_sol := eq_sqrt_or_eq_neg_sqrt_of_sq_eq_wait ha2\n  rw [Real.sqrt_div (sq_nonneg 2) (by linarith), Real.sqrt_sq (by linarith)] at h_sol\n  \n  -- Substitute back to u 0\n  rw [hu0]\n  exact h_sol",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 33
+            },
+            "endPos": {
+              "line": 11,
+              "column": 39
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 6
+            },
+            "endPos": {
+              "line": 35,
+              "column": 9
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  r ^ 2\nin the target expression\n  a * r * (a * r) = 2 * 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nhu0 : u 0 = a\nha : a ≠ 0\nhr : r ≠ 0\nhu3' : 2 * r ^ 2 = 6\nhr2 : r ^ 2 = 3\nh_sq : a * r * (a * r) = 2 * 2\n⊢ u 0 = 2 / √3 ∨ u 0 = -(2 / √3)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2839202880859375
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Extract Equations**: From the definition $u_k = a r^k$, we have $u_1 = ar$ and $u_3 = ar^3$.\n2.  **Relate Terms**: Given $u_1 = 2$ and $u_3 = 6$, we substitute to get $ar = 2$ and $ar^3 = 6$.\n3.  **Solve for $r^2$**: Dividing $ar^3$ by $ar$ yields $r^2 = 6/2 = 3$. Note that $a$ cannot be zero because $u_1 \\neq 0$.\n4.  **Solve for $a$ (which is $u_0$)**: From $ar = 2$, we have $a^2 r^2 = 4$. Substituting $r^2 = 3$ gives $3a^2 = 4$, so $a^2 = 4/3$.\n5.  **Conclusion**: Taking the square root of both sides gives $a = \\pm \\sqrt{4/3} = \\pm 2/\\sqrt{3}$. Since $u_0 = a \\cdot r^0 = a$, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use h₀ to express u 1 and u 3\n  have hu1 : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have hu3 : a * r ^ 3 = 6 := by\n    rw [← h₀ 3, h₂]\n\n  -- Since ar = 2, we know a ≠ 0 and r ≠ 0\n  have ha : a ≠ 0 := by\n    intro h\n    simp [h] at hu1\n  have hr : r ≠ 0 := by\n    intro h\n    simp [h] at hu1\n\n  -- Relate a and r: r^2 = (a r^3) / (a r) = 6 / 2 = 3\n  have hr2 : r^2 = 3 := by\n    field_simp [ha, hr]\n    rw [pow_three] at hu3\n    linear_combination hu3 / a - 3 * hu1 / a\n\n  -- From ar = 2, we have (ar)^2 = 4 => a^2 r^2 = 4\n  have ha2 : a^2 * r^2 = 4 := by\n    have h_sq := congr_arg (fun x => x^2) hu1\n    ring_nf at h_sq\n    exact h_sq\n\n  -- Substitute r^2 = 3 into a^2 r^2 = 4\n  have ha2_val : a^2 = 4 / 3 := by\n    rw [hr2] at ha2\n    field_simp\n    exact ha2\n\n  -- Since u 0 = a, we solve a^2 = 4/3\n  have h_u0 : u 0 = a := by\n    rw [h₀ 0]\n    simp\n\n  rw [h_u0]\n  -- a^2 = 4/3 implies a = ±sqrt(4/3)\n  have h_eq : a^2 = (2 / Real.sqrt 3)^2 := by\n    field_simp\n    rw [ha2_val]\n    field_simp\n\n  -- Apply property x^2 = y^2 => x = y or x = -y\n  apply eq_or_eq_neg_of_sq_eq_sq\n  rw [h_eq]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use h₀ to express u 1 and u 3\n  have hu1 : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have hu3 : a * r ^ 3 = 6 := by\n    rw [← h₀ 3, h₂]\n\n  -- Since ar = 2, we know a ≠ 0 and r ≠ 0\n  have ha : a ≠ 0 := by\n    intro h\n    simp [h] at hu1\n  have hr : r ≠ 0 := by\n    intro h\n    simp [h] at hu1\n\n  -- Relate a and r: r^2 = (a r^3) / (a r) = 6 / 2 = 3\n  have hr2 : r^2 = 3 := by\n    field_simp [ha, hr]\n    rw [pow_three] at hu3\n    linear_combination hu3 / a - 3 * hu1 / a\n\n  -- From ar = 2, we have (ar)^2 = 4 => a^2 r^2 = 4\n  have ha2 : a^2 * r^2 = 4 := by\n    have h_sq := congr_arg (fun x => x^2) hu1\n    ring_nf at h_sq\n    exact h_sq\n\n  -- Substitute r^2 = 3 into a^2 r^2 = 4\n  have ha2_val : a^2 = 4 / 3 := by\n    rw [hr2] at ha2\n    field_simp\n    exact ha2\n\n  -- Since u 0 = a, we solve a^2 = 4/3\n  have h_u0 : u 0 = a := by\n    rw [h₀ 0]\n    simp\n\n  rw [h_u0]\n  -- a^2 = 4/3 implies a = ±sqrt(4/3)\n  have h_eq : a^2 = (2 / Real.sqrt 3)^2 := by\n    field_simp\n    rw [ha2_val]\n    field_simp\n\n  -- Apply property x^2 = y^2 => x = y or x = -y\n  apply eq_or_eq_neg_of_sq_eq_sq\n  rw [h_eq]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 8
+            },
+            "endPos": {
+              "line": 12,
+              "column": 14
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 4
+            },
+            "endPos": {
+              "line": 29,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu1 : a * r = 2\nhu3 : a * (r * (r * r)) = 6\nha : a ≠ 0\nhr : r ≠ 0\n⊢ -3 + r * a * a⁻¹ * 3 + (r ^ 2 - r ^ 3 * a * a⁻¹) = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 50,
+              "column": 43
+            },
+            "endPos": {
+              "line": 53,
+              "column": 14
+            },
+            "data": "unsolved goals\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nha : a ≠ 0\nhr : r ≠ 0\nhr2 : r ^ 2 = 3\nha2 : a ^ 2 * r ^ 2 = 4\nha2_val : a ^ 2 = 4 / 3\nh_u0 : u 0 = a\n⊢ 4 * √3 ^ 2 = 3 * 2 ^ 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4080049991607666
+      }
+    },
+    {
+      "index": 12,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Extract Equations**: From the definition $u_k = a r^k$, the given values $u_1 = 2$ and $u_3 = 6$ translate to:\n    -   $a \\cdot r = 2$\n    -   $a \\cdot r^3 = 6$\n2.  **Solve for $r^2$**: Dividing the second equation by the first (noting $r \\neq 0$ since $u_1 \\neq 0$) gives:\n    -   $\\frac{a r^3}{a r} = \\frac{6}{2} \\implies r^2 = 3$.\n3.  **Solve for $a$**: From $a r = 2$, squaring both sides gives $a^2 r^2 = 4$. Substituting $r^2 = 3$ yields $3 a^2 = 4$, so $a^2 = 4/3$.\n4.  **Find $u_0$**: Since $u_0 = a \\cdot r^0 = a$, we have $u_0^2 = 4/3$. Taking the square root gives $u_0 = \\pm \\sqrt{4/3} = \\pm 2/\\sqrt{3}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use definitions to get equations for a and r\n  have h_u1 : a * r = 2 := by rw [← h₀ 1] at h₁; exact h₁\n  have h_u3 : a * r ^ 3 = 6 := by rw [← h₀ 3] at h₂; exact h₂\n  \n  -- From a * r = 2, we know a != 0 and r != 0\n  have r_ne_zero : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at h_u1\n    norm_num at h_u1\n  \n  have a_ne_zero : a ≠ 0 := by\n    intro ha\n    rw [ha, zero_mul] at h_u1\n    norm_num at h_u1\n\n  -- Calculate r^2 by dividing the equations\n  have r_sq : r^2 = 3 := by\n    have h_div : (a * r^3) / (a * r) = 6 / 2 := by rw [h_u1, h_u3]\n    field_simp [a_ne_zero, r_ne_zero] at h_div\n    rw [pow_succ, pow_succ] at h_div\n    ring_nf at h_div\n    exact h_div\n\n  -- Use u 0 = a and solve for a^2\n  have h_u0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  rw [h_u0]\n  \n  -- From a * r = 2, square both sides to get a^2 * r^2 = 4\n  have a_sq_r_sq : (a * r)^2 = 2^2 := by rw [h_u1]\n  have a_sq_eq : a^2 * 3 = 4 := by\n    rw [mul_pow] at a_sq_r_sq\n    rw [← r_sq]\n    exact a_sq_r_sq\n    \n  have a_sq_final : a^2 = 4 / 3 := by\n    field_simp [a_sq_eq]\n    linear_combination a_sq_eq\n\n  -- Solving a^2 = 4/3 leads to a = ± sqrt(4/3)\n  have sol := eq_sqrt_or_neg_sqrt_of_sq_eq_sq a (2 / Real.sqrt 3) (by\n    rw [div_pow, Real.sq_sqrt]\n    · norm_num\n    · norm_num\n  )\n  exact sol\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use definitions to get equations for a and r\n  have h_u1 : a * r = 2 := by rw [← h₀ 1] at h₁; exact h₁\n  have h_u3 : a * r ^ 3 = 6 := by rw [← h₀ 3] at h₂; exact h₂\n  \n  -- From a * r = 2, we know a != 0 and r != 0\n  have r_ne_zero : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at h_u1\n    norm_num at h_u1\n  \n  have a_ne_zero : a ≠ 0 := by\n    intro ha\n    rw [ha, zero_mul] at h_u1\n    norm_num at h_u1\n\n  -- Calculate r^2 by dividing the equations\n  have r_sq : r^2 = 3 := by\n    have h_div : (a * r^3) / (a * r) = 6 / 2 := by rw [h_u1, h_u3]\n    field_simp [a_ne_zero, r_ne_zero] at h_div\n    rw [pow_succ, pow_succ] at h_div\n    ring_nf at h_div\n    exact h_div\n\n  -- Use u 0 = a and solve for a^2\n  have h_u0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  rw [h_u0]\n  \n  -- From a * r = 2, square both sides to get a^2 * r^2 = 4\n  have a_sq_r_sq : (a * r)^2 = 2^2 := by rw [h_u1]\n  have a_sq_eq : a^2 * 3 = 4 := by\n    rw [mul_pow] at a_sq_r_sq\n    rw [← r_sq]\n    exact a_sq_r_sq\n    \n  have a_sq_final : a^2 = 4 / 3 := by\n    field_simp [a_sq_eq]\n    linear_combination a_sq_eq\n\n  -- Solving a^2 = 4/3 leads to a = ± sqrt(4/3)\n  have sol := eq_sqrt_or_neg_sqrt_of_sq_eq_sq a (2 / Real.sqrt 3) (by\n    rw [div_pow, Real.sq_sqrt]\n    · norm_num\n    · norm_num\n  )\n  exact sol",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 34
+            },
+            "endPos": {
+              "line": 11,
+              "column": 40
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  u 1 = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 38
+            },
+            "endPos": {
+              "line": 12,
+              "column": 44
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 3\nin the target expression\n  u 3 = 6\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nh_u1 : a * r = 2\n⊢ a * r ^ 3 = 6"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 4
+            },
+            "endPos": {
+              "line": 31,
+              "column": 15
+            },
+            "data": "Type mismatch\n  h_div\nhas type\n  r ^ 2 * 2 = 6\nbut is expected to have type\n  r ^ 2 = 3"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 42,
+              "column": 4
+            },
+            "endPos": {
+              "line": 42,
+              "column": 19
+            },
+            "data": "Type mismatch\n  a_sq_r_sq\nhas type\n  a ^ 2 * r ^ 2 = 2 ^ 2\nbut is expected to have type\n  a ^ 2 * r ^ 2 = 4"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 49,
+              "column": 14
+            },
+            "endPos": {
+              "line": 49,
+              "column": 45
+            },
+            "data": "Unknown identifier `eq_sqrt_or_neg_sqrt_of_sq_eq_sq`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 71
+            },
+            "endPos": {
+              "line": 54,
+              "column": 11
+            },
+            "data": "unsolved goals\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nh_u1 : a * r = 2\nh_u3 : a * r ^ 3 = 6\nr_ne_zero : r ≠ 0\na_ne_zero : a ≠ 0\nr_sq : r ^ 2 = 3\nh_u0 : u 0 = a\na_sq_r_sq : (a * r) ^ 2 = 2 ^ 2\na_sq_eq : a ^ 2 * 3 = 4\na_sq_final : a ^ 2 = 4 / 3\n⊢ a = 2 / √3 ∨ a = -(2 / √3)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6648948192596436
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "To solve for $u_0$, we use the definition of the geometric sequence $u_k = a \\cdot r^k$.\n\n**Proof Sketch:**\n1.  From the formula $u_k = a \\cdot r^k$, we identify $u_0 = a \\cdot r^0 = a$.\n2.  Given $u_1 = 2$, we have $ar = 2$.\n3.  Given $u_3 = 6$, we have $ar^3 = 6$.\n4.  By dividing the two equations: $\\frac{ar^3}{ar} = \\frac{6}{2} \\implies r^2 = 3$.\n5.  Thus $r = \\sqrt{3}$ or $r = -\\sqrt{3}$.\n6.  Substitute $r$ back into $ar = 2$:\n    - If $r = \\sqrt{3}$, then $a\\sqrt{3} = 2 \\implies a = 2/\\sqrt{3}$.\n    - If $r = -\\sqrt{3}$, then $a(-\\sqrt{3}) = 2 \\implies a = -2/\\sqrt{3}$.\n7.  Since $u_0 = a$, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use h₀ to expand u 0, u 1, and u 3\n  have hu0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  have hu1 : a * r = 2 := by rw [← h₀ 1, h₁, pow_one]\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]\n  \n  -- From hu1, we know a ≠ 0 and r ≠ 0\n  have ha : a ≠ 0 := fun h => by rw [h, zero_mul] at hu1; linarith\n  have hr : r ≠ 0 := fun h => by rw [h, mul_zero] at hu1; linarith\n\n  -- Solve for r^2 using hu1 and hu3\n  -- a * r^3 = (a * r) * r^2 = 2 * r^2 = 6\n  have hr2 : r^2 = 3 := by\n    calc r^2 = (a * r^3) / (a * r) := by \n          field_simp [ha, hr]\n          ring\n      _ = 6 / 2 := by rw [hu3, hu1]\n      _ = 3 := by norm_num\n\n  -- From r^2 = 3, r = sqrt 3 or r = -sqrt 3\n  have r_cases : r = sqrt 3 ∨ r = -sqrt 3 := pow_two_eq_sqrt_iff_or_eq_neg.mp hr2\n  \n  cases r_cases with\n  | inl hpos => \n    left\n    rw [hu0]\n    -- Since a * r = 2 and r = sqrt 3, a = 2 / sqrt 3\n    field_simp [hpos] at hu1\n    exact hu1\n  | inr hneg =>\n    right\n    rw [hu0]\n    -- Since a * r = 2 and r = -sqrt 3, a = -2 / sqrt 3\n    field_simp [hneg] at hu1\n    linear_combination hu1 / sqrt 3\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use h₀ to expand u 0, u 1, and u 3\n  have hu0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  have hu1 : a * r = 2 := by rw [← h₀ 1, h₁, pow_one]\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]\n  \n  -- From hu1, we know a ≠ 0 and r ≠ 0\n  have ha : a ≠ 0 := fun h => by rw [h, zero_mul] at hu1; linarith\n  have hr : r ≠ 0 := fun h => by rw [h, mul_zero] at hu1; linarith\n\n  -- Solve for r^2 using hu1 and hu3\n  -- a * r^3 = (a * r) * r^2 = 2 * r^2 = 6\n  have hr2 : r^2 = 3 := by\n    calc r^2 = (a * r^3) / (a * r) := by \n          field_simp [ha, hr]\n          ring\n      _ = 6 / 2 := by rw [hu3, hu1]\n      _ = 3 := by norm_num\n\n  -- From r^2 = 3, r = sqrt 3 or r = -sqrt 3\n  have r_cases : r = sqrt 3 ∨ r = -sqrt 3 := pow_two_eq_sqrt_iff_or_eq_neg.mp hr2\n  \n  cases r_cases with\n  | inl hpos => \n    left\n    rw [hu0]\n    -- Since a * r = 2 and r = sqrt 3, a = 2 / sqrt 3\n    field_simp [hpos] at hu1\n    exact hu1\n  | inr hneg =>\n    right\n    rw [hu0]\n    -- Since a * r = 2 and r = -sqrt 3, a = -2 / sqrt 3\n    field_simp [hneg] at hu1\n    linear_combination hu1 / sqrt 3",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 33
+            },
+            "endPos": {
+              "line": 12,
+              "column": 39
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu0 : u 0 = a\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 10
+            },
+            "endPos": {
+              "line": 24,
+              "column": 14
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 21
+            },
+            "endPos": {
+              "line": 29,
+              "column": 25
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt 3 : ℚ\n  \n  Nat.sqrt 3 : ℕ\n  \n  √3 : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 35
+            },
+            "endPos": {
+              "line": 29,
+              "column": 39
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt 3 : ℚ\n  \n  Nat.sqrt 3 : ℕ\n  \n  √3 : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 45
+            },
+            "endPos": {
+              "line": 29,
+              "column": 77
+            },
+            "data": "Unknown identifier `pow_two_eq_sqrt_iff_or_eq_neg.mp`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 4
+            },
+            "endPos": {
+              "line": 37,
+              "column": 13
+            },
+            "data": "Type mismatch\n  hu1\nhas type\n  a * r = 2\nbut is expected to have type\n  a = 2 / √3"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 43,
+              "column": 29
+            },
+            "endPos": {
+              "line": 43,
+              "column": 33
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  ↑(Rat.sqrt 3) : ℝ\n  \n  ↑(Nat.sqrt 3) : ℝ\n  \n  √3 : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 43,
+              "column": 4
+            },
+            "endPos": {
+              "line": 43,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu0 : u 0 = a\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nha : a ≠ 0\nhr : r ≠ 0\nhr2 : r ^ 2 = 3\nhneg : r = -sorry\n⊢ a - a * sorry⁻¹ * r + sorry⁻¹ * 2 + (√3)⁻¹ * Nat.rawCast 2 = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.41544628143310547
+      }
+    },
+    {
+      "index": 14,
+      "status": "FAILED",
+      "raw_text": "To solve for $u(0)$, we use the formula for a geometric sequence $u_k = a r^k$.\n1.  From $u_1 = 2$, we have $ar = 2$.\n2.  From $u_3 = 6$, we have $ar^3 = 6$.\n3.  Dividing the two equations: $\\frac{ar^3}{ar} = \\frac{6}{2} \\implies r^2 = 3$.\n4.  Since $r^2 = 3$, it follows that $r = \\pm \\sqrt{3}$.\n5.  Substitute $r$ back into $ar = 2$:\n    - If $r = \\sqrt{3}$, then $a \\sqrt{3} = 2 \\implies a = \\frac{2}{\\sqrt{3}}$.\n    - If $r = -\\sqrt{3}$, then $a (-\\sqrt{3}) = 2 \\implies a = -\\frac{2}{\\sqrt{3}}$.\n6.  Since $u_0 = a \\cdot r^0 = a$, we conclude $u_0 = \\frac{2}{\\sqrt{3}}$ or $u_0 = -\\frac{2}{\\sqrt{3}}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use h₀ to express u 1 and u 3 in terms of a and r\n  have h_u1 : a * r = 2 := by\n    rw [← h₁, h₀]\n    simp\n  have h_u3 : a * r ^ 3 = 6 := by\n    rw [← h₂, h₀]\n    simp\n  -- From a * r = 2, we know a ≠ 0 and r ≠ 0\n  have r_ne_zero : r ≠ 0 := by\n    intro hr\n    rw [hr] at h_u1\n    norm_num at h_u1\n  -- Divide the equations to find r^2\n  have h_r2 : r^2 = 3 := by\n    have h_div : (a * r ^ 3) / (a * r) = 6 / 2 := by rw [h_u3, h_u1]\n    have a_ne_zero : a ≠ 0 := by\n      intro ha\n      rw [ha] at h_u1\n      norm_num at h_u1\n    field_simp at h_div\n    rw [pow_succ, pow_succ, mul_assoc] at h_div\n    field_simp [r_ne_zero, a_ne_zero] at h_div\n    exact h_div\n  -- Solve for r\n  have r_val : r = Real.sqrt 3 ∨ r = -Real.sqrt 3 := by\n    apply eq_or_eq_neg_of_sq_eq_sq\n    rw [h_r2]\n    exact (sq_sqrt (by norm_num)).symm\n  -- Substitute r back to find a (which is u 0)\n  have u0_eq_a : u 0 = a := by\n    rw [h₀]\n    simp\n  rw [u0_eq_a]\n  cases r_val with\n  | inl hr_pos =>\n    left\n    rw [hr_pos] at h_u1\n    field_simp [Real.sqrt_ne_zero'.mpr (by norm_num)] at h_u1\n    exact h_u1\n  | inr hr_neg =>\n    right\n    rw [hr_neg] at h_u1\n    field_simp [Real.sqrt_ne_zero'.mpr (by norm_num)] at h_u1\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use h₀ to express u 1 and u 3 in terms of a and r\n  have h_u1 : a * r = 2 := by\n    rw [← h₁, h₀]\n    simp\n  have h_u3 : a * r ^ 3 = 6 := by\n    rw [← h₂, h₀]\n    simp\n  -- From a * r = 2, we know a ≠ 0 and r ≠ 0\n  have r_ne_zero : r ≠ 0 := by\n    intro hr\n    rw [hr] at h_u1\n    norm_num at h_u1\n  -- Divide the equations to find r^2\n  have h_r2 : r^2 = 3 := by\n    have h_div : (a * r ^ 3) / (a * r) = 6 / 2 := by rw [h_u3, h_u1]\n    have a_ne_zero : a ≠ 0 := by\n      intro ha\n      rw [ha] at h_u1\n      norm_num at h_u1\n    field_simp at h_div\n    rw [pow_succ, pow_succ, mul_assoc] at h_div\n    field_simp [r_ne_zero, a_ne_zero] at h_div\n    exact h_div\n  -- Solve for r\n  have r_val : r = Real.sqrt 3 ∨ r = -Real.sqrt 3 := by\n    apply eq_or_eq_neg_of_sq_eq_sq\n    rw [h_r2]\n    exact (sq_sqrt (by norm_num)).symm\n  -- Substitute r back to find a (which is u 0)\n  have u0_eq_a : u 0 = a := by\n    rw [h₀]\n    simp\n  rw [u0_eq_a]\n  cases r_val with\n  | inl hr_pos =>\n    left\n    rw [hr_pos] at h_u1\n    field_simp [Real.sqrt_ne_zero'.mpr (by norm_num)] at h_u1\n    exact h_u1\n  | inr hr_neg =>\n    right\n    rw [hr_neg] at h_u1\n    field_simp [Real.sqrt_ne_zero'.mpr (by norm_num)] at h_u1\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 8
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 4
+            },
+            "endPos": {
+              "line": 32,
+              "column": 15
+            },
+            "data": "Type mismatch\n  h_div\nhas type\n  r ^ 2 * 2 = 6\nbut is expected to have type\n  r ^ 2 = 3"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 47,
+              "column": 40
+            },
+            "endPos": {
+              "line": 47,
+              "column": 51
+            },
+            "data": "unsolved goals\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nh_u1 : a * √3 = 2\nh_u3 : a * r ^ 3 = 6\nr_ne_zero : r ≠ 0\nh_r2 : r ^ 2 = 3\nu0_eq_a : u 0 = a\nhr_pos : r = √3\n⊢ 0 < ?m.264"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 48,
+              "column": 4
+            },
+            "endPos": {
+              "line": 48,
+              "column": 14
+            },
+            "data": "Type mismatch\n  h_u1\nhas type\n  a * √3 = 2\nbut is expected to have type\n  a = 2 / √3"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 52,
+              "column": 40
+            },
+            "endPos": {
+              "line": 52,
+              "column": 51
+            },
+            "data": "unsolved goals\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nh_u1 : a * -√3 = 2\nh_u3 : a * r ^ 3 = 6\nr_ne_zero : r ≠ 0\nh_r2 : r ^ 2 = 3\nu0_eq_a : u 0 = a\nhr_neg : r = -√3\n⊢ 0 < ?m.284"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 53,
+              "column": 4
+            },
+            "endPos": {
+              "line": 53,
+              "column": 12
+            },
+            "data": "linarith failed to find a contradiction\ncase inr.h.h1.h\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nh_u3 : a * r ^ 3 = 6\nr_ne_zero : r ≠ 0\nh_r2 : r ^ 2 = 3\nu0_eq_a : u 0 = a\nhr_neg : r = -√3\nh_u1 : -(a * √3) = 2\na✝ : a < -(2 / √3)\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4624180793762207
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "To prove that $u_0 = \\pm 2/\\sqrt{3}$ given $u_k = ar^k$, $u_1 = 2$, and $u_3 = 6$:\n\n1.  **Express given terms**: From the definition $u_k = ar^k$, we have $u_0 = a$.\n2.  **Form equations**:\n    *   $u_1 = ar = 2$\n    *   $u_3 = ar^3 = 6$\n3.  **Relate equations**: Divide $u_3$ by $u_1$:\n    $$ \\frac{ar^3}{ar} = \\frac{6}{2} \\implies r^2 = 3 $$\n    Note that $a$ cannot be zero because $ar=2$.\n4.  **Solve for $a$**:\n    From $u_1 = ar = 2$, we square both sides: $a^2 r^2 = 4$.\n    Substitute $r^2 = 3$: $3a^2 = 4 \\implies a^2 = 4/3$.\n5.  **Conclusion**:\n    Taking the square root, $a = \\pm \\sqrt{4/3} = \\pm 2/\\sqrt{3}$.\n    Since $u_0 = a$, we have $u_0 = 2/\\sqrt{3}$ or $u_0 = -2/\\sqrt{3}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Extracting basic equations\n  have hu0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  have hu1 : a * r = 2 := by rw [← h₀ 1, pow_one] at h₁; exact h₁\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3] at h₂; exact h₂\n  \n  -- From a * r = 2, we know a ≠ 0 and r ≠ 0\n  have ha : a ≠ 0 := fun h => by rw [h, zero_mul] at hu1; norm_num at hu1\n  have hr : r ≠ 0 := fun h => by rw [h, mul_zero] at hu1; norm_num at hu1\n  \n  -- Divide u3 by u1 to find r^2\n  have hr2 : r^2 = 3 := by\n    have : (a * r^3) = (a * r) * r^2 := by ring\n    rw [hu3, hu1] at this\n    linarith\n  \n  -- Use u1 to find a^2\n  have ha2 : a^2 = 4 / 3 := by\n    have : (a * r)^2 = a^2 * r^2 := by ring\n    rw [hu1, hr2] at this\n    field_simp at this\n    linarith\n  \n  -- Solve a^2 = 4/3\n  have h_final : a = 2 / sqrt 3 ∨ a = - (2 / sqrt 3) := by\n    have h_sqrt : a^2 = (2 / sqrt 3)^2 := by\n      rw [div_pow, sq_sqrt (by norm_num)]\n      norm_num\n      exact ha2\n    exact sq_eq_sq_iff_eq_or_eq_neg.mp h_sqrt\n\n  rw [hu0]\n  exact h_final\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Extracting basic equations\n  have hu0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  have hu1 : a * r = 2 := by rw [← h₀ 1, pow_one] at h₁; exact h₁\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3] at h₂; exact h₂\n  \n  -- From a * r = 2, we know a ≠ 0 and r ≠ 0\n  have ha : a ≠ 0 := fun h => by rw [h, zero_mul] at hu1; norm_num at hu1\n  have hr : r ≠ 0 := fun h => by rw [h, mul_zero] at hu1; norm_num at hu1\n  \n  -- Divide u3 by u1 to find r^2\n  have hr2 : r^2 = 3 := by\n    have : (a * r^3) = (a * r) * r^2 := by ring\n    rw [hu3, hu1] at this\n    linarith\n  \n  -- Use u1 to find a^2\n  have ha2 : a^2 = 4 / 3 := by\n    have : (a * r)^2 = a^2 * r^2 := by ring\n    rw [hu1, hr2] at this\n    field_simp at this\n    linarith\n  \n  -- Solve a^2 = 4/3\n  have h_final : a = 2 / sqrt 3 ∨ a = - (2 / sqrt 3) := by\n    have h_sqrt : a^2 = (2 / sqrt 3)^2 := by\n      rw [div_pow, sq_sqrt (by norm_num)]\n      norm_num\n      exact ha2\n    exact sq_eq_sq_iff_eq_or_eq_neg.mp h_sqrt\n\n  rw [hu0]\n  exact h_final",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 33
+            },
+            "endPos": {
+              "line": 12,
+              "column": 39
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  u 1 = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu0 : u 0 = a\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 37
+            },
+            "endPos": {
+              "line": 13,
+              "column": 43
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 3\nin the target expression\n  u 3 = 6\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu0 : u 0 = a\nhu1 : a * r = 2\n⊢ a * r ^ 3 = 6"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 25
+            },
+            "endPos": {
+              "line": 33,
+              "column": 29
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt 3 : ℚ\n  \n  Nat.sqrt 3 : ℕ\n  \n  √3 : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 45
+            },
+            "endPos": {
+              "line": 33,
+              "column": 49
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt 3 : ℚ\n  \n  Nat.sqrt 3 : ℕ\n  \n  √3 : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 29
+            },
+            "endPos": {
+              "line": 34,
+              "column": 33
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt 3 : ℚ\n  \n  Nat.sqrt 3 : ℕ\n  \n  √3 : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 28
+            },
+            "endPos": {
+              "line": 35,
+              "column": 39
+            },
+            "data": "unsolved goals\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu0 : u 0 = a\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nha : a ≠ 0\nhr : r ≠ 0\nhr2 : r ^ 2 = 3\nha2 : a ^ 2 = 4 / 3\n⊢ 0 ≤ ?m.399"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.8809926509857178
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "**Proof Sketch:**\n1. Express the terms $u_1$ and $u_3$ using the general formula $u_k = a r^k$.\n2. From $u_1 = 2$, we have $ar = 2$, which implies $a \\neq 0$ and $r \\neq 0$. Thus, $r = 2/a$.\n3. From $u_3 = 6$, we have $ar^3 = 6$.\n4. Substitute $r = 2/a$ into the second equation: $a(2/a)^3 = 6 \\implies a(8/a^3) = 6 \\implies 8/a^2 = 6$.\n5. Solve for $a^2$: $a^2 = 8/6 = 4/3$.\n6. Taking the square root gives $a = \\pm \\sqrt{4/3} = \\pm 2/\\sqrt{3}$.\n7. Since $u_0 = a r^0 = a$, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- From the definition of u k\n  have hu0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  have hu1 : a * r = 2 := by rw [← h₀ 1, pow_one] at h₁; exact h₁\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3] at h₂; exact h₂\n  \n  -- From hu1, we know a ≠ 0 and r ≠ 0\n  have ha : a ≠ 0 := by\n    intro hz\n    rw [hz, zero_mul] at hu1\n    norm_num at hu1\n    \n  -- Substitute r = 2/a into hu3\n  have hr : r = 2 / a := by\n    field_simp [ha] at hu1\n    exact hu1.symm\n    \n  rw [hr] at hu3\n  -- Simplify the equation a * (2 / a) ^ 3 = 6\n  have h_eq : a * (8 / a ^ 3) = 6 := by\n    field_simp at hu3\n    rw [pow_succ, pow_succ, pow_one] at hu3\n    linear_combination hu3\n    \n  have h_a2 : a ^ 2 = 4 / 3 := by\n    field_simp [ha] at h_eq\n    linear_combination h_eq / 6\n    \n  -- Solve a^2 = 4/3\n  have h_final : a = 2 / Real.sqrt 3 ∨ a = - (2 / Real.sqrt 3) := by\n    have h_sq : (2 / Real.sqrt 3) ^ 2 = 4 / 3 := by\n      rw [div_pow, Real.sq_sqrt]\n      norm_num\n      norm_num\n    rw [← h_sq] at h_a2\n    exact sq_eq_sq_iff_eq_or_eq_neg.mp h_a2\n\n  rw [hu0]\n  exact h_final\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- From the definition of u k\n  have hu0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  have hu1 : a * r = 2 := by rw [← h₀ 1, pow_one] at h₁; exact h₁\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3] at h₂; exact h₂\n  \n  -- From hu1, we know a ≠ 0 and r ≠ 0\n  have ha : a ≠ 0 := by\n    intro hz\n    rw [hz, zero_mul] at hu1\n    norm_num at hu1\n    \n  -- Substitute r = 2/a into hu3\n  have hr : r = 2 / a := by\n    field_simp [ha] at hu1\n    exact hu1.symm\n    \n  rw [hr] at hu3\n  -- Simplify the equation a * (2 / a) ^ 3 = 6\n  have h_eq : a * (8 / a ^ 3) = 6 := by\n    field_simp at hu3\n    rw [pow_succ, pow_succ, pow_one] at hu3\n    linear_combination hu3\n    \n  have h_a2 : a ^ 2 = 4 / 3 := by\n    field_simp [ha] at h_eq\n    linear_combination h_eq / 6\n    \n  -- Solve a^2 = 4/3\n  have h_final : a = 2 / Real.sqrt 3 ∨ a = - (2 / Real.sqrt 3) := by\n    have h_sq : (2 / Real.sqrt 3) ^ 2 = 4 / 3 := by\n      rw [div_pow, Real.sq_sqrt]\n      norm_num\n      norm_num\n    rw [← h_sq] at h_a2\n    exact sq_eq_sq_iff_eq_or_eq_neg.mp h_a2\n\n  rw [hu0]\n  exact h_final",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 33
+            },
+            "endPos": {
+              "line": 12,
+              "column": 39
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  u 1 = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu0 : u 0 = a\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 37
+            },
+            "endPos": {
+              "line": 13,
+              "column": 43
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 3\nin the target expression\n  u 3 = 6\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu0 : u 0 = a\nhu1 : a * r = 2\n⊢ a * r ^ 3 = 6"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 4
+            },
+            "endPos": {
+              "line": 24,
+              "column": 18
+            },
+            "data": "Type mismatch\n  Eq.symm hu1\nhas type\n  2 = a * r\nbut is expected to have type\n  r = 2 / a"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 4
+            },
+            "endPos": {
+              "line": 31,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu0 : u 0 = a\nhu1 : a * r = 2\nha : a ≠ 0\nhr : r = 2 / a\nhu3 : 2 * 2 * 2 = a ^ 2 * 6\n⊢ -14 + a * a⁻¹ ^ 3 * 8 + a ^ 2 * 6 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 4
+            },
+            "endPos": {
+              "line": 35,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu0 : u 0 = a\nhu1 : a * r = 2\nhu3 : a * (2 / a) ^ 3 = 6\nha : a ≠ 0\nhr : r = 2 / a\nh_eq : 8 = a ^ 2 * 6\n⊢ -8 / 3 + a ^ 2 * Nat.rawCast 2 = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.39696335792541504
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Extract equations for $a$ and $r$:**\n    Using the general term formula $u_k = a \\cdot r^k$, substitute $k=1$ and $k=3$ into the given values:\n    -   $u_1 = a \\cdot r = 2$\n    -   $u_3 = a \\cdot r^3 = 6$\n2.  **Solve for $r^2$:**\n    Divide the second equation by the first: $\\frac{a \\cdot r^3}{a \\cdot r} = \\frac{6}{2} \\implies r^2 = 3$. (Note: $r \\neq 0$ because $a \\cdot r = 2$).\n3.  **Solve for $a$ (which is $u_0$):**\n    From $u_1 = a \\cdot r = 2$, square both sides to get $a^2 \\cdot r^2 = 4$.\n    Substitute $r^2 = 3$ into this equation: $a^2 \\cdot 3 = 4 \\implies a^2 = \\frac{4}{3}$.\n4.  **Conclude $u_0$:**\n    Since $u_0 = a \\cdot r^0 = a$, we have $a^2 = \\frac{4}{3}$, which implies $a = \\sqrt{4/3} = 2/\\sqrt{3}$ or $a = -2/\\sqrt{3}$.\n\n---\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use the formula for u 1 and u 3 to find r^2\n  have h_u1 : a * r = 2 := by rw [← h₀ 1, h₁]; simp\n  have h_u3 : a * r^3 = 6 := by rw [← h₀ 3, h₂]; simp\n  \n  -- From a * r = 2, we know r ≠ 0 and a ≠ 0\n  have r_ne_zero : r ≠ 0 := by\n    intro h\n    rw [h, mul_zero] at h_u1\n    norm_num at h_u1\n\n  -- Calculate r^2 by dividing u 3 by u 1\n  have r_sq : r^2 = 3 := by\n    have h_div : (a * r^3) / (a * r) = 6 / 2 := by rw [h_u3, h_u1]\n    field_simp [r_ne_zero] at h_div\n    rw [pow_succ, pow_succ, pow_one] at h_div\n    field_simp [r_ne_zero] at h_div\n    exact h_div\n\n  -- u 0 = a\n  have h_u0 : u 0 = a := by rw [h₀ 0]; simp\n\n  -- Solve for a^2 using (a * r)^2 = 4\n  have a_sq : a^2 = 4 / 3 := by\n    have h_sq : (a * r)^2 = 2^2 := by rw [h_u1]\n    ring_nf at h_sq\n    rw [r_sq] at h_sq\n    field_simp at h_sq\n    linear_combination h_sq / 3\n\n  -- Use a^2 = 4/3 to show a = ±2/√3\n  rw [h_u0]\n  have goal_sq : a^2 = (2 / Real.sqrt 3)^2 := by\n    rw [div_pow, Real.sq_sqrt (by norm_num)]\n    norm_num\n    exact a_sq\n  \n  exact pow_eq_pow_sq_iff.mp goal_sq\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use the formula for u 1 and u 3 to find r^2\n  have h_u1 : a * r = 2 := by rw [← h₀ 1, h₁]; simp\n  have h_u3 : a * r^3 = 6 := by rw [← h₀ 3, h₂]; simp\n  \n  -- From a * r = 2, we know r ≠ 0 and a ≠ 0\n  have r_ne_zero : r ≠ 0 := by\n    intro h\n    rw [h, mul_zero] at h_u1\n    norm_num at h_u1\n\n  -- Calculate r^2 by dividing u 3 by u 1\n  have r_sq : r^2 = 3 := by\n    have h_div : (a * r^3) / (a * r) = 6 / 2 := by rw [h_u3, h_u1]\n    field_simp [r_ne_zero] at h_div\n    rw [pow_succ, pow_succ, pow_one] at h_div\n    field_simp [r_ne_zero] at h_div\n    exact h_div\n\n  -- u 0 = a\n  have h_u0 : u 0 = a := by rw [h₀ 0]; simp\n\n  -- Solve for a^2 using (a * r)^2 = 4\n  have a_sq : a^2 = 4 / 3 := by\n    have h_sq : (a * r)^2 = 2^2 := by rw [h_u1]\n    ring_nf at h_sq\n    rw [r_sq] at h_sq\n    field_simp at h_sq\n    linear_combination h_sq / 3\n\n  -- Use a^2 = 4/3 to show a = ±2/√3\n  rw [h_u0]\n  have goal_sq : a^2 = (2 / Real.sqrt 3)^2 := by\n    rw [div_pow, Real.sq_sqrt (by norm_num)]\n    norm_num\n    exact a_sq\n  \n  exact pow_eq_pow_sq_iff.mp goal_sq",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 34
+            },
+            "endPos": {
+              "line": 11,
+              "column": 40
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 49
+            },
+            "endPos": {
+              "line": 12,
+              "column": 53
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 28
+            },
+            "endPos": {
+              "line": 24,
+              "column": 35
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a ^ 1\nin the target expression\n  a * (r ^ 0 * r * r) * 2 / a = 6\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nh_u1 : a * r = 2\nh_u3 : a * r ^ 3 = 6\nr_ne_zero : r ≠ 0\nh_div : a * (r ^ 0 * r * r) * 2 / a = 6\n⊢ r ^ 2 = 3"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 46,
+              "column": 8
+            },
+            "endPos": {
+              "line": 46,
+              "column": 28
+            },
+            "data": "Unknown identifier `pow_eq_pow_sq_iff.mp`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6313076019287109
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "To solve for $u(0)$, we use the properties of the geometric sequence $u_k = a r^k$.\n\n**Proof Sketch:**\n1. From the general term formula $u_k = a r^k$, we have $u_0 = a \\cdot r^0 = a$. Thus, our goal is to find the possible values of $a$.\n2. Given $u_1 = 2$, we have $a \\cdot r^1 = 2$, which implies $ar = 2$. Since $2 \\neq 0$, both $a$ and $r$ must be non-zero. From this, $r = 2/a$.\n3. Given $u_3 = 6$, we have $a \\cdot r^3 = 6$.\n4. Substitute $r = 2/a$ into the second equation: $a \\cdot (2/a)^3 = 6$.\n5. Simplify the expression: $a \\cdot \\frac{8}{a^3} = 6 \\implies \\frac{8}{a^2} = 6$.\n6. Solve for $a^2$: $6a^2 = 8 \\implies a^2 = \\frac{8}{6} = \\frac{4}{3}$.\n7. Taking the square root gives $a = \\sqrt{4/3} = 2/\\sqrt{3}$ or $a = -2/\\sqrt{3}$.\n8. Since $u_0 = a$, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- From h₀, u 0 = a\n  have hu0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  -- From h₁, ar = 2\n  have h_ar : a * r = 2 := by rw [← h₀ 1, h₁]\n  -- From h₂, ar³ = 6\n  have h_ar3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]\n  \n  -- Since ar = 2, a and r are non-zero\n  have ha_ne_zero : a ≠ 0 := by\n    intro h\n    rw [h, zero_mul] at h_ar\n    norm_num at h_ar\n  \n  have hr_ne_zero : r ≠ 0 := by\n    intro h\n    rw [h, mul_zero] at h_ar\n    norm_num at h_ar\n\n  -- Express r in terms of a: r = 2/a\n  have hr : r = 2 / a := by\n    field_simp [ha_ne_zero] at h_ar\n    exact h_ar.symm\n  \n  -- Substitute r into ar³ = 6\n  rw [hr] at h_ar3\n  have ha2 : a^2 = 4 / 3 := by\n    field_simp [ha_ne_zero] at h_ar3\n    ring_nf at h_ar3\n    linear_combination h_ar3 / 6\n\n  -- Solve a^2 = 4/3 for a\n  have h_sq : a = sqrt (4 / 3) ∨ a = -sqrt (4 / 3) := eq_sqrt_or_neg_sqrt.mp (by\n    rw [ha2]\n    field_simp)\n  \n  -- Use sqrt(4/3) = 2/sqrt(3)\n  have h_sqrt_simp : sqrt (4 / 3) = 2 / sqrt 3 := by\n    rw [sqrt_div (by norm_num), sqrt_sq (by norm_num)]\n    norm_num\n    \n  rw [hu0, h_sqrt_simp] at h_sq\n  exact h_sq\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- From h₀, u 0 = a\n  have hu0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  -- From h₁, ar = 2\n  have h_ar : a * r = 2 := by rw [← h₀ 1, h₁]\n  -- From h₂, ar³ = 6\n  have h_ar3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]\n  \n  -- Since ar = 2, a and r are non-zero\n  have ha_ne_zero : a ≠ 0 := by\n    intro h\n    rw [h, zero_mul] at h_ar\n    norm_num at h_ar\n  \n  have hr_ne_zero : r ≠ 0 := by\n    intro h\n    rw [h, mul_zero] at h_ar\n    norm_num at h_ar\n\n  -- Express r in terms of a: r = 2/a\n  have hr : r = 2 / a := by\n    field_simp [ha_ne_zero] at h_ar\n    exact h_ar.symm\n  \n  -- Substitute r into ar³ = 6\n  rw [hr] at h_ar3\n  have ha2 : a^2 = 4 / 3 := by\n    field_simp [ha_ne_zero] at h_ar3\n    ring_nf at h_ar3\n    linear_combination h_ar3 / 6\n\n  -- Solve a^2 = 4/3 for a\n  have h_sq : a = sqrt (4 / 3) ∨ a = -sqrt (4 / 3) := eq_sqrt_or_neg_sqrt.mp (by\n    rw [ha2]\n    field_simp)\n  \n  -- Use sqrt(4/3) = 2/sqrt(3)\n  have h_sqrt_simp : sqrt (4 / 3) = 2 / sqrt 3 := by\n    rw [sqrt_div (by norm_num), sqrt_sq (by norm_num)]\n    norm_num\n    \n  rw [hu0, h_sqrt_simp] at h_sq\n  exact h_sq",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 34
+            },
+            "endPos": {
+              "line": 13,
+              "column": 40
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu0 : u 0 = a\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 4
+            },
+            "endPos": {
+              "line": 31,
+              "column": 19
+            },
+            "data": "Type mismatch\n  Eq.symm h_ar\nhas type\n  2 = a * r\nbut is expected to have type\n  r = 2 / a"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 4
+            },
+            "endPos": {
+              "line": 38,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu0 : u 0 = a\nh_ar : a * r = 2\nha_ne_zero : a ≠ 0\nhr_ne_zero : r ≠ 0\nhr : r = 2 / a\nh_ar3 : 8 = a ^ 2 * 6\n⊢ -8 / 3 + a ^ 2 * Nat.rawCast 2 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 41,
+              "column": 18
+            },
+            "endPos": {
+              "line": 41,
+              "column": 22
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 41,
+              "column": 38
+            },
+            "endPos": {
+              "line": 41,
+              "column": 42
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 41,
+              "column": 54
+            },
+            "endPos": {
+              "line": 41,
+              "column": 76
+            },
+            "data": "Unknown identifier `eq_sqrt_or_neg_sqrt.mp`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 46,
+              "column": 21
+            },
+            "endPos": {
+              "line": 46,
+              "column": 25
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 46,
+              "column": 40
+            },
+            "endPos": {
+              "line": 46,
+              "column": 44
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt 3 : ℚ\n  \n  Nat.sqrt 3 : ℕ\n  \n  √3 : ℝ"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4117467403411865
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "To prove that $u_0 = \\pm 2/\\sqrt{3}$ given $u_k = ar^k$, $u_1 = 2$, and $u_3 = 6$:\n\n1.  **Express given values in terms of $a$ and $r$**:\n    From $h_0$, we have $u_1 = ar^1 = ar$ and $u_3 = ar^3$.\n2.  **Set up equations**:\n    $ar = 2$ and $ar^3 = 6$.\n3.  **Solve for $r^2$**:\n    Dividing $u_3$ by $u_1$ gives $\\frac{ar^3}{ar} = \\frac{6}{2} \\implies r^2 = 3$.\n4.  **Solve for $a$ (which is $u_0$)**:\n    Since $u_1 = ar = 2$, we have $a^2 r^2 = 2^2 = 4$.\n    Substituting $r^2 = 3$, we get $3a^2 = 4 \\implies a^2 = 4/3$.\n5.  **Conclusion**:\n    Taking the square root, $a = \\pm \\sqrt{4/3} = \\pm 2/\\sqrt{3}$. Since $u_0 = a \\cdot r^0 = a$, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use h₀ to express u 1 and u 3 in terms of a and r\n  have hu1 : a * r = 2 := by\n    rw [← h₁, h₀]\n    simp\n  have hu3 : a * r ^ 3 = 6 := by\n    rw [← h₂, h₀]\n  -- From a * r = 2, we know a ≠ 0 and r ≠ 0\n  have ha : a ≠ 0 := by\n    intro h\n    simp [h] at hu1\n  have hr : r ≠ 0 := by\n    intro h\n    simp [h] at hu1\n  -- Divide hu3 by hu1 to find r^2\n  have hr2 : r^2 = 3 := by\n    have h_div : (a * r^3) / (a * r) = 6 / 2 := by rw [hu3, hu1]\n    field_simp at h_div\n    rw [pow_succ, pow_succ, mul_assoc] at h_div\n    field_simp at h_div\n    exact h_div\n  -- Use (a * r)^2 = 2^2 and substitute r^2 = 3 to find a^2\n  have ha2 : a^2 = 4 / 3 := by\n    have h_sq : (a * r)^2 = 2^2 := by rw [hu1]; norm_num\n    rw [mul_pow, hr2] at h_sq\n    field_simp\n    linarith\n  -- Solve for a\n  have ha_sol : a = 2 / Real.sqrt 3 ∨ a = - (2 / Real.sqrt 3) := by\n    rw [eq_comm, ← sq_eq_sq_iff_eq_or_eq_neg]\n    rw [ha2]\n    field_simp\n    rw [Real.sq_sqrt (by norm_num)]\n  -- Since u 0 = a * r^0 = a, substitute into the goal\n  rw [h₀]\n  simp\n  exact ha_sol\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use h₀ to express u 1 and u 3 in terms of a and r\n  have hu1 : a * r = 2 := by\n    rw [← h₁, h₀]\n    simp\n  have hu3 : a * r ^ 3 = 6 := by\n    rw [← h₂, h₀]\n  -- From a * r = 2, we know a ≠ 0 and r ≠ 0\n  have ha : a ≠ 0 := by\n    intro h\n    simp [h] at hu1\n  have hr : r ≠ 0 := by\n    intro h\n    simp [h] at hu1\n  -- Divide hu3 by hu1 to find r^2\n  have hr2 : r^2 = 3 := by\n    have h_div : (a * r^3) / (a * r) = 6 / 2 := by rw [hu3, hu1]\n    field_simp at h_div\n    rw [pow_succ, pow_succ, mul_assoc] at h_div\n    field_simp at h_div\n    exact h_div\n  -- Use (a * r)^2 = 2^2 and substitute r^2 = 3 to find a^2\n  have ha2 : a^2 = 4 / 3 := by\n    have h_sq : (a * r)^2 = 2^2 := by rw [hu1]; norm_num\n    rw [mul_pow, hr2] at h_sq\n    field_simp\n    linarith\n  -- Solve for a\n  have ha_sol : a = 2 / Real.sqrt 3 ∨ a = - (2 / Real.sqrt 3) := by\n    rw [eq_comm, ← sq_eq_sq_iff_eq_or_eq_neg]\n    rw [ha2]\n    field_simp\n    rw [Real.sq_sqrt (by norm_num)]\n  -- Since u 0 = a * r^0 = a, substitute into the goal\n  rw [h₀]\n  simp\n  exact ha_sol",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 4
+            },
+            "endPos": {
+              "line": 29,
+              "column": 15
+            },
+            "data": "Type mismatch\n  h_div\nhas type\n  r ^ 2 * 2 = 6\nbut is expected to have type\n  r ^ 2 = 3"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 48
+            },
+            "endPos": {
+              "line": 32,
+              "column": 56
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 17
+            },
+            "endPos": {
+              "line": 38,
+              "column": 44
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?m.302 = ?m.303 ∨ ?m.302 = -?m.303\nin the target expression\n  2 / √3 = a ∨ a = -(2 / √3)\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nha : a ≠ 0\nhr : r ≠ 0\nhr2 : r ^ 2 = 3\nha2 : a ^ 2 = 4 / 3\n⊢ 2 / √3 = a ∨ a = -(2 / √3)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5116732120513916
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "To prove that $u(0) = \\pm 2/\\sqrt{3}$ given $u(k) = ar^k$, $u(1) = 2$, and $u(3) = 6$, we follow these steps:\n\n### Proof Sketch\n1.  **Formulate equations for $a$ and $r$:**\n    From $h_0$ and $h_1$, we have $u(1) = ar^1 = 2$, so $ar = 2$.\n    From $h_0$ and $h_2$, we have $u(3) = ar^3 = 6$, so $ar^3 = 6$.\n2.  **Solve for $r^2$:**\n    Since $ar = 2$, we know $a \\neq 0$ and $r \\neq 0$. Dividing the second equation by the first gives:\n    $\\frac{ar^3}{ar} = \\frac{6}{2} \\implies r^2 = 3$.\n3.  **Express $u(0)$:**\n    By definition, $u(0) = ar^0 = a$.\n4.  **Relate $a$ to $r^2$:**\n    From $ar = 2$, squaring both sides gives $a^2 r^2 = 4$.\n    Substitute $r^2 = 3$: $a^2 \\cdot 3 = 4$, which implies $a^2 = 4/3$.\n5.  **Finalize:**\n    Taking the square root, $a = \\pm \\sqrt{4/3} = \\pm 2/\\sqrt{3}$. Since $u(0) = a$, the result follows.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Extract equations for a and r\n  have eq1 : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have eq2 : a * r ^ 3 = 6 := by\n    rw [← h₀ 3, h₂]\n  \n  -- From eq1, neither a nor r can be zero\n  have r_ne_zero : r ≠ 0 := by\n    intro h\n    simp [h] at eq1\n  have a_ne_zero : a ≠ 0 := by\n    intro h\n    simp [h] at eq1\n\n  -- Divide eq2 by eq1 to find r^2\n  have r_sq : r^2 = 3 := by\n    have h_div : (a * r^3) / (a * r) = 6 / 2 := by rw [eq1, eq2]\n    field_simp [a_ne_zero, r_ne_zero] at h_div\n    linear_combination h_div\n  \n  -- Express u 0 in terms of a\n  have u0 : u 0 = a := by\n    rw [h₀ 0]\n    simp\n\n  -- Use eq1 to relate a and r^2\n  have a_sq : a^2 * r^2 = 2^2 := by\n    rw [← mul_pow, eq1]\n  \n  rw [r_sq] at a_sq\n  have a_sq_val : a^2 = 4 / 3 := by\n    field_simp at a_sq\n    linear_combination 1/3 * a_sq\n  \n  -- Solve for a\n  have final_a : a = sqrt (4 / 3) ∨ a = -sqrt (4 / 3) := \n    eq_or_eq_neg_of_sq_eq_sq a (sqrt (4/3)) (by rw [a_sq_val, sq_sqrt (by norm_num)])\n  \n  -- Simplify the square root and conclude\n  rw [sqrt_div (by norm_num), sqrt_sq (by norm_num)] at final_a\n  rw [u0]\n  exact final_a\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Extract equations for a and r\n  have eq1 : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have eq2 : a * r ^ 3 = 6 := by\n    rw [← h₀ 3, h₂]\n  \n  -- From eq1, neither a nor r can be zero\n  have r_ne_zero : r ≠ 0 := by\n    intro h\n    simp [h] at eq1\n  have a_ne_zero : a ≠ 0 := by\n    intro h\n    simp [h] at eq1\n\n  -- Divide eq2 by eq1 to find r^2\n  have r_sq : r^2 = 3 := by\n    have h_div : (a * r^3) / (a * r) = 6 / 2 := by rw [eq1, eq2]\n    field_simp [a_ne_zero, r_ne_zero] at h_div\n    linear_combination h_div\n  \n  -- Express u 0 in terms of a\n  have u0 : u 0 = a := by\n    rw [h₀ 0]\n    simp\n\n  -- Use eq1 to relate a and r^2\n  have a_sq : a^2 * r^2 = 2^2 := by\n    rw [← mul_pow, eq1]\n  \n  rw [r_sq] at a_sq\n  have a_sq_val : a^2 = 4 / 3 := by\n    field_simp at a_sq\n    linear_combination 1/3 * a_sq\n  \n  -- Solve for a\n  have final_a : a = sqrt (4 / 3) ∨ a = -sqrt (4 / 3) := \n    eq_or_eq_neg_of_sq_eq_sq a (sqrt (4/3)) (by rw [a_sq_val, sq_sqrt (by norm_num)])\n  \n  -- Simplify the square root and conclude\n  rw [sqrt_div (by norm_num), sqrt_sq (by norm_num)] at final_a\n  rw [u0]\n  exact final_a",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 8
+            },
+            "endPos": {
+              "line": 12,
+              "column": 14
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 4
+            },
+            "endPos": {
+              "line": 29,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\neq1 : a * r = 2\neq2 : a * r ^ 3 = 6\nr_ne_zero : r ≠ 0\na_ne_zero : a ≠ 0\nh_div : r ^ 2 * 2 = 6\n⊢ Nat.rawCast 3 - r ^ 2 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 46,
+              "column": 21
+            },
+            "endPos": {
+              "line": 46,
+              "column": 25
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 46,
+              "column": 41
+            },
+            "endPos": {
+              "line": 46,
+              "column": 45
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 47,
+              "column": 32
+            },
+            "endPos": {
+              "line": 47,
+              "column": 36
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  ↑(Rat.sqrt (4 / 3)) : ℝ\n  \n  ↑(4 / 3).sqrt : ℝ\n  \n  √(4 / 3) : ℝ"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.47996997833251953
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "To solve for $u(0)$, we use the formula for a geometric sequence $u(n) = a \\cdot r^n$.\n1. From $h_1$, we have $u(1) = a \\cdot r = 2$.\n2. From $h_2$, we have $u(3) = a \\cdot r^3 = 6$.\n3. Since $a \\cdot r = 2$, we can substitute this into the equation for $u(3)$: $(a \\cdot r) \\cdot r^2 = 6 \\implies 2 \\cdot r^2 = 6 \\implies r^2 = 3$.\n4. This gives $r = \\pm \\sqrt{3}$.\n5. Since $u(1) = a \\cdot r$, we have $a = u(0) = 2/r$.\n6. Substituting the possible values of $r$, we get $u(0) = 2/\\sqrt{3}$ or $u(0) = -2/\\sqrt{3}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Extracting values from the general form\n  have u0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  have u1 : a * r = 2 := by rw [← h₀ 1, pow_one] at h₁; exact h₁\n  have u3 : a * r ^ 3 = 6 := by rw [← h₀ 3] at h₂; exact h₂\n\n  -- Derive r^2 from u1 and u3\n  -- Since a * r = 2, a and r cannot be zero\n  have a_ne_zero : a ≠ 0 := by\n    intro ha\n    rw [ha, zero_mul] at u1\n    norm_num at u1\n  have r_ne_zero : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at u1\n    norm_num at u1\n\n  -- Calculate r^2\n  have r2_eq_3 : r^2 = 3 := by\n    have h : (a * r) * r^2 = 6 := by\n      rw [← mul_assoc, ← pow_succ]\n      exact u3\n    rw [u1] at h\n    linarith\n\n  -- Solve for r\n  have r_vals : r = Real.sqrt 3 ∨ r = - Real.sqrt 3 := by\n    apply eq_sqrt_or_eq_neg_sqrt\n    exact r2_eq_3\n\n  -- Calculate u(0) = a = 2/r\n  have a_eq : a = 2 / r := by\n    field_simp [r_ne_zero]\n    exact u1.symm\n\n  -- Final case analysis\n  rcases r_vals with hr | hr\n  · left\n    rw [u0, a_eq, hr]\n  · right\n    rw [u0, a_eq, hr]\n    field_simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Extracting values from the general form\n  have u0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  have u1 : a * r = 2 := by rw [← h₀ 1, pow_one] at h₁; exact h₁\n  have u3 : a * r ^ 3 = 6 := by rw [← h₀ 3] at h₂; exact h₂\n\n  -- Derive r^2 from u1 and u3\n  -- Since a * r = 2, a and r cannot be zero\n  have a_ne_zero : a ≠ 0 := by\n    intro ha\n    rw [ha, zero_mul] at u1\n    norm_num at u1\n  have r_ne_zero : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at u1\n    norm_num at u1\n\n  -- Calculate r^2\n  have r2_eq_3 : r^2 = 3 := by\n    have h : (a * r) * r^2 = 6 := by\n      rw [← mul_assoc, ← pow_succ]\n      exact u3\n    rw [u1] at h\n    linarith\n\n  -- Solve for r\n  have r_vals : r = Real.sqrt 3 ∨ r = - Real.sqrt 3 := by\n    apply eq_sqrt_or_eq_neg_sqrt\n    exact r2_eq_3\n\n  -- Calculate u(0) = a = 2/r\n  have a_eq : a = 2 / r := by\n    field_simp [r_ne_zero]\n    exact u1.symm\n\n  -- Final case analysis\n  rcases r_vals with hr | hr\n  · left\n    rw [u0, a_eq, hr]\n  · right\n    rw [u0, a_eq, hr]\n    field_simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 32
+            },
+            "endPos": {
+              "line": 12,
+              "column": 38
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  u 1 = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nu0 : u 0 = a\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 36
+            },
+            "endPos": {
+              "line": 13,
+              "column": 42
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 3\nin the target expression\n  u 3 = 6\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nu0 : u 0 = a\nu1 : a * r = 2\n⊢ a * r ^ 3 = 6"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 10
+            },
+            "endPos": {
+              "line": 29,
+              "column": 21
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a * (?b * ?c)\nin the target expression\n  a * r * r ^ 2 = 6\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nu0 : u 0 = a\nu1 : a * r = 2\nu3 : a * r ^ 3 = 6\na_ne_zero : a ≠ 0\nr_ne_zero : r ≠ 0\n⊢ a * r * r ^ 2 = 6"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 10
+            },
+            "endPos": {
+              "line": 36,
+              "column": 32
+            },
+            "data": "Unknown identifier `eq_sqrt_or_eq_neg_sqrt`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 4
+            },
+            "endPos": {
+              "line": 37,
+              "column": 17
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 42,
+              "column": 4
+            },
+            "endPos": {
+              "line": 42,
+              "column": 17
+            },
+            "data": "Type mismatch\n  Eq.symm u1\nhas type\n  2 = a * r\nbut is expected to have type\n  a * r = 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3789093494415283
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we use the definition of the geometric sequence $u_k = a r^k$.\n1.  **Extract parameters $a$ and $r$**:\n    From $u_1 = 2$, we have $a \\cdot r^1 = 2 \\implies ar = 2$.\n    From $u_3 = 6$, we have $a \\cdot r^3 = 6$.\n2.  **Relate the equations**:\n    Note that $u_3 = u_1 \\cdot r^2$. Thus, $6 = 2 \\cdot r^2$, which implies $r^2 = 3$.\n3.  **Find $a$**:\n    We know $u_0 = a \\cdot r^0 = a$.\n    From $ar = 2$, we have $a^2 r^2 = 2^2 = 4$.\n    Substituting $r^2 = 3$ gives $3a^2 = 4$, so $a^2 = 4/3$.\n4.  **Solve for $a$**:\n    Taking the square root, $a = \\pm \\sqrt{4/3} = \\pm 2/\\sqrt{3}$. Since $u_0 = a$, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use h₀ to express u 1 and u 3 in terms of a and r\n  have hu1 : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have hu3 : a * r ^ 3 = 6 := by\n    rw [← h₀ 3, h₂]\n  \n  -- Express u 3 as u 1 * r^2\n  have h_r2 : 2 * r^2 = 6 := by\n    calc\n      2 * r^2 = (a * r) * r^2 := by rw [hu1]\n      _ = a * (r * r^2) := by ring\n      _ = a * r^3 := by ring\n      _ = 6 := hu3\n\n  -- Solve for r^2\n  have r2_eq_3 : r^2 = 3 := by linarith\n  \n  -- We want to find u 0 = a\n  have u0_eq_a : u 0 = a := by\n    rw [h₀ 0]\n    simp\n    \n  -- Square the equation ar = 2\n  have a2r2_eq_4 : a^2 * r^2 = 4 := by\n    calc\n      a^2 * r^2 = (a * r)^2 := by ring\n      _ = 2^2 := by rw [hu1]\n      _ = 4 := by norm_num\n\n  -- Substitute r^2 = 3\n  have a2_eq_43 : a^2 = 4 / 3 := by\n    rw [r2_eq_3] at a2r2_eq_4\n    field_simp at a2r2_eq_4\n    linarith\n\n  -- Take square root\n  have h_a : a = sqrt (4 / 3) ∨ a = -sqrt (4 / 3) := eq_sqrt_or_neg_sqrt_of_sq_eq a2_eq_43\n  \n  -- Simplify sqrt(4/3)\n  have sqrt_43 : sqrt (4 / 3) = 2 / sqrt 3 := by\n    rw [sqrt_div (sq_nonneg 2), sqrt_sq_eq_abs, abs_of_pos]\n    norm_num\n  \n  rw [u0_eq_a, sqrt_43] at h_a\n  exact h_a\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use h₀ to express u 1 and u 3 in terms of a and r\n  have hu1 : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have hu3 : a * r ^ 3 = 6 := by\n    rw [← h₀ 3, h₂]\n  \n  -- Express u 3 as u 1 * r^2\n  have h_r2 : 2 * r^2 = 6 := by\n    calc\n      2 * r^2 = (a * r) * r^2 := by rw [hu1]\n      _ = a * (r * r^2) := by ring\n      _ = a * r^3 := by ring\n      _ = 6 := hu3\n\n  -- Solve for r^2\n  have r2_eq_3 : r^2 = 3 := by linarith\n  \n  -- We want to find u 0 = a\n  have u0_eq_a : u 0 = a := by\n    rw [h₀ 0]\n    simp\n    \n  -- Square the equation ar = 2\n  have a2r2_eq_4 : a^2 * r^2 = 4 := by\n    calc\n      a^2 * r^2 = (a * r)^2 := by ring\n      _ = 2^2 := by rw [hu1]\n      _ = 4 := by norm_num\n\n  -- Substitute r^2 = 3\n  have a2_eq_43 : a^2 = 4 / 3 := by\n    rw [r2_eq_3] at a2r2_eq_4\n    field_simp at a2r2_eq_4\n    linarith\n\n  -- Take square root\n  have h_a : a = sqrt (4 / 3) ∨ a = -sqrt (4 / 3) := eq_sqrt_or_neg_sqrt_of_sq_eq a2_eq_43\n  \n  -- Simplify sqrt(4/3)\n  have sqrt_43 : sqrt (4 / 3) = 2 / sqrt 3 := by\n    rw [sqrt_div (sq_nonneg 2), sqrt_sq_eq_abs, abs_of_pos]\n    norm_num\n  \n  rw [u0_eq_a, sqrt_43] at h_a\n  exact h_a",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 8
+            },
+            "endPos": {
+              "line": 12,
+              "column": 14
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 47,
+              "column": 17
+            },
+            "endPos": {
+              "line": 47,
+              "column": 21
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 47,
+              "column": 37
+            },
+            "endPos": {
+              "line": 47,
+              "column": 41
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 47,
+              "column": 53
+            },
+            "endPos": {
+              "line": 47,
+              "column": 81
+            },
+            "data": "Unknown identifier `eq_sqrt_or_neg_sqrt_of_sq_eq`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 50,
+              "column": 17
+            },
+            "endPos": {
+              "line": 50,
+              "column": 21
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 50,
+              "column": 36
+            },
+            "endPos": {
+              "line": 50,
+              "column": 40
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt 3 : ℚ\n  \n  Nat.sqrt 3 : ℕ\n  \n  √3 : ℝ"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5587213039398193
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Extract values from the sequence definition**:\n    Given $u_k = a \\cdot r^k$, we substitute the given indices:\n    - $u_1 = a \\cdot r^1 = 2$\n    - $u_3 = a \\cdot r^3 = 6$\n2.  **Solve for $r^2$**:\n    From $u_1 = ar = 2$, we know $a$ and $r$ must be non-zero. \n    Dividing $u_3$ by $u_1$:\n    $\\frac{ar^3}{ar} = \\frac{6}{2} \\implies r^2 = 3$.\n3.  **Relate $u_0$ to $u_1$**:\n    By definition, $u_0 = a \\cdot r^0 = a$.\n    From $u_1 = ar = 2$, we have $a = \\frac{2}{r}$.\n4.  **Square the relation**:\n    $a^2 = \\frac{4}{r^2}$.\n    Substituting $r^2 = 3$, we get $a^2 = \\frac{4}{3}$.\n5.  **Conclusion**:\n    Taking the square root of both sides, $a = \\pm \\sqrt{\\frac{4}{3}} = \\pm \\frac{2}{\\sqrt{3}}$.\n    Since $u_0 = a$, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Extract equations from the definition of the sequence\n  have hu1 : a * r = 2 := by rw [← h₀ 1, h₁]\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]\n  have hu0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  \n  -- From a * r = 2, we know a ≠ 0 and r ≠ 0\n  have r_neq_zero : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at hu1\n    norm_num at hu1\n    \n  -- Express r^3 as r * r^2\n  have hu3' : (a * r) * r^2 = 6 := by\n    rw [← mul_assoc, ← pow_two, ← pow_succ]\n    exact hu3\n    \n  -- Substitute a * r = 2 into the expression for u3\n  have r2_eq_3 : r^2 = 3 := by\n    rw [hu1] at hu3'\n    linarith\n    \n  -- Relate u0 (which is a) to r\n  -- Since a * r = 2, then (a * r)^2 = 4\n  have a2r2 : (a * r)^2 = 4 := by rw [hu1]; norm_num\n  have a2_mul_3 : a^2 * 3 = 4 := by\n    rw [mul_pow, r2_eq_3] at a2r2\n    exact a2r2\n    \n  have a2_eq_4_div_3 : a^2 = 4 / 3 := by\n    field_simp at a2_mul_3\n    exact a2_mul_3\n    \n  -- Solve a^2 = 4/3 for a\n  have a_eq : a = sqrt (4 / 3) ∨ a = -sqrt (4 / 3) := by\n    exact eq_sqrt_or_neg_sqrt_iff_pow_two_eq.mpr a2_eq_4_div_3\n    \n  -- Simplify sqrt(4/3) to 2/sqrt(3)\n  rw [sqrt_div (by norm_num), sqrt_sq (by norm_num)] at a_eq\n  \n  -- Final substitution\n  rw [hu0]\n  exact a_eq\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Extract equations from the definition of the sequence\n  have hu1 : a * r = 2 := by rw [← h₀ 1, h₁]\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]\n  have hu0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  \n  -- From a * r = 2, we know a ≠ 0 and r ≠ 0\n  have r_neq_zero : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at hu1\n    norm_num at hu1\n    \n  -- Express r^3 as r * r^2\n  have hu3' : (a * r) * r^2 = 6 := by\n    rw [← mul_assoc, ← pow_two, ← pow_succ]\n    exact hu3\n    \n  -- Substitute a * r = 2 into the expression for u3\n  have r2_eq_3 : r^2 = 3 := by\n    rw [hu1] at hu3'\n    linarith\n    \n  -- Relate u0 (which is a) to r\n  -- Since a * r = 2, then (a * r)^2 = 4\n  have a2r2 : (a * r)^2 = 4 := by rw [hu1]; norm_num\n  have a2_mul_3 : a^2 * 3 = 4 := by\n    rw [mul_pow, r2_eq_3] at a2r2\n    exact a2r2\n    \n  have a2_eq_4_div_3 : a^2 = 4 / 3 := by\n    field_simp at a2_mul_3\n    exact a2_mul_3\n    \n  -- Solve a^2 = 4/3 for a\n  have a_eq : a = sqrt (4 / 3) ∨ a = -sqrt (4 / 3) := by\n    exact eq_sqrt_or_neg_sqrt_iff_pow_two_eq.mpr a2_eq_4_div_3\n    \n  -- Simplify sqrt(4/3) to 2/sqrt(3)\n  rw [sqrt_div (by norm_num), sqrt_sq (by norm_num)] at a_eq\n  \n  -- Final substitution\n  rw [hu0]\n  exact a_eq",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 33
+            },
+            "endPos": {
+              "line": 11,
+              "column": 39
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 19
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a * (?b * ?c)\nin the target expression\n  a * r * r ^ 2 = 6\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nhu0 : u 0 = a\nr_neq_zero : r ≠ 0\n⊢ a * r * r ^ 2 = 6"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 40,
+              "column": 4
+            },
+            "endPos": {
+              "line": 40,
+              "column": 18
+            },
+            "data": "Type mismatch\n  a2_mul_3\nhas type\n  a ^ 2 * 3 = 4\nbut is expected to have type\n  a ^ 2 = 4 / 3"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 43,
+              "column": 18
+            },
+            "endPos": {
+              "line": 43,
+              "column": 22
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 43,
+              "column": 38
+            },
+            "endPos": {
+              "line": 43,
+              "column": 42
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 10
+            },
+            "endPos": {
+              "line": 44,
+              "column": 48
+            },
+            "data": "Unknown identifier `eq_sqrt_or_neg_sqrt_iff_pow_two_eq.mpr`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3415181636810303
+      }
+    },
+    {
+      "index": 24,
+      "status": "FAILED",
+      "raw_text": "To prove that $u_0 = \\pm 2/\\sqrt{3}$ given $u_k = ar^k$, $u_1 = 2$, and $u_3 = 6$:\n\n1.  **Express given values in terms of $a$ and $r$**:\n    *   From $u_k = ar^k$, we have $u_0 = a \\cdot r^0 = a$.\n    *   From $u_1 = 2$, we have $ar = 2$.\n    *   From $u_3 = 6$, we have $ar^3 = 6$.\n2.  **Solve for $r^2$**:\n    *   Divide $u_3$ by $u_1$: $\\frac{ar^3}{ar} = \\frac{6}{2} \\implies r^2 = 3$.\n    *   Note that $a \\neq 0$ because if $a=0$, then $u_1 = 0 \\neq 2$. Similarly $r \\neq 0$.\n3.  **Solve for $a$ (which is $u_0$)**:\n    *   From $ar = 2$, square both sides: $a^2 r^2 = 4$.\n    *   Substitute $r^2 = 3$: $3a^2 = 4 \\implies a^2 = 4/3$.\n    *   Taking the square root: $a = \\pm \\sqrt{4/3} = \\pm 2/\\sqrt{3}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Extract values for u 0, u 1, u 3\n  have hu0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  have hu1 : a * r = 2 := by rw [← h₀ 1, h₁]; rfl\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]\n  \n  -- From ar = 2, we know a != 0 and r != 0\n  have ha : a ≠ 0 := by\n    intro ha\n    rw [ha, zero_mul] at hu1\n    norm_num at hu1\n  have hr : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at hu1\n    norm_num at hu1\n\n  -- Calculate r^2 by dividing u 3 by u 1\n  have hr2 : r^2 = 3 := by\n    have h_div : (a * r^3) / (a * r) = 6 / 2 := by rw [hu3, hu1]\n    field_simp [ha, hr] at h_div\n    linear_combination h_div\n    \n  -- Square the equation ar = 2 to get a^2 * r^2 = 4\n  have ha2r2 : (a * r)^2 = 2^2 := by rw [hu1]\n  have ha2 : a^2 * 3 = 4 := by\n    rw [mul_pow] at ha2r2\n    rw [← hr2]\n    exact ha2r2\n\n  -- Solve for a^2\n  have ha2_final : a^2 = 4 / 3 := by\n    field_simp\n    exact ha2\n\n  -- Use property of square roots: x^2 = y => x = sqrt y or x = -sqrt y\n  have h_root := eq_or_eq_neg_of_sq_eq_sq a (2 / Real.sqrt 3) (by\n    rw [ha2_final]\n    field_simp\n    rw [Real.sq_sqrt]\n    norm_num\n  )\n  \n  rw [hu0]\n  exact h_root\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Extract values for u 0, u 1, u 3\n  have hu0 : u 0 = a := by rw [h₀ 0, pow_zero, mul_one]\n  have hu1 : a * r = 2 := by rw [← h₀ 1, h₁]; rfl\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]\n  \n  -- From ar = 2, we know a != 0 and r != 0\n  have ha : a ≠ 0 := by\n    intro ha\n    rw [ha, zero_mul] at hu1\n    norm_num at hu1\n  have hr : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at hu1\n    norm_num at hu1\n\n  -- Calculate r^2 by dividing u 3 by u 1\n  have hr2 : r^2 = 3 := by\n    have h_div : (a * r^3) / (a * r) = 6 / 2 := by rw [hu3, hu1]\n    field_simp [ha, hr] at h_div\n    linear_combination h_div\n    \n  -- Square the equation ar = 2 to get a^2 * r^2 = 4\n  have ha2r2 : (a * r)^2 = 2^2 := by rw [hu1]\n  have ha2 : a^2 * 3 = 4 := by\n    rw [mul_pow] at ha2r2\n    rw [← hr2]\n    exact ha2r2\n\n  -- Solve for a^2\n  have ha2_final : a^2 = 4 / 3 := by\n    field_simp\n    exact ha2\n\n  -- Use property of square roots: x^2 = y => x = sqrt y or x = -sqrt y\n  have h_root := eq_or_eq_neg_of_sq_eq_sq a (2 / Real.sqrt 3) (by\n    rw [ha2_final]\n    field_simp\n    rw [Real.sq_sqrt]\n    norm_num\n  )\n  \n  rw [hu0]\n  exact h_root",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 33
+            },
+            "endPos": {
+              "line": 12,
+              "column": 39
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu0 : u 0 = a\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 4
+            },
+            "endPos": {
+              "line": 29,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu0 : u 0 = a\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nha : a ≠ 0\nhr : r ≠ 0\nh_div : r ^ 2 * 2 = 6\n⊢ Nat.rawCast 3 - r ^ 2 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 4
+            },
+            "endPos": {
+              "line": 36,
+              "column": 15
+            },
+            "data": "Type mismatch\n  ha2r2\nhas type\n  a ^ 2 * r ^ 2 = 2 ^ 2\nbut is expected to have type\n  a ^ 2 * r ^ 2 = 4"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 63
+            },
+            "endPos": {
+              "line": 48,
+              "column": 12
+            },
+            "data": "unsolved goals\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu0 : u 0 = a\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nha : a ≠ 0\nhr : r ≠ 0\nhr2 : r ^ 2 = 3\nha2r2 : (a * r) ^ 2 = 2 ^ 2\nha2 : a ^ 2 * 3 = 4\nha2_final : a ^ 2 = 4 / 3\n⊢ 0 ≤ 3"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.43500566482543945
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Extract values from the sequence definition**: From the formula $u_k = a \\cdot r^k$, we have $u_1 = a \\cdot r$ and $u_3 = a \\cdot r^3$.\n2.  **Set up the system of equations**:\n    *   $a \\cdot r = 2$ (from $u_1 = 2$)\n    *   $a \\cdot r^3 = 6$ (from $u_3 = 6$)\n3.  **Solve for $r^2$**: Dividing the second equation by the first (noting $a \\neq 0$ and $r \\neq 0$ because $u_1 = 2$), we get:\n    $\\frac{a \\cdot r^3}{a \\cdot r} = \\frac{6}{2} \\implies r^2 = 3$.\n4.  **Solve for $a$ (which is $u_0$)**:\n    *   Since $u_0 = a \\cdot r^0 = a$, we need to find $a$.\n    *   From $a \\cdot r = 2$, squaring both sides gives $a^2 \\cdot r^2 = 4$.\n    *   Substituting $r^2 = 3$ gives $a^2 \\cdot 3 = 4$, so $a^2 = \\frac{4}{3}$.\n5.  **Final Result**:\n    *   Taking the square root of both sides, $a = \\pm \\sqrt{\\frac{4}{3}} = \\pm \\frac{2}{\\sqrt{3}}$.\n    *   Thus $u_0 = \\frac{2}{\\sqrt{3}}$ or $u_0 = -\\frac{2}{\\sqrt{3}}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use definitions to get equations for a and r\n  have hu1 : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have hu3 : a * r ^ 3 = 6 := by\n    rw [← h₀ 3, h₂]\n  \n  -- From a * r = 2, we know a and r are non-zero\n  have ha : a ≠ 0 := by\n    intro ha\n    rw [ha, zero_mul] at hu1\n    norm_num at hu1\n  have hr : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at hu1\n    norm_num at hu1\n\n  -- Calculate u 0\n  have hu0 : u 0 = a := by\n    rw [h₀ 0]\n    simp\n  \n  -- Relate a and r^2\n  have h_r2 : r^2 = 3 := by\n    have h_r2_eq : (a * r) * r^2 = 6 := by\n      rw [← mul_assoc, ← pow_succ]\n      exact hu3\n    rw [hu1] at h_r2_eq\n    linarith\n\n  -- Solve for a^2\n  have ha2 : a^2 = 4 / 3 := by\n    have h_sq : (a * r)^2 = 2^2 := by rw [hu1]\n    rw [mul_pow, h_r2] at h_sq\n    ring_nf at h_sq\n    field_simp\n    exact h_sq\n\n  -- Take square roots\n  have ha_abs : abs a = 2 / Real.sqrt 3 := by\n    apply (pow_left_inj (by apply abs_nonneg) (by positivity) (by norm_num : 2 > 0)).mp\n    rw [abs_pow, ha2]\n    field_simp [Real.sq_sqrt (by norm_num)]\n  \n  rw [hu0]\n  exact abs_eq_cases.mp ha_abs\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use definitions to get equations for a and r\n  have hu1 : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have hu3 : a * r ^ 3 = 6 := by\n    rw [← h₀ 3, h₂]\n  \n  -- From a * r = 2, we know a and r are non-zero\n  have ha : a ≠ 0 := by\n    intro ha\n    rw [ha, zero_mul] at hu1\n    norm_num at hu1\n  have hr : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at hu1\n    norm_num at hu1\n\n  -- Calculate u 0\n  have hu0 : u 0 = a := by\n    rw [h₀ 0]\n    simp\n  \n  -- Relate a and r^2\n  have h_r2 : r^2 = 3 := by\n    have h_r2_eq : (a * r) * r^2 = 6 := by\n      rw [← mul_assoc, ← pow_succ]\n      exact hu3\n    rw [hu1] at h_r2_eq\n    linarith\n\n  -- Solve for a^2\n  have ha2 : a^2 = 4 / 3 := by\n    have h_sq : (a * r)^2 = 2^2 := by rw [hu1]\n    rw [mul_pow, h_r2] at h_sq\n    ring_nf at h_sq\n    field_simp\n    exact h_sq\n\n  -- Take square roots\n  have ha_abs : abs a = 2 / Real.sqrt 3 := by\n    apply (pow_left_inj (by apply abs_nonneg) (by positivity) (by norm_num : 2 > 0)).mp\n    rw [abs_pow, ha2]\n    field_simp [Real.sq_sqrt (by norm_num)]\n  \n  rw [hu0]\n  exact abs_eq_cases.mp ha_abs",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 8
+            },
+            "endPos": {
+              "line": 12,
+              "column": 14
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 10
+            },
+            "endPos": {
+              "line": 35,
+              "column": 21
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a * (?b * ?c)\nin the target expression\n  a * r * r ^ 2 = 6\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nha : a ≠ 0\nhr : r ≠ 0\nhu0 : u 0 = a\n⊢ a * r * r ^ 2 = 6"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 50,
+              "column": 11
+            },
+            "endPos": {
+              "line": 50,
+              "column": 83
+            },
+            "data": "Function expected at\n  pow_left_inj ?m.308\nbut this term has type\n  ?m.306 ^ ?m.305 = ?m.307 ^ ?m.305 ↔ ?m.306 = ?m.307\n\nNote: Expected a function because this term is being applied to the argument\n  (by positivity)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 50,
+              "column": 28
+            },
+            "endPos": {
+              "line": 50,
+              "column": 44
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@abs_nonneg`\n  ∀ (a : ?α), 0 ≤ |a|\nwith the goal\n  ?m.305 ≠ 0\n\nNote: The full type of `@abs_nonneg` is\n  ∀ {α : Type ?u.7908} [inst : Lattice α] [inst_1 : AddGroup α] [AddLeftMono α] [AddRightMono α] (a : α), 0 ≤ |a|\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nha : a ≠ 0\nhr : r ≠ 0\nhu0 : u 0 = a\nh_r2 : r ^ 2 = 3\nha2 : a ^ 2 = 4 / 3\n⊢ ?m.305 ≠ 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 51,
+              "column": 8
+            },
+            "endPos": {
+              "line": 51,
+              "column": 15
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 55,
+              "column": 8
+            },
+            "endPos": {
+              "line": 55,
+              "column": 23
+            },
+            "data": "Unknown identifier `abs_eq_cases.mp`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5218620300292969
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we use the definition of the geometric sequence $u_k = a \\cdot r^k$.\n1.  From $u_1 = 2$, we have $a \\cdot r^1 = 2$, which implies $ar = 2$.\n2.  From $u_3 = 6$, we have $a \\cdot r^3 = 6$.\n3.  Since $ar = 2$, we can write $a \\cdot r^3$ as $(ar) \\cdot r^2 = 2 \\cdot r^2 = 6$.\n4.  Solving for $r^2$, we get $r^2 = 3$. This implies $r = \\sqrt{3}$ or $r = -\\sqrt{3}$.\n5.  We want to find $u_0 = a \\cdot r^0 = a$.\n6.  From $ar = 2$, we have $a = 2/r$.\n7.  If $r = \\sqrt{3}$, then $a = 2/\\sqrt{3}$.\n8.  If $r = -\\sqrt{3}$, then $a = -2/\\sqrt{3}$.\n9.  Thus $u_0 = 2/\\sqrt{3}$ or $u_0 = -2/\\sqrt{3}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Step 1: Extract equations for a and r\n  have h_u1 : a * r = 2 := by\n    rw [h₀ 1] at h₁\n    simpa using h₁\n  have h_u3 : a * r ^ 3 = 6 := by\n    rw [h₀ 3] at h₂\n    exact h₂\n  \n  -- Step 2: Relate h_u3 to h_u1 to find r^2\n  -- Since ar = 2, r cannot be 0, and a cannot be 0.\n  have r_ne_zero : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at h_u1\n    norm_num at h_u1\n  \n  have h_r2 : r^2 = 3 := by\n    calc r^2 = (a * r^3) / (a * r) := by \n          field_simp [r_ne_zero]\n          ring\n       _ = 6 / 2 := by rw [h_u3, h_u1]\n       _ = 3 := by norm_num\n\n  -- Step 3: Solve for r\n  have h_r : r = Real.sqrt 3 ∨ r = -Real.sqrt 3 := by\n    exact pow_two_eq_three.mp h_r2\n\n  -- Step 4: Solve for u 0 (which is a)\n  have h_u0 : u 0 = a := by\n    rw [h₀ 0]\n    simp\n    \n  cases h_r with\n  | inl hr_pos =>\n    left\n    rw [h_u0]\n    field_simp [hr_pos] at h_u1\n    exact h_u1\n  | inr hr_neg =>\n    right\n    rw [h_u0]\n    field_simp [hr_neg] at h_u1\n    rw [h_u1]\n    field_simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Step 1: Extract equations for a and r\n  have h_u1 : a * r = 2 := by\n    rw [h₀ 1] at h₁\n    simpa using h₁\n  have h_u3 : a * r ^ 3 = 6 := by\n    rw [h₀ 3] at h₂\n    exact h₂\n  \n  -- Step 2: Relate h_u3 to h_u1 to find r^2\n  -- Since ar = 2, r cannot be 0, and a cannot be 0.\n  have r_ne_zero : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at h_u1\n    norm_num at h_u1\n  \n  have h_r2 : r^2 = 3 := by\n    calc r^2 = (a * r^3) / (a * r) := by \n          field_simp [r_ne_zero]\n          ring\n       _ = 6 / 2 := by rw [h_u3, h_u1]\n       _ = 3 := by norm_num\n\n  -- Step 3: Solve for r\n  have h_r : r = Real.sqrt 3 ∨ r = -Real.sqrt 3 := by\n    exact pow_two_eq_three.mp h_r2\n\n  -- Step 4: Solve for u 0 (which is a)\n  have h_u0 : u 0 = a := by\n    rw [h₀ 0]\n    simp\n    \n  cases h_r with\n  | inl hr_pos =>\n    left\n    rw [h_u0]\n    field_simp [hr_pos] at h_u1\n    exact h_u1\n  | inr hr_neg =>\n    right\n    rw [h_u0]\n    field_simp [hr_neg] at h_u1\n    rw [h_u1]\n    field_simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 38
+            },
+            "endPos": {
+              "line": 28,
+              "column": 14
+            },
+            "data": "unsolved goals\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nh_u1 : a * r = 2\nh_u3 : a * r ^ 3 = 6\nr_ne_zero : r ≠ 0\n⊢ 1 = a * a⁻¹"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 10
+            },
+            "endPos": {
+              "line": 34,
+              "column": 29
+            },
+            "data": "Unknown identifier `pow_two_eq_three.mp`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 46,
+              "column": 4
+            },
+            "endPos": {
+              "line": 46,
+              "column": 14
+            },
+            "data": "Type mismatch\n  h_u1\nhas type\n  a * r = 2\nbut is expected to have type\n  a = 2 / √3"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 51,
+              "column": 8
+            },
+            "endPos": {
+              "line": 51,
+              "column": 12
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r\nin the target expression\n  a = -(2 / √3)\n\ncase inr.h\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nh_u1 : a * r = 2\nh_u3 : a * r ^ 3 = 6\nr_ne_zero : r ≠ 0\nh_r2 : r ^ 2 = 3\nh_u0 : u 0 = a\nhr_neg : r = -√3\n⊢ a = -(2 / √3)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3219034671783447
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Establish the equations for $a$ and $r$**: From the definition $u_k = a \\cdot r^k$ and the given values $u_1 = 2$ and $u_3 = 6$, we obtain the system:\n    *   $a \\cdot r = 2$\n    *   $a \\cdot r^3 = 6$\n2.  **Solve for $r^2$**: Dividing the second equation by the first (noting that $a \\neq 0$ and $r \\neq 0$ because $u_1 \\neq 0$), we get $r^2 = 3$.\n3.  **Express $a$ (which is $u_0$)**: From $a \\cdot r = 2$, we have $a^2 \\cdot r^2 = 4$. Substituting $r^2 = 3$ gives $3a^2 = 4$, hence $a^2 = 4/3$.\n4.  **Extract the roots**: Solving $a^2 = 4/3$ yields $a = \\pm \\sqrt{4/3} = \\pm 2/\\sqrt{3}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Step 1: Write down the explicit equations from h₀, h₁, and h₂\n  have hu1 : a * r = 2 := by rw [← h₀ 1, h₁]; norm_num\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]; norm_num\n  have hu0 : u 0 = a := by rw [h₀ 0]; norm_num\n\n  -- Step 2: Show a and r are non-zero to allow division/manipulation\n  have r_not_zero : r ≠ 0 := by\n    intro hr\n    rw [hr] at hu1\n    norm_num at hu1\n  have a_not_zero : a ≠ 0 := by\n    intro ha\n    rw [ha] at hu1\n    norm_num at hu1\n\n  -- Step 3: Solve for r^2\n  -- a * r^3 = (a * r) * r^2\n  have hr2 : r ^ 2 = 3 := by\n    have : (a * r) * r^2 = 6 := by\n      rw [← hu3]\n      ring\n    rw [hu1] at this\n    linarith\n\n  -- Step 4: Solve for a^2\n  -- Since a * r = 2, (a * r)^2 = 4 => a^2 * r^2 = 4\n  have ha2 : a^2 = 4 / 3 := by\n    have : (a * r)^2 = 4 := by rw [hu1]; norm_num\n    have : a^2 * r^2 = 4 := by\n      rw [← this]\n      ring\n    rw [hr2] at this\n    field_simp [this]\n    linarith\n\n  -- Step 5: Relate a to the final expression\n  rw [hu0]\n  have : a^2 = (2 / Real.sqrt 3)^2 := by\n    rw [ha2]\n    field_simp\n    rw [Real.sq_sqrt (by norm_num)]\n  \n  -- a^2 = x^2 implies a = x or a = -x\n  exact eq_or_eq_neg_of_sq_eq_sq a (2 / Real.sqrt 3) this\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Step 1: Write down the explicit equations from h₀, h₁, and h₂\n  have hu1 : a * r = 2 := by rw [← h₀ 1, h₁]; norm_num\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]; norm_num\n  have hu0 : u 0 = a := by rw [h₀ 0]; norm_num\n\n  -- Step 2: Show a and r are non-zero to allow division/manipulation\n  have r_not_zero : r ≠ 0 := by\n    intro hr\n    rw [hr] at hu1\n    norm_num at hu1\n  have a_not_zero : a ≠ 0 := by\n    intro ha\n    rw [ha] at hu1\n    norm_num at hu1\n\n  -- Step 3: Solve for r^2\n  -- a * r^3 = (a * r) * r^2\n  have hr2 : r ^ 2 = 3 := by\n    have : (a * r) * r^2 = 6 := by\n      rw [← hu3]\n      ring\n    rw [hu1] at this\n    linarith\n\n  -- Step 4: Solve for a^2\n  -- Since a * r = 2, (a * r)^2 = 4 => a^2 * r^2 = 4\n  have ha2 : a^2 = 4 / 3 := by\n    have : (a * r)^2 = 4 := by rw [hu1]; norm_num\n    have : a^2 * r^2 = 4 := by\n      rw [← this]\n      ring\n    rw [hr2] at this\n    field_simp [this]\n    linarith\n\n  -- Step 5: Relate a to the final expression\n  rw [hu0]\n  have : a^2 = (2 / Real.sqrt 3)^2 := by\n    rw [ha2]\n    field_simp\n    rw [Real.sq_sqrt (by norm_num)]\n  \n  -- a^2 = x^2 implies a = x or a = -x\n  exact eq_or_eq_neg_of_sq_eq_sq a (2 / Real.sqrt 3) this",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 33
+            },
+            "endPos": {
+              "line": 11,
+              "column": 39
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 50
+            },
+            "endPos": {
+              "line": 12,
+              "column": 58
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 47,
+              "column": 38
+            },
+            "endPos": {
+              "line": 50,
+              "column": 35
+            },
+            "data": "unsolved goals\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nhu0 : u 0 = a\nr_not_zero : r ≠ 0\na_not_zero : a ≠ 0\nhr2 : r ^ 2 = 3\nha2 : a ^ 2 = 4 / 3\n⊢ 4 * 3 = 3 * 2 ^ 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.47038722038269043
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "**Proof Sketch:**\n1. Use the definition $u_k = a \\cdot r^k$ and the given values for $u_1$ and $u_3$ to set up a system of equations:\n   - $u_1 = a \\cdot r = 2$\n   - $u_3 = a \\cdot r^3 = 6$\n2. Express $u_3$ in terms of $u_1$: $u_3 = (a \\cdot r) \\cdot r^2 = u_1 \\cdot r^2$.\n3. Substitute the values: $6 = 2 \\cdot r^2$, which implies $r^2 = 3$.\n4. Since $u_1 = a \\cdot r$, we have $a = u_0$. Thus $u_1 = u_0 \\cdot r$.\n5. Squaring this gives $u_1^2 = u_0^2 \\cdot r^2$, so $2^2 = u_0^2 \\cdot 3$, which means $u_0^2 = 4/3$.\n6. Taking the square root yields $u_0 = \\pm \\sqrt{4/3} = \\pm 2/\\sqrt{3}$.\n\n**Lean 4 Code:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use definitions of u 1 and u 3\n  have hu1 : a * r = 2 := by rw [← h₀ 1, h₁]; simp\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]\n  \n  -- From a * r = 2, we know a and r are non-zero\n  have r_neq_zero : r ≠ 0 := by\n    intro h\n    rw [h, mul_zero] at hu1\n    norm_num at hu1\n\n  -- Calculate r^2 from u 3 / u 1\n  have hr2 : r^2 = 3 := by\n    have : a * r^3 = (a * r) * r^2 := by ring\n    rw [hu3, hu1] at this\n    linarith\n\n  -- u 0 is a\n  have hu0 : u 0 = a := by rw [h₀ 0]; simp\n\n  -- Express a^2 in terms of (a*r)^2 and r^2\n  have ha2 : a^2 * 3 = 4 := by\n    have : (a * r)^2 = a^2 * r^2 := by ring\n    rw [hu1, hr2] at this\n    norm_num at this\n    exact this\n\n  have ha2_val : a^2 = 4 / 3 := by\n    field_simp [ha2]\n    linarith\n\n  -- Take square roots\n  have h_root : a = sqrt (4 / 3) ∨ a = -sqrt (4 / 3) := by\n    rw [eq_comm]\n    apply eq_or_eq_neg_of_sq_eq_sq\n    rw [ha2_val]\n    simp [sq_sqrt (by linarith : 0 ≤ (4/3 : ℝ))]\n\n  -- Simplify sqrt(4/3) to 2/sqrt(3)\n  have h_simpsqrt : sqrt (4 / 3) = 2 / sqrt 3 := by\n    rw [sqrt_div (by linarith)]\n    rw [sqrt_sq (by linarith)]\n\n  rw [hu0, h_simpsqrt] at h_root\n  exact h_root\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use definitions of u 1 and u 3\n  have hu1 : a * r = 2 := by rw [← h₀ 1, h₁]; simp\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]\n  \n  -- From a * r = 2, we know a and r are non-zero\n  have r_neq_zero : r ≠ 0 := by\n    intro h\n    rw [h, mul_zero] at hu1\n    norm_num at hu1\n\n  -- Calculate r^2 from u 3 / u 1\n  have hr2 : r^2 = 3 := by\n    have : a * r^3 = (a * r) * r^2 := by ring\n    rw [hu3, hu1] at this\n    linarith\n\n  -- u 0 is a\n  have hu0 : u 0 = a := by rw [h₀ 0]; simp\n\n  -- Express a^2 in terms of (a*r)^2 and r^2\n  have ha2 : a^2 * 3 = 4 := by\n    have : (a * r)^2 = a^2 * r^2 := by ring\n    rw [hu1, hr2] at this\n    norm_num at this\n    exact this\n\n  have ha2_val : a^2 = 4 / 3 := by\n    field_simp [ha2]\n    linarith\n\n  -- Take square roots\n  have h_root : a = sqrt (4 / 3) ∨ a = -sqrt (4 / 3) := by\n    rw [eq_comm]\n    apply eq_or_eq_neg_of_sq_eq_sq\n    rw [ha2_val]\n    simp [sq_sqrt (by linarith : 0 ≤ (4/3 : ℝ))]\n\n  -- Simplify sqrt(4/3) to 2/sqrt(3)\n  have h_simpsqrt : sqrt (4 / 3) = 2 / sqrt 3 := by\n    rw [sqrt_div (by linarith)]\n    rw [sqrt_sq (by linarith)]\n\n  rw [hu0, h_simpsqrt] at h_root\n  exact h_root",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 33
+            },
+            "endPos": {
+              "line": 11,
+              "column": 39
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 4
+            },
+            "endPos": {
+              "line": 34,
+              "column": 14
+            },
+            "data": "Type mismatch\n  this\nhas type\n  4 = a ^ 2 * 3\nbut is expected to have type\n  a ^ 2 * 3 = 4"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 41,
+              "column": 20
+            },
+            "endPos": {
+              "line": 41,
+              "column": 24
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 41,
+              "column": 40
+            },
+            "endPos": {
+              "line": 41,
+              "column": 44
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 48,
+              "column": 20
+            },
+            "endPos": {
+              "line": 48,
+              "column": 24
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 48,
+              "column": 39
+            },
+            "endPos": {
+              "line": 48,
+              "column": 43
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt 3 : ℚ\n  \n  Nat.sqrt 3 : ℕ\n  \n  √3 : ℝ"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4318959712982178
+      }
+    },
+    {
+      "index": 29,
+      "status": "FAILED",
+      "raw_text": "To prove that $u_0 = \\pm \\frac{2}{\\sqrt{3}}$ given a geometric sequence $u_k = ar^k$ where $u_1 = 2$ and $u_3 = 6$:\n\n### Proof Sketch\n1.  **Extract Equations**: From the definition $u_k = ar^k$:\n    *   $u_1 = ar^1 = ar = 2$\n    *   $u_3 = ar^3 = 6$\n2.  **Solve for $r^2$**: Divide $u_3$ by $u_1$:\n    *   $\\frac{ar^3}{ar} = \\frac{6}{2} \\implies r^2 = 3$ (Note: $a \\neq 0$ and $r \\neq 0$ because $u_1 = 2$).\n3.  **Find $a$ (which is $u_0$)**: From $ar = 2$, square both sides to get $a^2 r^2 = 4$.\n4.  Substitute $r^2 = 3$ into the squared equation:\n    *   $a^2 (3) = 4 \\implies a^2 = \\frac{4}{3}$.\n5.  **Solve for $a$**:\n    *   $a = \\sqrt{\\frac{4}{3}} = \\frac{2}{\\sqrt{3}}$ OR $a = -\\sqrt{\\frac{4}{3}} = -\\frac{2}{\\sqrt{3}}$.\n6.  Since $u_0 = a \\cdot r^0 = a$, the result follows.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- 1. Use the sequence definition for u 1 and u 3\n  have ha1 : a * r = 2 := by rw [← h₀ 1, h₁]; simp\n  have ha3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]\n  \n  -- 2. Observe that a and r cannot be zero\n  have r_not_zero : r ≠ 0 := by\n    intro r0\n    rw [r0] at ha1\n    simp at ha1\n  \n  have a_not_zero : a ≠ 0 := by\n    intro a0\n    rw [a0] at ha1\n    simp at ha1\n\n  -- 3. Use the relation a * r^3 = (a * r) * r^2\n  have r2_val : r^2 = 3 := by\n    have : (a * r) * r^2 = 6 := by\n      rw [← ha3]\n      ring\n    rw [ha1] at this\n    linarith\n  \n  -- 4. Calculate a^2 using (a*r)^2 = a^2 * r^2\n  have a2_val : a^2 = 4 / 3 := by\n    have : (a * r)^2 = 2^2 := by rw [ha1]\n    have : a^2 * r^2 = 4 := by\n      rw [← this]\n      ring\n    rw [r2_val] at this\n    field_simp at this\n    linarith\n\n  -- 5. Solve a^2 = 4/3 for a\n  have a_val : a = 2 / Real.sqrt 3 ∨ a = - (2 / Real.sqrt 3) := by\n    have h_sq : a^2 = (2 / Real.sqrt 3)^2 := by\n      rw [div_pow]\n      simp [Real.sq_sqrt (by linarith : (3 : ℝ) ≥ 0)]\n      exact a2_val\n    exact pow_eq_pow_sq_iff.mp h_sq\n\n  -- 6. u 0 = a * r^0 = a\n  have u0_a : u 0 = a := by\n    rw [h₀ 0]\n    simp\n    \n  rw [u0_a]\n  exact a_val\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- 1. Use the sequence definition for u 1 and u 3\n  have ha1 : a * r = 2 := by rw [← h₀ 1, h₁]; simp\n  have ha3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]\n  \n  -- 2. Observe that a and r cannot be zero\n  have r_not_zero : r ≠ 0 := by\n    intro r0\n    rw [r0] at ha1\n    simp at ha1\n  \n  have a_not_zero : a ≠ 0 := by\n    intro a0\n    rw [a0] at ha1\n    simp at ha1\n\n  -- 3. Use the relation a * r^3 = (a * r) * r^2\n  have r2_val : r^2 = 3 := by\n    have : (a * r) * r^2 = 6 := by\n      rw [← ha3]\n      ring\n    rw [ha1] at this\n    linarith\n  \n  -- 4. Calculate a^2 using (a*r)^2 = a^2 * r^2\n  have a2_val : a^2 = 4 / 3 := by\n    have : (a * r)^2 = 2^2 := by rw [ha1]\n    have : a^2 * r^2 = 4 := by\n      rw [← this]\n      ring\n    rw [r2_val] at this\n    field_simp at this\n    linarith\n\n  -- 5. Solve a^2 = 4/3 for a\n  have a_val : a = 2 / Real.sqrt 3 ∨ a = - (2 / Real.sqrt 3) := by\n    have h_sq : a^2 = (2 / Real.sqrt 3)^2 := by\n      rw [div_pow]\n      simp [Real.sq_sqrt (by linarith : (3 : ℝ) ≥ 0)]\n      exact a2_val\n    exact pow_eq_pow_sq_iff.mp h_sq\n\n  -- 6. u 0 = a * r^0 = a\n  have u0_a : u 0 = a := by\n    rw [h₀ 0]\n    simp\n    \n  rw [u0_a]\n  exact a_val",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 33
+            },
+            "endPos": {
+              "line": 11,
+              "column": 39
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 10
+            },
+            "endPos": {
+              "line": 37,
+              "column": 16
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  2 ^ 2\nin the target expression\n  a ^ 2 * r ^ 2 = 4\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nha1 : a * r = 2\nha3 : a * r ^ 3 = 6\nr_not_zero : r ≠ 0\na_not_zero : a ≠ 0\nr2_val : r ^ 2 = 3\nthis : (a * r) ^ 2 = 2 ^ 2\n⊢ a ^ 2 * r ^ 2 = 4"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 48,
+              "column": 6
+            },
+            "endPos": {
+              "line": 48,
+              "column": 18
+            },
+            "data": "Type mismatch\n  a2_val\nhas type\n  a ^ 2 = 4 / 3\nbut is expected to have type\n  a ^ 2 = 2 ^ 2 / 3"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 49,
+              "column": 10
+            },
+            "endPos": {
+              "line": 49,
+              "column": 30
+            },
+            "data": "Unknown identifier `pow_eq_pow_sq_iff.mp`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.44873642921447754
+      }
+    },
+    {
+      "index": 30,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Extract the equations for $a$ and $r$**:\n    From $u(k) = a \\cdot r^k$, we have:\n    -   $u(1) = a \\cdot r = 2$\n    -   $u(3) = a \\cdot r^3 = 6$\n2.  **Solve for $r^2$**:\n    By dividing $u(3)$ by $u(1)$, we get $\\frac{a \\cdot r^3}{a \\cdot r} = \\frac{6}{2}$, which simplifies to $r^2 = 3$. Note that $a$ and $r$ cannot be zero because $u(1) = 2$.\n3.  **Solve for $a$ (which is $u(0)$)**:\n    Since $u(1) = a \\cdot r = 2$, we have $a^2 \\cdot r^2 = 2^2 = 4$.\n    Substituting $r^2 = 3$, we get $3a^2 = 4$, which means $a^2 = \\frac{4}{3}$.\n4.  **Conclude the value of $a$**:\n    Taking the square root, $a = \\pm \\sqrt{\\frac{4}{3}} = \\pm \\frac{2}{\\sqrt{3}}$. Since $u(0) = a \\cdot r^0 = a$, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Expressions for u(1) and u(3) based on h₀\n  have hu1 : a * r = 2 := by rw [← h₀ 1, h₁]; simp\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]; simp\n  -- u(0) is simply a\n  have hu0 : u 0 = a := by rw [h₀ 0]; simp\n  -- Since a * r = 2, a and r cannot be zero\n  have ha : a ≠ 0 := by intro h; rw [h] at hu1; norm_num at hu1\n  have hr : r ≠ 0 := by intro h; rw [h] at hu1; norm_num at hu1\n  -- Divide u(3) by u(1) to find r^2\n  have hr2 : r^2 = 3 := by\n    have : (a * r^3) / (a * r) = 6 / 2 := by rw [hu3, hu1]\n    field_simp [ha, hr] at this\n    rw [pow_succ, pow_succ, mul_assoc] at this\n    field_simp [ha, hr] at this\n    exact this\n  -- Square u(1) to get a^2 * r^2 = 4\n  have ha2r2 : (a * r)^2 = 4 := by rw [hu1]; norm_num\n  have ha2 : a^2 = 4 / 3 := by\n    rw [mul_pow, hr2] at ha2r2\n    field_simp [ha2r2]\n    linarith\n  -- Take the square root of a^2\n  have h_final : a = 2 / Real.sqrt 3 ∨ a = - (2 / Real.sqrt 3) := by\n    rw [sq_eq_sq_iff_abs_eq_abs] at ha2\n    have h43 : 4 / 3 = (2 / Real.sqrt 3)^2 := by\n      field_simp\n      rw [Real.sq_sqrt]\n      linarith\n    rw [h43, sq_eq_sq_iff_abs_eq_abs] at ha2\n    apply abs_eq_abs.mp ha2\n  -- Substitute back to u(0)\n  rw [hu0]\n  exact h_final\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Expressions for u(1) and u(3) based on h₀\n  have hu1 : a * r = 2 := by rw [← h₀ 1, h₁]; simp\n  have hu3 : a * r ^ 3 = 6 := by rw [← h₀ 3, h₂]; simp\n  -- u(0) is simply a\n  have hu0 : u 0 = a := by rw [h₀ 0]; simp\n  -- Since a * r = 2, a and r cannot be zero\n  have ha : a ≠ 0 := by intro h; rw [h] at hu1; norm_num at hu1\n  have hr : r ≠ 0 := by intro h; rw [h] at hu1; norm_num at hu1\n  -- Divide u(3) by u(1) to find r^2\n  have hr2 : r^2 = 3 := by\n    have : (a * r^3) / (a * r) = 6 / 2 := by rw [hu3, hu1]\n    field_simp [ha, hr] at this\n    rw [pow_succ, pow_succ, mul_assoc] at this\n    field_simp [ha, hr] at this\n    exact this\n  -- Square u(1) to get a^2 * r^2 = 4\n  have ha2r2 : (a * r)^2 = 4 := by rw [hu1]; norm_num\n  have ha2 : a^2 = 4 / 3 := by\n    rw [mul_pow, hr2] at ha2r2\n    field_simp [ha2r2]\n    linarith\n  -- Take the square root of a^2\n  have h_final : a = 2 / Real.sqrt 3 ∨ a = - (2 / Real.sqrt 3) := by\n    rw [sq_eq_sq_iff_abs_eq_abs] at ha2\n    have h43 : 4 / 3 = (2 / Real.sqrt 3)^2 := by\n      field_simp\n      rw [Real.sq_sqrt]\n      linarith\n    rw [h43, sq_eq_sq_iff_abs_eq_abs] at ha2\n    apply abs_eq_abs.mp ha2\n  -- Substitute back to u(0)\n  rw [hu0]\n  exact h_final",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 33
+            },
+            "endPos": {
+              "line": 11,
+              "column": 39
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 50
+            },
+            "endPos": {
+              "line": 12,
+              "column": 54
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 4
+            },
+            "endPos": {
+              "line": 24,
+              "column": 14
+            },
+            "data": "Type mismatch\n  this\nhas type\n  r ^ 2 * 2 = 6\nbut is expected to have type\n  r ^ 2 = 3"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 8
+            },
+            "endPos": {
+              "line": 33,
+              "column": 31
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a ^ 2 = ?b ^ 2\nin the target expression\n  a ^ 2 = 4 / 3\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nhu1 : a * r = 2\nhu3 : a * r ^ 3 = 6\nhu0 : u 0 = a\nha : a ≠ 0\nhr : r ≠ 0\nhr2 : r ^ 2 = 3\nha2r2 : (a * r) ^ 2 = 4\nha2 : a ^ 2 = 4 / 3\n⊢ a = 2 / √3 ∨ a = -(2 / √3)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3561670780181885
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Extract values from definitions**: Given the geometric sequence $u_k = a r^k$, we use the provided values $u_1 = 2$ and $u_3 = 6$ to set up a system of equations:\n    *   $a \\cdot r^1 = 2 \\implies ar = 2$\n    *   $a \\cdot r^3 = 6 \\implies ar^3 = 6$\n2.  **Solve for $r^2$**: Divide the second equation by the first:\n    *   $\\frac{ar^3}{ar} = \\frac{6}{2} \\implies r^2 = 3$ (Note: $a$ and $r$ cannot be zero because $u_1 = 2$).\n3.  **Solve for $a$ (which is $u_0$)**: From $ar = 2$, we have $a^2 r^2 = 2^2 = 4$. Substituting $r^2 = 3$ gives $3a^2 = 4$, so $a^2 = 4/3$.\n4.  **Conclude**: Taking the square root of both sides gives $a = \\pm \\sqrt{4/3} = \\pm \\frac{2}{\\sqrt{3}}$. Since $u_0 = a \\cdot r^0 = a$, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use definitions to establish expressions for u 1 and u 3\n  have hu1 : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have hu3 : a * r ^ 3 = 6 := by\n    rw [← h₀ 3, h₂]\n  \n  -- From a * r = 2, we know a ≠ 0 and r ≠ 0\n  have r_ne_zero : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at hu1\n    norm_num at hu1\n  \n  -- Express r^2 using the ratio of u 3 and u 1\n  -- a * r^3 = (a * r) * r^2 = 2 * r^2 = 6\n  have hr2 : r ^ 2 = 3 := by\n    have : (a * r) * r ^ 2 = 6 := by\n      linear_combination hu3\n    rw [hu1] at this\n    linarith\n\n  -- Now solve for a. Since u 0 = a * r^0 = a, we solve for a.\n  -- From a * r = 2, we have (a * r)^2 = 4 => a^2 * r^2 = 4\n  have ha2 : a^2 * 3 = 4 := by\n    have : (a * r) ^ 2 = 2 ^ 2 := by rw [hu1]\n    ring_nf at this\n    rw [hr2] at this\n    exact this\n  \n  have ha2_val : a^2 = 4/3 := by\n    field_simp [ha2]\n    linarith\n\n  -- a is either sqrt(4/3) or -sqrt(4/3)\n  have ha : a = sqrt (4/3) ∨ a = -sqrt (4/3) := by\n    exact eq_sqrt_or_neg_sqrt_of_sq_eq ha2_val\n\n  -- Simplify sqrt(4/3) to 2 / sqrt 3\n  have hsqrt : sqrt (4/3) = 2 / sqrt 3 := by\n    rw [sqrt_div (show 0 ≤ (4 : ℝ) by norm_num)]\n    rw [sqrt_num_four]\n\n  -- Final substitution\n  rw [h₀ 0]\n  simp only [pow_zero, mul_one]\n  rw [hsqrt] at ha\n  exact ha\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- Use definitions to establish expressions for u 1 and u 3\n  have hu1 : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have hu3 : a * r ^ 3 = 6 := by\n    rw [← h₀ 3, h₂]\n  \n  -- From a * r = 2, we know a ≠ 0 and r ≠ 0\n  have r_ne_zero : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at hu1\n    norm_num at hu1\n  \n  -- Express r^2 using the ratio of u 3 and u 1\n  -- a * r^3 = (a * r) * r^2 = 2 * r^2 = 6\n  have hr2 : r ^ 2 = 3 := by\n    have : (a * r) * r ^ 2 = 6 := by\n      linear_combination hu3\n    rw [hu1] at this\n    linarith\n\n  -- Now solve for a. Since u 0 = a * r^0 = a, we solve for a.\n  -- From a * r = 2, we have (a * r)^2 = 4 => a^2 * r^2 = 4\n  have ha2 : a^2 * 3 = 4 := by\n    have : (a * r) ^ 2 = 2 ^ 2 := by rw [hu1]\n    ring_nf at this\n    rw [hr2] at this\n    exact this\n  \n  have ha2_val : a^2 = 4/3 := by\n    field_simp [ha2]\n    linarith\n\n  -- a is either sqrt(4/3) or -sqrt(4/3)\n  have ha : a = sqrt (4/3) ∨ a = -sqrt (4/3) := by\n    exact eq_sqrt_or_neg_sqrt_of_sq_eq ha2_val\n\n  -- Simplify sqrt(4/3) to 2 / sqrt 3\n  have hsqrt : sqrt (4/3) = 2 / sqrt 3 := by\n    rw [sqrt_div (show 0 ≤ (4 : ℝ) by norm_num)]\n    rw [sqrt_num_four]\n\n  -- Final substitution\n  rw [h₀ 0]\n  simp only [pow_zero, mul_one]\n  rw [hsqrt] at ha\n  exact ha",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 8
+            },
+            "endPos": {
+              "line": 12,
+              "column": 14
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 16
+            },
+            "endPos": {
+              "line": 44,
+              "column": 20
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 34
+            },
+            "endPos": {
+              "line": 44,
+              "column": 38
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 45,
+              "column": 10
+            },
+            "endPos": {
+              "line": 45,
+              "column": 38
+            },
+            "data": "Unknown identifier `eq_sqrt_or_neg_sqrt_of_sq_eq`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 48,
+              "column": 15
+            },
+            "endPos": {
+              "line": 48,
+              "column": 19
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt (4 / 3) : ℚ\n  \n  (4 / 3).sqrt : ℕ\n  \n  √(4 / 3) : ℝ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 48,
+              "column": 32
+            },
+            "endPos": {
+              "line": 48,
+              "column": 36
+            },
+            "data": "Ambiguous term\n  sqrt\nPossible interpretations:\n  Rat.sqrt 3 : ℚ\n  \n  Nat.sqrt 3 : ℕ\n  \n  √3 : ℝ"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3860292434692383
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n1.  **Extract variables**: From $u(1) = 2$, we have $a \\cdot r^1 = 2 \\implies ar = 2$. From $u(3) = 6$, we have $a \\cdot r^3 = 6$.\n2.  **Relate $a$ and $r$**: Since $ar = 2$ and $a \\cdot r^3 = 6$, we can write $ar \\cdot r^2 = 6$, which implies $2 \\cdot r^2 = 6$, hence $r^2 = 3$.\n3.  **Solve for $a$**: We know $u(0) = a \\cdot r^0 = a$. From $ar = 2$, squaring both sides gives $a^2 r^2 = 4$.\n4.  **Substitute $r^2$**: Substituting $r^2 = 3$ into $a^2 r^2 = 4$ yields $3 a^2 = 4$, so $a^2 = 4/3$.\n5.  **Finalize**: Taking the square root gives $a = \\pm \\sqrt{4/3} = \\pm 2/\\sqrt{3}$. Since $u(0) = a$, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- From h0, h1, h2, derive expressions for ar and ar^3\n  have h1_val : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have h2_val : a * r ^ 3 = 6 := by\n    rw [← h₀ 3, h₂]\n  \n  -- Since ar = 2, r cannot be 0\n  have r_ne_zero : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at h1_val\n    exact two_ne_zero h1_val.symm\n\n  -- Use a * r^3 = (a * r) * r^2\n  have hr2 : r^2 = 3 := by\n    have : a * r * r^2 = 6 := by\n      rw [← mul_assoc, pow_two, ← pow_three]\n      exact h2_val\n    rw [h1_val] at this\n    linarith\n\n  -- Calculate (u 0)^2 = a^2\n  have hu0 : u 0 = a := by\n    rw [h₀ 0]\n    simp\n  \n  have ha2 : a^2 * r^2 = 4 := by\n    rw [← mul_pow, h1_val]\n    norm_num\n  \n  have ha2_val : a^2 = 4 / 3 := by\n    rw [hr2] at ha2\n    field_simp at ha2\n    linarith\n\n  -- a^2 = 4/3 implies a = ± sqrt(4/3) = ± 2/sqrt(3)\n  have final_a : a = 2 / Real.sqrt 3 ∨ a = - (2 / Real.sqrt 3) := by\n    rw [sq_eq_inv_square_iff] at ha2_val\n    have hsqrt : Real.sqrt (4 / 3) = 2 / Real.sqrt 3 := by\n      rw [Real.sqrt_div (by norm_num)]\n      simp [Real.sqrt_eq_cases]\n    rwa [hsqrt] at ha2_val\n\n  rw [hu0]\n  exact final_a\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12b_2003_p6 (a r : ℝ) (u : ℕ → ℝ) (h₀ : ∀ k, u k = a * r ^ k) (h₁ : u 1 = 2)\n  (h₂ : u 3 = 6) : u 0 = 2 / Real.sqrt 3 ∨ u 0 = -(2 / Real.sqrt 3) := by\n  -- From h0, h1, h2, derive expressions for ar and ar^3\n  have h1_val : a * r = 2 := by\n    rw [← h₀ 1, h₁]\n    simp\n  have h2_val : a * r ^ 3 = 6 := by\n    rw [← h₀ 3, h₂]\n  \n  -- Since ar = 2, r cannot be 0\n  have r_ne_zero : r ≠ 0 := by\n    intro hr\n    rw [hr, mul_zero] at h1_val\n    exact two_ne_zero h1_val.symm\n\n  -- Use a * r^3 = (a * r) * r^2\n  have hr2 : r^2 = 3 := by\n    have : a * r * r^2 = 6 := by\n      rw [← mul_assoc, pow_two, ← pow_three]\n      exact h2_val\n    rw [h1_val] at this\n    linarith\n\n  -- Calculate (u 0)^2 = a^2\n  have hu0 : u 0 = a := by\n    rw [h₀ 0]\n    simp\n  \n  have ha2 : a^2 * r^2 = 4 := by\n    rw [← mul_pow, h1_val]\n    norm_num\n  \n  have ha2_val : a^2 = 4 / 3 := by\n    rw [hr2] at ha2\n    field_simp at ha2\n    linarith\n\n  -- a^2 = 4/3 implies a = ± sqrt(4/3) = ± 2/sqrt(3)\n  have final_a : a = 2 / Real.sqrt 3 ∨ a = - (2 / Real.sqrt 3) := by\n    rw [sq_eq_inv_square_iff] at ha2_val\n    have hsqrt : Real.sqrt (4 / 3) = 2 / Real.sqrt 3 := by\n      rw [Real.sqrt_div (by norm_num)]\n      simp [Real.sqrt_eq_cases]\n    rwa [hsqrt] at ha2_val\n\n  rw [hu0]\n  exact final_a",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 8
+            },
+            "endPos": {
+              "line": 12,
+              "column": 14
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * r ^ 1\nin the target expression\n  a * r = 2\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\n⊢ a * r = 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 10
+            },
+            "endPos": {
+              "line": 26,
+              "column": 21
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a * (?b * ?c)\nin the target expression\n  a * r * r ^ 2 = 6\n\na r : ℝ\nu : ℕ → ℝ\nh₀ : ∀ (k : ℕ), u k = a * r ^ k\nh₁ : u 1 = 2\nh₂ : u 3 = 6\nh1_val : a * r = 2\nh2_val : a * r ^ 3 = 6\nr_ne_zero : r ≠ 0\n⊢ a * r * r ^ 2 = 6"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 47,
+              "column": 8
+            },
+            "endPos": {
+              "line": 47,
+              "column": 28
+            },
+            "data": "Unknown identifier `sq_eq_inv_square_iff`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3771336078643799
+      }
+    }
+  ]
+}

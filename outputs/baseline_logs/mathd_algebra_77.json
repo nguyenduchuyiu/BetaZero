@@ -1,0 +1,1583 @@
+{
+  "problem": "problems/miniF2F-test/mathd_algebra_77.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 15:51:35",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 2,
+    "completed_count": 2,
+    "solved": true
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "To prove that $a=1$ and $b=-2$ given the quadratic function $f(x) = x^2 + ax + b$ with roots $a$ and $b$, we use the properties of roots of a quadratic equation.\n\n**Proof Sketch:**\n1. From $f(a) = 0$, we have $a^2 + a(a) + b = 0$, which simplifies to $2a^2 + b = 0$. Thus, $b = -2a^2$.\n2. From $f(b) = 0$, we have $b^2 + ab + b = 0$. Since $b \\neq 0$ (given $h_0$), we can divide by $b$ to get $b + a + 1 = 0$.\n3. Substitute $b = -2a^2$ into $b + a + 1 = 0$ to get $-2a^2 + a + 1 = 0$.\n4. This quadratic equation $-2a^2 + a + 1 = 0$ factors as $-(2a + 1)(a - 1) = 0$, giving possible values $a = 1$ or $a = -1/2$.\n5. If $a = -1/2$, then $b = -2(-1/2)^2 = -1/2$. However, the problem states $a \\neq b$ ($h_1$), so $a = -1/2$ is excluded.\n6. Therefore, $a = 1$. Substituting $a = 1$ into $b = -2a^2$ yields $b = -2(1)^2 = -2$.\n7. The solution is $a = 1$ and $b = -2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use f(a) = 0\n  have ha : a^2 + a * a + b = 0 := by\n    rw [h₂ a] at h₃\n    exact h₃\n  have hb_eq : b = -2 * a^2 := by\n    linarith [ha]\n\n  -- Use f(b) = 0\n  have hb : b^2 + a * b + b = 0 := by\n    rw [h₂ b] at h₄\n    exact h₄\n  \n  -- Since b ≠ 0, divide by b\n  have hb_div : b + a + 1 = 0 := by\n    field_simp [h₀.right] at hb\n    linear_combination hb / b\n\n  -- Substitute b = -2a^2 into b + a + 1 = 0\n  rw [hb_eq] at hb_div\n  -- We have -2a^2 + a + 1 = 0\n  -- Factor the quadratic: -(2a + 1)(a - 1) = 0\n  have h_poly : (2 * a + 1) * (a - 1) = 0 := by\n    linear_combination -hb_div\n\n  cases' mul_eq_zero.mp h_poly with h_case1 h_case2\n  · -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val : b = -1/2 := by\n      rw [a_val] at hb_eq\n      ring_nf at hb_eq\n      exact hb_eq\n    -- Contradiction with a ≠ b\n    exact (h₁ (a_val.trans b_val.symm)).elim\n  · -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val : b = -2 := by\n      rw [a_val] at hb_eq\n      norm_num at hb_eq\n      exact hb_eq\n    exact ⟨a_val, b_val⟩\n\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use f(a) = 0\n  have ha : a^2 + a * a + b = 0 := by\n    rw [h₂ a] at h₃\n    exact h₃\n  have hb_eq : b = -2 * a^2 := by\n    linarith [ha]\n\n  -- Use f(b) = 0\n  have hb : b^2 + a * b + b = 0 := by\n    rw [h₂ b] at h₄\n    exact h₄\n  \n  -- Since b ≠ 0, divide by b\n  have hb_div : b + a + 1 = 0 := by\n    field_simp [h₀.right] at hb\n    linear_combination hb / b\n\n  -- Substitute b = -2a^2 into b + a + 1 = 0\n  rw [hb_eq] at hb_div\n  -- We have -2a^2 + a + 1 = 0\n  -- Factor the quadratic: -(2a + 1)(a - 1) = 0\n  have h_poly : (2 * a + 1) * (a - 1) = 0 := by\n    linear_combination -hb_div\n\n  cases' mul_eq_zero.mp h_poly with h_case1 h_case2\n  · -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val : b = -1/2 := by\n      rw [a_val] at hb_eq\n      ring_nf at hb_eq\n      exact hb_eq\n    -- Contradiction with a ≠ b\n    exact (h₁ (a_val.trans b_val.symm)).elim\n  · -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val : b = -2 := by\n      rw [a_val] at hb_eq\n      norm_num at hb_eq\n      exact hb_eq\n    exact ⟨a_val, b_val⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 4
+            },
+            "endPos": {
+              "line": 25,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\nha : a ^ 2 + a * a + b = 0\nhb_eq : b = -2 * a ^ 2\nhb : b * (b + a + 1) = 0\n⊢ 1 + (b - b * a * b⁻¹) + (-(b * b⁻¹) - b ^ 2 * b⁻¹) + a = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.1308612823486328
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "To prove $a=1$ and $b=-2$ given $f(x) = x^2 + ax + b$ with $f(a)=0$ and $f(b)=0$, we follow these steps:\n\n1.  **Substitute the roots into the function**:\n    *   Since $f(a) = 0$, we have $a^2 + a(a) + b = 0 \\implies 2a^2 + b = 0$.\n    *   Since $f(b) = 0$, we have $b^2 + ab + b = 0$.\n2.  **Analyze the second equation**:\n    *   $b^2 + ab + b = 0$ factors as $b(b + a + 1) = 0$.\n    *   Since $b \\neq 0$ (given in $h_0$), we must have $b + a + 1 = 0$, or $b = -a - 1$.\n3.  **Combine the equations**:\n    *   Substitute $b = -a - 1$ into $2a^2 + b = 0$:\n        $2a^2 - a - 1 = 0$.\n4.  **Solve the quadratic for $a$**:\n    *   The factors of $2a^2 - a - 1 = 0$ are $(2a + 1)(a - 1) = 0$.\n    *   Thus, $a = 1$ or $a = -1/2$.\n5.  **Test the cases**:\n    *   If $a = 1$, then $b = -1 - 1 = -2$. Here $a \\neq b$ (satisfies $h_1$).\n    *   If $a = -1/2$, then $b = -(-1/2) - 1 = -1/2$. This implies $a = b$, which contradicts $h_1$.\n6.  **Conclusion**: The only solution is $a = 1$ and $b = -2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f(a) = 0 and f(b) = 0 using the definition of f\n  rw [h₂] at h₃ h₄\n  -- Simplify equations:\n  -- eq1: 2a^2 + b = 0\n  -- eq2: b^2 + ab + b = 0\n  have eq1 : 2 * a ^ 2 + b = 0 := by\n    ring_nf at h₃\n    exact h₃\n  have eq2 : b * (b + a + 1) = 0 := by\n    ring_nf at h₄\n    linear_combination h₄\n  -- Since b ≠ 0, b + a + 1 = 0\n  have eq3 : b + a + 1 = 0 := by\n    cases eq2 with\n    | inl hb => exact (h₀.2 hb).elim\n    | inr hab => exact hab\n  -- Substitute b = -a - 1 into eq1\n  have b_val : b = -a - 1 := by linarith [eq3]\n  rw [b_val] at eq1\n  -- Solve 2a^2 - a - 1 = 0\n  have factor : (2 * a + 1) * (a - 1) = 0 := by\n    ring_nf\n    exact eq1\n  -- Cases for a: a = 1 or a = -1/2\n  cases' mul_eq_zero.mp factor with ha ha\n  · -- Case a = -1/2\n    have a_val : a = -1 / 2 := by linarith\n    have b_val_special : b = -1 / 2 := by\n      rw [a_val] at b_val\n      norm_num at b_val\n      exact b_val\n    -- This contradicts a ≠ b\n    exact (h₁ (a_val.trans b_val_special.symm)).elim\n  · -- Case a = 1\n    have a_final : a = 1 := by linarith\n    have b_final : b = -2 := by\n      rw [a_final] at b_val\n      norm_num at b_val\n      exact b_val\n    exact ⟨a_final, b_final⟩\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f(a) = 0 and f(b) = 0 using the definition of f\n  rw [h₂] at h₃ h₄\n  -- Simplify equations:\n  -- eq1: 2a^2 + b = 0\n  -- eq2: b^2 + ab + b = 0\n  have eq1 : 2 * a ^ 2 + b = 0 := by\n    ring_nf at h₃\n    exact h₃\n  have eq2 : b * (b + a + 1) = 0 := by\n    ring_nf at h₄\n    linear_combination h₄\n  -- Since b ≠ 0, b + a + 1 = 0\n  have eq3 : b + a + 1 = 0 := by\n    cases eq2 with\n    | inl hb => exact (h₀.2 hb).elim\n    | inr hab => exact hab\n  -- Substitute b = -a - 1 into eq1\n  have b_val : b = -a - 1 := by linarith [eq3]\n  rw [b_val] at eq1\n  -- Solve 2a^2 - a - 1 = 0\n  have factor : (2 * a + 1) * (a - 1) = 0 := by\n    ring_nf\n    exact eq1\n  -- Cases for a: a = 1 or a = -1/2\n  cases' mul_eq_zero.mp factor with ha ha\n  · -- Case a = -1/2\n    have a_val : a = -1 / 2 := by linarith\n    have b_val_special : b = -1 / 2 := by\n      rw [a_val] at b_val\n      norm_num at b_val\n      exact b_val\n    -- This contradicts a ≠ b\n    exact (h₁ (a_val.trans b_val_special.symm)).elim\n  · -- Case a = 1\n    have a_final : a = 1 := by linarith\n    have b_final : b = -2 := by\n      rw [a_final] at b_val\n      norm_num at b_val\n      exact b_val\n    exact ⟨a_final, b_final⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₃\nhas type\n  a ^ 2 * 2 + b = 0\nbut is expected to have type\n  2 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 4
+            },
+            "endPos": {
+              "line": 24,
+              "column": 36
+            },
+            "data": "Invalid alternative name `inl`: Expected `refl`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 4
+            },
+            "endPos": {
+              "line": 25,
+              "column": 26
+            },
+            "data": "Invalid alternative name `inr`: Expected `refl`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 4
+            },
+            "endPos": {
+              "line": 23,
+              "column": 9
+            },
+            "data": "Dependent elimination failed: Failed to solve equation\n  Real.zero✝ = Real.mul✝ b (b + a + 1)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 4
+            },
+            "endPos": {
+              "line": 32,
+              "column": 13
+            },
+            "data": "Type mismatch\n  eq1\nhas type\n  2 * a ^ 2 + (-a - 1) = 0\nbut is expected to have type\n  -1 - a + a ^ 2 * 2 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 40,
+              "column": 6
+            },
+            "endPos": {
+              "line": 40,
+              "column": 17
+            },
+            "data": "Type mismatch\n  b_val\nhas type\n  b = -(1 / 2)\nbut is expected to have type\n  b = -1 / 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.1570765972137451
+      }
+    },
+    {
+      "index": 3,
+      "status": "FAILED",
+      "raw_text": "To solve the theorem $a=1$ and $b=-2$ given $f(x) = x^2 + ax + b$ with $f(a)=0$ and $f(b)=0$, we follow this proof sketch:\n\n1.  **Evaluate $f(a)=0$**: Substitute $x=a$ into the definition of $f$. We get $a^2 + a(a) + b = 0$, which simplifies to $2a^2 + b = 0$. This implies $b = -2a^2$.\n2.  **Evaluate $f(b)=0$**: Substitute $x=b$ into the definition of $f$. We get $b^2 + ab + b = 0$.\n3.  **Factorize $f(b)$**: Since $b \\neq 0$ (given in $h_0$), we can divide the equation $b^2 + ab + b = 0$ by $b$. This yields $b + a + 1 = 0$.\n4.  **Solve the system**: Substitute $b = -2a^2$ into $b + a + 1 = 0$. This gives $-2a^2 + a + 1 = 0$.\n5.  **Factor the quadratic in $a$**: The equation $-2a^2 + a + 1 = 0$ can be rewritten as $2a^2 - a - 1 = 0$, which factors as $(2a + 1)(a - 1) = 0$.\n6.  **Test candidates for $a$**:\n    *   If $a = -1/2$, then $b = -2(-1/2)^2 = -1/2$. However, $h_1$ states $a \\neq b$, so this is impossible.\n    *   If $a = 1$, then $b = -2(1)^2 = -2$. This satisfies $a \\neq b$ ($1 \\neq -2$) and $a, b \\neq 0$.\n7.  **Conclusion**: Thus, $a=1$ and $b=-2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use h₂ to expand f(a) = 0 and f(b) = 0\n  rw [h₂] at h₃ h₄\n  -- From h₃: a^2 + a*a + b = 0 => 2*a^2 + b = 0 => b = -2*a^2\n  have h_b : b = -2 * a ^ 2 := by\n    linarith [h₃, pow_two a]\n  -- From h₄: b^2 + a*b + b = 0\n  -- Since b ≠ 0, divide by b: b + a + 1 = 0\n  have h_div_b : b + a + 1 = 0 := by\n    have h_b_ne_zero := h₀.2\n    field_simp [h_b_ne_zero] at h₄\n    linear_combination h₄ / b\n  -- Substitute b = -2*a^2 into b + a + 1 = 0\n  rw [h_b] at h_div_b\n  -- Solve -2*a^2 + a + 1 = 0\n  -- Factors as -(2a + 1)(a - 1) = 0\n  have h_poly : (2 * a + 1) * (a - 1) = 0 := by\n    linarith [h_div_b]\n  cases' mul_eq_zero.mp h_poly with ha ha\n  · -- Case a = -1/2\n    have a_val : a = -1 / 2 := by linarith\n    have b_val : b = -1 / 2 := by\n      rw [a_val] at h_b\n      ring_nf at h_b\n      exact h_b\n    -- Contradicts a ≠ b\n    exact (h₁ (a_val.trans b_val.symm)).elim\n  · -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val : b = -2 := by\n      rw [a_val] at h_b\n      ring_nf at h_b\n      exact h_b\n    exact ⟨a_val, b_val⟩\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use h₂ to expand f(a) = 0 and f(b) = 0\n  rw [h₂] at h₃ h₄\n  -- From h₃: a^2 + a*a + b = 0 => 2*a^2 + b = 0 => b = -2*a^2\n  have h_b : b = -2 * a ^ 2 := by\n    linarith [h₃, pow_two a]\n  -- From h₄: b^2 + a*b + b = 0\n  -- Since b ≠ 0, divide by b: b + a + 1 = 0\n  have h_div_b : b + a + 1 = 0 := by\n    have h_b_ne_zero := h₀.2\n    field_simp [h_b_ne_zero] at h₄\n    linear_combination h₄ / b\n  -- Substitute b = -2*a^2 into b + a + 1 = 0\n  rw [h_b] at h_div_b\n  -- Solve -2*a^2 + a + 1 = 0\n  -- Factors as -(2a + 1)(a - 1) = 0\n  have h_poly : (2 * a + 1) * (a - 1) = 0 := by\n    linarith [h_div_b]\n  cases' mul_eq_zero.mp h_poly with ha ha\n  · -- Case a = -1/2\n    have a_val : a = -1 / 2 := by linarith\n    have b_val : b = -1 / 2 := by\n      rw [a_val] at h_b\n      ring_nf at h_b\n      exact h_b\n    -- Contradicts a ≠ b\n    exact (h₁ (a_val.trans b_val.symm)).elim\n  · -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val : b = -2 := by\n      rw [a_val] at h_b\n      ring_nf at h_b\n      exact h_b\n    exact ⟨a_val, b_val⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 4
+            },
+            "endPos": {
+              "line": 20,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : a ^ 2 + a * a + b = 0\nh_b : b = -2 * a ^ 2\nh_b_ne_zero : b ≠ 0\nh₄ : b * (b + a + 1) = 0\n⊢ 1 + (b - b * a * b⁻¹) + (-(b * b⁻¹) - b ^ 2 * b⁻¹) + a = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.5185754299163818
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "To prove $a=1$ and $b=-2$ given the conditions:\n1.  **Analyze the functional equations**: We are given $f(x) = x^2 + ax + b$.\n2.  **Apply the roots**: Since $f(a) = 0$ and $f(b) = 0$, we substitute these values into the function definition:\n    - $a^2 + a(a) + b = 0 \\implies 2a^2 + b = 0 \\implies b = -2a^2$.\n    - $b^2 + a(b) + b = 0$.\n3.  **Solve the system**:\n    - Substitute $b = -2a^2$ into the second equation: $(-2a^2)^2 + a(-2a^2) + (-2a^2) = 4a^4 - 2a^3 - 2a^2 = 0$.\n    - Factor out $2a^2$: $2a^2(2a^2 - a - 1) = 0$.\n    - Since $a \\neq 0$, we must have $2a^2 - a - 1 = 0$, which factors as $(2a + 1)(a - 1) = 0$.\n    - Thus, $a = 1$ or $a = -1/2$.\n4.  **Check conditions**:\n    - If $a = -1/2$, then $b = -2(-1/2)^2 = -1/2$. But the problem states $a \\neq b$.\n    - Therefore, $a$ must be $1$.\n    - If $a = 1$, then $b = -2(1)^2 = -2$.\n5.  **Conclusion**: $a = 1$ and $b = -2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use the function definition h₂ on h₃ and h₄\n  have ha : a^2 + a*a + b = 0 := by\n    rw [← h₂ a]\n    exact h₃\n  have hb : b^2 + a*b + b = 0 := by\n    rw [← h₂ b]\n    exact h₄\n\n  -- Simplify ha to express b in terms of a\n  have hb_eq : b = -2 * a^2 := by\n    linarith [ha]\n\n  -- Substitute b into the hb equation\n  rw [hb_eq] at hb\n  have h_poly : 4 * a^4 - 2 * a^3 - 2 * a^2 = 0 := by\n    ring_nf at hb\n    exact hb\n\n  -- Factorize the polynomial: 2 * a^2 * (2*a + 1) * (a - 1) = 0\n  have h_fact : 2 * a^2 * (2 * a + 1) * (a - 1) = 0 := by\n    ring_nf\n    exact h_poly\n\n  -- Since a ≠ 0, we have (2*a + 1) * (a - 1) = 0\n  have h_roots : 2 * a + 1 = 0 ∨ a - 1 = 0 := by\n    have ha_neq_zero : 2 * a^2 ≠ 0 := by\n      exact mul_ne_zero (by norm_num) (pow_ne_zero 2 h₀.1)\n    have : (2 * a + 1) * (a - 1) = 0 := by\n      exact (mul_eq_zero.mp h_fact).resolve_left ha_neq_zero\n    exact mul_eq_zero.mp this\n\n  -- Case analysis on a\n  cases h_roots with\n  | h_left h_val =>\n    -- If 2a + 1 = 0, then a = -1/2\n    have a_val : a = -1/2 := by linarith\n    -- Then b = -2 * (-1/2)^2 = -1/2\n    have b_val : b = -1/2 := by\n      rw [hb_eq, a_val]\n      ring\n    -- This contradicts a ≠ b\n    rw [a_val, b_val] at h₁\n    contradiction\n  | h_right h_val =>\n    -- If a - 1 = 0, then a = 1\n    have a_val : a = 1 := by linarith\n    -- Then b = -2 * (1)^2 = -2\n    have b_val : b = -2 := by\n      rw [hb_eq, a_val]\n      ring\n    exact ⟨a_val, b_val⟩\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use the function definition h₂ on h₃ and h₄\n  have ha : a^2 + a*a + b = 0 := by\n    rw [← h₂ a]\n    exact h₃\n  have hb : b^2 + a*b + b = 0 := by\n    rw [← h₂ b]\n    exact h₄\n\n  -- Simplify ha to express b in terms of a\n  have hb_eq : b = -2 * a^2 := by\n    linarith [ha]\n\n  -- Substitute b into the hb equation\n  rw [hb_eq] at hb\n  have h_poly : 4 * a^4 - 2 * a^3 - 2 * a^2 = 0 := by\n    ring_nf at hb\n    exact hb\n\n  -- Factorize the polynomial: 2 * a^2 * (2*a + 1) * (a - 1) = 0\n  have h_fact : 2 * a^2 * (2 * a + 1) * (a - 1) = 0 := by\n    ring_nf\n    exact h_poly\n\n  -- Since a ≠ 0, we have (2*a + 1) * (a - 1) = 0\n  have h_roots : 2 * a + 1 = 0 ∨ a - 1 = 0 := by\n    have ha_neq_zero : 2 * a^2 ≠ 0 := by\n      exact mul_ne_zero (by norm_num) (pow_ne_zero 2 h₀.1)\n    have : (2 * a + 1) * (a - 1) = 0 := by\n      exact (mul_eq_zero.mp h_fact).resolve_left ha_neq_zero\n    exact mul_eq_zero.mp this\n\n  -- Case analysis on a\n  cases h_roots with\n  | h_left h_val =>\n    -- If 2a + 1 = 0, then a = -1/2\n    have a_val : a = -1/2 := by linarith\n    -- Then b = -2 * (-1/2)^2 = -1/2\n    have b_val : b = -1/2 := by\n      rw [hb_eq, a_val]\n      ring\n    -- This contradicts a ≠ b\n    rw [a_val, b_val] at h₁\n    contradiction\n  | h_right h_val =>\n    -- If a - 1 = 0, then a = 1\n    have a_val : a = 1 := by linarith\n    -- Then b = -2 * (1)^2 = -2\n    have b_val : b = -2 := by\n      rw [hb_eq, a_val]\n      ring\n    exact ⟨a_val, b_val⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 4
+            },
+            "endPos": {
+              "line": 26,
+              "column": 12
+            },
+            "data": "Type mismatch\n  hb\nhas type\n  -(a ^ 2 * 2) - a ^ 3 * 2 + a ^ 4 * Nat.rawCast 4 = 0\nbut is expected to have type\n  4 * a ^ 4 - 2 * a ^ 3 - 2 * a ^ 2 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 4
+            },
+            "endPos": {
+              "line": 31,
+              "column": 16
+            },
+            "data": "Type mismatch\n  h_poly\nhas type\n  4 * a ^ 4 - 2 * a ^ 3 - 2 * a ^ 2 = 0\nbut is expected to have type\n  -(a ^ 2 * 2) - a ^ 3 * 2 + a ^ 4 * 4 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 49
+            },
+            "endPos": {
+              "line": 38,
+              "column": 60
+            },
+            "data": "Application type mismatch: The argument\n  ha_neq_zero\nhas type\n  2 * a ^ 2 ≠ 0\nbut is expected to have type\n  ¬2 * a ^ 2 * (2 * a + 1) = 0\nin the application\n  Or.resolve_left (_root_.mul_eq_zero.mp h_fact) ha_neq_zero"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 43,
+              "column": 2
+            },
+            "endPos": {
+              "line": 52,
+              "column": 17
+            },
+            "data": "Invalid alternative name `h_left`: Expected `inl` or `inr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 53,
+              "column": 2
+            },
+            "endPos": {
+              "line": 60,
+              "column": 24
+            },
+            "data": "Invalid alternative name `h_right`: Expected `inl` or `inr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 42,
+              "column": 2
+            },
+            "endPos": {
+              "line": 42,
+              "column": 7
+            },
+            "data": "Alternative `inl` has not been provided"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 42,
+              "column": 2
+            },
+            "endPos": {
+              "line": 42,
+              "column": 7
+            },
+            "data": "Alternative `inr` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.7010138034820557
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "To prove that $a=1$ and $b=-2$ given the conditions, we follow this sketch:\n\n1.  **Use the Function Definition**: Substitute the definition of $f(x)$ into the equations $f(a) = 0$ and $f(b) = 0$.\n2.  **Equation 1**: From $f(a) = 0$, we get $a^2 + a(a) + b = 0$, which simplifies to $2a^2 + b = 0$. Thus, $b = -2a^2$.\n3.  **Equation 2**: From $f(b) = 0$, we get $b^2 + ab + b = 0$. Since $b \\neq 0$, we can divide by $b$ to get $b + a + 1 = 0$.\n4.  **Substitution**: Substitute $b = -2a^2$ into $b + a + 1 = 0$ to get $-2a^2 + a + 1 = 0$.\n5.  **Solve for $a$**: The quadratic $2a^2 - a - 1 = 0$ factors as $(2a + 1)(a - 1) = 0$. This gives $a = 1$ or $a = -1/2$.\n6.  **Test $a = -1/2$**: If $a = -1/2$, then $b = -2(-1/2)^2 = -1/2$. This contradicts $a \\neq b$.\n7.  **Test $a = 1$**: If $a = 1$, then $b = -2(1)^2 = -2$. This satisfies $a \\neq 0, b \\neq 0$, and $a \\neq b$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use h₂ to expand f a = 0 and f b = 0\n  have h_fa : a^2 + a * a + b = 0 := by rwa [h₂] at h₃\n  have h_fb : b^2 + a * b + b = 0 := by rwa [h₂] at h₄\n\n  -- Simplify h_fa to b = -2a^2\n  have h_b_eq : b = -2 * a^2 := by linarith [h_fa]\n\n  -- Factorize h_fb: b(b + a + 1) = 0\n  have h_fb_factor : b * (b + a + 1) = 0 := by\n    linear_combination h_fb\n  \n  -- Since b ≠ 0, b + a + 1 = 0\n  have h_ba1 : b + a + 1 = 0 := by\n    cases h₀ with\n    | intro _ hb0 => exact (mul_eq_zero.mp h_fb_factor).resolve_left hb0\n\n  -- Substitute b = -2a^2 into b + a + 1 = 0\n  have h_a_poly : -2 * a^2 + a + 1 = 0 := by\n    rwa [h_b_eq] at h_ba1\n\n  -- Factor the quadratic -2a^2 + a + 1 = -(2a + 1)(a - 1) = 0\n  have h_a_vals : (2 * a + 1) * (a - 1) = 0 := by\n    linear_combination -h_a_poly\n\n  cases mul_eq_zero.mp h_a_vals with\n  | h_a1 : 2 * a + 1 = 0 =>\n    -- Case a = -1/2\n    have ha : a = -1/2 := by linarith\n    have hb : b = -1/2 := by\n      rw [ha] at h_b_eq\n      field_simp [h_b_eq]\n      norm_num\n    -- Contradicts a ≠ b\n    exact (h₁ (ha.trans hb.symm)).elim\n  | h_a2 : a - 1 = 0 =>\n    -- Case a = 1\n    have ha : a = 1 := by linarith\n    have hb : b = -2 := by\n      rw [ha] at h_b_eq\n      norm_num at h_b_eq\n      exact h_b_eq\n    exact ⟨ha, hb⟩\n\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use h₂ to expand f a = 0 and f b = 0\n  have h_fa : a^2 + a * a + b = 0 := by rwa [h₂] at h₃\n  have h_fb : b^2 + a * b + b = 0 := by rwa [h₂] at h₄\n\n  -- Simplify h_fa to b = -2a^2\n  have h_b_eq : b = -2 * a^2 := by linarith [h_fa]\n\n  -- Factorize h_fb: b(b + a + 1) = 0\n  have h_fb_factor : b * (b + a + 1) = 0 := by\n    linear_combination h_fb\n  \n  -- Since b ≠ 0, b + a + 1 = 0\n  have h_ba1 : b + a + 1 = 0 := by\n    cases h₀ with\n    | intro _ hb0 => exact (mul_eq_zero.mp h_fb_factor).resolve_left hb0\n\n  -- Substitute b = -2a^2 into b + a + 1 = 0\n  have h_a_poly : -2 * a^2 + a + 1 = 0 := by\n    rwa [h_b_eq] at h_ba1\n\n  -- Factor the quadratic -2a^2 + a + 1 = -(2a + 1)(a - 1) = 0\n  have h_a_vals : (2 * a + 1) * (a - 1) = 0 := by\n    linear_combination -h_a_poly\n\n  cases mul_eq_zero.mp h_a_vals with\n  | h_a1 : 2 * a + 1 = 0 =>\n    -- Case a = -1/2\n    have ha : a = -1/2 := by linarith\n    have hb : b = -1/2 := by\n      rw [ha] at h_b_eq\n      field_simp [h_b_eq]\n      norm_num\n    -- Contradicts a ≠ b\n    exact (h₁ (ha.trans hb.symm)).elim\n  | h_a2 : a - 1 = 0 =>\n    -- Case a = 1\n    have ha : a = 1 := by linarith\n    have hb : b = -2 := by\n      rw [ha] at h_b_eq\n      norm_num at h_b_eq\n      exact h_b_eq\n    exact ⟨ha, hb⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 2
+            },
+            "endPos": {
+              "line": 35,
+              "column": 8
+            },
+            "data": "Invalid alternative name `h_a1`: Expected `inl` or `inr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 2
+            },
+            "endPos": {
+              "line": 34,
+              "column": 7
+            },
+            "data": "Alternative `inl` has not been provided"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 2
+            },
+            "endPos": {
+              "line": 34,
+              "column": 7
+            },
+            "data": "Alternative `inr` has not been provided"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 9
+            },
+            "endPos": {
+              "line": 35,
+              "column": 10
+            },
+            "data": "unexpected token ':'; expected command"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3343541622161865
+      }
+    },
+    {
+      "index": 6,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Expand the function definitions**: Use the definition $f(x) = x^2 + ax + b$ for the given points $f(a) = 0$ and $f(b) = 0$.\n2.  **Establish a system of equations**:\n    *   From $f(a) = 0$, we get $a^2 + a^2 + b = 0$, which simplifies to $2a^2 + b = 0$.\n    *   From $f(b) = 0$, we get $b^2 + ab + b = 0$. Since $b \\neq 0$, we can divide by $b$ to get $b + a + 1 = 0$.\n3.  **Solve the system**:\n    *   Substitute $b = -2a^2$ into the second equation: $-2a^2 + a + 1 = 0$.\n    *   This is a quadratic in $a$: $2a^2 - a - 1 = 0$, which factors as $(2a + 1)(a - 1) = 0$.\n    *   Possible values for $a$ are $1$ and $-1/2$.\n4.  **Check consistency with $a \\neq b$**:\n    *   If $a = -1/2$, then $b = -2(-1/2)^2 = -1/2$. This implies $a = b$, which contradicts the hypothesis $h_1$.\n    *   If $a = 1$, then $b = -2(1)^2 = -2$. This satisfies all conditions ($a \\neq 0, b \\neq 0, a \\neq b$).\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use h₂ to expand h₃ and h₄\n  have ha : a^2 + a * a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a * b + b = 0 := by rwa [h₂] at h₄\n\n  -- Simplify equations\n  have ha' : 2 * a^2 + b = 0 := by linarith [ha]\n  have hb' : b * (b + a + 1) = 0 := by\n    ring_nf at hb\n    exact hb\n\n  -- Since b ≠ 0, b + a + 1 = 0\n  have hb_factor : b + a + 1 = 0 := by\n    cases' h₀ with _ hb_nz\n    exact (mul_eq_zero.mp hb').resolve_left hb_nz\n\n  -- Express b in terms of a\n  have b_eq : b = -2 * a^2 := by linarith [ha']\n\n  -- Substitute b in hb_factor\n  have poly_a : -2 * a^2 + a + 1 = 0 := by linarith [hb_factor, b_eq]\n\n  -- Factor the quadratic in a: (a - 1)(-2a - 1) = 0\n  have poly_a_factored : -(a - 1) * (2 * a + 1) = 0 := by\n    ring_nf\n    exact poly_a\n\n  have a_vals : a = 1 ∨ a = -1/2 := by\n    have h_or := mul_eq_zero.mp (neg_eq_zero.mp poly_a_factored)\n    cases' h_or with h_left h_right\n    · left; linarith\n    · right; linarith\n\n  cases' a_vals with a_is_1 a_is_neg_half\n  · -- Case a = 1\n    constructor\n    · exact a_is_1\n    · linarith [b_eq, a_is_1]\n  · -- Case a = -1/2, show it leads to a = b contradiction\n    have b_is_neg_half : b = -1/2 := by\n      rw [a_is_neg_half] at b_eq\n      ring_nf at b_eq\n      exact b_eq\n    have ab_equal : a = b := by rw [a_is_neg_half, b_is_neg_half]\n    exact (h₁ ab_equal).elim\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use h₂ to expand h₃ and h₄\n  have ha : a^2 + a * a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a * b + b = 0 := by rwa [h₂] at h₄\n\n  -- Simplify equations\n  have ha' : 2 * a^2 + b = 0 := by linarith [ha]\n  have hb' : b * (b + a + 1) = 0 := by\n    ring_nf at hb\n    exact hb\n\n  -- Since b ≠ 0, b + a + 1 = 0\n  have hb_factor : b + a + 1 = 0 := by\n    cases' h₀ with _ hb_nz\n    exact (mul_eq_zero.mp hb').resolve_left hb_nz\n\n  -- Express b in terms of a\n  have b_eq : b = -2 * a^2 := by linarith [ha']\n\n  -- Substitute b in hb_factor\n  have poly_a : -2 * a^2 + a + 1 = 0 := by linarith [hb_factor, b_eq]\n\n  -- Factor the quadratic in a: (a - 1)(-2a - 1) = 0\n  have poly_a_factored : -(a - 1) * (2 * a + 1) = 0 := by\n    ring_nf\n    exact poly_a\n\n  have a_vals : a = 1 ∨ a = -1/2 := by\n    have h_or := mul_eq_zero.mp (neg_eq_zero.mp poly_a_factored)\n    cases' h_or with h_left h_right\n    · left; linarith\n    · right; linarith\n\n  cases' a_vals with a_is_1 a_is_neg_half\n  · -- Case a = 1\n    constructor\n    · exact a_is_1\n    · linarith [b_eq, a_is_1]\n  · -- Case a = -1/2, show it leads to a = b contradiction\n    have b_is_neg_half : b = -1/2 := by\n      rw [a_is_neg_half] at b_eq\n      ring_nf at b_eq\n      exact b_eq\n    have ab_equal : a = b := by rw [a_is_neg_half, b_is_neg_half]\n    exact (h₁ ab_equal).elim",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 4
+            },
+            "endPos": {
+              "line": 18,
+              "column": 12
+            },
+            "data": "Type mismatch\n  hb\nhas type\n  b + b * a + b ^ 2 = 0\nbut is expected to have type\n  b * (b + a + 1) = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 4
+            },
+            "endPos": {
+              "line": 34,
+              "column": 16
+            },
+            "data": "Type mismatch\n  poly_a\nhas type\n  -2 * a ^ 2 + a + 1 = 0\nbut is expected to have type\n  1 + (a * Nat.rawCast 1 - a ^ 2 * 2) = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 17
+            },
+            "endPos": {
+              "line": 37,
+              "column": 31
+            },
+            "data": "Ambiguous term\n  mul_eq_zero.mp\nPossible interpretations:\n  _root_.mul_eq_zero.mp ?m.398 : ?m.388 = 0 ∨ ?m.389 = 0\n  \n  Nat.mul_eq_zero.mp ?m.395 : ?m.386 = 0 ∨ ?m.385 = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.9087920188903809
+      }
+    },
+    {
+      "index": 7,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow this concise sketch:\n\n1.  **Substitute into the function**: Plug the conditions $f(a) = 0$ and $f(b) = 0$ into the definition $f(x) = x^2 + ax + b$.\n2.  **Form a system of equations**:\n    *   $a^2 + a(a) + b = 0 \\implies 2a^2 + b = 0$\n    *   $b^2 + a(b) + b = 0 \\implies b(b + a + 1) = 0$\n3.  **Solve for constants**:\n    *   Since $b \\neq 0$, the second equation simplifies to $b + a + 1 = 0$, or $b = -a - 1$.\n    *   Substitute $b$ into the first equation: $2a^2 - a - 1 = 0$.\n    *   Factor the quadratic: $(2a + 1)(a - 1) = 0$, giving $a = 1$ or $a = -1/2$.\n4.  **Check consistency**:\n    *   If $a = 1$, then $b = -1 - 1 = -2$. This satisfies $a \\neq b$ and $a, b \\neq 0$.\n    *   If $a = -1/2$, then $b = -(-1/2) - 1 = -1/2$. This contradicts the condition $a \\neq b$.\n5.  **Conclusion**: The only valid solution is $a = 1$ and $b = -2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute the definition of f into the equations f(a) = 0 and f(b) = 0\n  have ha : a^2 + a*a + b = 0 := by rw [← h₂ a, h₃]\n  have hb : b^2 + a*b + b = 0 := by rw [← h₂ b, h₄]\n  \n  -- Simplify the equations\n  have h1 : 2 * a^2 + b = 0 := by linarith [ha]\n  have h2 : b * (b + a + 1) = 0 := by\n    rw [← hb]\n    ring\n    \n  -- Since b ≠ 0, we must have b + a + 1 = 0\n  have h3 : b + a + 1 = 0 := by\n    cases' h₀ with _ hb_nz\n    exact (mul_eq_zero.mp h2).resolve_left hb_nz\n    \n  -- Express b in terms of a\n  have h4 : b = -a - 1 := by linarith [h3]\n  \n  -- Substitute b back into the first equation to solve for a\n  have h5 : 2 * a^2 - a - 1 = 0 := by\n    rw [h4] at h1\n    linarith [h1]\n    \n  -- Factor the quadratic equation: (2a + 1)(a - 1) = 0\n  have h6 : (2 * a + 1) * (a - 1) = 0 := by\n    rw [← h5]\n    ring\n    \n  -- Therefore, a = 1 or a = -1/2\n  have h7 : a = 1 ∨ a = -1/2 := by\n    have cases := mul_eq_zero.mp h6\n    cases cases with\n    | inl hl => right; linarith\n    | inr hr => left; linarith\n    \n  -- If a = -1/2, then b = -1/2, which contradicts a ≠ b\n  cases h7 with\n  | inr ha_val =>\n    have hb_val : b = -1/2 := by\n      rw [ha_val] at h4\n      norm_num at h4\n      exact h4\n    rw [ha_val, hb_val] at h₁\n    contradiction\n  | inl ha_val =>\n    -- If a = 1, then b = -2\n    have hb_val : b = -2 := by\n      rw [ha_val] at h4\n      norm_num at h4\n      exact h4\n    exact ⟨ha_val, hb_val⟩\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute the definition of f into the equations f(a) = 0 and f(b) = 0\n  have ha : a^2 + a*a + b = 0 := by rw [← h₂ a, h₃]\n  have hb : b^2 + a*b + b = 0 := by rw [← h₂ b, h₄]\n  \n  -- Simplify the equations\n  have h1 : 2 * a^2 + b = 0 := by linarith [ha]\n  have h2 : b * (b + a + 1) = 0 := by\n    rw [← hb]\n    ring\n    \n  -- Since b ≠ 0, we must have b + a + 1 = 0\n  have h3 : b + a + 1 = 0 := by\n    cases' h₀ with _ hb_nz\n    exact (mul_eq_zero.mp h2).resolve_left hb_nz\n    \n  -- Express b in terms of a\n  have h4 : b = -a - 1 := by linarith [h3]\n  \n  -- Substitute b back into the first equation to solve for a\n  have h5 : 2 * a^2 - a - 1 = 0 := by\n    rw [h4] at h1\n    linarith [h1]\n    \n  -- Factor the quadratic equation: (2a + 1)(a - 1) = 0\n  have h6 : (2 * a + 1) * (a - 1) = 0 := by\n    rw [← h5]\n    ring\n    \n  -- Therefore, a = 1 or a = -1/2\n  have h7 : a = 1 ∨ a = -1/2 := by\n    have cases := mul_eq_zero.mp h6\n    cases cases with\n    | inl hl => right; linarith\n    | inr hr => left; linarith\n    \n  -- If a = -1/2, then b = -1/2, which contradicts a ≠ b\n  cases h7 with\n  | inr ha_val =>\n    have hb_val : b = -1/2 := by\n      rw [ha_val] at h4\n      norm_num at h4\n      exact h4\n    rw [ha_val, hb_val] at h₁\n    contradiction\n  | inl ha_val =>\n    -- If a = 1, then b = -2\n    have hb_val : b = -2 := by\n      rw [ha_val] at h4\n      norm_num at h4\n      exact h4\n    exact ⟨ha_val, hb_val⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 51,
+              "column": 6
+            },
+            "endPos": {
+              "line": 51,
+              "column": 14
+            },
+            "data": "Type mismatch\n  h4\nhas type\n  b = -(1 / 2)\nbut is expected to have type\n  b = -1 / 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 2.0331859588623047
+      }
+    },
+    {
+      "index": 8,
+      "status": "SOLVED",
+      "raw_text": "### Proof Sketch\n1.  **Define the system of equations**: Using the definition of $f(x)$ from $h_2$, we evaluate $f(a) = 0$ and $f(b) = 0$.\n    *   $f(a) = a^2 + a^2 + b = 2a^2 + b = 0 \\implies b = -2a^2$.\n    *   $f(b) = b^2 + ab + b = 0$.\n2.  **Simplify the second equation**: Since $b \\neq 0$ (from $h_0$), we can divide $b^2 + ab + b = 0$ by $b$ to get $b + a + 1 = 0$.\n3.  **Substitute $b$**: Substitute $b = -2a^2$ into $b + a + 1 = 0$ to obtain $-2a^2 + a + 1 = 0$.\n4.  **Solve for $a$**: The quadratic equation $2a^2 - a - 1 = 0$ factors as $(2a + 1)(a - 1) = 0$.\n    *   Case 1: $a = 1$. Then $b = -2(1)^2 = -2$.\n    *   Case 2: $a = -1/2$. Then $b = -2(-1/2)^2 = -1/2$.\n5.  **Apply constraints**: $h_1$ states $a \\neq b$. In Case 2, $a = b = -1/2$, which contradicts $h_1$. Thus, we must have $a = 1$ and $b = -2$.\n\n---\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f definition into f(a)=0 and f(b)=0\n  rw [h₂] at h₃ h₄\n  -- Simplify equations\n  have ha : a^2 + a*a + b = 0 := h₃\n  have hb : b^2 + a*b + b = 0 := h₄\n  ring_nf at ha hb\n  -- Since b ≠ 0, divide hb by b\n  have hb_red : b + a + 1 = 0 := by\n    apply (mul_right_inj' h₀.2).mp\n    linear_combination hb\n  -- Substitute b = -2a^2 from ha into hb_red\n  have b_val : b = -2 * a^2 := by linear_combination ha\n  rw [b_val] at hb_red\n  -- Now solve -2a^2 + a + 1 = 0\n  have quad : (2 * a + 1) * (a - 1) = 0 := by\n    linear_combination -hb_red\n  -- Two cases for a\n  rcases mul_eq_zero.mp quad with h_a1 | h_a2\n  · -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val2 : b = -1/2 := by\n      rw [a_val] at b_val\n      ring_nf at b_val\n      exact b_val\n    -- This contradicts a ≠ b\n    exfalso\n    apply h₁\n    rw [a_val, b_val2]\n  · -- Case a = 1\n    have a_final : a = 1 := by linarith\n    have b_final : b = -2 := by\n      rw [a_final] at b_val\n      ring_nf at b_val\n      exact b_val\n    exact ⟨a_final, b_final⟩\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f definition into f(a)=0 and f(b)=0\n  rw [h₂] at h₃ h₄\n  -- Simplify equations\n  have ha : a^2 + a*a + b = 0 := h₃\n  have hb : b^2 + a*b + b = 0 := h₄\n  ring_nf at ha hb\n  -- Since b ≠ 0, divide hb by b\n  have hb_red : b + a + 1 = 0 := by\n    apply (mul_right_inj' h₀.2).mp\n    linear_combination hb\n  -- Substitute b = -2a^2 from ha into hb_red\n  have b_val : b = -2 * a^2 := by linear_combination ha\n  rw [b_val] at hb_red\n  -- Now solve -2a^2 + a + 1 = 0\n  have quad : (2 * a + 1) * (a - 1) = 0 := by\n    linear_combination -hb_red\n  -- Two cases for a\n  rcases mul_eq_zero.mp quad with h_a1 | h_a2\n  · -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val2 : b = -1/2 := by\n      rw [a_val] at b_val\n      ring_nf at b_val\n      exact b_val\n    -- This contradicts a ≠ b\n    exfalso\n    apply h₁\n    rw [a_val, b_val2]\n  · -- Case a = 1\n    have a_final : a = 1 := by linarith\n    have b_final : b = -2 := by\n      rw [a_final] at b_val\n      ring_nf at b_val\n      exact b_val\n    exact ⟨a_final, b_final⟩",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.8320391178131104
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "To prove $a=1$ and $b=-2$, we use the given conditions on the quadratic function $f(x) = x^2 + ax + b$.\n\n**Proof Sketch:**\n1.  **Use the root conditions:** Since $f(a) = 0$ and $f(b) = 0$, we substitute $x=a$ and $x=b$ into the definition $f(x) = x^2 + ax + b$.\n2.  **Equation 1:** $f(a) = a^2 + a(a) + b = 2a^2 + b = 0$. This implies $b = -2a^2$.\n3.  **Equation 2:** $f(b) = b^2 + ab + b = 0$. Since $b \\neq 0$ (given), we can divide by $b$ to get $b + a + 1 = 0$.\n4.  **Solve the system:** Substitute $b = -2a^2$ into $b + a + 1 = 0$ to get $-2a^2 + a + 1 = 0$.\n5.  **Factor the quadratic:** $(2a + 1)(-a + 1) = 0$, so $a = 1$ or $a = -1/2$.\n6.  **Case $a = -1/2$:** Then $b = -2(-1/2)^2 = -1/2$. But $h_1$ states $a \\neq b$, so this case is impossible.\n7.  **Case $a = 1$:** Then $b = -2(1)^2 = -2$. This satisfies all conditions.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f(a) = 0 into the definition of f\n  have ha : a^2 + a * a + b = 0 := by\n    rw [← h₂ a, h₃]\n  have ha' : 2 * a^2 + b = 0 := by\n    ring_nf at ha\n    exact ha\n\n  -- Substitute f(b) = 0 into the definition of f\n  have hb : b^2 + a * b + b = 0 := by\n    rw [← h₂ b, h₄]\n  \n  -- Since b ≠ 0, we can simplify the second equation\n  have hb' : b + a + 1 = 0 := by\n    field_simp [h₀.right] at hb\n    linear_combination hb / b\n\n  -- Express b in terms of a: b = -2*a^2\n  have b_eq : b = -2 * a^2 := by\n    linear_combination -ha'\n\n  -- Substitute b into the simplified second equation\n  have poly_a : -2 * a^2 + a + 1 = 0 := by\n    rw [b_eq] at hb'\n    exact hb'\n\n  -- Factor the polynomial in a: (a - 1) * (-2*a - 1) = 0\n  have factored : (a - 1) * (-2 * a - 1) = 0 := by\n    linear_combination poly_a\n\n  -- Therefore a = 1 or a = -1/2\n  have a_cases : a = 1 ∨ a = -1/2 := by\n    rcases mul_eq_zero.mp factored with h | h\n    · left; linear_combination h\n    · right; linear_combination h / (-2)\n\n  rcases a_cases with rfl | ha_val\n  · -- Case a = 1\n    have b_val : b = -2 := by\n      linear_combination b_eq\n    exact ⟨rfl, b_val⟩\n  · -- Case a = -1/2 leads to a = b, which contradicts h1\n    have b_val : b = -1/2 := by\n      rw [ha_val] at b_eq\n      ring_nf at b_eq\n      exact b_eq\n    exfalso\n    apply h₁\n    rw [ha_val, b_val]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f(a) = 0 into the definition of f\n  have ha : a^2 + a * a + b = 0 := by\n    rw [← h₂ a, h₃]\n  have ha' : 2 * a^2 + b = 0 := by\n    ring_nf at ha\n    exact ha\n\n  -- Substitute f(b) = 0 into the definition of f\n  have hb : b^2 + a * b + b = 0 := by\n    rw [← h₂ b, h₄]\n  \n  -- Since b ≠ 0, we can simplify the second equation\n  have hb' : b + a + 1 = 0 := by\n    field_simp [h₀.right] at hb\n    linear_combination hb / b\n\n  -- Express b in terms of a: b = -2*a^2\n  have b_eq : b = -2 * a^2 := by\n    linear_combination -ha'\n\n  -- Substitute b into the simplified second equation\n  have poly_a : -2 * a^2 + a + 1 = 0 := by\n    rw [b_eq] at hb'\n    exact hb'\n\n  -- Factor the polynomial in a: (a - 1) * (-2*a - 1) = 0\n  have factored : (a - 1) * (-2 * a - 1) = 0 := by\n    linear_combination poly_a\n\n  -- Therefore a = 1 or a = -1/2\n  have a_cases : a = 1 ∨ a = -1/2 := by\n    rcases mul_eq_zero.mp factored with h | h\n    · left; linear_combination h\n    · right; linear_combination h / (-2)\n\n  rcases a_cases with rfl | ha_val\n  · -- Case a = 1\n    have b_val : b = -2 := by\n      linear_combination b_eq\n    exact ⟨rfl, b_val⟩\n  · -- Case a = -1/2 leads to a = b, which contradicts h1\n    have b_val : b = -1/2 := by\n      rw [ha_val] at b_eq\n      ring_nf at b_eq\n      exact b_eq\n    exfalso\n    apply h₁\n    rw [ha_val, b_val]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 12
+            },
+            "data": "Type mismatch\n  ha\nhas type\n  a ^ 2 * 2 + b = 0\nbut is expected to have type\n  2 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 4
+            },
+            "endPos": {
+              "line": 24,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\nha : a ^ 2 + a * a + b = 0\nha' : 2 * a ^ 2 + b = 0\nhb : b * (b + a + 1) = 0\n⊢ 1 + (b - b * a * b⁻¹) + (-(b * b⁻¹) - b ^ 2 * b⁻¹) + a = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 4
+            },
+            "endPos": {
+              "line": 28,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\nha : a ^ 2 + a * a + b = 0\nha' : 2 * a ^ 2 + b = 0\nhb : b ^ 2 + a * b + b = 0\nhb' : b + a + 1 = 0\n⊢ b * 2 + a ^ 2 * Nat.rawCast 4 = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.9359092712402344
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "The problem provides a quadratic function $f(x) = x^2 + ax + b$ where $a$ and $b$ are non-zero and distinct. We are given that $a$ and $b$ are roots of the function.\n\n### Proof Sketch\n1.  **Use the root conditions**:\n    *   Since $f(a) = 0$, we have $a^2 + a(a) + b = 0 \\implies 2a^2 + b = 0$.\n    *   Since $f(b) = 0$, we have $b^2 + ab + b = 0$.\n2.  **Solve the system of equations**:\n    *   From $b^2 + ab + b = 0$, since $b \\neq 0$, we can divide by $b$ to get $b + a + 1 = 0$, which implies $b = -a - 1$.\n3.  **Substitute $b$ into the first equation**:\n    *   Substitute $b = -a - 1$ into $2a^2 + b = 0$:\n        $2a^2 - a - 1 = 0$.\n4.  **Solve the quadratic for $a$**:\n    *   Factor $2a^2 - a - 1 = (2a + 1)(a - 1) = 0$.\n    *   This gives $a = 1$ or $a = -1/2$.\n5.  **Case Analysis**:\n    *   **Case $a = 1$**: Then $b = -1 - 1 = -2$. This satisfies all conditions ($a \\neq 0, b \\neq 0, a \\neq b$).\n    *   **Case $a = -1/2$**: Then $b = -(-1/2) - 1 = -1/2$. This contradicts $a \\neq b$.\n6.  **Conclusion**:\n    *   The only valid solution is $a = 1$ and $b = -2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Extract f(a) = 0 and f(b) = 0 equations\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂] at h₄\n  \n  -- From ha, we have b = -2*a^2\n  have hb_val : b = -2 * a^2 := by linarith\n  \n  -- From hb, since b != 0, we have b + a + 1 = 0\n  have hb_linear : b + a + 1 = 0 := by\n    have h_b_ne_zero : b ≠ 0 := h₀.2\n    field_simp [h_b_ne_zero] at hb\n    linear_combination hb / b\n  \n  -- Substitute b = -2*a^2 into b + a + 1 = 0\n  have poly_a : 2 * a^2 - a - 1 = 0 := by linarith\n  \n  -- Factor the quadratic 2a^2 - a - 1 = (2a + 1)(a - 1)\n  have factor_a : (2 * a + 1) * (a - 1) = 0 := by linarith\n  \n  -- Case analysis on a\n  have a_cases : a = 1 ∨ a = -1/2 := by\n    have h_prod : 2 * a + 1 = 0 ∨ a - 1 = 0 := mul_eq_zero.mp factor_a\n    cases h_prod with\n    | inl h_left => right; linarith\n    | inr h_right => left; linarith\n    \n  cases a_cases with\n  | inl ha_one => \n    -- If a = 1, then b = -2\n    constructor\n    · exact ha_one\n    · linarith\n  | inr ha_neg_half =>\n    -- If a = -1/2, then b = -1/2, which contradicts a != b\n    have hb_neg_half : b = -1/2 := by linarith\n    exfalso\n    apply h₁\n    rw [ha_neg_half, hb_neg_half]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Extract f(a) = 0 and f(b) = 0 equations\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂] at h₄\n  \n  -- From ha, we have b = -2*a^2\n  have hb_val : b = -2 * a^2 := by linarith\n  \n  -- From hb, since b != 0, we have b + a + 1 = 0\n  have hb_linear : b + a + 1 = 0 := by\n    have h_b_ne_zero : b ≠ 0 := h₀.2\n    field_simp [h_b_ne_zero] at hb\n    linear_combination hb / b\n  \n  -- Substitute b = -2*a^2 into b + a + 1 = 0\n  have poly_a : 2 * a^2 - a - 1 = 0 := by linarith\n  \n  -- Factor the quadratic 2a^2 - a - 1 = (2a + 1)(a - 1)\n  have factor_a : (2 * a + 1) * (a - 1) = 0 := by linarith\n  \n  -- Case analysis on a\n  have a_cases : a = 1 ∨ a = -1/2 := by\n    have h_prod : 2 * a + 1 = 0 ∨ a - 1 = 0 := mul_eq_zero.mp factor_a\n    cases h_prod with\n    | inl h_left => right; linarith\n    | inr h_right => left; linarith\n    \n  cases a_cases with\n  | inl ha_one => \n    -- If a = 1, then b = -2\n    constructor\n    · exact ha_one\n    · linarith\n  | inr ha_neg_half =>\n    -- If a = -1/2, then b = -1/2, which contradicts a != b\n    have hb_neg_half : b = -1/2 := by linarith\n    exfalso\n    apply h₁\n    rw [ha_neg_half, hb_neg_half]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 4
+            },
+            "endPos": {
+              "line": 21,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\nha : a ^ 2 + a * a + b = 0\nhb_val : b = -2 * a ^ 2\nh_b_ne_zero : b ≠ 0\nhb : b * (b + a + 1) = 0\n⊢ 1 + (b - b * a * b⁻¹) + (-(b * b⁻¹) - b ^ 2 * b⁻¹) + a = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 2.352449655532837
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "To prove that $a=1$ and $b=-2$ given the quadratic function $f(x) = x^2 + ax + b$ with $f(a)=0$ and $f(b)=0$, we follow these steps:\n\n1.  **Substitute values into the function**:\n    From $f(a) = 0$, we get $a^2 + a(a) + b = 0$, which simplifies to $2a^2 + b = 0$.\n    From $f(b) = 0$, we get $b^2 + a(b) + b = 0$.\n2.  **Analyze the equations**:\n    Since $b \\neq 0$, we can divide the second equation $b^2 + ab + b = 0$ by $b$ to obtain $b + a + 1 = 0$, or $b = -a - 1$.\n3.  **Solve the system**:\n    Substitute $b = -a - 1$ into $2a^2 + b = 0$ to get $2a^2 - a - 1 = 0$.\n    Factoring the quadratic gives $(2a + 1)(a - 1) = 0$. This implies $a = 1$ or $a = -1/2$.\n4.  **Check consistency**:\n    If $a = -1/2$, then $b = -(-1/2) - 1 = -1/2$. However, the hypothesis $a \\neq b$ rules this out.\n    If $a = 1$, then $b = -1 - 1 = -2$. This satisfies all conditions ($a, b \\neq 0$ and $a \\neq b$).\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use h₂ to rewrite f(a) = 0 and f(b) = 0\n  have eq1 : a^2 + a*a + b = 0 := by\n    rw [h₂] at h₃\n    exact h₃\n  have eq2 : b^2 + a*b + b = 0 := by\n    rw [h₂] at h₄\n    exact h₄\n\n  -- Simplify eq1 to 2*a^2 + b = 0\n  have eq1_simp : 2 * a^2 + b = 0 := by\n    ring_nf at eq1\n    exact eq1\n\n  -- Simplify eq2: since b != 0, divide by b\n  have eq2_simp : b + a + 1 = 0 := by\n    have h_b_ne_zero := h₀.2\n    field_simp [h_b_ne_zero] at eq2\n    linear_combination eq2 / b\n\n  -- Express b in terms of a: b = -a - 1\n  have b_val : b = -a - 1 := by\n    linear_combination eq2_simp\n\n  -- Substitute b into eq1_simp: 2*a^2 - a - 1 = 0\n  have eq_a : 2 * a^2 - a - 1 = 0 := by\n    rw [b_val] at eq1_simp\n    ring_nf at eq1_simp\n    exact eq1_simp\n\n  -- Factor 2*a^2 - a - 1 = (2*a + 1)(a - 1) = 0\n  have factor_a : (2 * a + 1) * (a - 1) = 0 := by\n    linear_combination eq_a\n\n  -- Either a = 1 or a = -1/2\n  have a_cases : a = 1 ∨ a = -1/2 := by\n    have or_eq := eq_zero_or_eq_zero_of_mul_eq_zero factor_a\n    cases or_eq with\n    | inl h => right; linarith\n    | inr h => left; linarith\n\n  -- Case analysis on a\n  cases a_cases with\n  | inl ha1 =>\n    -- If a = 1, then b = -1 - 1 = -2\n    constructor\n    · exact ha1\n    · rw [ha1] at b_val\n      norm_num at b_val\n      exact b_val\n  | inr ha2 =>\n    -- If a = -1/2, then b = -(-1/2) - 1 = -1/2. But a != b.\n    have hb2 : b = -1/2 := by\n      rw [ha2] at b_val\n      norm_num at b_val\n      exact b_val\n    have h_contra : a = b := by\n      rw [ha2, hb2]\n    exact (h₁ h_contra).elim\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use h₂ to rewrite f(a) = 0 and f(b) = 0\n  have eq1 : a^2 + a*a + b = 0 := by\n    rw [h₂] at h₃\n    exact h₃\n  have eq2 : b^2 + a*b + b = 0 := by\n    rw [h₂] at h₄\n    exact h₄\n\n  -- Simplify eq1 to 2*a^2 + b = 0\n  have eq1_simp : 2 * a^2 + b = 0 := by\n    ring_nf at eq1\n    exact eq1\n\n  -- Simplify eq2: since b != 0, divide by b\n  have eq2_simp : b + a + 1 = 0 := by\n    have h_b_ne_zero := h₀.2\n    field_simp [h_b_ne_zero] at eq2\n    linear_combination eq2 / b\n\n  -- Express b in terms of a: b = -a - 1\n  have b_val : b = -a - 1 := by\n    linear_combination eq2_simp\n\n  -- Substitute b into eq1_simp: 2*a^2 - a - 1 = 0\n  have eq_a : 2 * a^2 - a - 1 = 0 := by\n    rw [b_val] at eq1_simp\n    ring_nf at eq1_simp\n    exact eq1_simp\n\n  -- Factor 2*a^2 - a - 1 = (2*a + 1)(a - 1) = 0\n  have factor_a : (2 * a + 1) * (a - 1) = 0 := by\n    linear_combination eq_a\n\n  -- Either a = 1 or a = -1/2\n  have a_cases : a = 1 ∨ a = -1/2 := by\n    have or_eq := eq_zero_or_eq_zero_of_mul_eq_zero factor_a\n    cases or_eq with\n    | inl h => right; linarith\n    | inr h => left; linarith\n\n  -- Case analysis on a\n  cases a_cases with\n  | inl ha1 =>\n    -- If a = 1, then b = -1 - 1 = -2\n    constructor\n    · exact ha1\n    · rw [ha1] at b_val\n      norm_num at b_val\n      exact b_val\n  | inr ha2 =>\n    -- If a = -1/2, then b = -(-1/2) - 1 = -1/2. But a != b.\n    have hb2 : b = -1/2 := by\n      rw [ha2] at b_val\n      norm_num at b_val\n      exact b_val\n    have h_contra : a = b := by\n      rw [ha2, hb2]\n    exact (h₁ h_contra).elim",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 4
+            },
+            "endPos": {
+              "line": 21,
+              "column": 13
+            },
+            "data": "Type mismatch\n  eq1\nhas type\n  a ^ 2 * 2 + b = 0\nbut is expected to have type\n  2 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 4
+            },
+            "endPos": {
+              "line": 27,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\neq1 : a ^ 2 + a * a + b = 0\neq1_simp : 2 * a ^ 2 + b = 0\nh_b_ne_zero : b ≠ 0\neq2 : b * (b + a + 1) = 0\n⊢ 1 + (b - b * a * b⁻¹) + (-(b * b⁻¹) - b ^ 2 * b⁻¹) + a = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 4
+            },
+            "endPos": {
+              "line": 37,
+              "column": 18
+            },
+            "data": "Type mismatch\n  eq1_simp\nhas type\n  -1 - a + a ^ 2 * 2 = 0\nbut is expected to have type\n  2 * a ^ 2 - a - 1 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 64,
+              "column": 6
+            },
+            "endPos": {
+              "line": 64,
+              "column": 17
+            },
+            "data": "Type mismatch\n  b_val\nhas type\n  b = -(1 / 2)\nbut is expected to have type\n  b = -1 / 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.2453601360321045
+      }
+    },
+    {
+      "index": 12,
+      "status": "FAILED",
+      "raw_text": "To prove that $a=1$ and $b=-2$ given the quadratic function $f(x) = x^2 + ax + b$ with $f(a)=0$ and $f(b)=0$, we follow these steps:\n\n1.  **Substitute values into the function**: From $f(a)=0$, we have $a^2 + a(a) + b = 0$, which simplifies to $2a^2 + b = 0$, or $b = -2a^2$.\n2.  **Substitute into the second root**: From $f(b)=0$, we have $b^2 + ab + b = 0$. Since $b \\neq 0$, we can divide by $b$ to get $b + a + 1 = 0$, or $b = -a - 1$.\n3.  **Equate the expressions for $b$**: We have $-2a^2 = -a - 1$, which simplifies to the quadratic $2a^2 - a - 1 = 0$.\n4.  **Solve for $a$**: Factoring $(2a + 1)(a - 1) = 0$ gives $a = 1$ or $a = -1/2$.\n5.  **Evaluate cases**:\n    *   If $a = 1$, then $b = -2(1)^2 = -2$. Note $a \\neq b$ ($1 \\neq -2$) and $a, b \\neq 0$, so this is a valid solution.\n    *   If $a = -1/2$, then $b = -2(-1/2)^2 = -1/2$. This contradicts the hypothesis $a \\neq b$.\n6.  **Conclusion**: Thus, $a=1$ and $b=-2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f a = 0 and f b = 0 into the definition of f\n  have ha : a^2 + a * a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a * b + b = 0 := by rwa [h₂] at h₄\n  \n  -- Simplify ha to b = -2a^2\n  have h_b_val : b = -2 * a^2 := by linarith [ha]\n  \n  -- Since b != 0, divide hb by b to get b + a + 1 = 0\n  have h_sum : b + a + 1 = 0 := by\n    field_simp [h₀.right] at hb\n    linear_combination hb / b\n    \n  -- Substitute b = -2a^2 into h_sum\n  have h_poly : 2 * a^2 - a - 1 = 0 := by\n    rw [h_b_val] at h_sum\n    linarith\n    \n  -- Factor the quadratic 2a^2 - a - 1 = (2a + 1)(a - 1)\n  have h_factor : (2 * a + 1) * (a - 1) = 0 := by linarith [h_poly]\n  \n  -- Either a = 1 or a = -1/2\n  cases' mul_eq_zero.mp h_factor with h_case1 h_case2\n  · -- Case a = 1\n    have ha1 : a = 1 := by linarith\n    have hb2 : b = -2 := by\n      rw [ha1] at h_b_val\n      norm_num at h_b_val\n      exact h_b_val\n    exact ⟨ha1, hb2⟩\n  · -- Case a = -1/2\n    have ha_neg : a = -1 / 2 := by linarith\n    have hb_neg : b = -1 / 2 := by\n      rw [ha_neg] at h_b_val\n      norm_num at h_b_val\n      exact h_b_val\n    -- This contradicts a != b\n    exfalso\n    exact h₁ (ha_neg.trans hb_neg.symm)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f a = 0 and f b = 0 into the definition of f\n  have ha : a^2 + a * a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a * b + b = 0 := by rwa [h₂] at h₄\n  \n  -- Simplify ha to b = -2a^2\n  have h_b_val : b = -2 * a^2 := by linarith [ha]\n  \n  -- Since b != 0, divide hb by b to get b + a + 1 = 0\n  have h_sum : b + a + 1 = 0 := by\n    field_simp [h₀.right] at hb\n    linear_combination hb / b\n    \n  -- Substitute b = -2a^2 into h_sum\n  have h_poly : 2 * a^2 - a - 1 = 0 := by\n    rw [h_b_val] at h_sum\n    linarith\n    \n  -- Factor the quadratic 2a^2 - a - 1 = (2a + 1)(a - 1)\n  have h_factor : (2 * a + 1) * (a - 1) = 0 := by linarith [h_poly]\n  \n  -- Either a = 1 or a = -1/2\n  cases' mul_eq_zero.mp h_factor with h_case1 h_case2\n  · -- Case a = 1\n    have ha1 : a = 1 := by linarith\n    have hb2 : b = -2 := by\n      rw [ha1] at h_b_val\n      norm_num at h_b_val\n      exact h_b_val\n    exact ⟨ha1, hb2⟩\n  · -- Case a = -1/2\n    have ha_neg : a = -1 / 2 := by linarith\n    have hb_neg : b = -1 / 2 := by\n      rw [ha_neg] at h_b_val\n      norm_num at h_b_val\n      exact h_b_val\n    -- This contradicts a != b\n    exfalso\n    exact h₁ (ha_neg.trans hb_neg.symm)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 4
+            },
+            "endPos": {
+              "line": 20,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\nha : a ^ 2 + a * a + b = 0\nh_b_val : b = -2 * a ^ 2\nhb : b * (b + a + 1) = 0\n⊢ 1 + (b - b * a * b⁻¹) + (-(b * b⁻¹) - b ^ 2 * b⁻¹) + a = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 27
+            },
+            "endPos": {
+              "line": 33,
+              "column": 35
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\nha : a ^ 2 + a * a + b = 0\nhb : b ^ 2 + a * b + b = 0\nh_b_val : b = -2 * a ^ 2\nh_sum : b + a + 1 = 0\nh_poly : 2 * a ^ 2 - a - 1 = 0\nh_factor : (2 * a + 1) * (a - 1) = 0\nh_case1 : 2 * a + 1 = 0\na✝ : a < 1\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 40,
+              "column": 35
+            },
+            "endPos": {
+              "line": 40,
+              "column": 43
+            },
+            "data": "linarith failed to find a contradiction\ncase h2.h\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\nha : a ^ 2 + a * a + b = 0\nhb : b ^ 2 + a * b + b = 0\nh_b_val : b = -2 * a ^ 2\nh_sum : b + a + 1 = 0\nh_poly : 2 * a ^ 2 - a - 1 = 0\nh_factor : (2 * a + 1) * (a - 1) = 0\nh_case2 : a - 1 = 0\na✝ : -1 / 2 < a\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 6
+            },
+            "endPos": {
+              "line": 44,
+              "column": 19
+            },
+            "data": "Type mismatch\n  h_b_val\nhas type\n  b = -(1 / 2)\nbut is expected to have type\n  b = -1 / 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.2350220680236816
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "To prove that $a=1$ and $b=-2$ given the quadratic function $f(x) = x^2 + ax + b$ with roots $a$ and $b$, we use the following steps:\n\n### Proof Sketch:\n1.  **Substitute roots into the function:** Since $f(a) = 0$ and $f(b) = 0$, we have:\n    *   $a^2 + a(a) + b = 0 \\implies 2a^2 + b = 0 \\implies b = -2a^2$.\n    *   $b^2 + a(b) + b = 0$.\n2.  **Solve for $a$:** Substitute $b = -2a^2$ into the second equation:\n    *   $(-2a^2)^2 + a(-2a^2) + (-2a^2) = 0$\n    *   $4a^4 - 2a^3 - 2a^2 = 0$.\n3.  **Factor the equation:** $2a^2(2a^2 - a - 1) = 0$.\n    *   Since $a \\neq 0$ (from $h_0$), we have $2a^2 - a - 1 = 0$.\n    *   Factoring the quadratic: $(2a + 1)(a - 1) = 0$.\n    *   This gives $a = 1$ or $a = -1/2$.\n4.  **Determine $b$ and verify constraints:**\n    *   If $a = 1$, then $b = -2(1)^2 = -2$. Note $a \\neq b$ ($1 \\neq -2$) and $b \\neq 0$. This matches the target.\n    *   If $a = -1/2$, then $b = -2(-1/2)^2 = -1/2$. This contradicts $a \\neq b$ (given $h_1$).\n5.  **Conclusion:** $a=1$ and $b=-2$.\n\n### Lean 4 Code:\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use h₃: f(a) = a^2 + a*a + b = 2a^2 + b = 0\n  have ha : 2 * a^2 + b = 0 := by\n    rw [h₂] at h₃\n    ring_nf at h₃\n    exact h₃\n  \n  -- Use h₄: f(b) = b^2 + ab + b = 0\n  have hb : b^2 + a * b + b = 0 := by\n    rw [h₂] at h₄\n    exact h₄\n\n  -- From ha, b = -2a^2\n  have b_eq : b = -2 * a^2 := by linarith\n  \n  -- Substitute b into hb\n  rw [b_eq] at hb\n  ring_nf at hb\n  -- hb is now 4a^4 - 2a^3 - 2a^2 = 0\n  -- Factor out 2a^2: 2a^2 * (2a^2 - a - 1) = 0\n  have h_factored : 2 * a^2 * (2 * a^2 - a - 1) = 0 := by\n    linear_combination hb\n  \n  -- Since a ≠ 0, 2a^2 ≠ 0, so 2a^2 - a - 1 = 0\n  have h_quad : 2 * a^2 - a - 1 = 0 := by\n    have h_a_sq_pos : 2 * a^2 ≠ 0 := by\n      simp [h₀.1]\n    exact (mul_eq_zero.mp h_factored).resolve_left h_a_sq_pos\n  \n  -- Factor 2a^2 - a - 1 = (2a + 1)(a - 1) = 0\n  have h_roots : (2 * a + 1) * (a - 1) = 0 := by\n    linear_combination h_quad\n  \n  cases mul_eq_zero.mp h_roots with\n  | inl h_neg_half =>\n    -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val : b = -1/2 := by\n      rw [a_val] at b_eq\n      norm_num at b_eq\n      exact b_eq\n    -- This contradicts a ≠ b\n    exact (h₁ (a_val.trans b_val.symm)).elim\n  | inr h_one =>\n    -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val : b = -2 := by\n      rw [a_val] at b_eq\n      norm_num at b_eq\n      exact b_eq\n    exact ⟨a_val, b_val⟩\n\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use h₃: f(a) = a^2 + a*a + b = 2a^2 + b = 0\n  have ha : 2 * a^2 + b = 0 := by\n    rw [h₂] at h₃\n    ring_nf at h₃\n    exact h₃\n  \n  -- Use h₄: f(b) = b^2 + ab + b = 0\n  have hb : b^2 + a * b + b = 0 := by\n    rw [h₂] at h₄\n    exact h₄\n\n  -- From ha, b = -2a^2\n  have b_eq : b = -2 * a^2 := by linarith\n  \n  -- Substitute b into hb\n  rw [b_eq] at hb\n  ring_nf at hb\n  -- hb is now 4a^4 - 2a^3 - 2a^2 = 0\n  -- Factor out 2a^2: 2a^2 * (2a^2 - a - 1) = 0\n  have h_factored : 2 * a^2 * (2 * a^2 - a - 1) = 0 := by\n    linear_combination hb\n  \n  -- Since a ≠ 0, 2a^2 ≠ 0, so 2a^2 - a - 1 = 0\n  have h_quad : 2 * a^2 - a - 1 = 0 := by\n    have h_a_sq_pos : 2 * a^2 ≠ 0 := by\n      simp [h₀.1]\n    exact (mul_eq_zero.mp h_factored).resolve_left h_a_sq_pos\n  \n  -- Factor 2a^2 - a - 1 = (2a + 1)(a - 1) = 0\n  have h_roots : (2 * a + 1) * (a - 1) = 0 := by\n    linear_combination h_quad\n  \n  cases mul_eq_zero.mp h_roots with\n  | inl h_neg_half =>\n    -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val : b = -1/2 := by\n      rw [a_val] at b_eq\n      norm_num at b_eq\n      exact b_eq\n    -- This contradicts a ≠ b\n    exact (h₁ (a_val.trans b_val.symm)).elim\n  | inr h_one =>\n    -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val : b = -2 := by\n      rw [a_val] at b_eq\n      norm_num at b_eq\n      exact b_eq\n    exact ⟨a_val, b_val⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₃\nhas type\n  a ^ 2 * 2 + b = 0\nbut is expected to have type\n  2 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 4
+            },
+            "endPos": {
+              "line": 30,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\nha : 2 * a ^ 2 + b = 0\nb_eq : b = -2 * a ^ 2\nhb : -(a ^ 2 * 2) - a ^ 3 * 2 + a ^ 4 * Nat.rawCast 4 = 0\n⊢ a ^ 4 * 4 - a ^ 4 * Nat.rawCast 4 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 49,
+              "column": 6
+            },
+            "endPos": {
+              "line": 49,
+              "column": 16
+            },
+            "data": "Type mismatch\n  b_eq\nhas type\n  b = -(1 / 2)\nbut is expected to have type\n  b = -1 / 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.3551108837127686
+      }
+    },
+    {
+      "index": 14,
+      "status": "FAILED",
+      "raw_text": "To prove that $a = 1$ and $b = -2$ given the conditions, we follow this proof sketch:\n\n1.  **Use the root conditions**: Since $f(a) = 0$ and $f(b) = 0$, substitute these into the definition $f(x) = x^2 + ax + b$.\n2.  **Form a system of equations**:\n    *   $a^2 + a(a) + b = 0 \\implies 2a^2 + b = 0$\n    *   $b^2 + a(b) + b = 0 \\implies b(b + a + 1) = 0$\n3.  **Solve for $a$ and $b$**:\n    *   From $b(b + a + 1) = 0$ and the condition $b \\neq 0$, we conclude $b = -a - 1$.\n    *   Substitute $b = -a - 1$ into $2a^2 + b = 0$ to get $2a^2 - a - 1 = 0$.\n    *   Factoring $2a^2 - a - 1 = 0$ gives $(2a + 1)(a - 1) = 0$.\n4.  **Discard invalid solutions**:\n    *   If $a = -1/2$, then $b = -(-1/2) - 1 = -1/2$, which contradicts $a \\neq b$.\n    *   Therefore, $a = 1$.\n5.  **Final values**:\n    *   With $a = 1$, we find $b = -1 - 1 = -2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Step 1: Substitute a and b into the function definition\n  have ha : a^2 + a * a + b = 0 := by\n    rw [← h₂ a]\n    exact h₃\n  have hb : b^2 + a * b + b = 0 := by\n    rw [← h₂ b]\n    exact h₄\n  \n  -- Step 2: Simplify equations\n  have ha' : 2 * a^2 + b = 0 := by\n    ring_nf at ha\n    exact ha\n  have hb' : b * (b + a + 1) = 0 := by\n    ring_nf at hb\n    exact hb\n  \n  -- Step 3: Use b ≠ 0 to find relationship between a and b\n  have h_b_val : b = -a - 1 := by\n    cases' mul_eq_zero.mp hb' with h_b_zero h_sum_zero\n    · exact (h₀.2 h_b_zero).elim\n    · linarith\n    \n  -- Step 4: Substitute b back into the equation for a\n  rw [h_b_val] at ha'\n  have ha_poly : (2 * a + 1) * (a - 1) = 0 := by\n    linarith\n  \n  cases' mul_eq_zero.mp ha_poly with h_a1 h_a2\n  · -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val : b = -1/2 := by\n      rw [a_val] at h_b_val\n      linarith\n    -- Contradicts a ≠ b\n    exact (h₁ (a_val.trans b_val.symm)).elim\n  · -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val : b = -2 := by\n      rw [a_val] at h_b_val\n      linarith\n    exact ⟨a_val, b_val⟩\n\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Step 1: Substitute a and b into the function definition\n  have ha : a^2 + a * a + b = 0 := by\n    rw [← h₂ a]\n    exact h₃\n  have hb : b^2 + a * b + b = 0 := by\n    rw [← h₂ b]\n    exact h₄\n  \n  -- Step 2: Simplify equations\n  have ha' : 2 * a^2 + b = 0 := by\n    ring_nf at ha\n    exact ha\n  have hb' : b * (b + a + 1) = 0 := by\n    ring_nf at hb\n    exact hb\n  \n  -- Step 3: Use b ≠ 0 to find relationship between a and b\n  have h_b_val : b = -a - 1 := by\n    cases' mul_eq_zero.mp hb' with h_b_zero h_sum_zero\n    · exact (h₀.2 h_b_zero).elim\n    · linarith\n    \n  -- Step 4: Substitute b back into the equation for a\n  rw [h_b_val] at ha'\n  have ha_poly : (2 * a + 1) * (a - 1) = 0 := by\n    linarith\n  \n  cases' mul_eq_zero.mp ha_poly with h_a1 h_a2\n  · -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val : b = -1/2 := by\n      rw [a_val] at h_b_val\n      linarith\n    -- Contradicts a ≠ b\n    exact (h₁ (a_val.trans b_val.symm)).elim\n  · -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val : b = -2 := by\n      rw [a_val] at h_b_val\n      linarith\n    exact ⟨a_val, b_val⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 4
+            },
+            "endPos": {
+              "line": 21,
+              "column": 12
+            },
+            "data": "Type mismatch\n  ha\nhas type\n  a ^ 2 * 2 + b = 0\nbut is expected to have type\n  2 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 4
+            },
+            "endPos": {
+              "line": 24,
+              "column": 12
+            },
+            "data": "Type mismatch\n  hb\nhas type\n  b + b * a + b ^ 2 = 0\nbut is expected to have type\n  b * (b + a + 1) = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.9457507133483887
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we analyze the conditions given for the quadratic function $f(x) = x^2 + ax + b$.\n\n**Proof Sketch:**\n1.  **System of Equations:** Since $f(a) = 0$ and $f(b) = 0$, we substitute these into the definition of $f$:\n    *   $a^2 + a(a) + b = 0 \\implies 2a^2 + b = 0$\n    *   $b^2 + a(b) + b = 0 \\implies b^2 + ab + b = 0$\n2.  **Analyze the second equation:** Factoring $b^2 + ab + b = 0$ gives $b(b + a + 1) = 0$. Since $b \\neq 0$ (from $h_0$), we must have $b + a + 1 = 0$, or $b = -a - 1$.\n3.  **Substitute into the first equation:** Replace $b$ in $2a^2 + b = 0$ with $-a - 1$:\n    *   $2a^2 - a - 1 = 0$\n4.  **Solve for $a$:** The quadratic $2a^2 - a - 1 = 0$ factors as $(2a + 1)(a - 1) = 0$. This gives two candidates for $a$: $a = 1$ or $a = -1/2$.\n5.  **Case $a = -1/2$:** If $a = -1/2$, then $b = -(-1/2) - 1 = -1/2$. This implies $a = b$, which contradicts $h_1$ ($a \\neq b$).\n6.  **Case $a = 1$:** If $a = 1$, then $b = -1 - 1 = -2$. This satisfies all conditions: $a, b \\neq 0$ and $a \\neq b$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f into the equations\n  rw [h₂] at h₃ h₄\n  -- eq1: a^2 + a*a + b = 0 => 2*a^2 + b = 0\n  have eq1 : 2 * a ^ 2 + b = 0 := by\n    linear_combination h₃\n  -- eq2: b^2 + a*b + b = 0 => b * (b + a + 1) = 0\n  have eq2 : b * (b + a + 1) = 0 := by\n    linear_combination h₄\n  -- Since b ≠ 0, b + a + 1 = 0\n  have eq3 : b + a + 1 = 0 := by\n    cases eq2 with\n    | inl hb => exact (h₀.2 hb).elim\n    | inr hba => exact hba\n  -- Substitute b = -a - 1 into eq1\n  have b_val : b = -a - 1 := by linarith\n  rw [b_val] at eq1\n  -- Solve 2a^2 - a - 1 = 0\n  -- Factors as (2a + 1)(a - 1) = 0\n  have fact_a : (2 * a + 1) * (a - 1) = 0 := by\n    linarith\n  cases fact_a with\n  | inl ha1 =>\n    -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val_spec : b = -1/2 := by\n      rw [a_val] at b_val\n      norm_num at b_val\n      exact b_val\n    -- This contradicts a ≠ b\n    rw [a_val, b_val_spec] at h₁\n    exact (h₁ rfl).elim\n  | inr ha2 =>\n    -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val_spec : b = -2 := by\n      rw [a_val] at b_val\n      norm_num at b_val\n      exact b_val\n    exact ⟨a_val, b_val_spec⟩\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f into the equations\n  rw [h₂] at h₃ h₄\n  -- eq1: a^2 + a*a + b = 0 => 2*a^2 + b = 0\n  have eq1 : 2 * a ^ 2 + b = 0 := by\n    linear_combination h₃\n  -- eq2: b^2 + a*b + b = 0 => b * (b + a + 1) = 0\n  have eq2 : b * (b + a + 1) = 0 := by\n    linear_combination h₄\n  -- Since b ≠ 0, b + a + 1 = 0\n  have eq3 : b + a + 1 = 0 := by\n    cases eq2 with\n    | inl hb => exact (h₀.2 hb).elim\n    | inr hba => exact hba\n  -- Substitute b = -a - 1 into eq1\n  have b_val : b = -a - 1 := by linarith\n  rw [b_val] at eq1\n  -- Solve 2a^2 - a - 1 = 0\n  -- Factors as (2a + 1)(a - 1) = 0\n  have fact_a : (2 * a + 1) * (a - 1) = 0 := by\n    linarith\n  cases fact_a with\n  | inl ha1 =>\n    -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val_spec : b = -1/2 := by\n      rw [a_val] at b_val\n      norm_num at b_val\n      exact b_val\n    -- This contradicts a ≠ b\n    rw [a_val, b_val_spec] at h₁\n    exact (h₁ rfl).elim\n  | inr ha2 =>\n    -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val_spec : b = -2 := by\n      rw [a_val] at b_val\n      norm_num at b_val\n      exact b_val\n    exact ⟨a_val, b_val_spec⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 4
+            },
+            "endPos": {
+              "line": 21,
+              "column": 36
+            },
+            "data": "Invalid alternative name `inl`: Expected `refl`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 4
+            },
+            "endPos": {
+              "line": 22,
+              "column": 26
+            },
+            "data": "Invalid alternative name `inr`: Expected `refl`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 4
+            },
+            "endPos": {
+              "line": 20,
+              "column": 9
+            },
+            "data": "Dependent elimination failed: Failed to solve equation\n  Real.zero✝ = Real.mul✝ b (b + a + 1)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 2
+            },
+            "endPos": {
+              "line": 40,
+              "column": 23
+            },
+            "data": "Invalid alternative name `inl`: Expected `refl`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 41,
+              "column": 2
+            },
+            "endPos": {
+              "line": 48,
+              "column": 29
+            },
+            "data": "Invalid alternative name `inr`: Expected `refl`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 2
+            },
+            "endPos": {
+              "line": 30,
+              "column": 7
+            },
+            "data": "Dependent elimination failed: Failed to solve equation\n  Real.zero✝ = Real.mul✝ (2 * a + 1) (a - 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.43163204193115234
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "To solve this problem, we use the fact that $a$ and $b$ are roots of the quadratic function $f(x) = x^2 + ax + b$.\n\n**Proof Sketch:**\n1.  **Substitute Roots into the Function:** Since $f(a) = 0$ and $f(b) = 0$, we substitute these values into the definition $f(x) = x^2 + ax + b$.\n2.  **Equation 1 ($f(a) = 0$):** $a^2 + a(a) + b = 0 \\implies 2a^2 + b = 0$. This implies $b = -2a^2$.\n3.  **Equation 2 ($f(b) = 0$):** $b^2 + ab + b = 0$. Since $b \\neq 0$ (given by $h_0$), we can divide by $b$ to get $b + a + 1 = 0$.\n4.  **System of Equations:**\n    *   $b = -2a^2$\n    *   $b = -a - 1$\n5.  Equating the expressions for $b$: $-2a^2 = -a - 1 \\implies 2a^2 - a - 1 = 0$.\n6.  Factoring the quadratic: $(2a + 1)(a - 1) = 0$. This gives $a = 1$ or $a = -1/2$.\n7.  **Case 1 ($a = 1$):** Substituting into $b = -2a^2$ gives $b = -2$. Checking $a \\neq b$ (given by $h_1$): $1 \\neq -2$, which is true.\n8.  **Case 2 ($a = -1/2$):** Substituting into $b = -2a^2$ gives $b = -2(-1/2)^2 = -1/2$. This contradicts $h_1$ ($a \\neq b$), so this case is rejected.\n9.  **Conclusion:** The only valid solution is $a = 1$ and $b = -2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f(a) = 0 into the definition of f\n  rw [h₂] at h₃\n  -- Simplify h₃: a^2 + a*a + b = 0 => 2*a^2 + b = 0\n  have h_eq1 : 2 * a^2 + b = 0 := by\n    ring_nf at h₃\n    exact h₃\n  \n  -- Substitute f(b) = 0 into the definition of f\n  rw [h₂] at h₄\n  -- Simplify h₄: b^2 + a*b + b = 0. Since b ≠ 0, divide by b.\n  have h_eq2 : b + a + 1 = 0 := by\n    have hb : b * (b + a + 1) = 0 := by\n      ring_nf\n      exact h₄\n    exact (mul_eq_zero.mp hb).resolve_left h₀.2\n  \n  -- From h_eq1, b = -2*a^2. Substitute this into h_eq2.\n  have h_b_val : b = -2 * a^2 := by linarith\n  rw [h_b_val] at h_eq2\n  \n  -- Solve 2*a^2 - a - 1 = 0\n  have h_quad : (2 * a + 1) * (a - 1) = 0 := by\n    ring_nf\n    linarith\n    \n  cases mul_eq_zero.mp h_quad with\n  | inl h_a1 => \n    -- Case a = -1/2\n    have ha : a = -1/2 := by linarith\n    have hb : b = -1/2 := by\n      rw [ha] at h_b_val\n      ring_nf at h_b_val\n      exact h_b_val\n    -- Contradiction with a ≠ b\n    exact (h₁ (ha.trans hb.symm)).elim\n  | inr h_a2 =>\n    -- Case a = 1\n    have ha : a = 1 := by linarith\n    have hb : b = -2 := by\n      rw [ha] at h_b_val\n      ring_nf at h_b_val\n      exact h_b_val\n    exact ⟨ha, hb⟩\n\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f(a) = 0 into the definition of f\n  rw [h₂] at h₃\n  -- Simplify h₃: a^2 + a*a + b = 0 => 2*a^2 + b = 0\n  have h_eq1 : 2 * a^2 + b = 0 := by\n    ring_nf at h₃\n    exact h₃\n  \n  -- Substitute f(b) = 0 into the definition of f\n  rw [h₂] at h₄\n  -- Simplify h₄: b^2 + a*b + b = 0. Since b ≠ 0, divide by b.\n  have h_eq2 : b + a + 1 = 0 := by\n    have hb : b * (b + a + 1) = 0 := by\n      ring_nf\n      exact h₄\n    exact (mul_eq_zero.mp hb).resolve_left h₀.2\n  \n  -- From h_eq1, b = -2*a^2. Substitute this into h_eq2.\n  have h_b_val : b = -2 * a^2 := by linarith\n  rw [h_b_val] at h_eq2\n  \n  -- Solve 2*a^2 - a - 1 = 0\n  have h_quad : (2 * a + 1) * (a - 1) = 0 := by\n    ring_nf\n    linarith\n    \n  cases mul_eq_zero.mp h_quad with\n  | inl h_a1 => \n    -- Case a = -1/2\n    have ha : a = -1/2 := by linarith\n    have hb : b = -1/2 := by\n      rw [ha] at h_b_val\n      ring_nf at h_b_val\n      exact h_b_val\n    -- Contradiction with a ≠ b\n    exact (h₁ (ha.trans hb.symm)).elim\n  | inr h_a2 =>\n    -- Case a = 1\n    have ha : a = 1 := by linarith\n    have hb : b = -2 := by\n      rw [ha] at h_b_val\n      ring_nf at h_b_val\n      exact h_b_val\n    exact ⟨ha, hb⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₃\nhas type\n  a ^ 2 * 2 + b = 0\nbut is expected to have type\n  2 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 6
+            },
+            "endPos": {
+              "line": 23,
+              "column": 14
+            },
+            "data": "Type mismatch\n  h₄\nhas type\n  b ^ 2 + a * b + b = 0\nbut is expected to have type\n  b + b * a + b ^ 2 = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.391174554824829
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "To prove $a=1$ and $b=-2$ given $f(x) = x^2 + ax + b$ with $f(a)=0$ and $f(b)=0$, we follow these steps:\n\n### Proof Sketch\n1.  **Substitute values into the function definition**:\n    *   $f(a) = a^2 + a(a) + b = 2a^2 + b$. Since $f(a)=0$, we have $b = -2a^2$.\n    *   $f(b) = b^2 + ab + b$. Since $f(b)=0$, we have $b(b + a + 1) = 0$.\n2.  **Solve for constants**:\n    *   Since $b \\neq 0$ (given), the equation $b(b + a + 1) = 0$ implies $b + a + 1 = 0$, or $b = -a - 1$.\n3.  **Equate expressions for $b$**:\n    *   $-2a^2 = -a - 1 \\implies 2a^2 - a - 1 = 0$.\n    *   Factoring the quadratic gives $(2a + 1)(a - 1) = 0$.\n    *   This yields two possible values for $a$: $1$ or $-1/2$.\n4.  **Test cases**:\n    *   If $a = 1$, then $b = -2(1)^2 = -2$. Note $a \\neq b$ ($1 \\neq -2$) and $a, b \\neq 0$, which satisfies the hypotheses.\n    *   If $a = -1/2$, then $b = -2(-1/2)^2 = -1/2$. But the hypothesis $a \\neq b$ forbids this.\n5.  **Conclusion**: Thus, $a = 1$ and $b = -2$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f definition into f(a) = 0\n  have ha : 2 * a^2 + b = 0 := by\n    rw [h₂ a] at h₃\n    ring_nf at h₃\n    exact h₃\n    \n  -- Substitute f definition into f(b) = 0\n  have hb : b^2 + a * b + b = 0 := by\n    rw [h₂ b] at h₄\n    ring_nf at h₄\n    exact h₄\n    \n  -- Since b ≠ 0, b + a + 1 = 0\n  have hb_red : b + a + 1 = 0 := by\n    have hb_factor : b * (b + a + 1) = 0 := by\n      rw [← hb]\n      ring\n    exact (mul_eq_zero.mp hb_factor).resolve_left h₀.right\n    \n  -- Substitute b = -a - 1 into the first equation\n  have b_val : b = -a - 1 := by linarith [hb_red]\n  rw [b_val] at ha\n  \n  -- Solve the quadratic 2a^2 - a - 1 = 0\n  have h_quad : (2 * a + 1) * (a - 1) = 0 := by\n    linarith [ha]\n    \n  cases' mul_eq_zero.mp h_quad with h_root1 h_root2\n  · -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith [h_root1]\n    have b_val_eval : b = -1/2 := by \n      rw [a_val] at b_val\n      norm_num at b_val\n      exact b_val\n    -- Contradicts a ≠ b\n    exact (h₁ (a_val.trans b_val_eval.symm)).elim\n  · -- Case a = 1\n    constructor\n    · exact h_root2\n    · rw [h_root2] at b_val\n      norm_num at b_val\n      exact b_val\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f definition into f(a) = 0\n  have ha : 2 * a^2 + b = 0 := by\n    rw [h₂ a] at h₃\n    ring_nf at h₃\n    exact h₃\n    \n  -- Substitute f definition into f(b) = 0\n  have hb : b^2 + a * b + b = 0 := by\n    rw [h₂ b] at h₄\n    ring_nf at h₄\n    exact h₄\n    \n  -- Since b ≠ 0, b + a + 1 = 0\n  have hb_red : b + a + 1 = 0 := by\n    have hb_factor : b * (b + a + 1) = 0 := by\n      rw [← hb]\n      ring\n    exact (mul_eq_zero.mp hb_factor).resolve_left h₀.right\n    \n  -- Substitute b = -a - 1 into the first equation\n  have b_val : b = -a - 1 := by linarith [hb_red]\n  rw [b_val] at ha\n  \n  -- Solve the quadratic 2a^2 - a - 1 = 0\n  have h_quad : (2 * a + 1) * (a - 1) = 0 := by\n    linarith [ha]\n    \n  cases' mul_eq_zero.mp h_quad with h_root1 h_root2\n  · -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith [h_root1]\n    have b_val_eval : b = -1/2 := by \n      rw [a_val] at b_val\n      norm_num at b_val\n      exact b_val\n    -- Contradicts a ≠ b\n    exact (h₁ (a_val.trans b_val_eval.symm)).elim\n  · -- Case a = 1\n    constructor\n    · exact h_root2\n    · rw [h_root2] at b_val\n      norm_num at b_val\n      exact b_val",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₃\nhas type\n  a ^ 2 * 2 + b = 0\nbut is expected to have type\n  2 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 4
+            },
+            "endPos": {
+              "line": 20,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₄\nhas type\n  b + b * a + b ^ 2 = 0\nbut is expected to have type\n  b ^ 2 + a * b + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 43,
+              "column": 6
+            },
+            "endPos": {
+              "line": 43,
+              "column": 17
+            },
+            "data": "Type mismatch\n  b_val\nhas type\n  b = -(1 / 2)\nbut is expected to have type\n  b = -1 / 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 48,
+              "column": 6
+            },
+            "endPos": {
+              "line": 48,
+              "column": 19
+            },
+            "data": "Type mismatch\n  h_root2\nhas type\n  a - 1 = 0\nbut is expected to have type\n  a = 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 49,
+              "column": 10
+            },
+            "endPos": {
+              "line": 49,
+              "column": 17
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a - 1\nin the target expression\n  b = -a - 1\n\ncase inr.right\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\nha : 2 * a ^ 2 + (-a - 1) = 0\nhb : b ^ 2 + a * b + b = 0\nhb_red : b + a + 1 = 0\nb_val : b = -a - 1\nh_quad : (2 * a + 1) * (a - 1) = 0\nh_root2 : a - 1 = 0\n⊢ b = -2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.822929859161377
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "To solve this problem, we use the fact that $a$ and $b$ are roots of the quadratic function $f(x) = x^2 + ax + b$.\n\n**Proof Sketch:**\n1.  **Evaluate at roots:** Since $f(a) = 0$ and $f(b) = 0$, we substitute these into the definition of $f$:\n    *   $a^2 + a(a) + b = 0 \\implies 2a^2 + b = 0$\n    *   $b^2 + a(b) + b = 0 \\implies b^2 + ab + b = 0$\n2.  **Simplify equations:**\n    *   From the first equation, $b = -2a^2$.\n    *   Substitute $b$ into the second equation: $(-2a^2)^2 + a(-2a^2) + (-2a^2) = 0$.\n    *   This yields $4a^4 - 2a^3 - 2a^2 = 0$.\n3.  **Solve for $a$:**\n    *   Factor out $2a^2$: $2a^2(2a^2 - a - 1) = 0$.\n    *   Since $a \\neq 0$, we have $2a^2 - a - 1 = 0$.\n    *   Factoring the quadratic: $(2a + 1)(a - 1) = 0$.\n    *   Thus $a = 1$ or $a = -1/2$.\n4.  **Determine $a$ and $b$:**\n    *   If $a = 1$, then $b = -2(1)^2 = -2$. Note $a \\neq b$ and $b \\neq 0$ are satisfied.\n    *   If $a = -1/2$, then $b = -2(-1/2)^2 = -1/2$. This contradicts $a \\neq b$.\n5.  **Conclusion:** The only solution is $a = 1$ and $b = -2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Evaluate f(a) = 0 and f(b) = 0 using the definition of f\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂] at h₄\n  \n  -- Simplify equations\n  have ha' : 2 * a^2 + b = 0 := by linarith [ha]\n  have hb' : b * (b + a + 1) = 0 := by nlinarith [hb]\n  \n  -- From hb', since b ≠ 0, b + a + 1 = 0\n  have hb'' : b = - a - 1 := by\n    cases' h₀ with _ hbnz\n    exact eq_neg_of_add_eq_zero_left (mul_left_cancel₀ hbnz (by linear_combination hb'))\n\n  -- Substitute b in ha'\n  have h_eq : 2 * a^2 - a - 1 = 0 := by linarith [ha', hb'']\n  \n  -- Factor the quadratic in a: (a - 1)(2a + 1) = 0\n  have h_factor : (a - 1) * (2 * a + 1) = 0 := by linarith [h_eq]\n  \n  rcases mul_eq_zero.mp h_factor with h_a1 | h_a2\n  · -- Case a = 1\n    have b_val : b = -2 := by linarith [hb'', h_a1]\n    exact ⟨h_a1, b_val⟩\n  · -- Case a = -1/2, check for contradiction with a ≠ b\n    have a_val : a = -1/2 := by linarith [h_a2]\n    have b_val : b = -1/2 := by linarith [hb'', a_val]\n    exfalso\n    exact h₁ (Eq.trans a_val b_val.symm)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Evaluate f(a) = 0 and f(b) = 0 using the definition of f\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂] at h₄\n  \n  -- Simplify equations\n  have ha' : 2 * a^2 + b = 0 := by linarith [ha]\n  have hb' : b * (b + a + 1) = 0 := by nlinarith [hb]\n  \n  -- From hb', since b ≠ 0, b + a + 1 = 0\n  have hb'' : b = - a - 1 := by\n    cases' h₀ with _ hbnz\n    exact eq_neg_of_add_eq_zero_left (mul_left_cancel₀ hbnz (by linear_combination hb'))\n\n  -- Substitute b in ha'\n  have h_eq : 2 * a^2 - a - 1 = 0 := by linarith [ha', hb'']\n  \n  -- Factor the quadratic in a: (a - 1)(2a + 1) = 0\n  have h_factor : (a - 1) * (2 * a + 1) = 0 := by linarith [h_eq]\n  \n  rcases mul_eq_zero.mp h_factor with h_a1 | h_a2\n  · -- Case a = 1\n    have b_val : b = -2 := by linarith [hb'', h_a1]\n    exact ⟨h_a1, b_val⟩\n  · -- Case a = -1/2, check for contradiction with a ≠ b\n    have a_val : a = -1/2 := by linarith [h_a2]\n    have b_val : b = -1/2 := by linarith [hb'', a_val]\n    exfalso\n    exact h₁ (Eq.trans a_val b_val.symm)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 64
+            },
+            "endPos": {
+              "line": 21,
+              "column": 82
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℝ\nf : ℝ → ℝ\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\nha : a ^ 2 + a * a + b = 0\nhb : b ^ 2 + a * b + b = 0\nha' : 2 * a ^ 2 + b = 0\nhb' : b * (b + a + 1) = 0\nleft✝ : a ≠ 0\nhbnz : b ≠ 0\n⊢ -b - b * a + b ^ 2 * Nat.rawCast 1 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 11
+            },
+            "endPos": {
+              "line": 32,
+              "column": 15
+            },
+            "data": "Application type mismatch: The argument\n  h_a1\nhas type\n  a - 1 = 0\nbut is expected to have type\n  a = 1\nin the application\n  And.intro h_a1"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 2.3275885581970215
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these logical steps:\n\n1.  **Use the function definition**: Substitute $f(a) = a^2 + a^2 + b = 2a^2 + b$ and $f(b) = b^2 + ab + b$.\n2.  **Apply the roots condition**: From $h_3$, we have $2a^2 + b = 0$, which implies $b = -2a^2$.\n3.  **Apply the second root condition**: From $h_4$, we have $b^2 + ab + b = 0$. Since $b \\neq 0$, we can divide by $b$ to get $b + a + 1 = 0$, which implies $b = -a - 1$.\n4.  **Solve for $a$**: Equating the two expressions for $b$, we have $-2a^2 = -a - 1$, or $2a^2 - a - 1 = 0$. This factors as $(2a + 1)(a - 1) = 0$, giving $a = 1$ or $a = -1/2$.\n5.  **Test cases for $a$**:\n    - If $a = -1/2$, then $b = -(-1/2) - 1 = -1/2$. However, $h_1$ states $a \\neq b$, so this case is rejected.\n    - If $a = 1$, then $b = -(1) - 1 = -2$. This satisfies $a \\neq 0, b \\neq 0$ and $a \\neq b$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute the definition of f into the root equations\n  have h_fa : a^2 + a*a + b = 0 := by rwa [h₂] at h₃\n  have h_fb : b^2 + a*b + b = 0 := by rwa [h₂] at h₄\n  \n  -- Simplify h_fa to express b in terms of a\n  have h_b_eq_neg_2a2 : b = -2 * a^2 := by linarith [h_fa]\n  \n  -- Since b ≠ 0, simplify h_fb by dividing by b\n  have h_b_plus_a_plus_1 : b + a + 1 = 0 := by\n    have hb : b * (b + a + 1) = 0 := by \n      linear_combination h_fb\n    exact (mul_eq_zero.mp hb).resolve_left h₀.2\n\n  -- Substitute b = -2a^2 into the simplified h_fb\n  have h_a_poly : 2 * a^2 - a - 1 = 0 := by\n    rw [h_b_eq_neg_2a2] at h_b_plus_a_plus_1\n    linarith [h_b_plus_a_plus_1]\n  \n  -- Factor the quadratic in a: (a - 1)(2a + 1) = 0\n  have h_a_roots : (a - 1) * (2 * a + 1) = 0 := by linarith [h_a_poly]\n  cases mul_eq_zero.mp h_a_roots with\n  | inl ha1 => \n    -- Case a = 1\n    have hb : b = -2 := by linarith [h_b_plus_a_plus_1, ha1]\n    exact ⟨ha1, hb⟩\n  | inr ha2 =>\n    -- Case a = -1/2\n    have ha_val : a = -1/2 := by linarith [ha2]\n    have hb_val : b = -1/2 := by linarith [h_b_plus_a_plus_1, ha_val]\n    -- This contradicts h₁: a ≠ b\n    have h_contra : a = b := by rw [ha_val, hb_val]\n    exact (h₁ h_contra).elim\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute the definition of f into the root equations\n  have h_fa : a^2 + a*a + b = 0 := by rwa [h₂] at h₃\n  have h_fb : b^2 + a*b + b = 0 := by rwa [h₂] at h₄\n  \n  -- Simplify h_fa to express b in terms of a\n  have h_b_eq_neg_2a2 : b = -2 * a^2 := by linarith [h_fa]\n  \n  -- Since b ≠ 0, simplify h_fb by dividing by b\n  have h_b_plus_a_plus_1 : b + a + 1 = 0 := by\n    have hb : b * (b + a + 1) = 0 := by \n      linear_combination h_fb\n    exact (mul_eq_zero.mp hb).resolve_left h₀.2\n\n  -- Substitute b = -2a^2 into the simplified h_fb\n  have h_a_poly : 2 * a^2 - a - 1 = 0 := by\n    rw [h_b_eq_neg_2a2] at h_b_plus_a_plus_1\n    linarith [h_b_plus_a_plus_1]\n  \n  -- Factor the quadratic in a: (a - 1)(2a + 1) = 0\n  have h_a_roots : (a - 1) * (2 * a + 1) = 0 := by linarith [h_a_poly]\n  cases mul_eq_zero.mp h_a_roots with\n  | inl ha1 => \n    -- Case a = 1\n    have hb : b = -2 := by linarith [h_b_plus_a_plus_1, ha1]\n    exact ⟨ha1, hb⟩\n  | inr ha2 =>\n    -- Case a = -1/2\n    have ha_val : a = -1/2 := by linarith [ha2]\n    have hb_val : b = -1/2 := by linarith [h_b_plus_a_plus_1, ha_val]\n    -- This contradicts h₁: a ≠ b\n    have h_contra : a = b := by rw [ha_val, hb_val]\n    exact (h₁ h_contra).elim",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 11
+            },
+            "endPos": {
+              "line": 34,
+              "column": 14
+            },
+            "data": "Application type mismatch: The argument\n  ha1\nhas type\n  a - 1 = 0\nbut is expected to have type\n  a = 1\nin the application\n  And.intro ha1"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 2.0915284156799316
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "To prove $a=1$ and $b=-2$, we use the given functional form $f(x) = x^2 + ax + b$ and the fact that $a$ and $b$ are roots of $f$.\n\n**Proof Sketch:**\n1. From $f(a) = 0$, we have $a^2 + a(a) + b = 0$, which simplifies to $2a^2 + b = 0$.\n2. From $f(b) = 0$, we have $b^2 + ab + b = 0$. Since $b \\neq 0$, we can divide by $b$ to get $b + a + 1 = 0$, or $b = -a - 1$.\n3. Substitute $b = -a - 1$ into the first equation: $2a^2 - a - 1 = 0$.\n4. Factoring the quadratic gives $(2a + 1)(a - 1) = 0$, so $a = 1$ or $a = -1/2$.\n5. Case $a = -1/2$: Then $b = -(-1/2) - 1 = -1/2$. But the hypothesis states $a \\neq b$, so this case is impossible.\n6. Case $a = 1$: Then $b = -1 - 1 = -2$. This satisfies all conditions ($a, b \\neq 0$ and $a \\neq b$).\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute the definition of f into the root equations\n  have eq1 : a^2 + a * a + b = 0 := by\n    rw [← h₂ a]\n    exact h₃\n  have eq2 : b^2 + a * b + b = 0 := by\n    rw [← h₂ b]\n    exact h₄\n\n  -- Simplify eq1 to 2a^2 + b = 0\n  have ha : 2 * a^2 + b = 0 := by\n    ring_nf at eq1\n    exact eq1\n\n  -- Simplify eq2 to b(b + a + 1) = 0. Since b != 0, b + a + 1 = 0\n  have hb : b + a + 1 = 0 := by\n    have h_factor : b * (b + a + 1) = 0 := by\n      linear_combination eq2\n    exact (mul_eq_zero.mp h_factor).resolve_left h₀.2\n\n  -- Express b in terms of a\n  have b_eq : b = -a - 1 := by\n    linear_combination hb\n\n  -- Substitute b into ha to get a quadratic in a\n  have quad_a : 2 * a^2 - a - 1 = 0 := by\n    rw [b_eq] at ha\n    ring_nf at ha\n    exact ha\n\n  -- Solve the quadratic (2a + 1)(a - 1) = 0\n  have factor_a : (2 * a + 1) * (a - 1) = 0 := by\n    linear_combination quad_a\n\n  cases mul_eq_zero.mp factor_a with\n  | h_left h_val =>\n    -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val : b = -1/2 := by\n      rw [a_val] at b_eq\n      norm_num at b_eq\n      exact b_eq\n    -- This contradicts a != b\n    exact (h₁ (a_val.trans b_val.symm)).elim\n  | h_right h_val =>\n    -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val : b = -2 := by\n      rw [a_val] at b_eq\n      norm_num at b_eq\n      exact b_eq\n    exact ⟨a_val, b_val⟩\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute the definition of f into the root equations\n  have eq1 : a^2 + a * a + b = 0 := by\n    rw [← h₂ a]\n    exact h₃\n  have eq2 : b^2 + a * b + b = 0 := by\n    rw [← h₂ b]\n    exact h₄\n\n  -- Simplify eq1 to 2a^2 + b = 0\n  have ha : 2 * a^2 + b = 0 := by\n    ring_nf at eq1\n    exact eq1\n\n  -- Simplify eq2 to b(b + a + 1) = 0. Since b != 0, b + a + 1 = 0\n  have hb : b + a + 1 = 0 := by\n    have h_factor : b * (b + a + 1) = 0 := by\n      linear_combination eq2\n    exact (mul_eq_zero.mp h_factor).resolve_left h₀.2\n\n  -- Express b in terms of a\n  have b_eq : b = -a - 1 := by\n    linear_combination hb\n\n  -- Substitute b into ha to get a quadratic in a\n  have quad_a : 2 * a^2 - a - 1 = 0 := by\n    rw [b_eq] at ha\n    ring_nf at ha\n    exact ha\n\n  -- Solve the quadratic (2a + 1)(a - 1) = 0\n  have factor_a : (2 * a + 1) * (a - 1) = 0 := by\n    linear_combination quad_a\n\n  cases mul_eq_zero.mp factor_a with\n  | h_left h_val =>\n    -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val : b = -1/2 := by\n      rw [a_val] at b_eq\n      norm_num at b_eq\n      exact b_eq\n    -- This contradicts a != b\n    exact (h₁ (a_val.trans b_val.symm)).elim\n  | h_right h_val =>\n    -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val : b = -2 := by\n      rw [a_val] at b_eq\n      norm_num at b_eq\n      exact b_eq\n    exact ⟨a_val, b_val⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 4
+            },
+            "endPos": {
+              "line": 21,
+              "column": 13
+            },
+            "data": "Type mismatch\n  eq1\nhas type\n  a ^ 2 * 2 + b = 0\nbut is expected to have type\n  2 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 4
+            },
+            "endPos": {
+              "line": 37,
+              "column": 12
+            },
+            "data": "Type mismatch\n  ha\nhas type\n  -1 - a + a ^ 2 * 2 = 0\nbut is expected to have type\n  2 * a ^ 2 - a - 1 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 2
+            },
+            "endPos": {
+              "line": 52,
+              "column": 44
+            },
+            "data": "Invalid alternative name `h_left`: Expected `inl` or `inr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 53,
+              "column": 2
+            },
+            "endPos": {
+              "line": 60,
+              "column": 24
+            },
+            "data": "Invalid alternative name `h_right`: Expected `inl` or `inr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 43,
+              "column": 2
+            },
+            "endPos": {
+              "line": 43,
+              "column": 7
+            },
+            "data": "Alternative `inl` has not been provided"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 43,
+              "column": 2
+            },
+            "endPos": {
+              "line": 43,
+              "column": 7
+            },
+            "data": "Alternative `inr` has not been provided"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6828513145446777
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "To prove that $a=1$ and $b=-2$ given the conditions, we follow this proof sketch:\n1.  **Substitute values into the function definition**: Using $h_2$, we evaluate the roots $f(a) = 0$ and $f(b) = 0$.\n2.  **Form equations**:\n    *   $f(a) = a^2 + a(a) + b = 2a^2 + b = 0 \\implies b = -2a^2$.\n    *   $f(b) = b^2 + ab + b = 0$.\n3.  **Solve for $a$**:\n    *   Since $b \\neq 0$ ($h_0$), we can divide the equation $b^2 + ab + b = 0$ by $b$ to get $b + a + 1 = 0$.\n    *   Substitute $b = -2a^2$ into this: $-2a^2 + a + 1 = 0$.\n    *   This factors as $-(2a+1)(a-1) = 0$. Thus, $a = 1$ or $a = -1/2$.\n4.  **Case Analysis**:\n    *   If $a = 1$, then $b = -2(1)^2 = -2$. This satisfies $a \\neq b$ and $b \\neq 0$.\n    *   If $a = -1/2$, then $b = -2(-1/2)^2 = -1/2$. This contradicts $a \\neq b$ ($h_1$).\n5.  **Conclusion**: $a=1$ and $b=-2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use h2 to expand f(a) = 0 and f(b) = 0\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂] at h₄\n  \n  -- From ha, we have b = -2a^2\n  have hb_val : b = -2 * a^2 := by linarith [ha]\n  \n  -- From hb, divide by b since b ≠ 0\n  have hb_div : b + a + 1 = 0 := by\n    have h_b_ne_zero := h₀.2\n    nlinarith [hb, h_b_ne_zero]\n\n  -- Substitute b = -2a^2 into b + a + 1 = 0\n  have poly_a : -2 * a^2 + a + 1 = 0 := by rwa [hb_val] at hb_div\n  \n  -- Factor the quadratic in a: -(2a+1)(a-1) = 0\n  have factors : -(2 * a + 1) * (a - 1) = 0 := by nlinarith [poly_a]\n  \n  -- Therefore a = 1 or a = -1/2\n  have a_cases : a = 1 ∨ a = -1/2 := by\n    have h_mul := eq_zero_or_eq_zero_of_mul_eq_zero factors\n    cases h_mul with\n    | inl h => right; linarith\n    | inr h => left; linarith\n\n  cases a_cases with\n  | inl ha1 => \n    -- Case a = 1\n    subst ha1\n    have hb2 : b = -2 := by linarith [hb_val]\n    exact ⟨rfl, hb2⟩\n  | inr ha2 =>\n    -- Case a = -1/2\n    subst ha2\n    have hb2 : b = -1/2 := by nlinarith [hb_val]\n    -- This contradicts a ≠ b\n    contradiction\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use h2 to expand f(a) = 0 and f(b) = 0\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂] at h₄\n  \n  -- From ha, we have b = -2a^2\n  have hb_val : b = -2 * a^2 := by linarith [ha]\n  \n  -- From hb, divide by b since b ≠ 0\n  have hb_div : b + a + 1 = 0 := by\n    have h_b_ne_zero := h₀.2\n    nlinarith [hb, h_b_ne_zero]\n\n  -- Substitute b = -2a^2 into b + a + 1 = 0\n  have poly_a : -2 * a^2 + a + 1 = 0 := by rwa [hb_val] at hb_div\n  \n  -- Factor the quadratic in a: -(2a+1)(a-1) = 0\n  have factors : -(2 * a + 1) * (a - 1) = 0 := by nlinarith [poly_a]\n  \n  -- Therefore a = 1 or a = -1/2\n  have a_cases : a = 1 ∨ a = -1/2 := by\n    have h_mul := eq_zero_or_eq_zero_of_mul_eq_zero factors\n    cases h_mul with\n    | inl h => right; linarith\n    | inr h => left; linarith\n\n  cases a_cases with\n  | inl ha1 => \n    -- Case a = 1\n    subst ha1\n    have hb2 : b = -2 := by linarith [hb_val]\n    exact ⟨rfl, hb2⟩\n  | inr ha2 =>\n    -- Case a = -1/2\n    subst ha2\n    have hb2 : b = -1/2 := by nlinarith [hb_val]\n    -- This contradicts a ≠ b\n    contradiction",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 4
+            },
+            "endPos": {
+              "line": 20,
+              "column": 31
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\nha : a ^ 2 + a * a + b = 0\nhb : b ^ 2 + a * b + b = 0\nhb_val : b = -2 * a ^ 2\nh_b_ne_zero : b ≠ 0\na✝ : b + a + 1 < 0\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 46,
+              "column": 4
+            },
+            "endPos": {
+              "line": 46,
+              "column": 17
+            },
+            "data": "Tactic `contradiction` failed\n\ncase inr\nb : ℝ\nf : ℝ → ℝ\nh₄ : f b = 0\nh₀ : -1 / 2 ≠ 0 ∧ b ≠ 0\nh₁ : -1 / 2 ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + -1 / 2 * x + b\nh₃ : f (-1 / 2) = 0\nha : (-1 / 2) ^ 2 + -1 / 2 * (-1 / 2) + b = 0\nhb : b ^ 2 + -1 / 2 * b + b = 0\nhb_val : b = -2 * (-1 / 2) ^ 2\nhb_div : b + -1 / 2 + 1 = 0\npoly_a : -2 * (-1 / 2) ^ 2 + -1 / 2 + 1 = 0\nfactors : -(2 * (-1 / 2) + 1) * (-1 / 2 - 1) = 0\nhb2 : b = -1 / 2\n⊢ -1 / 2 = 1 ∧ b = -2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 2.7947311401367188
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "To prove $a=1$ and $b=-2$ given $f(x) = x^2 + ax + b$ with $f(a)=0$ and $f(b)=0$:\n\n### Proof Sketch\n1. **Substitute values into the function**:\n   - From $f(a) = 0$, we get $a^2 + a(a) + b = 0$, which simplifies to $2a^2 + b = 0$.\n   - From $f(b) = 0$, we get $b^2 + a(b) + b = 0$, which simplifies to $b(b + a + 1) = 0$.\n2. **Solve for $b$**:\n   - Since $b \\neq 0$ (given by $h_0$), the equation $b(b + a + 1) = 0$ implies $b + a + 1 = 0$, or $b = -a - 1$.\n3. **Equate the expressions**:\n   - Substitute $b = -a - 1$ into $2a^2 + b = 0$ to get $2a^2 - a - 1 = 0$.\n4. **Factor and solve for $a$**:\n   - The quadratic $2a^2 - a - 1 = 0$ factors as $(2a + 1)(a - 1) = 0$.\n   - This gives $a = 1$ or $a = -1/2$.\n5. **Check constraints**:\n   - If $a = -1/2$, then $b = -(-1/2) - 1 = -1/2$. This contradicts $h_1$ ($a \\neq b$).\n   - Therefore, $a = 1$.\n6. **Find $b$**:\n   - If $a = 1$, then $b = -1 - 1 = -2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use h₂ to expand f a and f b\n  rw [h₂] at h₃ h₄\n  -- Simplify h₃: a^2 + a*a + b = 0 => 2*a^2 + b = 0\n  have h_a : 2 * a ^ 2 + b = 0 := by\n    ring_nf at h₃\n    exact h₃\n  -- Simplify h₄: b^2 + a*b + b = 0 => b * (b + a + 1) = 0\n  have h_b : b * (b + a + 1) = 0 := by\n    ring_nf at h₄\n    exact h₄\n  -- Since b ≠ 0, we have b + a + 1 = 0\n  have h_sum : b + a + 1 = 0 := by\n    refine (mul_eq_zero.mp h_b).resolve_left h₀.2\n  -- Express b in terms of a: b = -a - 1\n  have hb_eq : b = -a - 1 := by linarith\n  -- Substitute b into h_a: 2a^2 - a - 1 = 0\n  rw [hb_eq] at h_a\n  -- Factor the quadratic equation: (2*a + 1)*(a - 1) = 0\n  have h_factor : (2 * a + 1) * (a - 1) = 0 := by\n    ring_nf at h_a\n    exact h_a\n  -- Solve for a: a = -1/2 or a = 1\n  cases' mul_eq_zero.mp h_factor with ha1 ha2\n  · -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    -- Then b = -(-1/2) - 1 = -1/2\n    have b_val : b = -1/2 := by linarith [hb_eq, a_val]\n    -- This contradicts a ≠ b\n    rw [a_val, b_val] at h₁\n    exact (h₁ rfl).elim\n  · -- Case a = 1\n    have a_val : a = 1 := by linarith\n    -- Then b = -1 - 1 = -2\n    have b_val : b = -2 := by linarith [hb_eq, a_val]\n    exact ⟨a_val, b_val⟩\n\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use h₂ to expand f a and f b\n  rw [h₂] at h₃ h₄\n  -- Simplify h₃: a^2 + a*a + b = 0 => 2*a^2 + b = 0\n  have h_a : 2 * a ^ 2 + b = 0 := by\n    ring_nf at h₃\n    exact h₃\n  -- Simplify h₄: b^2 + a*b + b = 0 => b * (b + a + 1) = 0\n  have h_b : b * (b + a + 1) = 0 := by\n    ring_nf at h₄\n    exact h₄\n  -- Since b ≠ 0, we have b + a + 1 = 0\n  have h_sum : b + a + 1 = 0 := by\n    refine (mul_eq_zero.mp h_b).resolve_left h₀.2\n  -- Express b in terms of a: b = -a - 1\n  have hb_eq : b = -a - 1 := by linarith\n  -- Substitute b into h_a: 2a^2 - a - 1 = 0\n  rw [hb_eq] at h_a\n  -- Factor the quadratic equation: (2*a + 1)*(a - 1) = 0\n  have h_factor : (2 * a + 1) * (a - 1) = 0 := by\n    ring_nf at h_a\n    exact h_a\n  -- Solve for a: a = -1/2 or a = 1\n  cases' mul_eq_zero.mp h_factor with ha1 ha2\n  · -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    -- Then b = -(-1/2) - 1 = -1/2\n    have b_val : b = -1/2 := by linarith [hb_eq, a_val]\n    -- This contradicts a ≠ b\n    rw [a_val, b_val] at h₁\n    exact (h₁ rfl).elim\n  · -- Case a = 1\n    have a_val : a = 1 := by linarith\n    -- Then b = -1 - 1 = -2\n    have b_val : b = -2 := by linarith [hb_eq, a_val]\n    exact ⟨a_val, b_val⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₃\nhas type\n  a ^ 2 * 2 + b = 0\nbut is expected to have type\n  2 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₄\nhas type\n  b + b * a + b ^ 2 = 0\nbut is expected to have type\n  b * (b + a + 1) = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 4
+            },
+            "endPos": {
+              "line": 30,
+              "column": 13
+            },
+            "data": "Type mismatch\n  h_a\nhas type\n  -1 - a + a ^ 2 * 2 = 0\nbut is expected to have type\n  (2 * a + 1) * (a - 1) = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.7338979244232178
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "To prove $a=1$ and $b=-2$, we use the given functional form $f(x) = x^2 + ax + b$ and the fact that $a$ and $b$ are roots of $f$.\n\n**Proof Sketch:**\n1. From $h_2$, we have $f(a) = a^2 + a^2 + b = 2a^2 + b$.\n2. From $h_3$, $f(a) = 0$, so $2a^2 + b = 0$, which means $b = -2a^2$.\n3. From $h_2$, we have $f(b) = b^2 + ab + b$.\n4. From $h_4$, $f(b) = 0$, so $b^2 + ab + b = 0$.\n5. Factoring out $b$ (since $b \\neq 0$), we get $b + a + 1 = 0$.\n6. Substitute $b = -2a^2$ into $b + a + 1 = 0$ to get $-2a^2 + a + 1 = 0$.\n7. Solving the quadratic $2a^2 - a - 1 = 0$ gives $(2a + 1)(a - 1) = 0$, so $a = 1$ or $a = -1/2$.\n8. Case $a = 1$: $b = -2(1)^2 = -2$. $a \\neq b$ ($1 \\neq -2$) and $a, b \\neq 0$ hold.\n9. Case $a = -1/2$: $b = -2(-1/2)^2 = -1/2$. This implies $a = b$, which contradicts $h_1$.\n10. Thus, $a = 1$ and $b = -2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use the definition of f to get equations for a and b\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂] at h₄\n  \n  -- Simplify the equations\n  have h1_eq : 2 * a^2 + b = 0 := by\n    linear_combination ha\n  have h2_eq : b * (b + a + 1) = 0 := by\n    ring_nf at hb\n    exact hb\n  \n  -- Since b ≠ 0, b + a + 1 = 0\n  have h3_eq : b + a + 1 = 0 := by\n    cases' h₀ with _ hb_nz\n    exact (mul_eq_zero.mp h2_eq).resolve_left hb_nz\n    \n  -- Substitute b = -2a^2 into b + a + 1 = 0\n  have h_subst : -2 * a^2 + a + 1 = 0 := by\n    linear_combination h3_eq - h1_eq\n    \n  -- Factor the quadratic equation: -(2a+1)(a-1) = 0\n  have h_factor : -(2 * a + 1) * (a - 1) = -2 * a^2 + a + 1 := by ring\n  rw [← h_factor] at h_subst\n  \n  -- Solve for a\n  have a_sol : a = 1 ∨ a = -1/2 := by\n    have h_prod : (2 * a + 1) * (a - 1) = 0 := by\n      linarith [h_subst]\n    cases' mul_eq_zero.mp h_prod with h_left h_right\n    · right\n      linarith\n    · left\n      linarith\n      \n  cases' a_sol with ha1 ha2\n  · -- Case a = 1\n    constructor\n    · exact ha1\n    · rw [ha1] at h1_eq\n      linarith\n  · -- Case a = -1/2\n    -- Show this leads to a = b, contradicting h1\n    have hb_val : b = -1/2 := by\n      rw [ha2] at h1_eq\n      linarith\n    exfalso\n    apply h₁\n    rw [ha2, hb_val]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use the definition of f to get equations for a and b\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂] at h₄\n  \n  -- Simplify the equations\n  have h1_eq : 2 * a^2 + b = 0 := by\n    linear_combination ha\n  have h2_eq : b * (b + a + 1) = 0 := by\n    ring_nf at hb\n    exact hb\n  \n  -- Since b ≠ 0, b + a + 1 = 0\n  have h3_eq : b + a + 1 = 0 := by\n    cases' h₀ with _ hb_nz\n    exact (mul_eq_zero.mp h2_eq).resolve_left hb_nz\n    \n  -- Substitute b = -2a^2 into b + a + 1 = 0\n  have h_subst : -2 * a^2 + a + 1 = 0 := by\n    linear_combination h3_eq - h1_eq\n    \n  -- Factor the quadratic equation: -(2a+1)(a-1) = 0\n  have h_factor : -(2 * a + 1) * (a - 1) = -2 * a^2 + a + 1 := by ring\n  rw [← h_factor] at h_subst\n  \n  -- Solve for a\n  have a_sol : a = 1 ∨ a = -1/2 := by\n    have h_prod : (2 * a + 1) * (a - 1) = 0 := by\n      linarith [h_subst]\n    cases' mul_eq_zero.mp h_prod with h_left h_right\n    · right\n      linarith\n    · left\n      linarith\n      \n  cases' a_sol with ha1 ha2\n  · -- Case a = 1\n    constructor\n    · exact ha1\n    · rw [ha1] at h1_eq\n      linarith\n  · -- Case a = -1/2\n    -- Show this leads to a = b, contradicting h1\n    have hb_val : b = -1/2 := by\n      rw [ha2] at h1_eq\n      linarith\n    exfalso\n    apply h₁\n    rw [ha2, hb_val]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 12
+            },
+            "data": "Type mismatch\n  hb\nhas type\n  b + b * a + b ^ 2 = 0\nbut is expected to have type\n  b * (b + a + 1) = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.9174020290374756
+      }
+    },
+    {
+      "index": 24,
+      "status": "FAILED",
+      "raw_text": "To prove that $a = 1$ and $b = -2$ given the conditions, we follow these steps:\n\n### Proof Sketch\n1.  **Use the definitions and given evaluations**: We are given $f(x) = x^2 + ax + b$.\n2.  **Evaluate $f(a) = 0$**:\n    $a^2 + a(a) + b = 0 \\implies 2a^2 + b = 0 \\implies b = -2a^2$.\n3.  **Evaluate $f(b) = 0$**:\n    $b^2 + ab + b = 0$.\n4.  **Solve the system**:\n    Since $b \\neq 0$, we can divide $b^2 + ab + b = 0$ by $b$ to get $b + a + 1 = 0$, which means $b = -a - 1$.\n5.  **Equate expressions for $b$**:\n    $-2a^2 = -a - 1 \\implies 2a^2 - a - 1 = 0$.\n6.  **Solve for $a$**:\n    The quadratic $2a^2 - a - 1 = (2a + 1)(a - 1) = 0$ gives $a = 1$ or $a = -1/2$.\n7.  **Check consistency with $a \\neq b$**:\n    *   If $a = -1/2$, then $b = -(-1/2) - 1 = -1/2$. This contradicts $a \\neq b$.\n    *   If $a = 1$, then $b = -2(1)^2 = -2$. This satisfies all conditions ($a, b \\neq 0$ and $a \\neq b$).\n8.  **Conclusion**: $a=1$ and $b=-2$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Evaluate f(a) = 0 and f(b) = 0 using h₂\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂] at h₄\n  \n  -- Simplify ha: 2a^2 + b = 0 => b = -2a^2\n  have h_b_eq : b = -2 * a^2 := by linarith [ha, pow_two a]\n  \n  -- Simplify hb: b(b + a + 1) = 0. Since b != 0, b + a + 1 = 0\n  have h_b_val : b + a + 1 = 0 := by\n    have h_b_fact : b * (b + a + 1) = 0 := by\n      linear_combination hb\n    exact mul_left_cancel₀ h₀.2 h_b_fact\n    \n  -- Substitute b = -2a^2 into b + a + 1 = 0\n  have h_poly : -2 * a^2 + a + 1 = 0 := by\n    rwa [h_b_eq] at h_b_val\n    \n  -- Factor the quadratic: -(2a+1)(a-1) = 0\n  have h_factor : -(2 * a + 1) * (a - 1) = -2 * a^2 + a + 1 := by ring\n  have h_roots : (2 * a + 1) * (a - 1) = 0 := by\n    linarith [h_poly, h_factor]\n    \n  -- Cases for a: a = 1 or a = -1/2\n  cases' mul_eq_zero.mp h_roots with h_a1 h_a2\n  · -- Case 2a + 1 = 0 => a = -1/2\n    have ha_val : a = -1/2 := by linarith\n    have hb_val : b = -1/2 := by\n      rw [ha_val] at h_b_val\n      linarith\n    -- This contradicts a != b\n    exfalso\n    exact h₁ (ha_val.trans hb_val.symm)\n  · -- Case a - 1 = 0 => a = 1\n    have ha_val : a = 1 := by linarith\n    have hb_val : b = -2 := by\n      rw [ha_val] at h_b_val\n      linarith\n    exact ⟨ha_val, hb_val⟩\n\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Evaluate f(a) = 0 and f(b) = 0 using h₂\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂] at h₄\n  \n  -- Simplify ha: 2a^2 + b = 0 => b = -2a^2\n  have h_b_eq : b = -2 * a^2 := by linarith [ha, pow_two a]\n  \n  -- Simplify hb: b(b + a + 1) = 0. Since b != 0, b + a + 1 = 0\n  have h_b_val : b + a + 1 = 0 := by\n    have h_b_fact : b * (b + a + 1) = 0 := by\n      linear_combination hb\n    exact mul_left_cancel₀ h₀.2 h_b_fact\n    \n  -- Substitute b = -2a^2 into b + a + 1 = 0\n  have h_poly : -2 * a^2 + a + 1 = 0 := by\n    rwa [h_b_eq] at h_b_val\n    \n  -- Factor the quadratic: -(2a+1)(a-1) = 0\n  have h_factor : -(2 * a + 1) * (a - 1) = -2 * a^2 + a + 1 := by ring\n  have h_roots : (2 * a + 1) * (a - 1) = 0 := by\n    linarith [h_poly, h_factor]\n    \n  -- Cases for a: a = 1 or a = -1/2\n  cases' mul_eq_zero.mp h_roots with h_a1 h_a2\n  · -- Case 2a + 1 = 0 => a = -1/2\n    have ha_val : a = -1/2 := by linarith\n    have hb_val : b = -1/2 := by\n      rw [ha_val] at h_b_val\n      linarith\n    -- This contradicts a != b\n    exfalso\n    exact h₁ (ha_val.trans hb_val.symm)\n  · -- Case a - 1 = 0 => a = 1\n    have ha_val : a = 1 := by linarith\n    have hb_val : b = -2 := by\n      rw [ha_val] at h_b_val\n      linarith\n    exact ⟨ha_val, hb_val⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 32
+            },
+            "endPos": {
+              "line": 21,
+              "column": 40
+            },
+            "data": "Application type mismatch: The argument\n  h_b_fact\nhas type\n  b * (b + a + 1) = 0\nbut is expected to have type\n  b * (b + a + 1) = b * 0\nin the application\n  mul_left_cancel₀ h₀.right h_b_fact"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.3621819019317627
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "To prove that $a = 1$ and $b = -2$ given the conditions, we follow these steps:\n\n1.  **Use the definitions of $f(a)$ and $f(b)$**: From $h_2$, we have $f(a) = a^2 + a^2 + b = 2a^2 + b$ and $f(b) = b^2 + ab + b$.\n2.  **Apply the root conditions**: Since $f(a) = 0$ and $f(b) = 0$, we obtain the system of equations:\n    - (1) $2a^2 + b = 0 \\implies b = -2a^2$.\n    - (2) $b^2 + ab + b = 0$.\n3.  **Solve the system**: Substitute $b = -2a^2$ into (2):\n    $(-2a^2)^2 + a(-2a^2) + (-2a^2) = 0 \\implies 4a^4 - 2a^3 - 2a^2 = 0$.\n4.  **Factor the equation**: Divide by $2a^2$ (since $a \\neq 0$):\n    $2a^2 - a - 1 = 0 \\implies (2a + 1)(a - 1) = 0$.\n    This gives $a = 1$ or $a = -1/2$.\n5.  **Test cases**:\n    - If $a = 1$, then $b = -2(1)^2 = -2$. Here $a \\neq b$ holds ($1 \\neq -2$).\n    - If $a = -1/2$, then $b = -2(-1/2)^2 = -1/2$. This contradicts $a \\neq b$.\n6.  **Conclusion**: The only valid solution is $a = 1$ and $b = -2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f(a) = 0 and f(b) = 0 using the definition of f\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂] at h₄\n  \n  -- Simplify ha to b = -2a^2\n  have h_b_val : b = -2 * a^2 := by linarith\n  \n  -- Substitute b into the equation for f(b)\n  rw [h_b_val] at hb\n  have h_poly : 2 * a^2 * (2 * a^2 - a - 1) = 0 := by\n    ring_nf at hb\n    ring_nf\n    exact hb\n  \n  -- Since a ≠ 0, we must have 2a^2 - a - 1 = 0\n  have h_a_roots : 2 * a^2 - a - 1 = 0 := by\n    have h_a_sq_pos : a^2 ≠ 0 := pow_ne_zero 2 h₀.1\n    nlinarith\n    \n  -- Factor the quadratic: (a - 1)(2a + 1) = 0\n  have h_factor : (a - 1) * (2 * a + 1) = 0 := by\n    ring_nf\n    exact h_a_roots\n    \n  -- Case analysis on a\n  cases mul_eq_zero.mp h_factor with\n  | inl h_a1 =>\n    -- Case a = 1\n    have h_b_sol : b = -2 := by\n      rw [h_a1] at h_b_val\n      norm_num at h_b_val\n      exact h_b_val\n    exact ⟨h_a1, h_b_sol⟩\n  | inr h_a2 =>\n    -- Case a = -1/2 leads to a = b, contradiction\n    have h_a_val : a = -1/2 := by linarith\n    have h_b_val2 : b = -1/2 := by\n      rw [h_a_val] at h_b_val\n      norm_num at h_b_val\n      exact h_b_val\n    -- Show a = b which contradicts h₁\n    have h_eq : a = b := by rw [h_a_val, h_b_val2]\n    contradiction\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f(a) = 0 and f(b) = 0 using the definition of f\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂] at h₄\n  \n  -- Simplify ha to b = -2a^2\n  have h_b_val : b = -2 * a^2 := by linarith\n  \n  -- Substitute b into the equation for f(b)\n  rw [h_b_val] at hb\n  have h_poly : 2 * a^2 * (2 * a^2 - a - 1) = 0 := by\n    ring_nf at hb\n    ring_nf\n    exact hb\n  \n  -- Since a ≠ 0, we must have 2a^2 - a - 1 = 0\n  have h_a_roots : 2 * a^2 - a - 1 = 0 := by\n    have h_a_sq_pos : a^2 ≠ 0 := pow_ne_zero 2 h₀.1\n    nlinarith\n    \n  -- Factor the quadratic: (a - 1)(2a + 1) = 0\n  have h_factor : (a - 1) * (2 * a + 1) = 0 := by\n    ring_nf\n    exact h_a_roots\n    \n  -- Case analysis on a\n  cases mul_eq_zero.mp h_factor with\n  | inl h_a1 =>\n    -- Case a = 1\n    have h_b_sol : b = -2 := by\n      rw [h_a1] at h_b_val\n      norm_num at h_b_val\n      exact h_b_val\n    exact ⟨h_a1, h_b_sol⟩\n  | inr h_a2 =>\n    -- Case a = -1/2 leads to a = b, contradiction\n    have h_a_val : a = -1/2 := by linarith\n    have h_b_val2 : b = -1/2 := by\n      rw [h_a_val] at h_b_val\n      norm_num at h_b_val\n      exact h_b_val\n    -- Show a = b which contradicts h₁\n    have h_eq : a = b := by rw [h_a_val, h_b_val2]\n    contradiction",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 4
+            },
+            "endPos": {
+              "line": 27,
+              "column": 13
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\nha : a ^ 2 + a * a + b = 0\nhb : (-2 * a ^ 2) ^ 2 + a * (-2 * a ^ 2) + -2 * a ^ 2 = 0\nh_b_val : b = -2 * a ^ 2\nh_poly : 2 * a ^ 2 * (2 * a ^ 2 - a - 1) = 0\nh_a_sq_pos : a ^ 2 ≠ 0\na✝ : 2 * a ^ 2 - a - 1 < 0\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 4
+            },
+            "endPos": {
+              "line": 32,
+              "column": 19
+            },
+            "data": "Type mismatch\n  h_a_roots\nhas type\n  2 * a ^ 2 - a - 1 = 0\nbut is expected to have type\n  -1 - a + a ^ 2 * 2 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 39,
+              "column": 10
+            },
+            "endPos": {
+              "line": 39,
+              "column": 14
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a - 1\nin the target expression\n  b = -2 * a ^ 2\n\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\nha : a ^ 2 + a * a + b = 0\nhb : (-2 * a ^ 2) ^ 2 + a * (-2 * a ^ 2) + -2 * a ^ 2 = 0\nh_b_val : b = -2 * a ^ 2\nh_poly : 2 * a ^ 2 * (2 * a ^ 2 - a - 1) = 0\nh_a_roots : 2 * a ^ 2 - a - 1 = 0\nh_factor : (a - 1) * (2 * a + 1) = 0\nh_a1 : a - 1 = 0\n⊢ b = -2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 42,
+              "column": 11
+            },
+            "endPos": {
+              "line": 42,
+              "column": 15
+            },
+            "data": "Application type mismatch: The argument\n  h_a1\nhas type\n  a - 1 = 0\nbut is expected to have type\n  a = 1\nin the application\n  And.intro h_a1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 49,
+              "column": 6
+            },
+            "endPos": {
+              "line": 49,
+              "column": 19
+            },
+            "data": "Type mismatch\n  h_b_val\nhas type\n  b = -(1 / 2)\nbut is expected to have type\n  b = -1 / 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.4802565574645996
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "To solve the theorem, we analyze the conditions given for the quadratic function $f(x) = x^2 + ax + b$.\n\n**Proof Sketch:**\n1.  **Use the root conditions:** We are given $f(a) = 0$ and $f(b) = 0$.\n2.  **Substitute into the function:**\n    *   $f(a) = a^2 + a(a) + b = 2a^2 + b = 0$.\n    *   $f(b) = b^2 + a(b) + b = b^2 + ab + b = 0$.\n3.  **Solve the system of equations:**\n    *   From $2a^2 + b = 0$, we get $b = -2a^2$.\n    *   Substitute $b$ into the second equation: $(-2a^2)^2 + a(-2a^2) + (-2a^2) = 0$.\n    *   This simplifies to $4a^4 - 2a^3 - 2a^2 = 0$.\n    *   Since $a \\neq 0$, we divide by $2a^2$: $2a^2 - a - 1 = 0$.\n    *   The roots of $2a^2 - a - 1 = 0$ are $a = 1$ and $a = -1/2$.\n4.  **Check consistency with $a \\neq b$:**\n    *   If $a = 1$, then $b = -2(1)^2 = -2$. Here $a \\neq b$ (1 ≠ -2) and $a, b \\neq 0$. This satisfies all conditions.\n    *   If $a = -1/2$, then $b = -2(-1/2)^2 = -1/2$. This results in $a = b$, which contradicts $h_1$.\n5.  **Conclusion:** The only valid solution is $a = 1$ and $b = -2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Expand f(a) = 0\n  have ha : a^2 + a*a + b = 0 := by\n    rw [h₂] at h₃\n    exact h₃\n  have ha' : 2 * a^2 + b = 0 := by\n    ring_nf at ha\n    exact ha\n\n  -- Expand f(b) = 0\n  have hb : b^2 + a*b + b = 0 := by\n    rw [h₂] at h₄\n    exact h₄\n\n  -- Since b ≠ 0, we can divide the second equation by b\n  have hb_div : b + a + 1 = 0 := by\n    have h_b_ne_zero : b ≠ 0 := h₀.2\n    nlinarith\n\n  -- Now we have a system:\n  -- 1) b = -2 * a^2\n  -- 2) b + a + 1 = 0\n  -- Substitute (1) into (2):\n  have h_subst : -2 * a^2 + a + 1 = 0 := by\n    linear_combination hb_div - ha'\n\n  -- Factor the quadratic in a: -2a^2 + a + 1 = -(2a + 1)(a - 1) = 0\n  have h_factor : -(2 * a + 1) * (a - 1) = -2 * a^2 + a + 1 := by ring\n  rw [← h_factor] at h_subst\n  have h_prod : (2 * a + 1) = 0 ∨ (a - 1) = 0 := by\n    simp at h_subst\n    exact h_subst\n\n  cases h_prod with\n  | inl h_left =>\n    -- Case a = -1/2\n    have ha_val : a = -1/2 := by linarith\n    have hb_val : b = -1/2 := by\n      rw [ha_val] at ha'\n      linarith\n    -- This contradicts a ≠ b\n    exact False.elim (h₁ (show a = b by rw [ha_val, hb_val]))\n  | inr h_right =>\n    -- Case a = 1\n    have ha_val : a = 1 := by linarith\n    have hb_val : b = -2 := by\n      rw [ha_val] at ha'\n      linarith\n    exact ⟨ha_val, hb_val⟩\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Expand f(a) = 0\n  have ha : a^2 + a*a + b = 0 := by\n    rw [h₂] at h₃\n    exact h₃\n  have ha' : 2 * a^2 + b = 0 := by\n    ring_nf at ha\n    exact ha\n\n  -- Expand f(b) = 0\n  have hb : b^2 + a*b + b = 0 := by\n    rw [h₂] at h₄\n    exact h₄\n\n  -- Since b ≠ 0, we can divide the second equation by b\n  have hb_div : b + a + 1 = 0 := by\n    have h_b_ne_zero : b ≠ 0 := h₀.2\n    nlinarith\n\n  -- Now we have a system:\n  -- 1) b = -2 * a^2\n  -- 2) b + a + 1 = 0\n  -- Substitute (1) into (2):\n  have h_subst : -2 * a^2 + a + 1 = 0 := by\n    linear_combination hb_div - ha'\n\n  -- Factor the quadratic in a: -2a^2 + a + 1 = -(2a + 1)(a - 1) = 0\n  have h_factor : -(2 * a + 1) * (a - 1) = -2 * a^2 + a + 1 := by ring\n  rw [← h_factor] at h_subst\n  have h_prod : (2 * a + 1) = 0 ∨ (a - 1) = 0 := by\n    simp at h_subst\n    exact h_subst\n\n  cases h_prod with\n  | inl h_left =>\n    -- Case a = -1/2\n    have ha_val : a = -1/2 := by linarith\n    have hb_val : b = -1/2 := by\n      rw [ha_val] at ha'\n      linarith\n    -- This contradicts a ≠ b\n    exact False.elim (h₁ (show a = b by rw [ha_val, hb_val]))\n  | inr h_right =>\n    -- Case a = 1\n    have ha_val : a = 1 := by linarith\n    have hb_val : b = -2 := by\n      rw [ha_val] at ha'\n      linarith\n    exact ⟨ha_val, hb_val⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 12
+            },
+            "data": "Type mismatch\n  ha\nhas type\n  a ^ 2 * 2 + b = 0\nbut is expected to have type\n  2 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 4
+            },
+            "endPos": {
+              "line": 26,
+              "column": 13
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\nha : a ^ 2 + a * a + b = 0\nha' : 2 * a ^ 2 + b = 0\nhb : b ^ 2 + a * b + b = 0\nh_b_ne_zero : b ≠ 0\na✝ : b + a + 1 < 0\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 40,
+              "column": 4
+            },
+            "endPos": {
+              "line": 40,
+              "column": 17
+            },
+            "data": "Type mismatch\n  h_subst\nhas type\n  -1 + -(2 * a) = 0 ∨ a - 1 = 0\nbut is expected to have type\n  2 * a + 1 = 0 ∨ a - 1 = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.4204373359680176
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "To prove $a=1$ and $b=-2$ given the quadratic $f(x) = x^2 + ax + b$ with roots $a$ and $b$, we follow these steps:\n\n1.  **Substitute roots into the function**: Using $h_3$ and $h_4$, we obtain the system:\n    - $f(a) = a^2 + a(a) + b = 2a^2 + b = 0$\n    - $f(b) = b^2 + a(b) + b = b^2 + ab + b = 0$\n2.  **Solve for $b$**: From the first equation, $b = -2a^2$.\n3.  **Substitute $b$ into the second equation**:\n    - $(-2a^2)^2 + a(-2a^2) + (-2a^2) = 0$\n    - $4a^4 - 2a^3 - 2a^2 = 0$\n4.  **Factor the equation**:\n    - $2a^2(2a^2 - a - 1) = 0$\n    - $2a^2(2a + 1)(a - 1) = 0$\n5.  **Identify valid $a$**:\n    - $a \\neq 0$ is given ($h_0$).\n    - If $a = -1/2$, then $b = -2(-1/2)^2 = -1/2$. This contradicts $a \\neq b$ ($h_1$).\n    - Therefore, $a = 1$.\n6.  **Find $b$**:\n    - $b = -2(1)^2 = -2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Extract equations from function definitions at roots\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂ a] at h₃\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂ b] at h₄\n  \n  -- Simplify equations\n  have ha' : 2 * a^2 + b = 0 := by \n    linear_combination ha\n  have hb' : b * (b + a + 1) = 0 := by\n    rw [← hb]\n    ring\n    \n  -- Since b ≠ 0, b + a + 1 = 0\n  have h_ba : b = - a - 1 := by\n    cases' h₀ with _ hb0\n    simpa [hb0] using hb'\n    \n  -- Substitute b into the first simplified equation\n  rw [h_ba] at ha'\n  have ha_poly : 2 * a^2 - a - 1 = 0 := by\n    linear_combination ha'\n    \n  -- Factor the quadratic 2a^2 - a - 1 = (2a + 1)(a - 1)\n  have h_factor : (2 * a + 1) * (a - 1) = 0 := by\n    linear_combination ha_poly\n    \n  -- Possible values for a are 1 or -1/2\n  cases' mul_eq_zero.mp h_factor with h_a_neg_half h_a_one\n  · -- Case a = -1/2\n    have ha_val : a = -1/2 := by linarith\n    have hb_val : b = -1/2 := by\n      rw [ha_val] at h_ba\n      norm_num at h_ba\n      exact h_ba\n    -- This contradicts a ≠ b\n    exfalso\n    exact h₁ (ha_val.trans hb_val.symm)\n  · -- Case a = 1\n    have hb_val : b = -2 := by\n      rw [h_a_one] at h_ba\n      norm_num at h_ba\n      exact h_ba\n    exact ⟨h_a_one, hb_val⟩\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Extract equations from function definitions at roots\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂ a] at h₃\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂ b] at h₄\n  \n  -- Simplify equations\n  have ha' : 2 * a^2 + b = 0 := by \n    linear_combination ha\n  have hb' : b * (b + a + 1) = 0 := by\n    rw [← hb]\n    ring\n    \n  -- Since b ≠ 0, b + a + 1 = 0\n  have h_ba : b = - a - 1 := by\n    cases' h₀ with _ hb0\n    simpa [hb0] using hb'\n    \n  -- Substitute b into the first simplified equation\n  rw [h_ba] at ha'\n  have ha_poly : 2 * a^2 - a - 1 = 0 := by\n    linear_combination ha'\n    \n  -- Factor the quadratic 2a^2 - a - 1 = (2a + 1)(a - 1)\n  have h_factor : (2 * a + 1) * (a - 1) = 0 := by\n    linear_combination ha_poly\n    \n  -- Possible values for a are 1 or -1/2\n  cases' mul_eq_zero.mp h_factor with h_a_neg_half h_a_one\n  · -- Case a = -1/2\n    have ha_val : a = -1/2 := by linarith\n    have hb_val : b = -1/2 := by\n      rw [ha_val] at h_ba\n      norm_num at h_ba\n      exact h_ba\n    -- This contradicts a ≠ b\n    exfalso\n    exact h₁ (ha_val.trans hb_val.symm)\n  · -- Case a = 1\n    have hb_val : b = -2 := by\n      rw [h_a_one] at h_ba\n      norm_num at h_ba\n      exact h_ba\n    exact ⟨h_a_one, hb_val⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 4
+            },
+            "endPos": {
+              "line": 24,
+              "column": 25
+            },
+            "data": "Type mismatch: After simplification, term\n  hb'\n has type\n  b + a + 1 = 0\nbut is expected to have type\n  b = -a - 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 42,
+              "column": 6
+            },
+            "endPos": {
+              "line": 42,
+              "column": 16
+            },
+            "data": "Type mismatch\n  h_ba\nhas type\n  b = -(1 / 2)\nbut is expected to have type\n  b = -1 / 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 48,
+              "column": 10
+            },
+            "endPos": {
+              "line": 48,
+              "column": 17
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a - 1\nin the target expression\n  b = -a - 1\n\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\nha : a ^ 2 + a * a + b = 0\nhb : b ^ 2 + a * b + b = 0\nha' : 2 * a ^ 2 + (-a - 1) = 0\nhb' : b * (b + a + 1) = 0\nh_ba : b = -a - 1\nha_poly : 2 * a ^ 2 - a - 1 = 0\nh_factor : (2 * a + 1) * (a - 1) = 0\nh_a_one : a - 1 = 0\n⊢ b = -2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 51,
+              "column": 11
+            },
+            "endPos": {
+              "line": 51,
+              "column": 18
+            },
+            "data": "Application type mismatch: The argument\n  h_a_one\nhas type\n  a - 1 = 0\nbut is expected to have type\n  a = 1\nin the application\n  And.intro h_a_one"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.1568999290466309
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "To prove $a=1$ and $b=-2$, we use the given functional form $f(x) = x^2 + ax + b$ and the roots $a$ and $b$.\n\n**Proof Sketch:**\n1.  **Substitute roots into the function:** Since $f(a) = 0$ and $f(b) = 0$, we have the equations:\n    -   $a^2 + a(a) + b = 0 \\implies 2a^2 + b = 0$\n    -   $b^2 + a(b) + b = 0 \\implies b^2 + ab + b = 0$\n2.  **Solve for $a$ and $b$:**\n    -   From $b^2 + ab + b = 0$, factor out $b$: $b(b + a + 1) = 0$.\n    -   Since $b \\neq 0$, we must have $b + a + 1 = 0$, or $b = -a - 1$.\n3.  **Combine equations:**\n    -   Substitute $b = -a - 1$ into $2a^2 + b = 0$ to get $2a^2 - a - 1 = 0$.\n    -   Factor the quadratic: $(2a + 1)(a - 1) = 0$.\n    -   This gives two candidates for $a$: $a = 1$ or $a = -1/2$.\n4.  **Test candidates:**\n    -   If $a = 1$, then $b = -1 - 1 = -2$. Here $a \\neq b$, satisfying the condition.\n    -   If $a = -1/2$, then $b = -(-1/2) - 1 = -1/2$. This results in $a = b$, which contradicts $h_1$.\n5.  **Conclusion:** The only valid solution is $a = 1$ and $b = -2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f(a) = 0 and f(b) = 0 using the definition of f\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂ a] at h₃\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂ b] at h₄\n  \n  -- Simplify the equations\n  have h_eq1 : 2 * a^2 + b = 0 := by\n    ring_nf at ha\n    exact ha\n  have h_eq2 : b * (b + a + 1) = 0 := by\n    ring_nf at hb\n    exact hb\n  \n  -- Since b ≠ 0, b + a + 1 = 0\n  have h_sum : b + a + 1 = 0 := by\n    cases' h_eq2 with h_b_zero h_bracket\n    · contradiction\n    · exact h_bracket\n  \n  -- Express b in terms of a: b = -a - 1\n  have hb_val : b = -a - 1 := by linarith\n  \n  -- Substitute b into the first equation: 2a^2 - a - 1 = 0\n  have h_quad : 2 * a^2 - a - 1 = 0 := by\n    rw [hb_val] at h_eq1\n    linarith\n  \n  -- Factor the quadratic: (2*a + 1) * (a - 1) = 0\n  have h_factored : (2 * a + 1) * (a - 1) = 0 := by\n    ring_nf\n    exact h_quad\n  \n  -- Check the two cases for a\n  cases' mul_eq_zero.mp h_factored with h_a1 h_a2\n  · -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val : b = -1/2 := by\n      rw [a_val] at hb_val\n      norm_num at hb_val\n      exact hb_val\n    -- This contradicts a ≠ b\n    rw [a_val, b_val] at h₁\n    contradiction\n  · -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val : b = -2 := by\n      rw [a_val] at hb_val\n      norm_num at hb_val\n      exact hb_val\n    exact ⟨a_val, b_val⟩\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute f(a) = 0 and f(b) = 0 using the definition of f\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂ a] at h₃\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂ b] at h₄\n  \n  -- Simplify the equations\n  have h_eq1 : 2 * a^2 + b = 0 := by\n    ring_nf at ha\n    exact ha\n  have h_eq2 : b * (b + a + 1) = 0 := by\n    ring_nf at hb\n    exact hb\n  \n  -- Since b ≠ 0, b + a + 1 = 0\n  have h_sum : b + a + 1 = 0 := by\n    cases' h_eq2 with h_b_zero h_bracket\n    · contradiction\n    · exact h_bracket\n  \n  -- Express b in terms of a: b = -a - 1\n  have hb_val : b = -a - 1 := by linarith\n  \n  -- Substitute b into the first equation: 2a^2 - a - 1 = 0\n  have h_quad : 2 * a^2 - a - 1 = 0 := by\n    rw [hb_val] at h_eq1\n    linarith\n  \n  -- Factor the quadratic: (2*a + 1) * (a - 1) = 0\n  have h_factored : (2 * a + 1) * (a - 1) = 0 := by\n    ring_nf\n    exact h_quad\n  \n  -- Check the two cases for a\n  cases' mul_eq_zero.mp h_factored with h_a1 h_a2\n  · -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val : b = -1/2 := by\n      rw [a_val] at hb_val\n      norm_num at hb_val\n      exact hb_val\n    -- This contradicts a ≠ b\n    rw [a_val, b_val] at h₁\n    contradiction\n  · -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val : b = -2 := by\n      rw [a_val] at hb_val\n      norm_num at hb_val\n      exact hb_val\n    exact ⟨a_val, b_val⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 12
+            },
+            "data": "Type mismatch\n  ha\nhas type\n  a ^ 2 * 2 + b = 0\nbut is expected to have type\n  2 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 4
+            },
+            "endPos": {
+              "line": 20,
+              "column": 12
+            },
+            "data": "Type mismatch\n  hb\nhas type\n  b + b * a + b ^ 2 = 0\nbut is expected to have type\n  b * (b + a + 1) = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 4
+            },
+            "endPos": {
+              "line": 24,
+              "column": 40
+            },
+            "data": "Dependent elimination failed: Failed to solve equation\n  Real.zero✝ = Real.mul✝ b (b + a + 1)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 39,
+              "column": 4
+            },
+            "endPos": {
+              "line": 39,
+              "column": 16
+            },
+            "data": "Type mismatch\n  h_quad\nhas type\n  2 * a ^ 2 - a - 1 = 0\nbut is expected to have type\n  -1 - a + a ^ 2 * 2 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 48,
+              "column": 6
+            },
+            "endPos": {
+              "line": 48,
+              "column": 18
+            },
+            "data": "Type mismatch\n  hb_val\nhas type\n  b = -(1 / 2)\nbut is expected to have type\n  b = -1 / 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.7306780815124512
+      }
+    },
+    {
+      "index": 29,
+      "status": "SOLVED",
+      "raw_text": "To solve the theorem $a=1 \\wedge b=-2$ given the quadratic function $f(x) = x^2 + ax + b$ with $f(a)=0$ and $f(b)=0$ (where $a \\neq b$ and $a, b \\neq 0$):\n\n### Proof Sketch\n1.  **Evaluate $f(a) = 0$**:\n    Substituting $x=a$ into the definition of $f(x)$ gives:\n    $a^2 + a(a) + b = 0 \\implies 2a^2 + b = 0$.\n    Thus, $b = -2a^2$.\n2.  **Evaluate $f(b) = 0$**:\n    Substituting $x=b$ into the definition of $f(x)$ gives:\n    $b^2 + ab + b = 0$.\n3.  **Solve for $a$**:\n    Since $b \\neq 0$, we can divide the equation $b^2 + ab + b = 0$ by $b$:\n    $b + a + 1 = 0$.\n4.  **Substitute $b = -2a^2$**:\n    Substituting the expression for $b$ from step 1 into the equation from step 3:\n    $-2a^2 + a + 1 = 0 \\implies 2a^2 - a - 1 = 0$.\n    Factoring the quadratic: $(2a + 1)(a - 1) = 0$.\n    This implies $a = 1$ or $a = -1/2$.\n5.  **Test cases**:\n    - If $a = 1$, then $b = -2(1)^2 = -2$. Note $a \\neq b$ ($1 \\neq -2$) and $a, b \\neq 0$.\n    - If $a = -1/2$, then $b = -2(-1/2)^2 = -1/2$. This contradicts $a \\neq b$.\n6.  **Conclusion**:\n    The only valid solution is $a = 1$ and $b = -2$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use the function definition on f(a) = 0\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂] at h₃\n  have ha_simplified : 2 * a^2 + b = 0 := by linarith [ha]\n  \n  -- Use the function definition on f(b) = 0\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂] at h₄\n  \n  -- Since b ≠ 0, we can simplify f(b) = 0\n  have hb_div : b + a + 1 = 0 := by\n    apply (mul_right_inj' h₀.2).mp\n    calc b * (b + a + 1) = b^2 + a*b + b := by ring\n    _ = 0 := hb\n    _ = b * 0 := by rw [mul_zero]\n    \n  -- Substitute b = -2*a^2 into the simplified f(b)\n  have b_eq : b = -2 * a^2 := by linarith\n  rw [b_eq] at hb_div\n  \n  -- Solve the quadratic 2a^2 - a - 1 = 0\n  have quad : (2 * a + 1) * (a - 1) = 0 := by linarith [hb_div]\n  cases' mul_eq_zero.mp quad with h_a1 h_a2\n  · -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val : b = -1/2 := by\n      rw [a_val] at b_eq\n      ring_nf at b_eq ⊢\n      exact b_eq\n    -- This contradicts a ≠ b\n    exact (h₁ (a_val.trans b_val.symm)).elim\n  · -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val : b = -2 := by\n      rw [a_val] at b_eq\n      linarith\n    exact ⟨a_val, b_val⟩\n\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use the function definition on f(a) = 0\n  have ha : a^2 + a*a + b = 0 := by rwa [h₂] at h₃\n  have ha_simplified : 2 * a^2 + b = 0 := by linarith [ha]\n  \n  -- Use the function definition on f(b) = 0\n  have hb : b^2 + a*b + b = 0 := by rwa [h₂] at h₄\n  \n  -- Since b ≠ 0, we can simplify f(b) = 0\n  have hb_div : b + a + 1 = 0 := by\n    apply (mul_right_inj' h₀.2).mp\n    calc b * (b + a + 1) = b^2 + a*b + b := by ring\n    _ = 0 := hb\n    _ = b * 0 := by rw [mul_zero]\n    \n  -- Substitute b = -2*a^2 into the simplified f(b)\n  have b_eq : b = -2 * a^2 := by linarith\n  rw [b_eq] at hb_div\n  \n  -- Solve the quadratic 2a^2 - a - 1 = 0\n  have quad : (2 * a + 1) * (a - 1) = 0 := by linarith [hb_div]\n  cases' mul_eq_zero.mp quad with h_a1 h_a2\n  · -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val : b = -1/2 := by\n      rw [a_val] at b_eq\n      ring_nf at b_eq ⊢\n      exact b_eq\n    -- This contradicts a ≠ b\n    exact (h₁ (a_val.trans b_val.symm)).elim\n  · -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val : b = -2 := by\n      rw [a_val] at b_eq\n      linarith\n    exact ⟨a_val, b_val⟩",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.0501229763031006
+      }
+    },
+    {
+      "index": 30,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n1.  **Substitute known values into the function definition**: Using $f(x) = x^2 + ax + b$, we substitute $x=a$ and $x=b$ into the equations $f(a)=0$ and $f(b)=0$.\n2.  **Establish a system of equations**:\n    *   $a^2 + a^2 + b = 0 \\implies 2a^2 + b = 0 \\implies b = -2a^2$.\n    *   $b^2 + ab + b = 0$.\n3.  **Solve for $a$**:\n    *   Since $b \\neq 0$, we can divide the second equation $b(b + a + 1) = 0$ by $b$ to get $b + a + 1 = 0$.\n    *   Substitute $b = -2a^2$ into $b + a + 1 = 0$ to get $-2a^2 + a + 1 = 0$.\n    *   This quadratic $2a^2 - a - 1 = 0$ factors as $(2a + 1)(a - 1) = 0$, giving $a = 1$ or $a = -1/2$.\n4.  **Evaluate cases for $a$**:\n    *   If $a = 1$, then $b = -2(1)^2 = -2$.\n    *   If $a = -1/2$, then $b = -2(-1/2)^2 = -1/2$. However, $h_1$ states $a \\neq b$, so this case is rejected.\n5.  **Final result**: We conclude $a = 1$ and $b = -2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute the definition of f into the equations f(a) = 0 and f(b) = 0\n  have ha : a^2 + a*a + b = 0 := by rw [h₂] at h₃; exact h₃\n  have hb : b^2 + a*b + b = 0 := by rw [h₂] at h₄; exact h₄\n  \n  -- From ha, we have 2*a^2 + b = 0, so b = -2*a^2\n  have h_b_val : b = -2 * a^2 := by linarith\n  \n  -- From hb, since b ≠ 0, we can divide by b\n  have h_b_eq : b * (b + a + 1) = 0 := by\n    ring_nf at hb ⊢\n    exact hb\n  have h_sum : b + a + 1 = 0 := by\n    cases mul_eq_zero.mp h_b_eq with\n    | inl h => exact (h₀.2 h).elim\n    | inr h => exact h\n    \n  -- Substitute b = -2a^2 into b + a + 1 = 0\n  have h_poly : -2 * a^2 + a + 1 = 0 := by rwa [h_b_val] at h_sum\n  \n  -- Solve the quadratic for a: -2a^2 + a + 1 = 0 => (2a + 1)(1 - a) = 0\n  have h_factor : (2 * a + 1) * (1 - a) = 0 := by\n    ring_nf\n    linarith\n    \n  cases mul_eq_zero.mp h_factor with\n  | inr h_a_one =>\n    -- Case 1: a = 1\n    have ha1 : a = 1 := by linarith\n    have hb2 : b = -2 := by\n      rw [ha1] at h_b_val\n      norm_num at h_b_val\n      exact h_b_val\n    exact ⟨ha1, hb2⟩\n  | inl h_a_neg_half =>\n    -- Case 2: a = -1/2\n    have ha_val : a = -1/2 := by linarith\n    have hb_val : b = -1/2 := by\n      rw [ha_val] at h_b_val\n      norm_num at h_b_val\n      exact h_b_val\n    -- This contradicts a ≠ b\n    exact (h₁ (ha_val.trans hb_val.symm)).elim\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute the definition of f into the equations f(a) = 0 and f(b) = 0\n  have ha : a^2 + a*a + b = 0 := by rw [h₂] at h₃; exact h₃\n  have hb : b^2 + a*b + b = 0 := by rw [h₂] at h₄; exact h₄\n  \n  -- From ha, we have 2*a^2 + b = 0, so b = -2*a^2\n  have h_b_val : b = -2 * a^2 := by linarith\n  \n  -- From hb, since b ≠ 0, we can divide by b\n  have h_b_eq : b * (b + a + 1) = 0 := by\n    ring_nf at hb ⊢\n    exact hb\n  have h_sum : b + a + 1 = 0 := by\n    cases mul_eq_zero.mp h_b_eq with\n    | inl h => exact (h₀.2 h).elim\n    | inr h => exact h\n    \n  -- Substitute b = -2a^2 into b + a + 1 = 0\n  have h_poly : -2 * a^2 + a + 1 = 0 := by rwa [h_b_val] at h_sum\n  \n  -- Solve the quadratic for a: -2a^2 + a + 1 = 0 => (2a + 1)(1 - a) = 0\n  have h_factor : (2 * a + 1) * (1 - a) = 0 := by\n    ring_nf\n    linarith\n    \n  cases mul_eq_zero.mp h_factor with\n  | inr h_a_one =>\n    -- Case 1: a = 1\n    have ha1 : a = 1 := by linarith\n    have hb2 : b = -2 := by\n      rw [ha1] at h_b_val\n      norm_num at h_b_val\n      exact h_b_val\n    exact ⟨ha1, hb2⟩\n  | inl h_a_neg_half =>\n    -- Case 2: a = -1/2\n    have ha_val : a = -1/2 := by linarith\n    have hb_val : b = -1/2 := by\n      rw [ha_val] at h_b_val\n      norm_num at h_b_val\n      exact h_b_val\n    -- This contradicts a ≠ b\n    exact (h₁ (ha_val.trans hb_val.symm)).elim",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 4
+            },
+            "endPos": {
+              "line": 32,
+              "column": 12
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\nha : a ^ 2 + a * a + b = 0\nhb : b ^ 2 + a * b + b = 0\nh_b_val : b = -2 * a ^ 2\nh_b_eq : b * (b + a + 1) = 0\nh_sum : b + a + 1 = 0\nh_poly : -2 * a ^ 2 + a + 1 = 0\na✝ : 1 + (a * Nat.rawCast 1 - a ^ 2 * 2) < 0\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 49,
+              "column": 6
+            },
+            "endPos": {
+              "line": 49,
+              "column": 19
+            },
+            "data": "Type mismatch\n  h_b_val\nhas type\n  b = -(1 / 2)\nbut is expected to have type\n  b = -1 / 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.26554536819458
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "To solve for $a$ and $b$, we use the definition of the quadratic function $f(x) = x^2 + ax + b$ and the given roots.\n\n**Proof Sketch:**\n1.  **Evaluate roots:** Substitute $x = a$ and $x = b$ into the functional equation $f(x) = x^2 + ax + b$.\n2.  **Form equations:** From $f(a) = 0$, we get $a^2 + a^2 + b = 0 \\implies 2a^2 + b = 0$. From $f(b) = 0$, we get $b^2 + ab + b = 0$.\n3.  **Solve for $b$:** Factor the second equation: $b(b + a + 1) = 0$. Since $b \\neq 0$ (given), we must have $b + a + 1 = 0$, or $b = -a - 1$.\n4.  **Substitute into first equation:** Substitute $b = -a - 1$ into $2a^2 + b = 0$ to get $2a^2 - a - 1 = 0$.\n5.  **Solve for $a$:** Factor the quadratic in $a$: $(2a + 1)(a - 1) = 0$. This gives $a = 1$ or $a = -1/2$.\n6.  **Check consistency:** \n    - If $a = 1$, then $b = -1 - 1 = -2$. Here $a \\neq b$ (1 ≠ -2) and $a, b \\neq 0$.\n    - If $a = -1/2$, then $b = -(-1/2) - 1 = -1/2$. This contradicts $a \\neq b$.\n7.  **Conclusion:** The only solution is $a = 1$ and $b = -2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use h₂ to expand h₃ and h₄\n  have ha : a^2 + a * a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a * b + b = 0 := by rwa [h₂] at h₄\n  \n  -- Simplify ha to 2*a^2 + b = 0\n  have ha' : 2 * a^2 + b = 0 := by\n    ring_nf at ha\n    exact ha\n    \n  -- Factor hb to b * (b + a + 1) = 0\n  have hb' : b * (b + a + 1) = 0 := by\n    linear_combination hb\n    \n  -- Since b ≠ 0, b + a + 1 = 0\n  have hb_factor : b + a + 1 = 0 := by\n    cases' h₀ with _ hb0\n    exact (mul_eq_zero.mp hb').resolve_left hb0\n    \n  -- Express b in terms of a: b = -a - 1\n  have b_val : b = -a - 1 := by linarith\n  \n  -- Substitute b into ha'\n  have poly_a : 2 * a^2 - a - 1 = 0 := by\n    rw [b_val] at ha'\n    linarith\n    \n  -- Factor the quadratic in a: (2*a + 1)*(a - 1) = 0\n  have a_solutions : (2 * a + 1) * (a - 1) = 0 := by\n    linear_combination poly_a\n    \n  -- Consider cases for a\n  cases' mul_eq_zero.mp a_solutions with ha1 ha2\n  · -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val' : b = -1/2 := by\n      rw [a_val] at b_val\n      norm_num at b_val\n      exact b_val\n    -- This contradicts a ≠ b\n    exact (h₁ (a_val.trans b_val'.symm)).elim\n  · -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val' : b = -2 := by\n      rw [a_val] at b_val\n      norm_num at b_val\n      exact b_val\n    exact ⟨a_val, b_val'⟩\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Use h₂ to expand h₃ and h₄\n  have ha : a^2 + a * a + b = 0 := by rwa [h₂] at h₃\n  have hb : b^2 + a * b + b = 0 := by rwa [h₂] at h₄\n  \n  -- Simplify ha to 2*a^2 + b = 0\n  have ha' : 2 * a^2 + b = 0 := by\n    ring_nf at ha\n    exact ha\n    \n  -- Factor hb to b * (b + a + 1) = 0\n  have hb' : b * (b + a + 1) = 0 := by\n    linear_combination hb\n    \n  -- Since b ≠ 0, b + a + 1 = 0\n  have hb_factor : b + a + 1 = 0 := by\n    cases' h₀ with _ hb0\n    exact (mul_eq_zero.mp hb').resolve_left hb0\n    \n  -- Express b in terms of a: b = -a - 1\n  have b_val : b = -a - 1 := by linarith\n  \n  -- Substitute b into ha'\n  have poly_a : 2 * a^2 - a - 1 = 0 := by\n    rw [b_val] at ha'\n    linarith\n    \n  -- Factor the quadratic in a: (2*a + 1)*(a - 1) = 0\n  have a_solutions : (2 * a + 1) * (a - 1) = 0 := by\n    linear_combination poly_a\n    \n  -- Consider cases for a\n  cases' mul_eq_zero.mp a_solutions with ha1 ha2\n  · -- Case a = -1/2\n    have a_val : a = -1/2 := by linarith\n    have b_val' : b = -1/2 := by\n      rw [a_val] at b_val\n      norm_num at b_val\n      exact b_val\n    -- This contradicts a ≠ b\n    exact (h₁ (a_val.trans b_val'.symm)).elim\n  · -- Case a = 1\n    have a_val : a = 1 := by linarith\n    have b_val' : b = -2 := by\n      rw [a_val] at b_val\n      norm_num at b_val\n      exact b_val\n    exact ⟨a_val, b_val'⟩",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 12
+            },
+            "data": "Type mismatch\n  ha\nhas type\n  a ^ 2 * 2 + b = 0\nbut is expected to have type\n  2 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 47,
+              "column": 6
+            },
+            "endPos": {
+              "line": 47,
+              "column": 17
+            },
+            "data": "Type mismatch\n  b_val\nhas type\n  b = -(1 / 2)\nbut is expected to have type\n  b = -1 / 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.1551556587219238
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "To prove that $a=1$ and $b=-2$ given the conditions, we follow this proof sketch:\n\n1.  **Use the Function Definition**: From $f(x) = x^2 + ax + b$, we substitute $x = a$ and $x = b$ into the roots equations $f(a) = 0$ and $f(b) = 0$.\n2.  **Formulate the System**:\n    *   $f(a) = a^2 + a(a) + b = 2a^2 + b = 0 \\implies b = -2a^2$.\n    *   $f(b) = b^2 + ab + b = 0$.\n3.  **Solve for $a$**:\n    *   Since $b \\neq 0$, we can divide $b^2 + ab + b = 0$ by $b$, yielding $b + a + 1 = 0$.\n    *   Substitute $b = -2a^2$ into $b + a + 1 = 0$ to get $-2a^2 + a + 1 = 0$.\n    *   This quadratic $2a^2 - a - 1 = 0$ factors as $(2a + 1)(a - 1) = 0$, giving $a = 1$ or $a = -1/2$.\n4.  **Check for $a \\neq b$**:\n    *   If $a = -1/2$, then $b = -2(-1/2)^2 = -1/2$. This contradicts $a \\neq b$.\n    *   Therefore, $a = 1$.\n5.  **Solve for $b$**:\n    *   Substituting $a = 1$ into $b = -2a^2$ gives $b = -2(1)^2 = -2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute the definition of f into the equations f(a) = 0 and f(b) = 0\n  have ha : a^2 + a*a + b = 0 := by rw [← h₂, h₃]\n  have hb : b^2 + a*b + b = 0 := by rw [← h₂, h₄]\n  \n  -- Simplify ha to express b in terms of a\n  have h_b_eq : b = -2 * a^2 := by\n    linarith [ha]\n  \n  -- Since b ≠ 0, we can simplify hb: b(b + a + 1) = 0 implies b + a + 1 = 0\n  have h_sum : b + a + 1 = 0 := by\n    have h_factor : b * (b + a + 1) = 0 := by\n      linear_combination hb\n    exact (mul_eq_zero.mp h_factor).resolve_left h₀.2\n    \n  -- Substitute b = -2a^2 into b + a + 1 = 0\n  have h_quad : -2 * a^2 + a + 1 = 0 := by\n    rwa [h_b_eq] at h_sum\n    \n  -- Solve the quadratic for a: (2a+1)(a-1) = 0\n  have h_factor_a : (2 * a + 1) * (a - 1) = -( -2 * a^2 + a + 1) := by\n    ring\n  have h_roots : (2 * a + 1) * (a - 1) = 0 := by\n    rw [h_factor_a, h_quad, neg_zero]\n    \n  have a_cases : a = 1 ∨ a = -1/2 := by\n    cases' mul_eq_zero.mp h_roots with h_a1 h_a2\n    · right; linarith\n    · left; linarith\n    \n  cases' a_cases with ha1 ha2\n  · -- Case a = 1\n    constructor\n    · exact ha1\n    · rw [ha1] at h_b_eq\n      ring_nf at h_b_eq\n      exact h_b_eq\n  · -- Case a = -1/2 leads to a = b, contradicting h1\n    have hb2 : b = -1/2 := by\n      rw [ha2] at h_b_eq\n      ring_nf at h_b_eq\n      exact h_b_eq\n    have : a = b := by rw [ha2, hb2]\n    contradiction\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_77 (a b : ℝ) (f : ℝ → ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a ≠ b)\n  (h₂ : ∀ x, f x = x ^ 2 + a * x + b) (h₃ : f a = 0) (h₄ : f b = 0) : a = 1 ∧ b = -2 := by\n  -- Substitute the definition of f into the equations f(a) = 0 and f(b) = 0\n  have ha : a^2 + a*a + b = 0 := by rw [← h₂, h₃]\n  have hb : b^2 + a*b + b = 0 := by rw [← h₂, h₄]\n  \n  -- Simplify ha to express b in terms of a\n  have h_b_eq : b = -2 * a^2 := by\n    linarith [ha]\n  \n  -- Since b ≠ 0, we can simplify hb: b(b + a + 1) = 0 implies b + a + 1 = 0\n  have h_sum : b + a + 1 = 0 := by\n    have h_factor : b * (b + a + 1) = 0 := by\n      linear_combination hb\n    exact (mul_eq_zero.mp h_factor).resolve_left h₀.2\n    \n  -- Substitute b = -2a^2 into b + a + 1 = 0\n  have h_quad : -2 * a^2 + a + 1 = 0 := by\n    rwa [h_b_eq] at h_sum\n    \n  -- Solve the quadratic for a: (2a+1)(a-1) = 0\n  have h_factor_a : (2 * a + 1) * (a - 1) = -( -2 * a^2 + a + 1) := by\n    ring\n  have h_roots : (2 * a + 1) * (a - 1) = 0 := by\n    rw [h_factor_a, h_quad, neg_zero]\n    \n  have a_cases : a = 1 ∨ a = -1/2 := by\n    cases' mul_eq_zero.mp h_roots with h_a1 h_a2\n    · right; linarith\n    · left; linarith\n    \n  cases' a_cases with ha1 ha2\n  · -- Case a = 1\n    constructor\n    · exact ha1\n    · rw [ha1] at h_b_eq\n      ring_nf at h_b_eq\n      exact h_b_eq\n  · -- Case a = -1/2 leads to a = b, contradicting h1\n    have hb2 : b = -1/2 := by\n      rw [ha2] at h_b_eq\n      ring_nf at h_b_eq\n      exact h_b_eq\n    have : a = b := by rw [ha2, hb2]\n    contradiction",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 28
+            },
+            "endPos": {
+              "line": 32,
+              "column": 36
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  -0\nin the target expression\n  -0 = 0\n\na b : ℝ\nf : ℝ → ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a ≠ b\nh₂ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₃ : f a = 0\nh₄ : f b = 0\nha : a ^ 2 + a * a + b = 0\nhb : b ^ 2 + a * b + b = 0\nh_b_eq : b = -2 * a ^ 2\nh_sum : b + a + 1 = 0\nh_quad : -2 * a ^ 2 + a + 1 = 0\nh_factor_a : (2 * a + 1) * (a - 1) = -(-2 * a ^ 2 + a + 1)\n⊢ -0 = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.794287919998169
+      }
+    }
+  ]
+}

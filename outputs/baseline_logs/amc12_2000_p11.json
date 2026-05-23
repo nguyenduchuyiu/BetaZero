@@ -1,0 +1,1092 @@
+{
+  "problem": "problems/miniF2F-test/amc12_2000_p11.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 15:12:40",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 1,
+    "completed_count": 1,
+    "solved": true
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "To prove the identity $\\frac{a}{b} + \\frac{b}{a} - ab = 2$ given $ab = a - b$ and $a, b \\neq 0$:\n\n### Proof Sketch\n1.  **Manipulate the target expression:**\n    Combine the fractions: $\\frac{a}{b} + \\frac{b}{a} = \\frac{a^2 + b^2}{ab}$.\n    So the expression is $\\frac{a^2 + b^2}{ab} - ab$.\n2.  **Relate squares to the given condition:**\n    From $ab = a - b$, square both sides: $(ab)^2 = (a - b)^2 = a^2 - 2ab + b^2$.\n    Rearrange to find $a^2 + b^2 = (ab)^2 + 2ab$.\n3.  **Substitute back:**\n    Substitute $a^2 + b^2$ into the target expression:\n    $\\frac{(ab)^2 + 2ab}{ab} - ab = \\frac{ab(ab + 2)}{ab} - ab$.\n4.  **Simplify:**\n    Since $a, b \\neq 0$, $ab \\neq 0$, we can cancel $ab$:\n    $(ab + 2) - ab = 2$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  have ha : a ≠ 0 := h₀.1\n  have hb : b ≠ 0 := h₀.2\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Start with the left hand side and put fractions over a common denominator\n  rw [add_comm (a / b) (b / a), add_div' _ _ _ hb ha]\n  \n  -- From h₁, square both sides: (a * b)^2 = (a - b)^2\n  have h_sq : (a * b)^2 = (a - b)^2 := by rw [h₁]\n  \n  -- Expand (a - b)^2 = a^2 - 2ab + b^2, so a^2 + b^2 = (ab)^2 + 2ab\n  have h_geom : b^2 + a^2 = (a * b)^2 + 2 * a * b := by\n    rw [h_sq]\n    ring\n  \n  -- Substitute back into the main expression\n  rw [h_geom]\n  \n  -- Simplify the fraction (ab)^2 / ab + 2ab / ab\n  rw [add_div hab]\n  field_simp [hab]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  have ha : a ≠ 0 := h₀.1\n  have hb : b ≠ 0 := h₀.2\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Start with the left hand side and put fractions over a common denominator\n  rw [add_comm (a / b) (b / a), add_div' _ _ _ hb ha]\n  \n  -- From h₁, square both sides: (a * b)^2 = (a - b)^2\n  have h_sq : (a * b)^2 = (a - b)^2 := by rw [h₁]\n  \n  -- Expand (a - b)^2 = a^2 - 2ab + b^2, so a^2 + b^2 = (ab)^2 + 2ab\n  have h_geom : b^2 + a^2 = (a * b)^2 + 2 * a * b := by\n    rw [h_sq]\n    ring\n  \n  -- Substitute back into the main expression\n  rw [h_geom]\n  \n  -- Simplify the fraction (ab)^2 / ab + 2ab / ab\n  rw [add_div hab]\n  field_simp [hab]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 32
+            },
+            "endPos": {
+              "line": 16,
+              "column": 52
+            },
+            "data": "Function expected at\n  add_div' ?m.82 ?m.83 b hb\nbut this term has type\n  ?m.83 + ?m.82 / b = (?m.83 * b + ?m.82) / b\n\nNote: Expected a function because this term is being applied to the argument\n  ha"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 31
+            },
+            "endPos": {
+              "line": 32,
+              "column": 6
+            },
+            "data": "unsolved goals\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\nhab : a * b ≠ 0\n⊢ b / a + a / b - a * b = 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.05459165573120117
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe the relationship between the expression $\\frac{a}{b} + \\frac{b}{a} - ab$ and the given condition $ab = a - b$.\n\n### Proof Sketch\n1.  **Analyze the expression**: We want to show $\\frac{a}{b} + \\frac{b}{a} - ab = 2$. By bringing the fractions to a common denominator, this is equivalent to $\\frac{a^2 + b^2}{ab} - ab = 2$.\n2.  **Use the given condition**: We are given $ab = a - b$. Squaring both sides yields $(ab)^2 = (a - b)^2 = a^2 - 2ab + b^2$.\n3.  **Relate terms**: From $(ab)^2 = a^2 + b^2 - 2ab$, we can rearrange to find $a^2 + b^2 = (ab)^2 + 2ab$.\n4.  **Substitute**: Substitute $a^2 + b^2$ back into the target expression:\n    $$\\frac{(ab)^2 + 2ab}{ab} - ab = \\frac{ab(ab + 2)}{ab} - ab$$\n5.  **Simplify**: Since $a, b \\neq 0$, $ab \\neq 0$. Thus, the expression simplifies to:\n    $$(ab + 2) - ab = 2$$\n6.  The identity holds.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  -- Start with the left hand side and manipulate it\n  calc\n    a / b + b / a - a * b = (a^2 + b^2) / (a * b) - a * b := by\n      field_simp [h₀.1, h₀.2]\n      ring\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * a * b) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  -- Start with the left hand side and manipulate it\n  calc\n    a / b + b / a - a * b = (a^2 + b^2) / (a * b) - a * b := by\n      field_simp [h₀.1, h₀.2]\n      ring\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * a * b) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 6
+            },
+            "endPos": {
+              "line": 15,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6265382766723633
+      }
+    },
+    {
+      "index": 3,
+      "status": "FAILED",
+      "raw_text": "To prove that $a/b + b/a - ab = 2$ given $ab = a - b$ and $a, b \\neq 0$:\n\n1.  **Simplify the expression**: We want to show $\\frac{a^2 + b^2}{ab} - ab = 2$.\n2.  **Express the numerator**: Note that $a^2 + b^2 = (a - b)^2 + 2ab$.\n3.  **Substitute the given condition**: Since $a - b = ab$, we have $a^2 + b^2 = (ab)^2 + 2ab$.\n4.  **Substitute back into the expression**:\n    $$\\frac{(ab)^2 + 2ab}{ab} - ab$$\n5.  **Distribute the division**: Since $a, b \\neq 0$, then $ab \\neq 0$.\n    $$\\frac{(ab)^2}{ab} + \\frac{2ab}{ab} - ab = ab + 2 - ab = 2$$\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract non-zero components\n  have ha : a ≠ 0 := h₀.1\n  have hb : b ≠ 0 := h₀.2\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Start from the expression to be evaluated\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by\n      field_simp [ha, hb]\n    _ = ((a - b) ^ 2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b) ^ 2 + 2 * (a * b)) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b) * (a * b + 2) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract non-zero components\n  have ha : a ≠ 0 := h₀.1\n  have hb : b ≠ 0 := h₀.2\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Start from the expression to be evaluated\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by\n      field_simp [ha, hb]\n    _ = ((a - b) ^ 2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b) ^ 2 + 2 * (a * b)) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b) * (a * b + 2) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 57
+            },
+            "endPos": {
+              "line": 22,
+              "column": 15
+            },
+            "data": "unsolved goals\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\nhab : a * b ≠ 0\n⊢ ((a * b) ^ 2 + 2 * a * b) / (a * b) - a * b = ((a * b) ^ 2 + 2 * (a * b)) / (a * b) - a * b"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.448014497756958
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "To prove the identity $a/b + b/a - ab = 2$ given $ab = a - b$ and $a, b \\neq 0$:\n\n**Proof Sketch:**\n1.  **Rewrite the expression:** We want to simplify $E = \\frac{a}{b} + \\frac{b}{a} - ab$.\n2.  **Combine the fractions:** $\\frac{a}{b} + \\frac{b}{a} = \\frac{a^2 + b^2}{ab}$.\n3.  **Express the numerator in terms of $a-b$:** Note that $(a-b)^2 = a^2 - 2ab + b^2$, so $a^2 + b^2 = (a-b)^2 + 2ab$.\n4.  **Substitute the given condition:** Since $a - b = ab$, we have $a^2 + b^2 = (ab)^2 + 2ab$.\n5.  **Calculate the fraction:** $\\frac{a^2 + b^2}{ab} = \\frac{(ab)^2 + 2ab}{ab} = \\frac{ab(ab + 2)}{ab}$.\n6.  **Simplify:** Since $a, b \\neq 0$, $ab \\neq 0$, so $\\frac{a}{b} + \\frac{b}{a} = ab + 2$.\n7.  **Final result:** $E = (ab + 2) - ab = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by \n      field_simp [h₀.1, h₀.2]\n      ring\n    _ = ((a - b) ^ 2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b) ^ 2 + 2 * a * b) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by \n      field_simp [h₀.1, h₀.2]\n      ring\n    _ = ((a - b) ^ 2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b) ^ 2 + 2 * a * b) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 6
+            },
+            "endPos": {
+              "line": 14,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5871436595916748
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "To prove $a / b + b / a - ab = 2$ given $ab = a - b$ and $a, b \\neq 0$:\n\n1.  **Algebraic Manipulation**: Start with the left-hand side: $a/b + b/a - ab$.\n2.  **Common Denominator**: Express the sum of fractions as a single fraction: $\\frac{a^2 + b^2}{ab} - ab$.\n3.  **Square Completion**: Note that $a^2 + b^2 = (a - b)^2 + 2ab$.\n4.  **Substitution**: Substitute $(a - b)$ with $ab$ (from the given condition $h_1$): $a^2 + b^2 = (ab)^2 + 2ab$.\n5.  **Simplify**: Substitute this into the expression:\n    $$\\frac{(ab)^2 + 2ab}{ab} - ab = \\frac{ab(ab + 2)}{ab} - ab = (ab + 2) - ab = 2.$$\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have ha : a ≠ 0 := h₀.1\n  have hb : b ≠ 0 := h₀.2\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n  \n  -- Step 1: Combine the fractions\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by \n      field_simp [ha, hb]\n    _ = (a^2 + b^2) / (a * b) - a * b := by ring_nf\n    -- Step 2: Use the identity a^2 + b^2 = (a - b)^2 + 2ab\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by \n      congr\n      ring\n    -- Step 3: Substitute a - b = ab\n    _ = ((a * b)^2 + 2 * a * b) / (a * b) - a * b := by rw [← h₁]\n    -- Step 4: Simplify the fraction\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by \n      congr\n      ring\n    _ = (a * b + 2) - a * b := by \n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have ha : a ≠ 0 := h₀.1\n  have hb : b ≠ 0 := h₀.2\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n  \n  -- Step 1: Combine the fractions\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by \n      field_simp [ha, hb]\n    _ = (a^2 + b^2) / (a * b) - a * b := by ring_nf\n    -- Step 2: Use the identity a^2 + b^2 = (a - b)^2 + 2ab\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by \n      congr\n      ring\n    -- Step 3: Substitute a - b = ab\n    _ = ((a * b)^2 + 2 * a * b) / (a * b) - a * b := by rw [← h₁]\n    -- Step 4: Simplify the fraction\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by \n      congr\n      ring\n    _ = (a * b + 2) - a * b := by \n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 53
+            },
+            "endPos": {
+              "line": 22,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase e_a.e_a.e_a.e_a\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\nhab : a * b ≠ 0\n⊢ a = a - b\n\ncase e_a.e_a.e_a\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\nhab : a * b ≠ 0\n⊢ b ^ 2 = 2 * a * b"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4634075164794922
+      }
+    },
+    {
+      "index": 6,
+      "status": "FAILED",
+      "raw_text": "To prove the identity $a/b + b/a - ab = 2$ given $ab = a - b$ and $a, b \\neq 0$, we follow these steps:\n\n1.  **Simplify the expression**: $a/b + b/a - ab = \\frac{a^2 + b^2}{ab} - ab$.\n2.  **Rewrite $a^2 + b^2$**: Note that $(a - b)^2 = a^2 - 2ab + b^2$, so $a^2 + b^2 = (a - b)^2 + 2ab$.\n3.  **Substitute the given condition**: Since $a - b = ab$, we have $a^2 + b^2 = (ab)^2 + 2ab$.\n4.  **Substitute into the main expression**: \n    $$\\frac{(ab)^2 + 2ab}{ab} - ab = \\frac{ab(ab + 2)}{ab} - ab$$\n5.  **Finalize**: Since $a, b \\neq 0 \\implies ab \\neq 0$, we can cancel $ab$ to get $(ab + 2) - ab = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  -- Express a/b + b/a using a common denominator\n  calc\n    a / b + b / a - a * b = (a^2 + b^2) / (a * b) - a * b := by \n      field_simp [h₀.1, h₀.2]\n      ring\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * (a * b)) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  -- Express a/b + b/a using a common denominator\n  calc\n    a / b + b / a - a * b = (a^2 + b^2) / (a * b) - a * b := by \n      field_simp [h₀.1, h₀.2]\n      ring\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * (a * b)) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 6
+            },
+            "endPos": {
+              "line": 15,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 55
+            },
+            "endPos": {
+              "line": 19,
+              "column": 15
+            },
+            "data": "unsolved goals\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nhab : a * b ≠ 0\n⊢ ((a * b) ^ 2 + 2 * a * b) / (a * b) - a * b = ((a * b) ^ 2 + 2 * (a * b)) / (a * b) - a * b"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5691823959350586
+      }
+    },
+    {
+      "index": 7,
+      "status": "SOLVED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Rearrange the given identity**: Start with the equation $ab = a - b$.\n2.  **Express $a/b + b/a$**: Note that $a/b + b/a = \\frac{a^2 + b^2}{ab}$.\n3.  **Relate $a^2 + b^2$ to $(a - b)^2$**: Use the algebraic identity $a^2 + b^2 = (a - b)^2 + 2ab$.\n4.  **Substitute the given condition**: Substitute $a - b = ab$ into the expression for $a^2 + b^2$ to get $a^2 + b^2 = (ab)^2 + 2ab$.\n5.  **Simplify the main expression**:\n    $$\\frac{a}{b} + \\frac{b}{a} - ab = \\frac{a^2 + b^2}{ab} - ab = \\frac{(ab)^2 + 2ab}{ab} - ab$$\n6.  **Division by $ab$**: Since $a \\neq 0$ and $b \\neq 0$, we have $ab \\neq 0$. Dividing gives:\n    $$\\frac{(ab)^2}{ab} + \\frac{2ab}{ab} - ab = ab + 2 - ab = 2$$\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero conditions\n  have ha : a ≠ 0 := h₀.1\n  have hb : b ≠ 0 := h₀.2\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Start from the expression we want to evaluate\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by\n      field_simp [ha, hb]\n    _ = (a^2 + b^2) / (a * b) - a * b := by \n      ring_nf\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * a * b) / (a * b) - a * b := by\n      rw [h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero conditions\n  have ha : a ≠ 0 := h₀.1\n  have hb : b ≠ 0 := h₀.2\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Start from the expression we want to evaluate\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by\n      field_simp [ha, hb]\n    _ = (a^2 + b^2) / (a * b) - a * b := by \n      ring_nf\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * a * b) / (a * b) - a * b := by\n      rw [h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5466217994689941
+      }
+    },
+    {
+      "index": 8,
+      "status": "FAILED",
+      "raw_text": "To prove that $a/b + b/a - ab = 2$ given $ab = a - b$ (with $a, b \\neq 0$), we follow these steps:\n\n### Proof Sketch\n1.  **Rewrite the expression**: Start with the target expression $\\frac{a}{b} + \\frac{b}{a} - ab$.\n2.  **Find a common denominator**: Combine the fractions: $\\frac{a^2 + b^2}{ab} - ab$.\n3.  **Express squares in terms of differences**: Use the identity $a^2 + b^2 = (a-b)^2 + 2ab$.\n4.  **Substitute the given condition**: Replace $(a-b)$ with $ab$ based on the premise $h_1: ab = a-b$.\n5.  **Simplify**: \n    - The numerator becomes $(ab)^2 + 2ab$.\n    - Dividing by $ab$ gives $\\frac{(ab)^2 + 2ab}{ab} = ab + 2$.\n6.  **Final result**: The expression becomes $(ab + 2) - ab$, which simplifies to $2$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Obtain individual non-zero hypotheses\n  rcases h₀ with ⟨ha, hb⟩\n  -- Calculate a/b + b/a using a common denominator\n  have h_frac : a / b + b / a = (a^2 + b^2) / (a * b) := by\n    field_simp [ha, hb]\n    ring\n  -- Rewrite the target expression using the common denominator form\n  rw [h_frac]\n  -- Use the identity a^2 + b^2 = (a - b)^2 + 2ab\n  have h_sq : a^2 + b^2 = (a - b)^2 + 2 * a * b := by\n    ring\n  rw [h_sq]\n  -- Substitute the given condition a - b = a * b\n  rw [← h₁]\n  -- Simplify the resulting algebraic expression\n  have hab_nz : a * b ≠ 0 := mul_ne_zero ha hb\n  field_simp [hab_nz]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Obtain individual non-zero hypotheses\n  rcases h₀ with ⟨ha, hb⟩\n  -- Calculate a/b + b/a using a common denominator\n  have h_frac : a / b + b / a = (a^2 + b^2) / (a * b) := by\n    field_simp [ha, hb]\n    ring\n  -- Rewrite the target expression using the common denominator form\n  rw [h_frac]\n  -- Use the identity a^2 + b^2 = (a - b)^2 + 2ab\n  have h_sq : a^2 + b^2 = (a - b)^2 + 2 * a * b := by\n    ring\n  rw [h_sq]\n  -- Substitute the given condition a - b = a * b\n  rw [← h₁]\n  -- Simplify the resulting algebraic expression\n  have hab_nz : a * b ≠ 0 := mul_ne_zero ha hb\n  field_simp [hab_nz]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 8
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.25051116943359375
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem $a/b + b/a - ab = 2$ given $ab = a - b$ (with $a, b \\neq 0$), we follow these steps:\n\n### Proof Sketch\n1.  **Simplify the target expression**: Rewrite $a/b + b/a$ using a common denominator:\n    $$\\frac{a}{b} + \\frac{b}{a} = \\frac{a^2 + b^2}{ab}$$\n2.  **Relate $a^2 + b^2$ to $a-b$**: Recall the identity $a^2 + b^2 = (a-b)^2 + 2ab$.\n3.  **Substitute the given condition**: Use the hypothesis $a - b = ab$ to replace $(a-b)$ in the identity:\n    $$a^2 + b^2 = (ab)^2 + 2ab$$\n4.  **Substitute back into the simplified expression**:\n    $$\\frac{a}{b} + \\frac{b}{a} = \\frac{(ab)^2 + 2ab}{ab} = \\frac{ab(ab + 2)}{ab}$$\n5.  **Final Calculation**: Since $a, b \\neq 0$, $ab \\neq 0$, so we can divide:\n    $$\\frac{a}{b} + \\frac{b}{a} = ab + 2$$\n    Subtracting $ab$ from both sides gives:\n    $$\\frac{a}{b} + \\frac{b}{a} - ab = 2$$\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  have ha : a ≠ 0 := h₀.1\n  have hb : b ≠ 0 := h₀.2\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Rewrite the expression using a common denominator\n  field_simp [ha, hb]\n\n  -- We need to show (a^2 + b^2 - (a*b)^2) / (a*b) = 2\n  -- Which is equivalent to showing a^2 + b^2 - (a*b)^2 = 2 * a * b\n  apply (div_eq_iff hab).mpr\n\n  -- Use the identity a^2 + b^2 = (a - b)^2 + 2*a*b\n  have h_sq : a^2 + b^2 = (a - b)^2 + 2 * a * b := by ring\n\n  -- Substitute the identity into our goal\n  rw [h_sq]\n\n  -- Substitute the given condition (a - b = a * b)\n  rw [← h₁]\n\n  -- Simplify the resulting algebraic identity\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  have ha : a ≠ 0 := h₀.1\n  have hb : b ≠ 0 := h₀.2\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Rewrite the expression using a common denominator\n  field_simp [ha, hb]\n\n  -- We need to show (a^2 + b^2 - (a*b)^2) / (a*b) = 2\n  -- Which is equivalent to showing a^2 + b^2 - (a*b)^2 = 2 * a * b\n  apply (div_eq_iff hab).mpr\n\n  -- Use the identity a^2 + b^2 = (a - b)^2 + 2*a*b\n  have h_sq : a^2 + b^2 = (a - b)^2 + 2 * a * b := by ring\n\n  -- Substitute the identity into our goal\n  rw [h_sq]\n\n  -- Substitute the given condition (a - b = a * b)\n  rw [← h₁]\n\n  -- Simplify the resulting algebraic identity\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 2
+            },
+            "endPos": {
+              "line": 20,
+              "column": 28
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `(div_eq_iff hab).mpr`\n  ?m.72 / (a * b) = ?m.74\nwith the goal\n  a ^ 2 + b ^ 2 - a ^ 2 * b ^ 2 = a * b * 2\n\nNote: The full type of `(div_eq_iff hab).mpr` is\n  ?m.72 = ?m.74 * (a * b) → ?m.72 / (a * b) = ?m.74\n\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\nhab : a * b ≠ 0\n⊢ a ^ 2 + b ^ 2 - a ^ 2 * b ^ 2 = a * b * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.049814701080322266
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Analyze the given equation**: We are given $ab = a - b$.\n2.  **Manipulate the target expression**: The expression we want to evaluate is $E = \\frac{a}{b} + \\frac{b}{a} - ab$.\n3.  **Combine the fractions**: $\\frac{a}{b} + \\frac{b}{a} = \\frac{a^2 + b^2}{ab}$.\n4.  **Use the identity for $a^2 + b^2$**: Note that $(a - b)^2 = a^2 - 2ab + b^2$, so $a^2 + b^2 = (a - b)^2 + 2ab$.\n5.  **Substitute the given condition**: Since $a - b = ab$, we have $a^2 + b^2 = (ab)^2 + 2ab$.\n6.  **Substitute back into the expression**:\n    $E = \\frac{(ab)^2 + 2ab}{ab} - ab$\n7.  **Simplify**: Dividing by $ab$ (which is non-zero because $a, b \\neq 0$), we get:\n    $E = (ab + 2) - ab = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  have ha : a ≠ 0 := h₀.1\n  have hb : b ≠ 0 := h₀.2\n  have hab_ne_zero : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Rewrite the fractions using a common denominator\n  have h_frac : a / b + b / a = (a^2 + b^2) / (a * b) := by\n    field_simp [ha, hb]\n    ring\n\n  rw [h_frac]\n\n  -- Express a^2 + b^2 in terms of (a - b) and ab\n  -- Since a - b = ab, then (a - b)^2 = (ab)^2\n  have h_sq : a^2 + b^2 = (a - b)^2 + 2 * a * b := by ring\n  rw [h_sq, ← h₁]\n\n  -- Simplify the numerator: (a * b)^2 + 2 * (a * b)\n  -- Divide by (a * b)\n  field_simp [hab_ne_zero]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  have ha : a ≠ 0 := h₀.1\n  have hb : b ≠ 0 := h₀.2\n  have hab_ne_zero : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Rewrite the fractions using a common denominator\n  have h_frac : a / b + b / a = (a^2 + b^2) / (a * b) := by\n    field_simp [ha, hb]\n    ring\n\n  rw [h_frac]\n\n  -- Express a^2 + b^2 in terms of (a - b) and ab\n  -- Since a - b = ab, then (a - b)^2 = (ab)^2\n  have h_sq : a^2 + b^2 = (a - b)^2 + 2 * a * b := by ring\n  rw [h_sq, ← h₁]\n\n  -- Simplify the numerator: (a * b)^2 + 2 * (a * b)\n  -- Divide by (a * b)\n  field_simp [hab_ne_zero]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 4
+            },
+            "endPos": {
+              "line": 18,
+              "column": 8
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2702755928039551
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "To prove $a / b + b / a - ab = 2$ given $ab = a - b$ and $a, b \\neq 0$:\n\n1.  **Algebraic Manipulation**: Start with the left-hand side: $a/b + b/a - ab$.\n2.  **Common Denominator**: Rewrite the sum of fractions as $(a^2 + b^2) / ab$.\n3.  **Identity Substitution**: Use the identity $a^2 + b^2 = (a - b)^2 + 2ab$.\n4.  **Substitution of given constraint**: Replace $(a - b)$ with $ab$ based on the premise $ab = a - b$.\n5.  **Simplification**: \n    -   $a^2 + b^2 = (ab)^2 + 2ab$.\n    -   The expression becomes $((ab)^2 + 2ab) / ab - ab$.\n    -   Distributing the division by $ab$ (valid since $a, b \\neq 0$): $ab + 2 - ab$.\n6.  **Final Result**: The $ab$ terms cancel out, leaving exactly $2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by \n      field_simp [h₀.1, h₀.2]\n      ring\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * (a * b)) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by \n      field_simp [h₀.1, h₀.2]\n      ring\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * (a * b)) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 6
+            },
+            "endPos": {
+              "line": 14,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 55
+            },
+            "endPos": {
+              "line": 18,
+              "column": 15
+            },
+            "data": "unsolved goals\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nhab : a * b ≠ 0\n⊢ ((a * b) ^ 2 + 2 * a * b) / (a * b) - a * b = ((a * b) ^ 2 + 2 * (a * b)) / (a * b) - a * b"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5351951122283936
+      }
+    },
+    {
+      "index": 12,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n\n1.  **Analyze the given equation**: We are given $ab = a - b$.\n2.  **Rewrite the target expression**: The expression is $E = \\frac{a}{b} + \\frac{b}{a} - ab$.\n3.  **Combine the fractions**: $\\frac{a}{b} + \\frac{b}{a} = \\frac{a^2 + b^2}{ab}$.\n4.  **Relate the numerator to the given identity**: From $ab = a - b$, squaring both sides gives $(ab)^2 = (a-b)^2 = a^2 - 2ab + b^2$.\n5.  **Substitute back**: This implies $a^2 + b^2 = (ab)^2 + 2ab$.\n6.  **Evaluate $E$**:\n    $$E = \\frac{(ab)^2 + 2ab}{ab} - ab = \\frac{ab(ab + 2)}{ab} - ab = (ab + 2) - ab = 2.$$\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero conditions\n  rcases h₀ with ⟨ha, hb⟩\n  -- Start with the expression on the left hand side\n  field_simp [ha, hb]\n  -- We want to show (a^2 + b^2 - a^2 * b^2) / (a * b) = 2\n  -- Which is equivalent to a^2 + b^2 - a^2 * b^2 = 2 * a * b\n  apply (mul_right_inj' (show a * b ≠ 0 from mul_ne_zero ha hb)).mp\n  field_simp\n  -- Substitute a - b for a * b based on h₁\n  -- a^2 + b^2 - (a - b)^2\n  rw [← h₁]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero conditions\n  rcases h₀ with ⟨ha, hb⟩\n  -- Start with the expression on the left hand side\n  field_simp [ha, hb]\n  -- We want to show (a^2 + b^2 - a^2 * b^2) / (a * b) = 2\n  -- Which is equivalent to a^2 + b^2 - a^2 * b^2 = 2 * a * b\n  apply (mul_right_inj' (show a * b ≠ 0 from mul_ne_zero ha hb)).mp\n  field_simp\n  -- Substitute a - b for a * b based on h₁\n  -- a^2 + b^2 - (a - b)^2\n  rw [← h₁]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 6
+            },
+            "endPos": {
+              "line": 20,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a - b\nin the target expression\n  a ^ 2 + b ^ 2 - a ^ 2 * b ^ 2 = a * b * 2\n\na b : ℝ\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\n⊢ a ^ 2 + b ^ 2 - a ^ 2 * b ^ 2 = a * b * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.135575532913208
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "To prove the identity $a/b + b/a - ab = 2$ given $ab = a - b$ (with $a, b \\neq 0$), we follow these steps:\n\n### Proof Sketch\n1.  **Rewrite the target expression:** The expression $a/b + b/a - ab$ can be combined into a single fraction (for the first two terms): $\\frac{a^2 + b^2}{ab} - ab$.\n2.  **Utilize the identity $a^2 + b^2$:** We know that $(a - b)^2 = a^2 + b^2 - 2ab$. Rearranging gives $a^2 + b^2 = (a - b)^2 + 2ab$.\n3.  **Substitute the given condition:** Substitute $a - b = ab$ into the identity for $a^2 + b^2$. This yields $a^2 + b^2 = (ab)^2 + 2ab$.\n4.  **Simplify the expression:**\n    Substitute this into the rewritten target:\n    $\\frac{(ab)^2 + 2ab}{ab} - ab = \\frac{ab(ab + 2)}{ab} - ab$.\n5.  **Final Calculation:** Since $a, b \\neq 0$, $ab \\neq 0$. Thus, $\\frac{ab(ab + 2)}{ab} - ab = (ab + 2) - ab = 2$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract non-zero conditions\n  have h_ab_nz : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  \n  -- Express a / b + b / a using a common denominator\n  have h_sum : a / b + b / a = (a^2 + b^2) / (a * b) := by\n    field_simp [h₀.1, h₀.2]\n    ring\n  \n  -- Use the identity a^2 + b^2 = (a - b)^2 + 2ab\n  have h_sq_id : a^2 + b^2 = (a - b)^2 + 2 * a * b := by \n    ring\n  \n  -- Substitute the given condition a - b = ab into the identity\n  rw [h₁] at h_sq_id\n  \n  -- Substitute the squares identity into the sum of fractions\n  rw [h_sum, h_sq_id]\n  \n  -- Simplify the resulting expression\n  field_simp [h_ab_nz]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract non-zero conditions\n  have h_ab_nz : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  \n  -- Express a / b + b / a using a common denominator\n  have h_sum : a / b + b / a = (a^2 + b^2) / (a * b) := by\n    field_simp [h₀.1, h₀.2]\n    ring\n  \n  -- Use the identity a^2 + b^2 = (a - b)^2 + 2ab\n  have h_sq_id : a^2 + b^2 = (a - b)^2 + 2 * a * b := by \n    ring\n  \n  -- Substitute the given condition a - b = ab into the identity\n  rw [h₁] at h_sq_id\n  \n  -- Substitute the squares identity into the sum of fractions\n  rw [h_sum, h_sq_id]\n  \n  -- Simplify the resulting expression\n  field_simp [h_ab_nz]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 8
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 6
+            },
+            "endPos": {
+              "line": 23,
+              "column": 8
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a * b\nin the target expression\n  a ^ 2 + b ^ 2 = (a - b) ^ 2 + 2 * a * b\n\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nh_ab_nz : a * b ≠ 0\nh_sum : a / b + b / a = (a ^ 2 + b ^ 2) / (a * b)\nh_sq_id : a ^ 2 + b ^ 2 = (a - b) ^ 2 + 2 * a * b\n⊢ a / b + b / a - a * b = 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3402884006500244
+      }
+    },
+    {
+      "index": 14,
+      "status": "FAILED",
+      "raw_text": "To prove $a/b + b/a - ab = 2$ given $ab = a - b$ and $a, b \\neq 0$:\n\n1.  **Algebraic Manipulation of the Goal**: Rewrite the target expression using a common denominator:\n    $\\frac{a}{b} + \\frac{b}{a} - ab = \\frac{a^2 + b^2}{ab} - ab$.\n2.  **Square the Given Identity**: From $a - b = ab$, squaring both sides gives $(a - b)^2 = (ab)^2$, which expands to $a^2 - 2ab + b^2 = (ab)^2$.\n3.  **Relate to Goal**: Rearrange the squared identity to find $a^2 + b^2 = (ab)^2 + 2ab$.\n4.  **Substitution**: Substitute this into the common denominator expression:\n    $\\frac{(ab)^2 + 2ab}{ab} - ab = \\frac{ab(ab + 2)}{ab} - ab = (ab + 2) - ab = 2$.\n5.  **Non-zero Condition**: Since $a, b \\neq 0$, the product $ab \\neq 0$, ensuring the division is well-defined.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  -- Start with the expression a/b + b/a\n  have h2 : a / b + b / a = (a^2 + b^2) / (a * b) := by\n    field_simp [h₀.1, h₀.2]\n    ring\n  -- Use (a - b)^2 = a^2 - 2ab + b^2\n  have h3 : (a - b)^2 = a^2 + b^2 - 2 * a * b := by ring\n  -- From h1, (a - b)^2 = (a * b)^2\n  have h4 : (a - b)^2 = (a * b)^2 := by rw [h₁]\n  -- Thus a^2 + b^2 - 2ab = (ab)^2 => a^2 + b^2 = (ab)^2 + 2ab\n  have h5 : a^2 + b^2 = (a * b)^2 + 2 * a * b := by\n    rw [← h3, h4]\n  -- Substitute h5 into h2\n  rw [h2, h5]\n  -- Simplify the fraction\n  field_simp [hab]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  -- Start with the expression a/b + b/a\n  have h2 : a / b + b / a = (a^2 + b^2) / (a * b) := by\n    field_simp [h₀.1, h₀.2]\n    ring\n  -- Use (a - b)^2 = a^2 - 2ab + b^2\n  have h3 : (a - b)^2 = a^2 + b^2 - 2 * a * b := by ring\n  -- From h1, (a - b)^2 = (a * b)^2\n  have h4 : (a - b)^2 = (a * b)^2 := by rw [h₁]\n  -- Thus a^2 + b^2 - 2ab = (ab)^2 => a^2 + b^2 = (ab)^2 + 2ab\n  have h5 : a^2 + b^2 = (a * b)^2 + 2 * a * b := by\n    rw [← h3, h4]\n  -- Substitute h5 into h2\n  rw [h2, h5]\n  -- Simplify the fraction\n  field_simp [hab]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 8
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 8
+            },
+            "endPos": {
+              "line": 21,
+              "column": 12
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a ^ 2 + b ^ 2 - 2 * a * b\nin the target expression\n  a ^ 2 + b ^ 2 = (a * b) ^ 2 + 2 * a * b\n\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nhab : a * b ≠ 0\nh2 : a / b + b / a = (a ^ 2 + b ^ 2) / (a * b)\nh3 : (a - b) ^ 2 = a ^ 2 + b ^ 2 - 2 * a * b\nh4 : (a - b) ^ 2 = (a * b) ^ 2\n⊢ a ^ 2 + b ^ 2 = (a * b) ^ 2 + 2 * a * b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 31
+            },
+            "endPos": {
+              "line": 26,
+              "column": 6
+            },
+            "data": "unsolved goals\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nhab : a * b ≠ 0\nh2 : a / b + b / a = (a ^ 2 + b ^ 2) / (a * b)\nh3 : (a - b) ^ 2 = a ^ 2 + b ^ 2 - 2 * a * b\nh4 : (a - b) ^ 2 = (a * b) ^ 2\nh5 : a ^ 2 + b ^ 2 = (a * b) ^ 2 + 2 * a * b\n⊢ a * b * a⁻¹ * b⁻¹ * 2 = 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.7379302978515625
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "To prove the identity $a / b + b / a - ab = 2$ given $ab = a - b$ and $a, b \\neq 0$, we follow these steps:\n\n### Proof Sketch\n1.  **Rewrite the target expression:** The expression $a/b + b/a$ can be written with a common denominator as $(a^2 + b^2) / (ab)$.\n2.  **Relate $a^2 + b^2$ to $a - b$:** We know $(a - b)^2 = a^2 - 2ab + b^2$, which implies $a^2 + b^2 = (a - b)^2 + 2ab$.\n3.  **Substitute the given condition:** Use $a - b = ab$ in the equation above:\n    $a^2 + b^2 = (ab)^2 + 2ab$.\n4.  **Substitute back into the target expression:**\n    $a/b + b/a = \\frac{(ab)^2 + 2ab}{ab} = \\frac{ab(ab + 2)}{ab} = ab + 2$.\n5.  **Final Calculation:**\n    $a/b + b/a - ab = (ab + 2) - ab = 2$.\n\n### Lean 4 Code\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  rcases h₀ with ⟨ha, hb⟩\n  \n  -- Express a/b + b/a with a common denominator\n  have h_sum : a / b + b / a = (a^2 + b^2) / (a * b) := by\n    field_simp\n    ring\n  \n  -- Use the identity (a - b)^2 = a^2 + b^2 - 2ab to find a^2 + b^2\n  -- Since a - b = ab, we have (ab)^2 = a^2 + b^2 - 2ab\n  have h_sq : a^2 + b^2 = (a - b)^2 + 2 * a * b := by\n    ring\n  \n  -- Replace (a - b) with (a * b) in the square identity\n  rw [← h₁] at h_sq\n  \n  -- Substitute h_sq back into h_sum\n  rw [h_sum, h_sq]\n  \n  -- Simplify the fraction (a*b)^2 + 2ab / ab\n  have h_prod_nz : a * b ≠ 0 := mul_ne_zero ha hb\n  field_simp [h_prod_nz]\n  \n  -- Final cancellation\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  rcases h₀ with ⟨ha, hb⟩\n  \n  -- Express a/b + b/a with a common denominator\n  have h_sum : a / b + b / a = (a^2 + b^2) / (a * b) := by\n    field_simp\n    ring\n  \n  -- Use the identity (a - b)^2 = a^2 + b^2 - 2ab to find a^2 + b^2\n  -- Since a - b = ab, we have (ab)^2 = a^2 + b^2 - 2ab\n  have h_sq : a^2 + b^2 = (a - b)^2 + 2 * a * b := by\n    ring\n  \n  -- Replace (a - b) with (a * b) in the square identity\n  rw [← h₁] at h_sq\n  \n  -- Substitute h_sq back into h_sum\n  rw [h_sum, h_sq]\n  \n  -- Simplify the fraction (a*b)^2 + 2ab / ab\n  have h_prod_nz : a * b ≠ 0 := mul_ne_zero ha hb\n  field_simp [h_prod_nz]\n  \n  -- Final cancellation\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 8
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.25147366523742676
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "To prove that $a/b + b/a - ab = 2$ given $ab = a - b$ (with $a, b \\neq 0$), we follow these steps:\n\n### Proof Sketch\n1.  **Expression Expansion**: Start with the left-hand side: $\\frac{a}{b} + \\frac{b}{a} - ab$.\n2.  **Common Denominator**: Combine the fractions: $\\frac{a^2 + b^2}{ab} - ab$.\n3.  **Algebraic Identity**: Express $a^2 + b^2$ in terms of $(a-b)$ and $ab$: $a^2 + b^2 = (a-b)^2 + 2ab$.\n4.  **Substitution**: Substitute $a-b = ab$ (from the hypothesis $h_1$) into the identity: $a^2 + b^2 = (ab)^2 + 2ab$.\n5.  **Simplify**: Substitute this back into the main expression:\n    $$\\frac{(ab)^2 + 2ab}{ab} - ab = \\frac{ab(ab + 2)}{ab} - ab = (ab + 2) - ab = 2.$$\n6.  **Division Check**: Since $a, b \\neq 0$, $ab \\neq 0$, so division is valid.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract non-zero conditions\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n  \n  -- Express the target expression using a common denominator\n  calc\n    a / b + b / a - a * b = (a^2 + b^2) / (a * b) - a * b := by\n      field_simp [ha, hb]\n      ring\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * a * b) / (a * b) - a * b := by\n      rw [h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract non-zero conditions\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n  \n  -- Express the target expression using a common denominator\n  calc\n    a / b + b / a - a * b = (a^2 + b^2) / (a * b) - a * b := by\n      field_simp [ha, hb]\n      ring\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * a * b) / (a * b) - a * b := by\n      rw [h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 6
+            },
+            "endPos": {
+              "line": 18,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5793077945709229
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "To prove the identity $a/b + b/a - ab = 2$ given $ab = a - b$ and $a, b \\neq 0$, we follow these steps:\n\n1.  **Simplify the expression**: $a/b + b/a = (a^2 + b^2) / ab$.\n2.  **Relate variables**: From $ab = a - b$, square both sides to get $(ab)^2 = (a - b)^2 = a^2 + b^2 - 2ab$.\n3.  **Express $a^2 + b^2$**: Rearranging the squared equation gives $a^2 + b^2 = (ab)^2 + 2ab$.\n4.  **Substitute back**:\n    $$\\frac{a^2 + b^2}{ab} - ab = \\frac{(ab)^2 + 2ab}{ab} - ab$$\n5.  **Simplify**: Dividing $(ab)^2 + 2ab$ by $ab$ (valid since $a, b \\neq 0$) yields $ab + 2$.\n6.  **Final result**: $(ab + 2) - ab = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract non-zero conditions\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Start from the expression we want to evaluate\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by\n      rw [add_div' a b (a * b) ha hb, mul_comm b a]\n    _ = (a^2 + b^2) / (a * b) - a * b := by\n      rw [pow_two, pow_two]\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * a * b) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract non-zero conditions\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Start from the expression we want to evaluate\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by\n      rw [add_div' a b (a * b) ha hb, mul_comm b a]\n    _ = (a^2 + b^2) / (a * b) - a * b := by\n      rw [pow_two, pow_two]\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * a * b) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 31
+            },
+            "endPos": {
+              "line": 17,
+              "column": 33
+            },
+            "data": "Application type mismatch: The argument\n  ha\nhas type\n  a ≠ 0\nbut is expected to have type\n  a * b ≠ 0\nin the application\n  add_div' a b (a * b) ha"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 65
+            },
+            "endPos": {
+              "line": 17,
+              "column": 51
+            },
+            "data": "unsolved goals\na b : ℝ\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\nhab : a * b ≠ 0\n⊢ a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.41620969772338867
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "To solve for the value of $a/b + b/a - ab$ given $ab = a - b$, we can follow these steps:\n\n### Proof Sketch\n1.  **Analyze the given equation**: We are given $ab = a - b$.\n2.  **Express $a/b + b/a$ in terms of $a, b$**:\n    $a/b + b/a = \\frac{a^2 + b^2}{ab}$.\n3.  **Relate $a^2 + b^2$ to $(a-b)^2$**:\n    Recall that $(a-b)^2 = a^2 - 2ab + b^2$. Thus, $a^2 + b^2 = (a-b)^2 + 2ab$.\n4.  **Substitute the given condition**:\n    Since $a-b = ab$, we have $a^2 + b^2 = (ab)^2 + 2ab$.\n5.  **Calculate $a/b + b/a$**:\n    $a/b + b/a = \\frac{(ab)^2 + 2ab}{ab} = \\frac{ab(ab + 2)}{ab}$.\n    Given $a, b \\neq 0$, it follows $ab \\neq 0$, so $a/b + b/a = ab + 2$.\n6.  **Final Calculation**:\n    Substitute this into the target expression: $(a/b + b/a) - ab = (ab + 2) - ab = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  have ha : a ≠ 0 := h₀.1\n  have hb : b ≠ 0 := h₀.2\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Start with the left hand side of the goal\n  calc\n    a / b + b / a - a * b = (a^2 + b^2) / (a * b) - a * b := by\n      field_simp [ha, hb]\n      ring\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * (a * b)) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  have ha : a ≠ 0 := h₀.1\n  have hb : b ≠ 0 := h₀.2\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Start with the left hand side of the goal\n  calc\n    a / b + b / a - a * b = (a^2 + b^2) / (a * b) - a * b := by\n      field_simp [ha, hb]\n      ring\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * (a * b)) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 6
+            },
+            "endPos": {
+              "line": 19,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 55
+            },
+            "endPos": {
+              "line": 23,
+              "column": 15
+            },
+            "data": "unsolved goals\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\nhab : a * b ≠ 0\n⊢ ((a * b) ^ 2 + 2 * a * b) / (a * b) - a * b = ((a * b) ^ 2 + 2 * (a * b)) / (a * b) - a * b"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.41297340393066406
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we start with the given relationship $ab = a - b$. Our goal is to evaluate the expression $E = \\frac{a}{b} + \\frac{b}{a} - ab$.\n\n**Proof Sketch:**\n1.  From $ab = a - b$, divide by $ab$ (given $a, b \\neq 0$) to get $1 = \\frac{a - b}{ab} = \\frac{1}{b} - \\frac{1}{a}$.\n2.  Square both sides: $1^2 = (\\frac{1}{b} - \\frac{1}{a})^2 = \\frac{1}{b^2} + \\frac{1}{a^2} - \\frac{2}{ab}$.\n3.  The expression we want to evaluate is $E = \\frac{a^2 + b^2}{ab} - ab$.\n4.  Note that $\\frac{a^2 + b^2}{ab} = ab \\cdot (\\frac{1}{b^2} + \\frac{1}{a^2})$.\n5.  Substitute the squared relation into $E$:\n    $E = ab \\cdot (1 + \\frac{2}{ab}) - ab$\n    $E = ab + 2 - ab = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n  \n  -- From ab = a - b, we have 1 = (a - b) / (ab) = 1/b - 1/a\n  have h2 : 1 = 1 / b - 1 / a := by\n    field_simp [ha, hb]\n    exact h₁\n    \n  -- Square both sides: 1^2 = (1/b - 1/a)^2 = 1/b^2 + 1/a^2 - 2/(ab)\n  have h3 : 1^2 = (1 / b - 1 / a)^2 := by rw [h2]\n  have h4 : (1 / b - 1 / a)^2 = 1 / b^2 + 1 / a^2 - 2 / (a * b) := by\n    field_simp [ha, hb]\n    ring\n    \n  -- Combine to find 1/b^2 + 1/a^2 = 1 + 2/(ab)\n  have h5 : 1 / b^2 + 1 / a^2 = 1 + 2 / (a * b) := by\n    rw [h3] at h4\n    linarith\n    \n  -- Now simplify the goal expression\n  field_simp [ha, hb]\n  -- Goal: (a ^ 2 + b ^ 2 - a * b * (a * b)) / (a * b) = 2\n  -- Which is a/b + b/a - ab = (a^2 + b^2)/ab - ab\n  \n  -- Express a^2 + b^2 in terms of a*b and h5\n  have h6 : (a^2 + b^2) / (a * b) = (a * b) * (1 / b^2 + 1 / a^2) := by\n    field_simp [ha, hb]\n    ring\n    \n  rw [h6, h5]\n  field_simp [hab]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n  \n  -- From ab = a - b, we have 1 = (a - b) / (ab) = 1/b - 1/a\n  have h2 : 1 = 1 / b - 1 / a := by\n    field_simp [ha, hb]\n    exact h₁\n    \n  -- Square both sides: 1^2 = (1/b - 1/a)^2 = 1/b^2 + 1/a^2 - 2/(ab)\n  have h3 : 1^2 = (1 / b - 1 / a)^2 := by rw [h2]\n  have h4 : (1 / b - 1 / a)^2 = 1 / b^2 + 1 / a^2 - 2 / (a * b) := by\n    field_simp [ha, hb]\n    ring\n    \n  -- Combine to find 1/b^2 + 1/a^2 = 1 + 2/(ab)\n  have h5 : 1 / b^2 + 1 / a^2 = 1 + 2 / (a * b) := by\n    rw [h3] at h4\n    linarith\n    \n  -- Now simplify the goal expression\n  field_simp [ha, hb]\n  -- Goal: (a ^ 2 + b ^ 2 - a * b * (a * b)) / (a * b) = 2\n  -- Which is a/b + b/a - ab = (a^2 + b^2)/ab - ab\n  \n  -- Express a^2 + b^2 in terms of a*b and h5\n  have h6 : (a^2 + b^2) / (a * b) = (a * b) * (1 / b^2 + 1 / a^2) := by\n    field_simp [ha, hb]\n    ring\n    \n  rw [h6, h5]\n  field_simp [hab]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 4
+            },
+            "endPos": {
+              "line": 17,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₁\nhas type\n  a * b = a - b\nbut is expected to have type\n  b * a = a - b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 39
+            },
+            "endPos": {
+              "line": 20,
+              "column": 49
+            },
+            "data": "unsolved goals\na b : ℝ\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\nhab : a * b ≠ 0\nh2 : 1 = 1 / b - 1 / a\n⊢ (1 / b - 1 / a) ^ 2 = ((1 / b - 1 / a) / b - (1 / b - 1 / a) / a) ^ 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 8
+            },
+            "endPos": {
+              "line": 27,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  1 ^ 2\nin the target expression\n  (1 / b - 1 / a) ^ 2 = 1 / b ^ 2 + 1 / a ^ 2 - 2 / (a * b)\n\na b : ℝ\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\nhab : a * b ≠ 0\nh2 : 1 = 1 / b - 1 / a\nh3 : 1 ^ 2 = (1 / b - 1 / a) ^ 2\nh4 : (1 / b - 1 / a) ^ 2 = 1 / b ^ 2 + 1 / a ^ 2 - 2 / (a * b)\n⊢ 1 / b ^ 2 + 1 / a ^ 2 = 1 + 2 / (a * b)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 4
+            },
+            "endPos": {
+              "line": 38,
+              "column": 8
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 40,
+              "column": 6
+            },
+            "endPos": {
+              "line": 40,
+              "column": 8
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (a ^ 2 + b ^ 2) / (a * b)\nin the target expression\n  a ^ 2 + b ^ 2 - a ^ 2 * b ^ 2 = a * b * 2\n\na b : ℝ\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\nhab : a * b ≠ 0\nh2 : 1 = 1 / b - 1 / a\nh3 : 1 ^ 2 = (1 / b - 1 / a) ^ 2\nh4 : (1 / b - 1 / a) ^ 2 = 1 / b ^ 2 + 1 / a ^ 2 - 2 / (a * b)\nh5 : 1 / b ^ 2 + 1 / a ^ 2 = 1 + 2 / (a * b)\nh6 : (a ^ 2 + b ^ 2) / (a * b) = a * b * (1 / b ^ 2 + 1 / a ^ 2)\n⊢ a ^ 2 + b ^ 2 - a ^ 2 * b ^ 2 = a * b * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5979819297790527
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "To prove that $a/b + b/a - ab = 2$ given $ab = a - b$ (with $a, b \\neq 0$), we follow these steps:\n\n1.  **Simplify the expression**: The target expression is $\\frac{a^2 + b^2}{ab} - ab$.\n2.  **Use the identity for the numerator**: We know that $a^2 + b^2 = (a - b)^2 + 2ab$.\n3.  **Substitute the given condition**: Replace $a - b$ with $ab$. This gives $a^2 + b^2 = (ab)^2 + 2ab$.\n4.  **Substitute back into the expression**: \n    $\\frac{(ab)^2 + 2ab}{ab} - ab = \\frac{ab(ab + 2)}{ab} - ab$.\n5.  **Final simplification**: Since $a, b \\neq 0$, $ab \\neq 0$, so the expression simplifies to $(ab + 2) - ab = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero conditions\n  have ha : a ≠ 0 := h₀.left\n  have hb : b ≠ 0 := h₀.right\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Start from the expression we want to evaluate\n  calc\n    a / b + b / a - a * b = (a^2 + b^2) / (a * b) - a * b := by \n      field_simp [ha, hb]\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * (a * b)) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero conditions\n  have ha : a ≠ 0 := h₀.left\n  have hb : b ≠ 0 := h₀.right\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Start from the expression we want to evaluate\n  calc\n    a / b + b / a - a * b = (a^2 + b^2) / (a * b) - a * b := by \n      field_simp [ha, hb]\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * (a * b)) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 55
+            },
+            "endPos": {
+              "line": 22,
+              "column": 15
+            },
+            "data": "unsolved goals\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\nhab : a * b ≠ 0\n⊢ ((a * b) ^ 2 + 2 * a * b) / (a * b) - a * b = ((a * b) ^ 2 + 2 * (a * b)) / (a * b) - a * b"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5333442687988281
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "To prove that $a/b + b/a - ab = 2$ given $ab = a - b$ and $a, b \\neq 0$:\n\n1.  **Manipulate the expression**: \n    $a/b + b/a = \\frac{a^2 + b^2}{ab}$.\n2.  **Relate squares to the given identity**:\n    From $ab = a - b$, square both sides: $(ab)^2 = (a - b)^2 = a^2 + b^2 - 2ab$.\n    Rearranging gives $a^2 + b^2 = (ab)^2 + 2ab$.\n3.  **Substitute back into the expression**:\n    $a/b + b/a = \\frac{(ab)^2 + 2ab}{ab} = \\frac{ab(ab + 2)}{ab} = ab + 2$.\n4.  **Final Calculation**:\n    Substitute this into the original target: $(ab + 2) - ab = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Obtain a^2 + b^2 from (a - b)^2\n  have h_sq : (a - b)^2 = a^2 - 2*a*b + b^2 := by ring\n  -- Substitute a - b = a * b into the squared identity\n  have h_sub : (a * b)^2 = a^2 - 2*a*b + b^2 := by\n    rw [← h₁, h_sq]\n  -- Rearrange to find a^2 + b^2\n  have h_sum_sq : a^2 + b^2 = (a * b)^2 + 2 * a * b := by\n    linarith\n  -- Simplify the target expression a / b + b / a\n  have h_frac : a / b + b / a = (a^2 + b^2) / (a * b) := by\n    field_simp [h₀.1, h₀.2]\n    ring\n  -- Substitute a^2 + b^2 into the fraction\n  rw [h_frac, h_sum_sq]\n  -- Simplify the resulting expression\n  field_simp [h₀.1, h₀.2]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Obtain a^2 + b^2 from (a - b)^2\n  have h_sq : (a - b)^2 = a^2 - 2*a*b + b^2 := by ring\n  -- Substitute a - b = a * b into the squared identity\n  have h_sub : (a * b)^2 = a^2 - 2*a*b + b^2 := by\n    rw [← h₁, h_sq]\n  -- Rearrange to find a^2 + b^2\n  have h_sum_sq : a^2 + b^2 = (a * b)^2 + 2 * a * b := by\n    linarith\n  -- Simplify the target expression a / b + b / a\n  have h_frac : a / b + b / a = (a^2 + b^2) / (a * b) := by\n    field_simp [h₀.1, h₀.2]\n    ring\n  -- Substitute a^2 + b^2 into the fraction\n  rw [h_frac, h_sum_sq]\n  -- Simplify the resulting expression\n  field_simp [h₀.1, h₀.2]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 8
+            },
+            "endPos": {
+              "line": 14,
+              "column": 12
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a - b\nin the target expression\n  (a * b) ^ 2 = a ^ 2 - 2 * a * b + b ^ 2\n\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nh_sq : (a - b) ^ 2 = a ^ 2 - 2 * a * b + b ^ 2\n⊢ (a * b) ^ 2 = a ^ 2 - 2 * a * b + b ^ 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 4
+            },
+            "endPos": {
+              "line": 21,
+              "column": 8
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5926167964935303
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "To prove $a / b + b / a - a \\cdot b = 2$ given $a \\cdot b = a - b$, we start by simplifying the target expression using a common denominator:\n1.  $\\frac{a}{b} + \\frac{b}{a} - ab = \\frac{a^2 + b^2}{ab} - ab$.\n2.  Recall that $a^2 + b^2 = (a - b)^2 + 2ab$.\n3.  Substituting the condition $a - b = ab$ into this identity, we get $a^2 + b^2 = (ab)^2 + 2ab$.\n4.  Substitute this back into the target expression: $\\frac{(ab)^2 + 2ab}{ab} - ab$.\n5.  Since $a \\neq 0$ and $b \\neq 0$, $ab \\neq 0$. We can divide: $\\frac{(ab)^2}{ab} + \\frac{2ab}{ab} - ab = ab + 2 - ab$.\n6.  The $ab$ terms cancel, leaving exactly 2.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  -- Start with the expression a/b + b/a - ab\n  field_simp [h₀.1, h₀.2]\n  -- Expression is now (a * a + b * b - a * b * (a * b)) / (a * b)\n  -- Use the identity a^2 + b^2 = (a - b)^2 + 2ab\n  have h_sq : a^2 + b^2 = (a - b)^2 + 2 * a * b := by ring\n  -- Convert a*a + b*b to a^2 + b^2\n  ring_nf\n  rw [h_sq]\n  -- Substitute a - b = ab\n  rw [← h₁]\n  -- Simplify the numerator: (a * b)^2 + 2 * a * b - (a * b)^2 = 2 * a * b\n  ring_nf\n  -- Final division\n  field_simp [hab]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  -- Start with the expression a/b + b/a - ab\n  field_simp [h₀.1, h₀.2]\n  -- Expression is now (a * a + b * b - a * b * (a * b)) / (a * b)\n  -- Use the identity a^2 + b^2 = (a - b)^2 + 2ab\n  have h_sq : a^2 + b^2 = (a - b)^2 + 2 * a * b := by ring\n  -- Convert a*a + b*b to a^2 + b^2\n  ring_nf\n  rw [h_sq]\n  -- Substitute a - b = ab\n  rw [← h₁]\n  -- Simplify the numerator: (a * b)^2 + 2 * a * b - (a * b)^2 = 2 * a * b\n  ring_nf\n  -- Final division\n  field_simp [hab]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 6
+            },
+            "endPos": {
+              "line": 18,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a ^ 2 + b ^ 2\nin the target expression\n  a ^ 2 - a ^ 2 * b ^ 2 + b ^ 2 = a * b * 2\n\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nhab : a * b ≠ 0\nh_sq : a ^ 2 + b ^ 2 = (a - b) ^ 2 + 2 * a * b\n⊢ a ^ 2 - a ^ 2 * b ^ 2 + b ^ 2 = a * b * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3582642078399658
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem $a/b + b/a - ab = 2$ given $ab = a - b$ and $a, b \\neq 0$:\n\n### Proof Sketch:\n1.  **Rewrite the target expression:**\n    The expression $a/b + b/a$ can be combined into a single fraction: $\\frac{a^2 + b^2}{ab}$.\n    Thus, we need to show $\\frac{a^2 + b^2}{ab} - ab = 2$.\n2.  **Use the identity for the numerator:**\n    Recall that $a^2 + b^2 = (a - b)^2 + 2ab$.\n    Substituting this into the expression: $\\frac{(a - b)^2 + 2ab}{ab} - ab$.\n3.  **Substitute the given condition:**\n    We are given $a - b = ab$. Substitute $(a - b)$ with $ab$:\n    $\\frac{(ab)^2 + 2ab}{ab} - ab$.\n4.  **Simplify:**\n    Distribute the denominator: $\\frac{(ab)^2}{ab} + \\frac{2ab}{ab} - ab = ab + 2 - ab$.\n5.  **Final Result:**\n    The terms $ab$ and $-ab$ cancel out, leaving exactly $2$.\n\n---\n\n### Lean 4 Code:\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract non-zero conditions for division\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n  \n  -- Step 1: Combine the fractions a/b + b/a\n  -- a/b + b/a = (a^2 + b^2) / (ab)\n  have h_frac : a / b + b / a = (a^2 + b^2) / (a * b) := by\n    field_simp [ha, hb]\n    ring\n  \n  -- Step 2: Use the identity a^2 + b^2 = (a - b)^2 + 2ab\n  have h_sq : a^2 + b^2 = (a - b)^2 + 2 * a * b := by \n    ring\n  \n  -- Step 3: Substitute a - b = ab into the numerator\n  rw [h_frac, h_sq, ← h₁, mul_pow]\n  \n  -- Step 4: Simplify the resulting expression\n  -- ((ab)^2 + 2ab) / (ab) - ab = (ab + 2) - ab = 2\n  field_simp [hab]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract non-zero conditions for division\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n  \n  -- Step 1: Combine the fractions a/b + b/a\n  -- a/b + b/a = (a^2 + b^2) / (ab)\n  have h_frac : a / b + b / a = (a^2 + b^2) / (a * b) := by\n    field_simp [ha, hb]\n    ring\n  \n  -- Step 2: Use the identity a^2 + b^2 = (a - b)^2 + 2ab\n  have h_sq : a^2 + b^2 = (a - b)^2 + 2 * a * b := by \n    ring\n  \n  -- Step 3: Substitute a - b = ab into the numerator\n  rw [h_frac, h_sq, ← h₁, mul_pow]\n  \n  -- Step 4: Simplify the resulting expression\n  -- ((ab)^2 + 2ab) / (ab) - ab = (ab + 2) - ab = 2\n  field_simp [hab]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 4
+            },
+            "endPos": {
+              "line": 18,
+              "column": 8
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.23406291007995605
+      }
+    },
+    {
+      "index": 24,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe the following steps:\n\n1.  **Manipulate the given identity**: We are given $ab = a - b$.\n2.  **Express the target expression in terms of $a$ and $b$**: The expression is $E = \\frac{a}{b} + \\frac{b}{a} - ab$.\n3.  **Find a common denominator**: $E = \\frac{a^2 + b^2}{ab} - ab$.\n4.  **Use the identity for the numerator**: We know that $a^2 + b^2 = (a - b)^2 + 2ab$.\n5.  **Substitute the given $a - b = ab$**: Thus, $a^2 + b^2 = (ab)^2 + 2ab$.\n6.  **Substitute back into the expression**:\n    $E = \\frac{(ab)^2 + 2ab}{ab} - ab = \\frac{ab(ab + 2)}{ab} - ab$.\n7.  **Simplify**: Since $a \\neq 0$ and $b \\neq 0$, $ab \\neq 0$. Thus, $E = (ab + 2) - ab = 2$.\n\nHere is the complete Lean 4 code:\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Start with the left hand side and put it over a common denominator\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by\n      field_simp [ha, hb]\n    _ = (a^2 + b^2) / (a * b) - a * b := by ring\n    -- Use the identity a^2 + b^2 = (a - b)^2 + 2ab\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      congr\n      ring\n    -- Substitute the given condition a - b = a * b\n    _ = ((a * b)^2 + 2 * a * b) / (a * b) - a * b := by\n      rw [← h₁]\n    -- Simplify the fraction\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      congr\n      ring\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- Start with the left hand side and put it over a common denominator\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by\n      field_simp [ha, hb]\n    _ = (a^2 + b^2) / (a * b) - a * b := by ring\n    -- Use the identity a^2 + b^2 = (a - b)^2 + 2ab\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      congr\n      ring\n    -- Substitute the given condition a - b = a * b\n    _ = ((a * b)^2 + 2 * a * b) / (a * b) - a * b := by\n      rw [← h₁]\n    -- Simplify the fraction\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      congr\n      ring\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 53
+            },
+            "endPos": {
+              "line": 22,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase e_a.e_a.e_a.e_a\na b : ℝ\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\nhab : a * b ≠ 0\n⊢ a = a - b\n\ncase e_a.e_a.e_a\na b : ℝ\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\nhab : a * b ≠ 0\n⊢ b ^ 2 = 2 * a * b"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.39370012283325195
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "To prove the given theorem, we use the algebraic relationship $ab = a - b$ to manipulate the expression $\\frac{a}{b} + \\frac{b}{a} - ab$.\n\n**Proof Sketch:**\n1.  **Rewrite the target expression:** The expression $\\frac{a}{b} + \\frac{b}{a} - ab$ can be written as a single fraction: $\\frac{a^2 + b^2 - (ab)^2}{ab}$.\n2.  **Use the identity for $a^2 + b^2$:** We know $(a - b)^2 = a^2 + b^2 - 2ab$. Solving for the numerator's components, we get $a^2 + b^2 = (a - b)^2 + 2ab$.\n3.  **Substitute the given condition:** From $h_1$, we have $a - b = ab$. Substituting this into the equation for $a^2 + b^2$ gives $a^2 + b^2 = (ab)^2 + 2ab$.\n4.  **Simplify the numerator:** Substitute this back into the numerator of our expression:\n    $a^2 + b^2 - (ab)^2 = ((ab)^2 + 2ab) - (ab)^2 = 2ab$.\n5.  **Final Calculation:** The expression becomes $\\frac{2ab}{ab}$. Since $a \\neq 0$ and $b \\neq 0$, $ab \\neq 0$, and the expression simplifies to $2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  -- Multiply the whole expression by ab and show it equals 2ab\n  field_simp [h₀.1, h₀.2, hab]\n  -- Use the fact that a^2 + b^2 = (a-b)^2 + 2ab\n  have h2 : a^2 + b^2 = (a - b)^2 + 2 * a * b := by ring\n  -- Substitute (a-b) = ab into the identity\n  rw [← h₁, h2]\n  -- Simplify\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  -- Multiply the whole expression by ab and show it equals 2ab\n  field_simp [h₀.1, h₀.2, hab]\n  -- Use the fact that a^2 + b^2 = (a-b)^2 + 2ab\n  have h2 : a^2 + b^2 = (a - b)^2 + 2 * a * b := by ring\n  -- Substitute (a-b) = ab into the identity\n  rw [← h₁, h2]\n  -- Simplify\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 6
+            },
+            "endPos": {
+              "line": 16,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  a - b\nin the target expression\n  a ^ 2 + b ^ 2 - a ^ 2 * b ^ 2 = a * b * 2\n\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nhab : a * b ≠ 0\nh2 : a ^ 2 + b ^ 2 = (a - b) ^ 2 + 2 * a * b\n⊢ a ^ 2 + b ^ 2 - a ^ 2 * b ^ 2 = a * b * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2031536102294922
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "To prove the identity $\\frac{a}{b} + \\frac{b}{a} - ab = 2$ given $ab = a - b$ and $a, b \\neq 0$:\n\n### Proof Sketch\n1.  **Rearrange the given identity**: From $ab = a - b$, we can write $\\frac{a - b}{ab} = 1$.\n2.  **Simplify the fraction**: $\\frac{a}{ab} - \\frac{b}{ab} = 1 \\implies \\frac{1}{b} - \\frac{1}{a} = 1$.\n3.  **Square the relation**: $(\\frac{1}{b} - \\frac{1}{a})^2 = 1^2 \\implies \\frac{1}{b^2} + \\frac{1}{a^2} - \\frac{2}{ab} = 1$.\n4.  **Express the target expression**:\n    The target is $T = \\frac{a}{b} + \\frac{b}{a} - ab$.\n    Combine the first two terms: $\\frac{a^2 + b^2}{ab} - ab$.\n5.  **Relate the squared identity to the target**:\n    From step 3, multiply by $ab$: $ab(\\frac{1}{b^2} + \\frac{1}{a^2} - \\frac{2}{ab}) = ab(1)$.\n    $\\frac{a}{b} + \\frac{b}{a} - 2 = ab$.\n6.  **Final substitution**:\n    $\\frac{a}{b} + \\frac{b}{a} - ab = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- From a * b = a - b, divide by ab\n  -- (a - b) / (a * b) = 1  => 1/b - 1/a = 1\n  have h2 : (a - b) / (a * b) = 1 := div_self hab ▸ (congr_arg (λ x => x / (a * b)) h₁.symm)\n  have h3 : 1 / b - 1 / a = 1 := by\n    field_simp [ha, hb] at h2\n    exact h2\n\n  -- Square the identity (1/b - 1/a)^2 = 1\n  have h4 : (1 / b - 1 / a) ^ 2 = 1 := by rw [h3, one_pow]\n  \n  -- Expand the square: 1/b^2 + 1/a^2 - 2/(ab) = 1\n  have h5 : 1 / b^2 + 1 / a^2 - 2 / (a * b) = 1 := by\n    ring_nf at h4 ⊢\n    exact h4\n\n  -- Multiply the whole equation by (a * b)\n  -- (a * b) * (1/b^2 + 1/a^2 - 2/(ab)) = a * b\n  -- a/b + b/a - 2 = a * b\n  have h6 : a / b + b / a - 2 = a * b := by\n    field_simp [ha, hb]\n    linear_combination h5 * (a^2 * b^2) / (a * b)\n  \n  -- Rearrange to get the final result\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n\n  -- From a * b = a - b, divide by ab\n  -- (a - b) / (a * b) = 1  => 1/b - 1/a = 1\n  have h2 : (a - b) / (a * b) = 1 := div_self hab ▸ (congr_arg (λ x => x / (a * b)) h₁.symm)\n  have h3 : 1 / b - 1 / a = 1 := by\n    field_simp [ha, hb] at h2\n    exact h2\n\n  -- Square the identity (1/b - 1/a)^2 = 1\n  have h4 : (1 / b - 1 / a) ^ 2 = 1 := by rw [h3, one_pow]\n  \n  -- Expand the square: 1/b^2 + 1/a^2 - 2/(ab) = 1\n  have h5 : 1 / b^2 + 1 / a^2 - 2 / (a * b) = 1 := by\n    ring_nf at h4 ⊢\n    exact h4\n\n  -- Multiply the whole equation by (a * b)\n  -- (a * b) * (1/b^2 + 1/a^2 - 2/(ab)) = a * b\n  -- a/b + b/a - 2 = a * b\n  have h6 : a / b + b / a - 2 = a * b := by\n    field_simp [ha, hb]\n    linear_combination h5 * (a^2 * b^2) / (a * b)\n  \n  -- Rearrange to get the final result\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h2\nhas type\n  a - b = a * b\nbut is expected to have type\n  1 / b - 1 / a = 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 4
+            },
+            "endPos": {
+              "line": 34,
+              "column": 22
+            },
+            "data": "ring failed, ring expressions not equal\na b : ℝ\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\nhab : a * b ≠ 0\nh2 : (a - b) / (a * b) = 1\nh3 : 1 / b - 1 / a = 1\nh4 : (1 / b - 1 / a) ^ 2 = 1\nh5 : 1 / b ^ 2 + 1 / a ^ 2 - 2 / (a * b) = 1\n⊢ -(a * b * 2) + (a ^ 2 - a ^ 2 * b ^ 2) + (a ^ 2 * b ^ 2 * a⁻¹ * b⁻¹ - a ^ 2 * b ^ 2 * a⁻¹ * b⁻¹ ^ 3) +\n        (a ^ 2 * b ^ 2 * a⁻¹ ^ 2 * b⁻¹ ^ 2 * Nat.rawCast 2 - a ^ 2 * b ^ 2 * a⁻¹ ^ 3 * b⁻¹) +\n      b ^ 2 =\n    0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5084872245788574
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe the relationship between the expression $a/b + b/a - ab$ and the constraint $ab = a - b$.\n\n**Proof Sketch:**\n1.  Starting with $a/b + b/a$, combine the terms into a single fraction: $(a^2 + b^2) / (ab)$.\n2.  Use the algebraic identity $a^2 + b^2 = (a - b)^2 + 2ab$.\n3.  Substitute the given constraint $a - b = ab$ into the identity to get $a^2 + b^2 = (ab)^2 + 2ab$.\n4.  Substitute this back into the combined fraction: $(a^2 + b^2) / (ab) = ((ab)^2 + 2ab) / (ab)$.\n5.  Simplify the fraction: $((ab)^2 / (ab)) + (2ab / ab) = ab + 2$.\n6.  The expression becomes $(ab + 2) - ab$.\n7.  The $ab$ terms cancel out, leaving exactly $2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract non-zero assumptions\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n  \n  -- Step 1: Combine the fractions a/b + b/a\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by \n      field_simp [ha, hb]\n    _ = (a^2 + b^2) / (a * b) - a * b := by \n      ring_nf\n    -- Step 2: Use identity a^2 + b^2 = (a - b)^2 + 2ab\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by \n      ring_nf\n    -- Step 3: Substitute the condition a - b = a * b\n    _ = ((a * b)^2 + 2 * (a * b)) / (a * b) - a * b := by \n      rw [h₁]\n    -- Step 4: Simplify the fraction\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by \n      ring_nf\n    _ = (a * b + 2) - a * b := by \n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by \n      ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract non-zero assumptions\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n  \n  -- Step 1: Combine the fractions a/b + b/a\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by \n      field_simp [ha, hb]\n    _ = (a^2 + b^2) / (a * b) - a * b := by \n      ring_nf\n    -- Step 2: Use identity a^2 + b^2 = (a - b)^2 + 2ab\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by \n      ring_nf\n    -- Step 3: Substitute the condition a - b = a * b\n    _ = ((a * b)^2 + 2 * (a * b)) / (a * b) - a * b := by \n      rw [h₁]\n    -- Step 4: Simplify the fraction\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by \n      ring_nf\n    _ = (a * b + 2) - a * b := by \n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by \n      ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 55
+            },
+            "endPos": {
+              "line": 25,
+              "column": 13
+            },
+            "data": "unsolved goals\na b : ℝ\nh₁ : a * b = a - b\nha : a ≠ 0\nhb : b ≠ 0\nhab : a * b ≠ 0\n⊢ ((a - b) ^ 2 + 2 * a * b) / (a - b) - (a - b) = ((a - b) ^ 2 + 2 * (a - b)) / (a - b) - (a - b)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.40309619903564453
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "To prove the identity $a/b + b/a - ab = 2$ given $ab = a - b$ and $a, b \\neq 0$, we follow these steps:\n\n1.  **Simplify the expression $a/b + b/a$**: \n    Combine the fractions over a common denominator: $\\frac{a}{b} + \\frac{b}{a} = \\frac{a^2 + b^2}{ab}$.\n2.  **Express $a^2 + b^2$ in terms of $(a-b)$**: \n    Using the identity $(a-b)^2 = a^2 - 2ab + b^2$, we have $a^2 + b^2 = (a-b)^2 + 2ab$.\n3.  **Substitute the given condition**: \n    Replace $a-b$ with $ab$ in the numerator: $a^2 + b^2 = (ab)^2 + 2ab$.\n4.  **Evaluate the full expression**:\n    $\\frac{a^2 + b^2}{ab} - ab = \\frac{(ab)^2 + 2ab}{ab} - ab$.\n5.  **Simplify**:\n    Since $a, b \\neq 0$, then $ab \\neq 0$. Dividing the numerator by $ab$ gives $(ab + 2) - ab = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  -- Start with the left hand side\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by\n      rw [add_div' _ _ _ h₀.2 h₀.1, mul_comm b a]\n    _ = (a^2 + b^2) / (a * b) - a * b := by\n      rw [pow_two, pow_two]\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * (a * b)) / (a * b) - a * b := by\n      rw [h₁]\n    _ = (a * b) * (a * b + 2) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left _ hab]\n    _ = 2 := by\n      ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  -- Start with the left hand side\n  calc\n    a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b := by\n      rw [add_div' _ _ _ h₀.2 h₀.1, mul_comm b a]\n    _ = (a^2 + b^2) / (a * b) - a * b := by\n      rw [pow_two, pow_two]\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * (a * b)) / (a * b) - a * b := by\n      rw [h₁]\n    _ = (a * b) * (a * b + 2) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left _ hab]\n    _ = 2 := by\n      ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 10
+            },
+            "endPos": {
+              "line": 14,
+              "column": 34
+            },
+            "data": "Function expected at\n  add_div' ?m.327 ?m.328 b h₀.right\nbut this term has type\n  ?m.328 + ?m.327 / b = (?m.328 * b + ?m.327) / b\n\nNote: Expected a function because this term is being applied to the argument\n  h₀.1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 65
+            },
+            "endPos": {
+              "line": 14,
+              "column": 49
+            },
+            "data": "unsolved goals\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nhab : a * b ≠ 0\n⊢ a / b + b / a - a * b = (a * a + b * b) / (a * b) - a * b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 55
+            },
+            "endPos": {
+              "line": 20,
+              "column": 13
+            },
+            "data": "unsolved goals\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nhab : a * b ≠ 0\n⊢ ((a - b) ^ 2 + 2 * a * b) / (a - b) - (a - b) = ((a - b) ^ 2 + 2 * (a - b)) / (a - b) - (a - b)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 10
+            },
+            "endPos": {
+              "line": 24,
+              "column": 35
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?m.345 * ?m.346 / ?m.345\nin the target expression\n  a * b * (a * b + 2) / (a * b) - a * b = a * b + 2 - a * b\n\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nhab : a * b ≠ 0\n⊢ a * b * (a * b + 2) / (a * b) - a * b = a * b + 2 - a * b"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.30206799507141113
+      }
+    },
+    {
+      "index": 29,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we observe that the expression we want to evaluate is $X = \\frac{a}{b} + \\frac{b}{a} - ab$. \n\n1.  **Simplify the sum of fractions**: $\\frac{a}{b} + \\frac{b}{a} = \\frac{a^2 + b^2}{ab}$.\n2.  **Relate $a^2 + b^2$ to $ab$**: We know $a - b = ab$. Squaring both sides gives $(a - b)^2 = (ab)^2$, which expands to $a^2 - 2ab + b^2 = (ab)^2$.\n3.  **Substitute**: From the expansion, $a^2 + b^2 = (ab)^2 + 2ab$.\n4.  **Substitute into $X$**:\n    $X = \\frac{(ab)^2 + 2ab}{ab} - ab$\n    $X = \\frac{ab(ab + 2)}{ab} - ab$\n    Since $a, b \\neq 0$, we have $ab \\neq 0$, so we can cancel $ab$:\n    $X = (ab + 2) - ab = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  -- Express a/b + b/a in terms of a, b, and ab\n  have h2 : a / b + b / a = (a^2 + b^2) / (a * b) := by\n    field_simp [h₀.1, h₀.2]\n    ring\n  -- Use h₁ to relate a^2 + b^2 to (a*b)\n  -- From a * b = a - b, square both sides:\n  have h3 : (a * b)^2 = (a - b)^2 := by rw [h₁]\n  have h4 : (a - b)^2 = a^2 + b^2 - 2 * a * b := by ring\n  -- So (a * b)^2 = a^2 + b^2 - 2 * a * b => a^2 + b^2 = (a * b)^2 + 2 * a * b\n  have h5 : a^2 + b^2 = (a * b)^2 + 2 * a * b := by\n    rw [h3] at h4\n    linarith\n  -- Substitute h5 into h2\n  rw [h2, h5]\n  -- Simplify ( (ab)^2 + 2ab ) / ab - ab\n  field_simp [hab]\n  ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  -- Express a/b + b/a in terms of a, b, and ab\n  have h2 : a / b + b / a = (a^2 + b^2) / (a * b) := by\n    field_simp [h₀.1, h₀.2]\n    ring\n  -- Use h₁ to relate a^2 + b^2 to (a*b)\n  -- From a * b = a - b, square both sides:\n  have h3 : (a * b)^2 = (a - b)^2 := by rw [h₁]\n  have h4 : (a - b)^2 = a^2 + b^2 - 2 * a * b := by ring\n  -- So (a * b)^2 = a^2 + b^2 - 2 * a * b => a^2 + b^2 = (a * b)^2 + 2 * a * b\n  have h5 : a^2 + b^2 = (a * b)^2 + 2 * a * b := by\n    rw [h3] at h4\n    linarith\n  -- Substitute h5 into h2\n  rw [h2, h5]\n  -- Simplify ( (ab)^2 + 2ab ) / ab - ab\n  field_simp [hab]\n  ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 8
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 8
+            },
+            "endPos": {
+              "line": 21,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (a * b) ^ 2\nin the target expression\n  (a - b) ^ 2 = a ^ 2 + b ^ 2 - 2 * a * b\n\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nhab : a * b ≠ 0\nh2 : a / b + b / a = (a ^ 2 + b ^ 2) / (a * b)\nh3 : (a * b) ^ 2 = (a - b) ^ 2\nh4 : (a - b) ^ 2 = a ^ 2 + b ^ 2 - 2 * a * b\n⊢ a ^ 2 + b ^ 2 = (a * b) ^ 2 + 2 * a * b"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 31
+            },
+            "endPos": {
+              "line": 27,
+              "column": 6
+            },
+            "data": "unsolved goals\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nhab : a * b ≠ 0\nh2 : a / b + b / a = (a ^ 2 + b ^ 2) / (a * b)\nh3 : (a * b) ^ 2 = (a - b) ^ 2\nh4 : (a - b) ^ 2 = a ^ 2 + b ^ 2 - 2 * a * b\nh5 : a ^ 2 + b ^ 2 = (a * b) ^ 2 + 2 * a * b\n⊢ a * b * a⁻¹ * b⁻¹ * 2 = 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.409928560256958
+      }
+    },
+    {
+      "index": 30,
+      "status": "FAILED",
+      "raw_text": "To prove the identity $\\frac{a}{b} + \\frac{b}{a} - ab = 2$ given $ab = a - b$ and $a, b \\neq 0$:\n\n1.  **Simplify the LHS fraction**: Combine $\\frac{a}{b} + \\frac{b}{a}$ into $\\frac{a^2 + b^2}{ab}$.\n2.  **Use the algebraic identity**: Note that $a^2 + b^2 = (a - b)^2 + 2ab$.\n3.  **Substitute the condition**: Replace $(a - b)$ with $ab$ based on the given $ab = a - b$.\n4.  **Simplify**:\n    $$\\frac{a^2 + b^2}{ab} = \\frac{(a-b)^2 + 2ab}{ab} = \\frac{(ab)^2 + 2ab}{ab} = \\frac{ab(ab + 2)}{ab}$$\n5.  **Final Step**: Since $ab \\neq 0$, the expression reduces to $(ab + 2)$. Subtracting $ab$ yields $(ab + 2) - ab = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  calc\n    a / b + b / a - a * b = (a^2 + b^2) / (a * b) - a * b := by\n      field_simp [h₀.1, h₀.2]\n      ring\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * a * b) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  calc\n    a / b + b / a - a * b = (a^2 + b^2) / (a * b) - a * b := by\n      field_simp [h₀.1, h₀.2]\n      ring\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * a * b) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_div_cancel_left₀ _ hab]\n    _ = 2 := by\n      ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 6
+            },
+            "endPos": {
+              "line": 14,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.32498788833618164
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "To prove that $a/b + b/a - ab = 2$ given $ab = a - b$ and $a, b \\neq 0$, we follow these steps:\n\n1.  **Manipulate the target expression**: Rewrite the sum of fractions $a/b + b/a$ using a common denominator:\n    $$\\frac{a}{b} + \\frac{b}{a} = \\frac{a^2 + b^2}{ab}$$\n2.  **Relate $a^2 + b^2$ to $a-b$**: Recall the identity $(a-b)^2 = a^2 - 2ab + b^2$. This implies $a^2 + b^2 = (a-b)^2 + 2ab$.\n3.  **Substitute the given condition**: Use $a-b = ab$ in the identity from step 2:\n    $$a^2 + b^2 = (ab)^2 + 2ab$$\n4.  **Substitute into the target expression**:\n    $$\\frac{a^2 + b^2}{ab} - ab = \\frac{(ab)^2 + 2ab}{ab} - ab$$\n5.  **Simplify**: Since $a, b \\neq 0$, $ab \\neq 0$. Dividing through by $ab$:\n    $$\\frac{(ab)^2}{ab} + \\frac{2ab}{ab} - ab = ab + 2 - ab = 2$$\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  field_simp [h₀.1, h₀.2, hab]\n  -- Target is now (a^2 + b^2 - (a * b)^2) / (a * b) = 2\n  -- Which is equivalent to a^2 + b^2 - (a * b)^2 = 2 * a * b\n  rw [eq_div_iff hab]\n  -- Rearrange to a^2 - 2*a*b + b^2 = (a * b)^2\n  have h_sq : (a - b)^2 = a^2 - 2 * a * b + b^2 := by ring\n  rw [← h₁] at h_sq\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  have hab : a * b ≠ 0 := mul_ne_zero h₀.1 h₀.2\n  field_simp [h₀.1, h₀.2, hab]\n  -- Target is now (a^2 + b^2 - (a * b)^2) / (a * b) = 2\n  -- Which is equivalent to a^2 + b^2 - (a * b)^2 = 2 * a * b\n  rw [eq_div_iff hab]\n  -- Rearrange to a^2 - 2*a*b + b^2 = (a * b)^2\n  have h_sq : (a - b)^2 = a^2 - 2 * a * b + b^2 := by ring\n  rw [← h₁] at h_sq\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 6
+            },
+            "endPos": {
+              "line": 14,
+              "column": 20
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?m.64 = ?m.62 / (a * b)\nin the target expression\n  a ^ 2 + b ^ 2 - a ^ 2 * b ^ 2 = a * b * 2\n\na b : ℝ\nh₀ : a ≠ 0 ∧ b ≠ 0\nh₁ : a * b = a - b\nhab : a * b ≠ 0\n⊢ a ^ 2 + b ^ 2 - a ^ 2 * b ^ 2 = a * b * 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.10668063163757324
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we start with the given equation $ab = a - b$. We want to find the value of $E = \\frac{a}{b} + \\frac{b}{a} - ab$.\n\n**Proof Sketch:**\n1.  From $ab = a - b$, we can divide by $ab$ (since $a, b \\neq 0$) to get $1 = \\frac{a - b}{ab} = \\frac{1}{b} - \\frac{1}{a}$.\n2.  Rearrange this to $\\frac{1}{b} - \\frac{1}{a} = 1$.\n3.  The expression we want to evaluate is $\\frac{a}{b} + \\frac{b}{a} - ab$.\n4.  Write the sum of fractions with a common denominator: $\\frac{a}{b} + \\frac{b}{a} = \\frac{a^2 + b^2}{ab}$.\n5.  Recall the identity $a^2 + b^2 = (a - b)^2 + 2ab$.\n6.  Substitute this into the expression: $\\frac{(a - b)^2 + 2ab}{ab} - ab = \\frac{(a - b)^2}{ab} + \\frac{2ab}{ab} - ab$.\n7.  Simplify: $\\frac{(a - b)^2}{ab} + 2 - ab$.\n8.  From $ab = a - b$, we have $(a - b)^2 = (ab)^2$.\n9.  Substitute $(a - b)^2$ with $(ab)^2$: $\\frac{(ab)^2}{ab} + 2 - ab = ab + 2 - ab = 2$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n  \n  -- Express the target expression with a common denominator\n  calc\n    a / b + b / a - a * b = (a^2 + b^2) / (a * b) - a * b := by\n      field_simp [ha, hb]\n      ring\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * a * b) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_comm, mul_div_assoc, div_self hab, mul_one]\n    _ = 2 := by\n      ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem amc12_2000_p11 (a b : ℝ) (h₀ : a ≠ 0 ∧ b ≠ 0) (h₁ : a * b = a - b) :\n  a / b + b / a - a * b = 2 := by\n  -- Extract individual non-zero hypotheses\n  rcases h₀ with ⟨ha, hb⟩\n  have hab : a * b ≠ 0 := mul_ne_zero ha hb\n  \n  -- Express the target expression with a common denominator\n  calc\n    a / b + b / a - a * b = (a^2 + b^2) / (a * b) - a * b := by\n      field_simp [ha, hb]\n      ring\n    _ = ((a - b)^2 + 2 * a * b) / (a * b) - a * b := by\n      ring_nf\n    _ = ((a * b)^2 + 2 * a * b) / (a * b) - a * b := by\n      rw [← h₁]\n    _ = (a * b * (a * b + 2)) / (a * b) - a * b := by\n      ring_nf\n    _ = (a * b + 2) - a * b := by\n      rw [mul_comm, mul_div_assoc, div_self hab, mul_one]\n    _ = 2 := by\n      ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 6
+            },
+            "endPos": {
+              "line": 18,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2991631031036377
+      }
+    }
+  ]
+}

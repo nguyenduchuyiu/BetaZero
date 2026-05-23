@@ -1,0 +1,2008 @@
+{
+  "problem": "problems/miniF2F-test/mathd_numbertheory_64.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 16:05:48",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 0,
+    "completed_count": 0,
+    "solved": false
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ such that $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the Set**: Let $S = \\{x \\in \\mathbb{n} \\mid 30x \\equiv 42 \\pmod{47}\\}$.\n2.  **Solve the Linear Congruence**: \n    - Since 47 is prime and $30 < 47$, $\\gcd(30, 47) = 1$. Thus, 30 has a modular inverse modulo 47.\n    - We find $30^{-1} \\pmod{47}$. By calculation (or the extended Euclidean algorithm): $30 \\cdot 11 = 330 = 47 \\cdot 7 + 1$. So, $30^{-1} \\equiv 11 \\pmod{47}$.\n    - Multiply both sides of $30x \\equiv 42 \\pmod{47}$ by 11:\n      $x \\equiv 42 \\cdot 11 = 462 \\pmod{47}$.\n    - Reduce 462 modulo 47: $462 = 47 \\cdot 9 + 39$.\n    - Thus, $x \\equiv 39 \\pmod{47}$.\n3.  **Identify the Least Element**:\n    - The set $S$ consists of all natural numbers of the form $39 + 47k$ for $k \\in \\{0, 1, 2, \\dots\\}$.\n    - The smallest such natural number is $39$ (when $k=0$).\n4.  **Verification**: \n    - Check $30 \\cdot 39 = 1170$.\n    - $1170 = 24 \\cdot 47 + 42$, so $1170 \\equiv 42 \\pmod{47}$. This confirms 39 is in the set.\n    - Since $x \\equiv 39 \\pmod{47}$ and $x \\ge 0$, the smallest value is 39.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Show 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    rw [show 30 * 39 = 1170 by norm_num]\n    norm_num\n  · -- Show 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- Since 47 is prime and 30 is not a multiple of 47, \n    -- we can multiply by the modular inverse.\n    -- 30 * 11 = 330 = 7 * 47 + 1\n    have hinv : 30 * 11 ≡ 1 [MOD 47] := by norm_num [Nat.ModEq]\n    have : 11 * (30 * x) ≡ 11 * 42 [MOD 47] := Nat.ModEq.mul_left 11 hx\n    rw [← mul_assoc, Nat.mul_comm 11 30] at this\n    have h_simple : x ≡ 11 * 42 [MOD 47] := by\n      calc\n        x ≡ 1 * x [MOD 47] := by norm_num [Nat.ModEq]\n        _ ≡ (30 * 11) * x [MOD 47] := Nat.ModEq.mul_right x hinv.symm\n        _ ≡ 11 * (30 * x) [MOD 47] := by rw [Nat.mul_comm 30 11, mul_assoc]\n        _ ≡ 11 * 42 [MOD 47] := this\n    \n    have h_final : x ≡ 39 [MOD 47] := by\n      convert h_simple using 1\n      norm_num [Nat.ModEq]\n    \n    -- From x ≡ 39 [MOD 47], x must be 39, 39+47, etc.\n    -- Therefore x >= 39.\n    have : x % 47 = 39 % 47 := h_final\n    rw [Nat.mod_eq_of_lt (by norm_num)] at this\n    have : 39 ≤ x % 47 := by rw [this]\n    exact (Nat.le_mod_at_least_of_pos x (by norm_num)).trans_left this\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Show 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    rw [show 30 * 39 = 1170 by norm_num]\n    norm_num\n  · -- Show 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- Since 47 is prime and 30 is not a multiple of 47, \n    -- we can multiply by the modular inverse.\n    -- 30 * 11 = 330 = 7 * 47 + 1\n    have hinv : 30 * 11 ≡ 1 [MOD 47] := by norm_num [Nat.ModEq]\n    have : 11 * (30 * x) ≡ 11 * 42 [MOD 47] := Nat.ModEq.mul_left 11 hx\n    rw [← mul_assoc, Nat.mul_comm 11 30] at this\n    have h_simple : x ≡ 11 * 42 [MOD 47] := by\n      calc\n        x ≡ 1 * x [MOD 47] := by norm_num [Nat.ModEq]\n        _ ≡ (30 * 11) * x [MOD 47] := Nat.ModEq.mul_right x hinv.symm\n        _ ≡ 11 * (30 * x) [MOD 47] := by rw [Nat.mul_comm 30 11, mul_assoc]\n        _ ≡ 11 * 42 [MOD 47] := this\n    \n    have h_final : x ≡ 39 [MOD 47] := by\n      convert h_simple using 1\n      norm_num [Nat.ModEq]\n    \n    -- From x ≡ 39 [MOD 47], x must be 39, 39+47, etc.\n    -- Therefore x >= 39.\n    have : x % 47 = 39 % 47 := h_final\n    rw [Nat.mod_eq_of_lt (by norm_num)] at this\n    have : 39 ≤ x % 47 := by rw [this]\n    exact (Nat.le_mod_at_least_of_pos x (by norm_num)).trans_left this",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 12
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 32
+            },
+            "endPos": {
+              "line": 30,
+              "column": 36
+            },
+            "data": "Type mismatch\n  this\nhas type\n  30 * 11 * x ≡ 11 * 42 [MOD 47]\nbut is expected to have type\n  11 * (30 * x) ≡ 11 * 42 [MOD 47]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 38
+            },
+            "endPos": {
+              "line": 34,
+              "column": 26
+            },
+            "data": "unsolved goals\ncase h.e'_3\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\nhinv : 30 * 11 ≡ 1 [MOD 47]\nthis : 30 * 11 * x ≡ 11 * 42 [MOD 47]\nh_simple : x ≡ 11 * 42 [MOD 47]\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 39,
+              "column": 26
+            },
+            "endPos": {
+              "line": 39,
+              "column": 37
+            },
+            "data": "unsolved goals\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\nhinv : 30 * 11 ≡ 1 [MOD 47]\nthis✝ : 30 * 11 * x ≡ 11 * 42 [MOD 47]\nh_simple : x ≡ 11 * 42 [MOD 47]\nh_final : x ≡ 39 [MOD 47]\nthis : x % 47 = 39 % 47\n⊢ x < 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 41,
+              "column": 11
+            },
+            "endPos": {
+              "line": 41,
+              "column": 37
+            },
+            "data": "Unknown constant `Nat.le_mod_at_least_of_pos`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3696012496948242
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "To prove that $39$ is the least natural number satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the Set**: Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$.\n2.  **Solve the Linear Congruence**: \n    *   The modular inverse of $30$ modulo $47$ is $11$, since $30 \\times 11 = 330 = 47 \\times 7 + 1 \\equiv 1 \\pmod{47}$.\n    *   Multiply both sides of $30x \\equiv 42 \\pmod{47}$ by $11$:\n        $x \\equiv 42 \\times 11 \\pmod{47}$.\n    *   Calculate $42 \\times 11 = 462$.\n    *   Reduce modulo $47$: $462 = 47 \\times 9 + 39$. Thus $x \\equiv 39 \\pmod{47}$.\n3.  **Identify Natural Solutions**: The set $S$ consists of all $x \\in \\mathbb{N}$ such that $x = 39 + 47k$ for some integer $k$. Since $x \\ge 0$, the possible values for $k$ are $0, 1, 2, \\dots$.\n4.  **Least Element**: The smallest such $x$ occurs when $k=0$, yielding $x=39$. \n5.  **Verification**: \n    *   $39 \\in S$ because $30 \\times 39 = 1170 = 24 \\times 47 + 42 \\equiv 42 \\pmod{47}$.\n    *   For any $x < 39$, $x \\equiv 39 \\pmod{47}$ implies $x$ cannot be a non-negative integer smaller than $39$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    -- Convert Nat.ModEq to a property about divisibility/modular arithmetic\n    have h : 47 ∣ 30 * x - 42 ∨ 47 ∣ 42 - 30 * x := by\n      exact Nat.dvd_abs_sub_of_modEq hx\n    -- Use modular arithmetic in Z for easier manipulation\n    have h_int : (30 : ℤ) * x ≡ 42 [ZMOD 47] := by\n      exact Int.modEq_iff_nat_modEq.mpr hx\n    -- The inverse of 30 modulo 47 is 11\n    have h_inv : (11 : ℤ) * 30 ≡ 1 [ZMOD 47] := by\n      norm_num\n    -- Multiply the congruence by 11\n    have h_mul : 11 * (30 * x) ≡ 11 * 42 [ZMOD 47] := by\n      exact Int.ModEq.mul_left 11 h_int\n    rw [← mul_assoc] at h_mul\n    have h_final : (1 : ℤ) * x ≡ 462 [ZMOD 47] := by\n      apply Int.ModEq.trans _ h_mul\n      apply Int.ModEq.mul_right\n      exact h_inv\n    simp only [one_mul] at h_final\n    -- 462 % 47 = 39\n    have h_39 : 462 ≡ 39 [ZMOD 47] := by\n      norm_num\n    have h_x_39 : (x : ℤ) ≡ 39 [ZMOD 47] := Int.ModEq.trans h_final h_39\n    -- x = 39 + 47k for some integer k\n    rcases Int.modEq_iff_add_fac.mp h_x_39 with ⟨k, rfl⟩\n    -- Since x is a natural number, x >= 0\n    have : 0 ≤ 39 + 47 * k := by exact Int.ofNat_nonneg x\n    -- If k < 0, then k <= -1, so 39 + 47k <= 39 - 47 = -8, contradiction\n    have k_nonneg : 0 ≤ k := by\n      by_contra hk\n      have : k ≤ -1 := Int.lt_add_one_iff.mp (lt_of_not_ge hk)\n      have : 39 + 47 * k ≤ 39 + 47 * (-1) := add_le_add_left (Int.mul_le_mul_of_nonneg_left this (by norm_num)) 39\n      linarith\n    -- Since k >= 0, x = 39 + 47k >= 39\n    have : 39 ≤ 39 + 47 * k := by\n      convert add_le_add_left (Int.mul_nonneg (by norm_num : (0 : ℤ) ≤ 47) k_nonneg) 39\n      simp\n    exact Int.ofNat_le.mp this\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    -- Convert Nat.ModEq to a property about divisibility/modular arithmetic\n    have h : 47 ∣ 30 * x - 42 ∨ 47 ∣ 42 - 30 * x := by\n      exact Nat.dvd_abs_sub_of_modEq hx\n    -- Use modular arithmetic in Z for easier manipulation\n    have h_int : (30 : ℤ) * x ≡ 42 [ZMOD 47] := by\n      exact Int.modEq_iff_nat_modEq.mpr hx\n    -- The inverse of 30 modulo 47 is 11\n    have h_inv : (11 : ℤ) * 30 ≡ 1 [ZMOD 47] := by\n      norm_num\n    -- Multiply the congruence by 11\n    have h_mul : 11 * (30 * x) ≡ 11 * 42 [ZMOD 47] := by\n      exact Int.ModEq.mul_left 11 h_int\n    rw [← mul_assoc] at h_mul\n    have h_final : (1 : ℤ) * x ≡ 462 [ZMOD 47] := by\n      apply Int.ModEq.trans _ h_mul\n      apply Int.ModEq.mul_right\n      exact h_inv\n    simp only [one_mul] at h_final\n    -- 462 % 47 = 39\n    have h_39 : 462 ≡ 39 [ZMOD 47] := by\n      norm_num\n    have h_x_39 : (x : ℤ) ≡ 39 [ZMOD 47] := Int.ModEq.trans h_final h_39\n    -- x = 39 + 47k for some integer k\n    rcases Int.modEq_iff_add_fac.mp h_x_39 with ⟨k, rfl⟩\n    -- Since x is a natural number, x >= 0\n    have : 0 ≤ 39 + 47 * k := by exact Int.ofNat_nonneg x\n    -- If k < 0, then k <= -1, so 39 + 47k <= 39 - 47 = -8, contradiction\n    have k_nonneg : 0 ≤ k := by\n      by_contra hk\n      have : k ≤ -1 := Int.lt_add_one_iff.mp (lt_of_not_ge hk)\n      have : 39 + 47 * k ≤ 39 + 47 * (-1) := add_le_add_left (Int.mul_le_mul_of_nonneg_left this (by norm_num)) 39\n      linarith\n    -- Since k >= 0, x = 39 + 47k >= 39\n    have : 39 ≤ 39 + 47 * k := by\n      convert add_le_add_left (Int.mul_nonneg (by norm_num : (0 : ℤ) ≤ 47) k_nonneg) 39\n      simp\n    exact Int.ofNat_le.mp this",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 12
+            },
+            "endPos": {
+              "line": 19,
+              "column": 36
+            },
+            "data": "Unknown constant `Nat.dvd_abs_sub_of_modEq`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 12
+            },
+            "endPos": {
+              "line": 22,
+              "column": 39
+            },
+            "data": "Unknown constant `Int.modEq_iff_nat_modEq.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 40,
+              "column": 52
+            },
+            "endPos": {
+              "line": 40,
+              "column": 55
+            },
+            "data": "Tactic `subst` failed: invalid equality proof, it is not of the form (x = t) or (t = x)\n  39 = ↑x + 47 * k\n\ncase refine_2\nx : ℕ\nhx : x ∈ {x | 30 * x ≡ 42 [MOD 47]}\nh : 47 ∣ 30 * x - 42 ∨ 47 ∣ 42 - 30 * x\nh_int : 30 * ↑x ≡ 42 [ZMOD 47]\nh_inv : 11 * 30 ≡ 1 [ZMOD 47]\nh_mul : 11 * 30 * ↑x ≡ 11 * 42 [ZMOD 47]\nh_final : ↑x ≡ 462 [ZMOD 47]\nh_39 : 462 ≡ 39 [ZMOD 47]\nh_x_39 : ↑x ≡ 39 [ZMOD 47]\nk : ℤ\nh✝ : 39 = ↑x + 47 * k\n⊢ 39 ≤ x"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.11336517333984375
+      }
+    },
+    {
+      "index": 3,
+      "status": "FAILED",
+      "raw_text": "To prove that $39$ is the least natural number satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the Set**: Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$. We need to show that $39 \\in S$ and for any $x \\in S$, $39 \\le x$.\n2.  **Solve the Congruence**: \n    *   Since $47$ is prime, we can find the modular inverse of $30$ modulo $47$.\n    *   $30x \\equiv 42 \\pmod{47}$ simplifies by dividing both sides by $6$ (since $\\gcd(6, 47)=1$): $5x \\equiv 7 \\pmod{47}$.\n    *   Multiply by $19$ (the inverse of $5$ mod $47$, as $5 \\times 19 = 95 = 2 \\times 47 + 1$):\n        $x \\equiv 7 \\times 19 = 133 \\pmod{47}$.\n    *   $133 = 2 \\times 47 + 39$, so $x \\equiv 39 \\pmod{47}$.\n3.  **Membership**: Check $39 \\in S$: $30 \\times 39 = 1170$. $1170 = 24 \\times 47 + 42$, so $1170 \\equiv 42 \\pmod{47}$.\n4.  **Minimality**: Since $x \\equiv 39 \\pmod{47}$, any $x \\in S$ is of the form $47k + 39$ for some integer $k$. For $x$ to be a natural number, $47k \\ge -39$, meaning $k \\ge 0$. The smallest such $x$ is $47(0) + 39 = 39$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?mem, ?least⟩\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove 39 is the least element\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- 30 * x ≡ 42 [MOD 47] implies 5 * x ≡ 7 [MOD 47]\n    -- because 30 = 6 * 5 and 42 = 6 * 7, and gcd(6, 47) = 1\n    have h1 : (6 * (5 * x)) % 47 = (6 * 7) % 47 := hx\n    have h2 : (5 * x) % 47 = 7 % 47 := by\n      apply Nat.mul_left_cancel_mod 6 47 (5 * x) 7\n      norm_num\n    -- Multiply by 19, since 5 * 19 = 95 ≡ 1 [MOD 47]\n    have h3 : (19 * (5 * x)) % 47 = (19 * 7) % 47 := by\n      rw [← Nat.mul_mod, h2, Nat.mul_mod]\n    have h4 : (95 * x) % 47 = 133 % 47 := by\n      rw [← Nat.mul_assoc] at h3\n      exact h3\n    -- Simplify 95 % 47 = 1 and 133 % 47 = 39\n    have h5 : (1 * x) % 47 = 39 % 47 := by\n      convert h4 using 1\n      · rw [Nat.mul_mod, show 95 % 47 = 1 by norm_num]\n        simp\n      · norm_num\n    -- x % 47 = 39 implies x = 47 * k + 39\n    have h6 : x % 47 = 39 := by\n      rw [Nat.one_mul] at h5\n      exact h5\n    -- Since x % 47 = 39, x must be at least 39\n    exact Nat.le_of_mod_lt h6 (by norm_num)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?mem, ?least⟩\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove 39 is the least element\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- 30 * x ≡ 42 [MOD 47] implies 5 * x ≡ 7 [MOD 47]\n    -- because 30 = 6 * 5 and 42 = 6 * 7, and gcd(6, 47) = 1\n    have h1 : (6 * (5 * x)) % 47 = (6 * 7) % 47 := hx\n    have h2 : (5 * x) % 47 = 7 % 47 := by\n      apply Nat.mul_left_cancel_mod 6 47 (5 * x) 7\n      norm_num\n    -- Multiply by 19, since 5 * 19 = 95 ≡ 1 [MOD 47]\n    have h3 : (19 * (5 * x)) % 47 = (19 * 7) % 47 := by\n      rw [← Nat.mul_mod, h2, Nat.mul_mod]\n    have h4 : (95 * x) % 47 = 133 % 47 := by\n      rw [← Nat.mul_assoc] at h3\n      exact h3\n    -- Simplify 95 % 47 = 1 and 133 % 47 = 39\n    have h5 : (1 * x) % 47 = 39 % 47 := by\n      convert h4 using 1\n      · rw [Nat.mul_mod, show 95 % 47 = 1 by norm_num]\n        simp\n      · norm_num\n    -- x % 47 = 39 implies x = 47 * k + 39\n    have h6 : x % 47 = 39 := by\n      rw [Nat.one_mul] at h5\n      exact h5\n    -- Since x % 47 = 39, x must be at least 39\n    exact Nat.le_of_mod_lt h6 (by norm_num)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 51
+            },
+            "endPos": {
+              "line": 20,
+              "column": 53
+            },
+            "data": "Type mismatch\n  hx\nhas type\n  x ∈ {x | 30 * x % 47 = 42 % 47}\nbut is expected to have type\n  6 * (5 * x) % 47 = 6 * 7 % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 12
+            },
+            "endPos": {
+              "line": 22,
+              "column": 35
+            },
+            "data": "Unknown constant `Nat.mul_left_cancel_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 6
+            },
+            "endPos": {
+              "line": 23,
+              "column": 14
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 10
+            },
+            "endPos": {
+              "line": 26,
+              "column": 23
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a % ?n * (?b % ?n) % ?n\nin the target expression\n  19 * (5 * x) % 47 = 19 * 7 % 47\n\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\nh1 : 6 * (5 * x) % 47 = 6 * 7 % 47\nh2 : 5 * x % 47 = 7 % 47\n⊢ 19 * (5 * x) % 47 = 19 * 7 % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 6
+            },
+            "endPos": {
+              "line": 34,
+              "column": 12
+            },
+            "data": "unsolved goals\ncase h.e'_2\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\nh1 : 6 * (5 * x) % 47 = 6 * 7 % 47\nh2 : 5 * x % 47 = 7 % 47\nh3 : 19 * (5 * x) % 47 = 19 * 7 % 47\nh4 : 95 * x % 47 = 133 % 47\n⊢ x % 47 = 95 * x % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 6
+            },
+            "endPos": {
+              "line": 35,
+              "column": 16
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 41,
+              "column": 10
+            },
+            "endPos": {
+              "line": 41,
+              "column": 43
+            },
+            "data": "Function expected at\n  le_of_mod_lt ?m.295\nbut this term has type\n  ?m.294 ≤ ?m.293\n\nNote: Expected a function because this term is being applied to the argument\n  (by norm_num)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 41,
+              "column": 27
+            },
+            "endPos": {
+              "line": 41,
+              "column": 29
+            },
+            "data": "Application type mismatch: The argument\n  h6\nhas type\n  x % 47 = 39\nbut is expected to have type\n  ?m.293 % ?m.294 < ?m.293\nin the application\n  le_of_mod_lt h6"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.21424102783203125
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the Set:** Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$.\n2.  **Solve the Linear Congruence:** Since 47 is prime and $\\gcd(30, 47) = 1$, the congruence $30x \\equiv 42 \\pmod{47}$ has a unique solution modulo 47.\n3.  **Find the Modular Inverse:** We need to solve $30x \\equiv 42 \\pmod{47}$. Multiplying both sides by the modular inverse of 30 modulo 47:\n    *   By the extended Euclidean algorithm: $47(11) + 30(-17) = 517 - 510 = 7$ (not quite).\n    *   Alternative: $30 \\cdot 3 = 90 \\equiv -4 \\pmod{47}$.\n    *   $30 \\cdot 11 = 330 = 7 \\cdot 47 + 1 \\implies 30^{-1} \\equiv 11 \\pmod{47}$.\n4.  **Calculate $x$:**\n    *   $x \\equiv 42 \\cdot 11 \\pmod{47}$\n    *   $42 \\cdot 11 = 462$\n    *   $462 = 47 \\cdot 9 + 39$\n    *   So, $x \\equiv 39 \\pmod{47}$.\n5.  **Identify the Least Element:** The set $S$ consists of natural numbers of the form $39 + 47k$ for $k \\in \\{0, 1, 2, \\dots\\}$. The smallest such natural number is $39$ (when $k=0$).\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Show that 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    calc\n      30 * 39 = 1170 := by norm_num\n      _ = 47 * 24 + 42 := by norm_num\n      _ ≡ 42 [MOD 47] := by apply modeq_add_self_left\n  · -- Show that 39 is the lower bound\n    intro n hn\n    show 39 ≤ n\n    have h : 30 * n ≡ 30 * 39 [MOD 47] := by\n      trans 42\n      · exact hn\n      · symm\n        show 30 * 39 ≡ 42 [MOD 47]\n        calc\n          30 * 39 = 1170 := by norm_num\n          _ = 47 * 24 + 42 := by norm_num\n          _ ≡ 42 [MOD 47] := by apply modeq_add_self_left\n    -- Since gcd(30, 47) = 1, we can cancel 30\n    have h_gcd : Nat.gcd 30 47 = 1 := by norm_num\n    have h_sol : n ≡ 39 [MOD 47] := (Nat.modeq_mul_left_cancel_iff h_gcd).mp h\n    -- Any n ≡ 39 [MOD 47] must be ≥ 39 if n is a natural number\n    cases n with\n    | zero => \n      exfalso\n      have : 0 ≡ 39 [MOD 47] := h_sol\n      norm_num [Nat.modeq_def] at this\n    | succ m =>\n      have : n % 47 = 39 % 47 := h_sol\n      simp at this\n      have : n % 47 = 39 := this\n      apply Nat.le_of_mod_le\n      rw [this]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Show that 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    calc\n      30 * 39 = 1170 := by norm_num\n      _ = 47 * 24 + 42 := by norm_num\n      _ ≡ 42 [MOD 47] := by apply modeq_add_self_left\n  · -- Show that 39 is the lower bound\n    intro n hn\n    show 39 ≤ n\n    have h : 30 * n ≡ 30 * 39 [MOD 47] := by\n      trans 42\n      · exact hn\n      · symm\n        show 30 * 39 ≡ 42 [MOD 47]\n        calc\n          30 * 39 = 1170 := by norm_num\n          _ = 47 * 24 + 42 := by norm_num\n          _ ≡ 42 [MOD 47] := by apply modeq_add_self_left\n    -- Since gcd(30, 47) = 1, we can cancel 30\n    have h_gcd : Nat.gcd 30 47 = 1 := by norm_num\n    have h_sol : n ≡ 39 [MOD 47] := (Nat.modeq_mul_left_cancel_iff h_gcd).mp h\n    -- Any n ≡ 39 [MOD 47] must be ≥ 39 if n is a natural number\n    cases n with\n    | zero => \n      exfalso\n      have : 0 ≡ 39 [MOD 47] := h_sol\n      norm_num [Nat.modeq_def] at this\n    | succ m =>\n      have : n % 47 = 39 % 47 := h_sol\n      simp at this\n      have : n % 47 = 39 := this\n      apply Nat.le_of_mod_le\n      rw [this]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 34
+            },
+            "endPos": {
+              "line": 15,
+              "column": 53
+            },
+            "data": "Unknown identifier `modeq_add_self_left`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 38
+            },
+            "endPos": {
+              "line": 27,
+              "column": 57
+            },
+            "data": "Unknown identifier `modeq_add_self_left`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 37
+            },
+            "endPos": {
+              "line": 30,
+              "column": 66
+            },
+            "data": "Unknown constant `Nat.modeq_mul_left_cancel_iff`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 16
+            },
+            "endPos": {
+              "line": 36,
+              "column": 29
+            },
+            "data": "Unknown constant `Nat.modeq_def`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 13
+            },
+            "endPos": {
+              "line": 38,
+              "column": 14
+            },
+            "data": "Unknown identifier `n`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 40,
+              "column": 13
+            },
+            "endPos": {
+              "line": 40,
+              "column": 14
+            },
+            "data": "Unknown identifier `n`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 41,
+              "column": 12
+            },
+            "endPos": {
+              "line": 41,
+              "column": 28
+            },
+            "data": "Unknown constant `Nat.le_of_mod_le`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 42,
+              "column": 10
+            },
+            "endPos": {
+              "line": 42,
+              "column": 14
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3450496196746826
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the Set**: Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$.\n2.  **Solve the Linear Congruence**: Since 47 is prime and $\\gcd(30, 47) = 1$, the congruence $30x \\equiv 42 \\pmod{47}$ has a unique solution modulo 47.\n3.  **Find the Inverse**: We need to find $30^{-1} \\pmod{47}$. By calculation or the extended Euclidean algorithm: $30 \\cdot 11 = 330 = 47 \\cdot 7 + 1$, so $30 \\cdot 11 \\equiv 1 \\pmod{47}$.\n4.  **Multiply by the Inverse**: \n    $x \\equiv 42 \\cdot 11 \\pmod{47}$\n    $x \\equiv 462 \\pmod{47}$\n    Since $462 = 47 \\cdot 9 + 39$, we have $x \\equiv 39 \\pmod{47}$.\n5.  **Verify Minimum**: The set $S$ consists of all $x \\in \\mathbb{N}$ such that $x = 39 + 47k$ for $k \\in \\{0, 1, 2, \\dots\\}$. The smallest such natural number is $39$ (when $k=0$).\n6.  **Formalize in Lean**: Use properties of `IsLeast` and modular arithmetic available in Mathlib.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove 39 is the lower bound\n    intro n hn\n    show 39 ≤ n\n    -- 30 * n ≡ 42 [MOD 47]\n    -- Multiply both sides by 11 (the modular inverse of 30 mod 47)\n    have h1 : 11 * (30 * n) ≡ 11 * 42 [MOD 47] := Nat.ModEq.mul_left 11 hn\n    have h2 : 11 * 30 * n ≡ 462 [MOD 47] := by\n      rw [← mul_assoc]\n      exact h1\n    -- 11 * 30 = 330 = 7 * 47 + 1\n    have h3 : 11 * 30 ≡ 1 [MOD 47] := by\n      unfold Nat.ModEq\n      norm_num\n    have h4 : 1 * n ≡ 462 [MOD 47] := Nat.ModEq.trans (Nat.ModEq.mul_right n h3).symm h2\n    have h5 : n ≡ 39 [MOD 47] := by\n      simp only [one_mul] at h4\n      unfold Nat.ModEq at h4 ⊢\n      rw [h4]\n      norm_num\n    -- If n ≡ 39 [MOD 47], then n = 47 * k + 39 for some k\n    -- Since n is a natural number, 39 ≤ n is guaranteed if we check the remainder\n    apply Nat.le_of_mod_eq_mod h5\n    norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove 39 is the lower bound\n    intro n hn\n    show 39 ≤ n\n    -- 30 * n ≡ 42 [MOD 47]\n    -- Multiply both sides by 11 (the modular inverse of 30 mod 47)\n    have h1 : 11 * (30 * n) ≡ 11 * 42 [MOD 47] := Nat.ModEq.mul_left 11 hn\n    have h2 : 11 * 30 * n ≡ 462 [MOD 47] := by\n      rw [← mul_assoc]\n      exact h1\n    -- 11 * 30 = 330 = 7 * 47 + 1\n    have h3 : 11 * 30 ≡ 1 [MOD 47] := by\n      unfold Nat.ModEq\n      norm_num\n    have h4 : 1 * n ≡ 462 [MOD 47] := Nat.ModEq.trans (Nat.ModEq.mul_right n h3).symm h2\n    have h5 : n ≡ 39 [MOD 47] := by\n      simp only [one_mul] at h4\n      unfold Nat.ModEq at h4 ⊢\n      rw [h4]\n      norm_num\n    -- If n ≡ 39 [MOD 47], then n = 47 * k + 39 for some k\n    -- Since n is a natural number, 39 ≤ n is guaranteed if we check the remainder\n    apply Nat.le_of_mod_eq_mod h5\n    norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 10
+            },
+            "endPos": {
+              "line": 21,
+              "column": 21
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a * (?b * ?c)\nin the target expression\n  11 * 30 * n ≡ 462 [MOD 47]\n\nn : ℕ\nhn : n ∈ {x | 30 * x ≡ 42 [MOD 47]}\nh1 : 11 * (30 * n) ≡ 11 * 42 [MOD 47]\n⊢ 11 * 30 * n ≡ 462 [MOD 47]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 6
+            },
+            "endPos": {
+              "line": 32,
+              "column": 14
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 10
+            },
+            "endPos": {
+              "line": 35,
+              "column": 30
+            },
+            "data": "Unknown constant `Nat.le_of_mod_eq_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 4
+            },
+            "endPos": {
+              "line": 36,
+              "column": 12
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.045481204986572266
+      }
+    },
+    {
+      "index": 6,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Congruence Simplification**: We begin with the linear congruence $30x \\equiv 42 \\pmod{47}$. Since 47 is prime and $\\gcd(30, 47) = 1$, the congruence has a unique solution modulo 47.\n2.  **Finding the Inverse**: We find the modular inverse of 30 modulo 47. Using the extended Euclidean algorithm or trial, we check $30 \\times 11 = 330 = 47 \\times 7 + 1$. Thus, $30^{-1} \\equiv 11 \\pmod{47}$.\n3.  **Solving for $x$**: Multiplying both sides of $30x \\equiv 42$ by 11 gives $x \\equiv 11 \\times 42 \\pmod{47}$.\n    Calculating $11 \\times 42 = 462$.\n    Dividing 462 by 47: $462 = 47 \\times 9 + 39$.\n    Thus, $x \\equiv 39 \\pmod{47}$.\n4.  **Least Positive Integer**: The set of solutions is $\\{x \\in \\mathbb{N} \\mid x = 39 + 47k, k \\in \\mathbb{N}\\}$. The smallest element in this set is 39 (when $k=0$).\n5.  **IsLeast Verification**: We verify that 39 satisfies the condition ($30 \\times 39 = 1170 = 47 \\times 24 + 42$) and that any $x < 39$ does not satisfy the condition.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Show 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Show 39 is the least element\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- 30 * x ≡ 42 [MOD 47] implies 30 * x = 47 * k + 42\n    -- Since 11 is the inverse of 30 mod 47:\n    have h : 11 * (30 * x) % 47 = (11 * 42) % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    -- Simplify 11 * 30 % 47\n    have h_inv : (11 * 30) % 47 = 1 := by norm_num\n    -- Simplify 11 * 42 % 47\n    have h_rhs : (11 * 42) % 47 = 39 := by norm_num\n    -- Combine to get x % 47 = 39\n    rw [mul_left_comm, Nat.mul_mod, h_inv, one_mul, Nat.mod_mod] at h\n    rw [h_rhs] at h\n    -- x % 47 = 39 implies x ≥ 39\n    exact Nat.le_of_mod_eq_bottom h\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Show 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Show 39 is the least element\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- 30 * x ≡ 42 [MOD 47] implies 30 * x = 47 * k + 42\n    -- Since 11 is the inverse of 30 mod 47:\n    have h : 11 * (30 * x) % 47 = (11 * 42) % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    -- Simplify 11 * 30 % 47\n    have h_inv : (11 * 30) % 47 = 1 := by norm_num\n    -- Simplify 11 * 42 % 47\n    have h_rhs : (11 * 42) % 47 = 39 := by norm_num\n    -- Combine to get x % 47 = 39\n    rw [mul_left_comm, Nat.mul_mod, h_inv, one_mul, Nat.mod_mod] at h\n    rw [h_rhs] at h\n    -- x % 47 = 39 implies x ≥ 39\n    exact Nat.le_of_mod_eq_bottom h",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 10
+            },
+            "endPos": {
+              "line": 21,
+              "column": 23
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a % ?n * (?b % ?n) % ?n\nin the target expression\n  11 * (30 * x) % 47 = 11 * 42 % 47\n\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\n⊢ 11 * (30 * x) % 47 = 11 * 42 % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 36
+            },
+            "endPos": {
+              "line": 27,
+              "column": 41
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  11 * 30 % 47\nin the target expression\n  30 % 47 * (11 * x % 47) % 47 = 11 * 42 % 47\n\ncase refine_2\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\nh : 30 % 47 * (11 * x % 47) % 47 = 11 * 42 % 47\nh_inv : 11 * 30 % 47 = 1\nh_rhs : 11 * 42 % 47 = 39\n⊢ 39 ≤ x"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.08272171020507812
+      }
+    },
+    {
+      "index": 7,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the Set:** Let $S = \\{ x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47} \\}$. We need to show $\\min S = 39$.\n2.  **Solve the Linear Congruence:** \n    *   Since 47 is prime and $\\gcd(30, 47) = 1$, the congruence $30x \\equiv 42 \\pmod{47}$ has a unique solution modulo 47.\n    *   Multiply both sides by the modular inverse of 30 modulo 47.\n    *   Using the Extended Euclidean Algorithm or inspection: $30 \\cdot 11 = 330 = 7 \\cdot 47 + 1$. Thus $30^{-1} \\equiv 11 \\pmod{47}$.\n    *   $x \\equiv 42 \\cdot 11 \\pmod{47} \\implies x \\equiv 462 \\pmod{47}$.\n    *   $462 = 9 \\cdot 47 + 39$. Thus $x \\equiv 39 \\pmod{47}$.\n3.  **General Solution in $\\mathbb{N}$:** The natural numbers satisfying this are $\\{39, 39 + 47, 39 + 2 \\cdot 47, \\dots\\}$.\n4.  **Identify the Least Element:** The smallest non-negative integer in this sequence is 39.\n5.  **Formal Verification:** Check that $30 \\cdot 39 = 1170$ and $1170 = 24 \\cdot 47 + 42$. Also, verify that any $x < 39$ fails the condition.\n\n```lean\nimport Mathlib\nimport Aesop\n\nopen BigOperators Real Nat\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Show 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Show 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- 30x ≡ 42 [MOD 47] implies 30x = 47k + 42\n    -- Multiply by 11: 330x ≡ 462 [MOD 47]\n    -- Since 330 = 7 * 47 + 1 and 462 = 9 * 47 + 39\n    -- x ≡ 39 [MOD 47]\n    have h1 : 11 * (30 * x) % 47 = (11 * 42) % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    have h2 : 11 * (30 * x) = 330 * x := by ring\n    have h3 : 330 * x % 47 = (7 * 47 + 1) * x % 47 := by rfl\n    have h4 : (7 * 47 + 1) * x % 47 = x % 47 := by\n      rw [add_mul, Nat.add_mod]\n      simp [Nat.mul_mod]\n    have h5 : (11 * 42) % 47 = 39 := by norm_num\n    rw [h2, h3, h4, h5] at h1\n    -- x % 47 = 39 implies x = 47k + 39, so x ≥ 39\n    exact Nat.le_of_mod_lt h1\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nopen BigOperators Real Nat\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Show 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Show 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- 30x ≡ 42 [MOD 47] implies 30x = 47k + 42\n    -- Multiply by 11: 330x ≡ 462 [MOD 47]\n    -- Since 330 = 7 * 47 + 1 and 462 = 9 * 47 + 39\n    -- x ≡ 39 [MOD 47]\n    have h1 : 11 * (30 * x) % 47 = (11 * 42) % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    have h2 : 11 * (30 * x) = 330 * x := by ring\n    have h3 : 330 * x % 47 = (7 * 47 + 1) * x % 47 := by rfl\n    have h4 : (7 * 47 + 1) * x % 47 = x % 47 := by\n      rw [add_mul, Nat.add_mod]\n      simp [Nat.mul_mod]\n    have h5 : (11 * 42) % 47 = 39 := by norm_num\n    rw [h2, h3, h4, h5] at h1\n    -- x % 47 = 39 implies x = 47k + 39, so x ≥ 39\n    exact Nat.le_of_mod_lt h1",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 10
+            },
+            "endPos": {
+              "line": 21,
+              "column": 23
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a % ?n * (?b % ?n) % ?n\nin the target expression\n  11 * (30 * x) % 47 = 11 * 42 % 47\n\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\n⊢ 11 * (30 * x) % 47 = 11 * 42 % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 27
+            },
+            "endPos": {
+              "line": 30,
+              "column": 29
+            },
+            "data": "Application type mismatch: The argument\n  h1\nhas type\n  x % 47 = 39\nbut is expected to have type\n  x % 39 < x\nin the application\n  le_of_mod_lt h1"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.12353038787841797
+      }
+    },
+    {
+      "index": 8,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ such that $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n1.  **Characterize the Set**: Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$.\n2.  **Solve the Congruence**: Since 47 is prime and $\\gcd(30, 47) = 1$, the congruence $30x \\equiv 42 \\pmod{47}$ has a unique solution modulo 47.\n    *   Divide both sides by 6 (since $\\gcd(6, 47) = 1$): $5x \\equiv 7 \\pmod{47}$.\n    *   Multiply by 19 (the modular inverse of 5 mod 47, since $5 \\times 19 = 95 = 2 \\times 47 + 1$):\n        $x \\equiv 7 \\times 19 \\pmod{47} \\implies x \\equiv 133 \\pmod{47}$.\n    *   Since $133 = 2 \\times 47 + 39$, we have $x \\equiv 39 \\pmod{47}$.\n3.  **Identify the Least Element**: The set $S$ consists of all $x \\in \\mathbb{N}$ of the form $47k + 39$ for $k \\in \\mathbb{N} \\cup \\{0\\}$. The smallest such natural number is obtained when $k=0$, yielding $x = 39$.\n4.  **Verify Lower Bound**: For any $x \\in S$, $x = 47k + 39 \\ge 39$. Since $39 \\in S$ (as $30 \\times 39 = 1170 = 24 \\times 47 + 42$), 39 is indeed the least element.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- 30x ≡ 42 (mod 47) implies 5x ≡ 7 (mod 47) because gcd(6, 47) = 1\n    have h1 : (6 * (5 * x)) % 47 = (6 * 7) % 47 := by\n      convert hx using 1\n      ring\n    have h2 : (5 * x) % 47 = 7 % 47 := by\n      exact Nat.ModEq.cancel_left (by norm_num) h1\n    -- Multiply by 19: 19 * 5 * x ≡ 19 * 7 (mod 47)\n    have h3 : (19 * (5 * x)) % 47 = (19 * 7) % 47 := by\n      rw [Nat.mul_mod, h2, ← Nat.mul_mod]\n    -- 95x ≡ 133 (mod 47)\n    -- Since 95 % 47 = 1 and 133 % 47 = 39:\n    have h4 : (95 * x) % 47 = 133 % 47 := by\n      convert h3 using 1\n      ring\n    have h5 : (1 * x) % 47 = 39 % 47 := by\n      rw [← h4]\n      apply Nat.ModEq.mul_left\n      unfold Nat.ModEq\n      norm_num\n    -- x % 47 = 39\n    have h6 : x % 47 = 39 := by\n      simpa using h5\n    -- This implies x = 47 * k + 39, so x ≥ 39\n    apply Nat.le_of_mod_lt\n    rw [h6]\n    norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- 30x ≡ 42 (mod 47) implies 5x ≡ 7 (mod 47) because gcd(6, 47) = 1\n    have h1 : (6 * (5 * x)) % 47 = (6 * 7) % 47 := by\n      convert hx using 1\n      ring\n    have h2 : (5 * x) % 47 = 7 % 47 := by\n      exact Nat.ModEq.cancel_left (by norm_num) h1\n    -- Multiply by 19: 19 * 5 * x ≡ 19 * 7 (mod 47)\n    have h3 : (19 * (5 * x)) % 47 = (19 * 7) % 47 := by\n      rw [Nat.mul_mod, h2, ← Nat.mul_mod]\n    -- 95x ≡ 133 (mod 47)\n    -- Since 95 % 47 = 1 and 133 % 47 = 39:\n    have h4 : (95 * x) % 47 = 133 % 47 := by\n      convert h3 using 1\n      ring\n    have h5 : (1 * x) % 47 = 39 % 47 := by\n      rw [← h4]\n      apply Nat.ModEq.mul_left\n      unfold Nat.ModEq\n      norm_num\n    -- x % 47 = 39\n    have h6 : x % 47 = 39 := by\n      simpa using h5\n    -- This implies x = 47 * k + 39, so x ≥ 39\n    apply Nat.le_of_mod_lt\n    rw [h6]\n    norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 51
+            },
+            "endPos": {
+              "line": 21,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase h.e\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\n⊢ Eq (x * 30 % 47) = Membership.mem {x | x * 30 % 47 = 42}\n\ncase h.e'_1\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\n⊢ 6 * 7 % 47 = x"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 12
+            },
+            "endPos": {
+              "line": 23,
+              "column": 33
+            },
+            "data": "Unknown constant `Nat.ModEq.cancel_left`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 6
+            },
+            "endPos": {
+              "line": 34,
+              "column": 30
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@ModEq.mul_left`\n  ?c * ?a ≡ ?c * ?b [MOD ?n]\nwith the goal\n  1 * x % 47 = 95 * x % 47\n\nNote: The full type of `@ModEq.mul_left` is\n  ∀ {n a b : ℕ} (c : ℕ), a ≡ b [MOD n] → c * a ≡ c * b [MOD n]\n\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\nh1 : 6 * (5 * x) % 47 = 6 * 7 % 47\nh2 : 5 * x % 47 = 7 % 47\nh3 : 19 * (5 * x) % 47 = 19 * 7 % 47\nh4 : 95 * x % 47 = 133 % 47\n⊢ 1 * x % 47 = 95 * x % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 42,
+              "column": 8
+            },
+            "endPos": {
+              "line": 42,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  x % 47\nin the target expression\n  x % 39 < x\n\ncase right.h\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\nh1 : 6 * (5 * x) % 47 = 6 * 7 % 47\nh2 : 5 * x % 47 = 7 % 47\nh3 : 19 * (5 * x) % 47 = 19 * 7 % 47\nh4 : 95 * x % 47 = 133 % 47\nh5 : 1 * x % 47 = 39 % 47\nh6 : x % 47 = 39\n⊢ x % 39 < x"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3138439655303955
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the congruence**: The congruence $30x \\equiv 42 \\pmod{47}$ is a linear congruence of the form $ax \\equiv b \\pmod{m}$. Since $47$ is prime and $\\gcd(30, 47) = 1$, a unique solution exists modulo 47.\n2.  **Solve the congruence**: \n    *   We seek the modular inverse of $30 \\pmod{47}$. Using the Extended Euclidean Algorithm or inspection: $30 \\times 11 = 330 = 47 \\times 7 + 1$. Thus, $30^{-1} \\equiv 11 \\pmod{47}$.\n    *   Multiply both sides by 11: $x \\equiv 42 \\times 11 \\pmod{47}$.\n    *   $42 \\times 11 = 462$.\n    *   $462 = 47 \\times 9 + 39$.\n    *   Thus, $x \\equiv 39 \\pmod{47}$.\n3.  **Identify the set**: The set $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$ is equivalent to $\\{x \\in \\mathbb{N} \\mid x = 39 + 47k, k \\in \\mathbb{N}\\}$.\n4.  **Verify the Least Element**:\n    *   $39$ is in the set ($k=0$).\n    *   Any other $x$ in the set corresponds to $k \\geq 1$, so $x \\geq 39 + 47 = 86 > 39$.\n    *   Therefore, 39 is the least element.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    · unfold Nat.ModEq\n      norm_num\n  · -- Prove 39 is the lower bound\n    intro n (hn : 30 * n ≡ 42 [MOD 47])\n    -- Use the fact that 30 is coprime to 47 to isolate n\n    have h_inv : 30 * 11 ≡ 1 [MOD 47] := by\n      unfold Nat.ModEq\n      norm_num\n    have h_mul : 11 * (30 * n) ≡ 11 * 42 [MOD 47] := by\n      exact Nat.ModEq.mul_left 11 hn\n    have h_assoc : (11 * 30) * n ≡ 462 [MOD 47] := by\n      rw [← mul_assoc] at h_mul\n      exact h_mul\n    have h_n_mod : 1 * n ≡ 39 [MOD 47] := by\n      have h1 : 11 * 30 ≡ 1 [MOD 47] := by\n        rw [mul_comm]\n        exact h_inv\n      have h2 : 462 ≡ 39 [MOD 47] := by\n        unfold Nat.ModEq\n        norm_num\n      exact Nat.ModEq.trans (Nat.ModEq.mul_right n h1) h2\n    rw [one_mul] at h_n_mod\n    -- x ≡ 39 [MOD 47] implies x = 39 + 47k, so x ≥ 39\n    exact Nat.le_of_mod_eq_47 h_n_mod\n  where\n    Nat.le_of_mod_eq_47 {n : ℕ} (h : n % 47 = 39 % 47) : 39 ≤ n := by\n      have h_mod : n % 47 = 39 := by\n        rw [h]\n        norm_num\n      exact Nat.le_of_mod_le h_mod\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    · unfold Nat.ModEq\n      norm_num\n  · -- Prove 39 is the lower bound\n    intro n (hn : 30 * n ≡ 42 [MOD 47])\n    -- Use the fact that 30 is coprime to 47 to isolate n\n    have h_inv : 30 * 11 ≡ 1 [MOD 47] := by\n      unfold Nat.ModEq\n      norm_num\n    have h_mul : 11 * (30 * n) ≡ 11 * 42 [MOD 47] := by\n      exact Nat.ModEq.mul_left 11 hn\n    have h_assoc : (11 * 30) * n ≡ 462 [MOD 47] := by\n      rw [← mul_assoc] at h_mul\n      exact h_mul\n    have h_n_mod : 1 * n ≡ 39 [MOD 47] := by\n      have h1 : 11 * 30 ≡ 1 [MOD 47] := by\n        rw [mul_comm]\n        exact h_inv\n      have h2 : 462 ≡ 39 [MOD 47] := by\n        unfold Nat.ModEq\n        norm_num\n      exact Nat.ModEq.trans (Nat.ModEq.mul_right n h1) h2\n    rw [one_mul] at h_n_mod\n    -- x ≡ 39 [MOD 47] implies x = 39 + 47k, so x ≥ 39\n    exact Nat.le_of_mod_eq_47 h_n_mod\n  where\n    Nat.le_of_mod_eq_47 {n : ℕ} (h : n % 47 = 39 % 47) : 39 ≤ n := by\n      have h_mod : n % 47 = 39 := by\n        rw [h]\n        norm_num\n      exact Nat.le_of_mod_le h_mod",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 40,
+              "column": 8
+            },
+            "endPos": {
+              "line": 40,
+              "column": 16
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 41,
+              "column": 12
+            },
+            "endPos": {
+              "line": 41,
+              "column": 28
+            },
+            "data": "Unknown constant `Nat.le_of_mod_le`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 55
+            },
+            "endPos": {
+              "line": 32,
+              "column": 57
+            },
+            "data": "Application type mismatch: The argument\n  h2\nhas type\n  462 ≡ 39 [MOD 47]\nbut is expected to have type\n  1 * n ≡ 39 [MOD 47]\nin the application\n  ModEq.trans (ModEq.mul_right n h1) h2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.10647726058959961
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the Set**: Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$.\n2.  **Solve the Linear Congruence**: \n    *   Since 47 is prime and $\\gcd(30, 47) = 1$, the congruence $30x \\equiv 42 \\pmod{47}$ has a unique solution modulo 47.\n    *   Find the modular inverse of 30 modulo 47. Using the Extended Euclidean Algorithm or testing: $30 \\cdot 11 = 330$. $330 = 47 \\cdot 7 + 1$, so $30^{-1} \\equiv 11 \\pmod{47}$.\n    *   Multiply both sides by 11: $x \\equiv 42 \\cdot 11 \\pmod{47}$.\n    *   $42 \\cdot 11 = 462$. $462 = 47 \\cdot 9 + 39$.\n    *   Thus, $x \\equiv 39 \\pmod{47}$.\n3.  **Define the Set Membership**: $x \\in S \\iff \\exists k \\in \\mathbb{N}, x = 47k + 39$.\n4.  **Verify \"Least\" Property**:\n    *   Show $39 \\in S$: $30 \\cdot 39 = 1170$. $1170 = 47 \\cdot 24 + 42$, so $1170 \\equiv 42 \\pmod{47}$.\n    *   Show 39 is a lower bound: For any $x \\in S$, $x \\equiv 39 \\pmod{47}$ implies $x \\ge 39$ since $x$ is a natural number and $39$ is the smallest non-negative residue.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Show 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Show 39 is a lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- Since 47 is prime, we can use modular arithmetic properties\n    -- 30 * x ≡ 42 (mod 47)\n    -- We know 30 * 11 = 330 = 47 * 7 + 1, so 11 is the inverse of 30 mod 47\n    have h1 : 11 * (30 * x) % 47 = (11 * 42) % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    have h2 : 11 * (30 * x) = 330 * x := by ring\n    rw [h2, Nat.mul_mod, (show 330 % 47 = 1 from by norm_num)] at h1\n    simp only [one_mul, Nat.one_mod] at h1\n    have h3 : (11 * 42) % 47 = 39 := by norm_num\n    rw [h3] at h1\n    -- x % 47 = 39 implies x = 47 * k + 39 for some k\n    have h4 := Nat.mod_le x 47\n    apply Nat.le_of_mod_le\n    rw [h1]\n    norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Show 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Show 39 is a lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- Since 47 is prime, we can use modular arithmetic properties\n    -- 30 * x ≡ 42 (mod 47)\n    -- We know 30 * 11 = 330 = 47 * 7 + 1, so 11 is the inverse of 30 mod 47\n    have h1 : 11 * (30 * x) % 47 = (11 * 42) % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    have h2 : 11 * (30 * x) = 330 * x := by ring\n    rw [h2, Nat.mul_mod, (show 330 % 47 = 1 from by norm_num)] at h1\n    simp only [one_mul, Nat.one_mod] at h1\n    have h3 : (11 * 42) % 47 = 39 := by norm_num\n    rw [h3] at h1\n    -- x % 47 = 39 implies x = 47 * k + 39 for some k\n    have h4 := Nat.mod_le x 47\n    apply Nat.le_of_mod_le\n    rw [h1]\n    norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 10
+            },
+            "endPos": {
+              "line": 20,
+              "column": 23
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a % ?n * (?b % ?n) % ?n\nin the target expression\n  11 * (30 * x) % 47 = 11 * 42 % 47\n\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\n⊢ 11 * (30 * x) % 47 = 11 * 42 % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 10
+            },
+            "endPos": {
+              "line": 28,
+              "column": 26
+            },
+            "data": "Unknown constant `Nat.le_of_mod_le`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 8
+            },
+            "endPos": {
+              "line": 29,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 23,
+              "column": 24
+            },
+            "endPos": {
+              "line": 23,
+              "column": 35
+            },
+            "data": "This simp argument is unused:\n  Nat.one_mod\n\nHint: Omit it from the simp argument list.\n  simp only [one_mul,̵ ̵N̵a̵t̵.̵o̵n̵e̵_̵m̵o̵d̵] at h1\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.07933688163757324
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the Set**: Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$.\n2.  **Solve the Linear Congruence**: \n    - We solve $30x \\equiv 42 \\pmod{47}$. Since 47 is prime and $\\gcd(30, 47) = 1$, the modular inverse of 30 modulo 47 exists.\n    - We find $30^{-1} \\pmod{47}$. By inspection or the Extended Euclidean Algorithm: $30 \\times 11 = 330 = 47 \\times 7 + 1$. Thus, $30^{-1} \\equiv 11 \\pmod{47}$.\n    - Multiplying both sides by 11: $x \\equiv 42 \\times 11 \\pmod{47}$.\n    - Calculate $42 \\times 11 = 462$.\n    - Perform division: $462 = 47 \\times 9 + 39$.\n    - Thus, $x \\equiv 39 \\pmod{47}$.\n3.  **Identify the Minimal Natural Number**: The solutions are $x \\in \\{39, 39 + 47, 39 + 2 \\cdot 47, \\dots\\}$. The smallest natural number in this set is 39.\n4.  **Formalize in Lean**: Use `IsLeast` definition, which requires showing $39 \\in S$ and $\\forall x \\in S, 39 \\le x$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove that 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove that 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- 30x ≡ 42 (mod 47) implies 30x ≡ 462 (mod 47) because 462 = 47 * 9 + 39 is wrong,\n    -- let's use the property that 30 * 11 ≡ 1 (mod 47)\n    have h1 : 11 * (30 * x) % 47 = 11 * 42 % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    have h2 : 11 * (30 * x) = 330 * x := by ring\n    have h3 : 330 % 47 = 1 := by norm_num\n    have h4 : (330 * x) % 47 = (330 % 47 * (x % 47)) % 47 := by rw [Nat.mul_mod]\n    rw [h3, one_mul, Nat.mod_mod] at h4\n    have h5 : 11 * 42 % 47 = 39 := by norm_num\n    rw [h2, h4, h5] at h1\n    -- Now we have x % 47 = 39\n    -- This implies x = 47 * k + 39 for some k\n    have h_mod : x % 47 = 39 := h1\n    apply Nat.le_of_mod_le\n    rw [h_mod]\n    norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove that 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove that 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- 30x ≡ 42 (mod 47) implies 30x ≡ 462 (mod 47) because 462 = 47 * 9 + 39 is wrong,\n    -- let's use the property that 30 * 11 ≡ 1 (mod 47)\n    have h1 : 11 * (30 * x) % 47 = 11 * 42 % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    have h2 : 11 * (30 * x) = 330 * x := by ring\n    have h3 : 330 % 47 = 1 := by norm_num\n    have h4 : (330 * x) % 47 = (330 % 47 * (x % 47)) % 47 := by rw [Nat.mul_mod]\n    rw [h3, one_mul, Nat.mod_mod] at h4\n    have h5 : 11 * 42 % 47 = 39 := by norm_num\n    rw [h2, h4, h5] at h1\n    -- Now we have x % 47 = 39\n    -- This implies x = 47 * k + 39 for some k\n    have h_mod : x % 47 = 39 := h1\n    apply Nat.le_of_mod_le\n    rw [h_mod]\n    norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 10
+            },
+            "endPos": {
+              "line": 21,
+              "column": 23
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a % ?n * (?b % ?n) % ?n\nin the target expression\n  11 * (30 * x) % 47 = 11 * 42 % 47\n\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\n⊢ 11 * (30 * x) % 47 = 11 * 42 % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 10
+            },
+            "endPos": {
+              "line": 31,
+              "column": 26
+            },
+            "data": "Unknown constant `Nat.le_of_mod_le`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 8
+            },
+            "endPos": {
+              "line": 32,
+              "column": 13
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1249549388885498
+      }
+    },
+    {
+      "index": 12,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ satisfying $30x \\equiv 42 \\pmod{47}$, we proceed in two steps:\n1.  **Solution Existence:** We show that 39 satisfies the congruence. $30 \\times 39 = 1170$. Since $1170 = 47 \\times 24 + 42$, it follows that $1170 \\equiv 42 \\pmod{47}$.\n2.  **Minimality:** Since 47 is prime and $\\gcd(30, 47) = 1$, the linear congruence $30x \\equiv 42 \\pmod{47}$ has a unique solution modulo 47. We calculate the inverse of 30 modulo 47. Using the extended Euclidean algorithm or trial, $30 \\times 11 = 330 = 47 \\times 7 + 1$, so $30^{-1} \\equiv 11 \\pmod{47}$. Then $x \\equiv 42 \\times 11 = 462 \\equiv 39 \\pmod{47}$. Any other natural solution must be of the form $39 + 47k$ for $k \\in \\mathbb{N}$, ensuring 39 is the smallest.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove 39 is the lower bound\n    intro n hn\n    show 39 ≤ n\n    unfold Nat.ModEq at hn\n    -- 30 * n ≡ 42 (mod 47)\n    -- Multiply by 11 (the inverse of 30 mod 47)\n    have h1 : 11 * (30 * n) % 47 = (11 * 42) % 47 := by\n      rw [Nat.mul_mod, hn, ← Nat.mul_mod]\n    have h2 : 11 * 30 % 47 = 1 := by norm_num\n    have h3 : 11 * 42 % 47 = 39 := by norm_num\n    rw [← Nat.mul_assoc, Nat.mul_mod, h2] at h1\n    simp only [one_mul, Nat.one_mod, one_mul] at h1\n    -- Now we have n % 47 = 39\n    -- This implies n = 47 * k + 39 for some k\n    have h4 : 47 ∣ (n - 39) := by\n      apply Nat.dvd_of_mod_eq_zero\n      rw [Nat.sub_mod_eq_zero_of_mod_eq h1]\n    have h5 : n % 47 = 39 % 47 := h1\n    apply Nat.le_of_ge_mod h5\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove 39 is the lower bound\n    intro n hn\n    show 39 ≤ n\n    unfold Nat.ModEq at hn\n    -- 30 * n ≡ 42 (mod 47)\n    -- Multiply by 11 (the inverse of 30 mod 47)\n    have h1 : 11 * (30 * n) % 47 = (11 * 42) % 47 := by\n      rw [Nat.mul_mod, hn, ← Nat.mul_mod]\n    have h2 : 11 * 30 % 47 = 1 := by norm_num\n    have h3 : 11 * 42 % 47 = 39 := by norm_num\n    rw [← Nat.mul_assoc, Nat.mul_mod, h2] at h1\n    simp only [one_mul, Nat.one_mod, one_mul] at h1\n    -- Now we have n % 47 = 39\n    -- This implies n = 47 * k + 39 for some k\n    have h4 : 47 ∣ (n - 39) := by\n      apply Nat.dvd_of_mod_eq_zero\n      rw [Nat.sub_mod_eq_zero_of_mod_eq h1]\n    have h5 : n % 47 = 39 % 47 := h1\n    apply Nat.le_of_ge_mod h5",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 10
+            },
+            "endPos": {
+              "line": 30,
+              "column": 42
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (n % 47 - 11 * 42) % 47\nin the target expression\n  (n - 39) % 47 = 0\n\ncase H\nn : ℕ\nhn : n ∈ {x | 30 * x % 47 = 42 % 47}\nh2 : 11 * 30 % 47 = 1\nh3 : 11 * 42 % 47 = 39\nh1 : n % 47 % 47 = 11 * 42 % 47\n⊢ (n - 39) % 47 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 34
+            },
+            "endPos": {
+              "line": 31,
+              "column": 36
+            },
+            "data": "Type mismatch\n  h1\nhas type\n  n % 47 % 47 = 11 * 42 % 47\nbut is expected to have type\n  n % 47 = 39 % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 10
+            },
+            "endPos": {
+              "line": 32,
+              "column": 26
+            },
+            "data": "Unknown constant `Nat.le_of_ge_mod`"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 25,
+              "column": 24
+            },
+            "endPos": {
+              "line": 25,
+              "column": 35
+            },
+            "data": "This simp argument is unused:\n  Nat.one_mod\n\nHint: Omit it from the simp argument list.\n  simp only [one_mul, N̵a̵t̵.̵o̵n̵e̵_̵m̵o̵d̵,̵ ̵one_mul] at h1\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.11802244186401367
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ such that $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Modular Inverse Calculation**: We need to solve $30x \\equiv 42 \\pmod{47}$. Since 47 is prime and 30 is not a multiple of 47, 30 has a modular inverse. Using the Extended Euclidean Algorithm (or testing values), we find that $30 \\times 11 = 330 = 47 \\times 7 + 1$. Thus, $30^{-1} \\equiv 11 \\pmod{47}$.\n2.  **Solve for $x$**: Multiplying both sides of the congruence by 11:\n    $x \\equiv 42 \\times 11 \\pmod{47}$\n    $x \\equiv 462 \\pmod{47}$\n    $462 = 47 \\times 9 + 39$.\n    Thus, $x \\equiv 39 \\pmod{47}$.\n3.  **Identify the Set**: The set $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$ is equivalent to $\\{x \\in \\mathbb{N} \\mid x \\equiv 39 \\pmod{47}\\}$.\n4.  **Least Element**: The smallest natural number satisfying $x \\equiv 39 \\pmod{47}$ is 39 itself. We verify:\n    -   $39 \\in S$: $30 \\times 39 = 1170$. $1170 = 47 \\times 24 + 42$, so $1170 \\equiv 42 \\pmod{47}$.\n    -   Lower Bound: For any $x < 39$, if $x \\equiv 39 \\pmod{47}$, then $x = 39 - 47k$ for some $k \\geq 1$, which would make $x < 0$, contradicting $x \\in \\mathbb{N}$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  -- Define the set S\n  let S := { x : ℕ | 30 * x ≡ 42 [MOD 47] }\n  constructor\n  · -- Part 1: Show that 39 is in S\n    show 30 * 39 ≡ 42 [MOD 47]\n    calc\n      30 * 39 = 1170 := by norm_num\n      _ = 24 * 47 + 42 := by norm_num\n      _ ≡ 42 [MOD 47] := by apply Nat.ModEq.add_left_multiple 42 24 47\n  · -- Part 2: Show that 39 is the lower bound for all elements in S\n    intro x hx\n    show 39 ≤ x\n    -- 30x ≡ 42 (mod 47)\n    -- We know 30 * 11 = 330 = 7 * 47 + 1, so 30 * 11 ≡ 1 (mod 47)\n    have h1 : 11 * (30 * x) ≡ 11 * 42 [MOD 47] := Nat.ModEq.mul_left 11 hx\n    have h2 : (11 * 30) * x ≡ 462 [MOD 47] := by\n      rw [← Nat.mul_assoc] at h1\n      exact h1\n    have h3 : 11 * 30 = 7 * 47 + 1 := by norm_num\n    have h4 : 11 * 30 ≡ 1 [MOD 47] := by\n      nth_rw 1 [h3]\n      exact Nat.ModEq.add_left_multiple 1 7 47\n    have h5 : (11 * 30) * x ≡ 1 * x [MOD 47] := Nat.ModEq.mul_right x h4\n    have h6 : x ≡ 462 [MOD 47] := Nat.ModEq.trans (Nat.ModEq.symm h5) h2\n    have h7 : 462 = 9 * 47 + 39 := by norm_num\n    have h8 : 462 ≡ 39 [MOD 47] := Nat.ModEq.add_left_multiple 39 9 47\n    have h9 : x ≡ 39 [MOD 47] := Nat.ModEq.trans h6 h8\n    -- Since x ≡ 39 [MOD 47], x = 47k + 39\n    -- This implies x ≥ 39 because x is a natural number.\n    exact Nat.le_of_mod_eq_39 h9\n\nlemma Nat.le_of_mod_eq_39 {x : ℕ} (h : x ≡ 39 [MOD 47]) : 39 ≤ x := by\n  have : x % 47 = 39 % 47 := h\n  rw [Nat.mod_eq_of_lt (by norm_num : 39 < 47)] at this\n  have h_le := Nat.mod_le x 47\n  rw [this] at h_le\n  -- Alternatively, x = 47 * (x / 47) + 39\n  have h_exp : x = 47 * (x / 47) + 39 := by\n    rw [← this, Nat.div_add_mod x 47]\n  nth_rw 1 [h_exp]\n  exact Nat.le_add_left 39 (47 * (x / 47))\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  -- Define the set S\n  let S := { x : ℕ | 30 * x ≡ 42 [MOD 47] }\n  constructor\n  · -- Part 1: Show that 39 is in S\n    show 30 * 39 ≡ 42 [MOD 47]\n    calc\n      30 * 39 = 1170 := by norm_num\n      _ = 24 * 47 + 42 := by norm_num\n      _ ≡ 42 [MOD 47] := by apply Nat.ModEq.add_left_multiple 42 24 47\n  · -- Part 2: Show that 39 is the lower bound for all elements in S\n    intro x hx\n    show 39 ≤ x\n    -- 30x ≡ 42 (mod 47)\n    -- We know 30 * 11 = 330 = 7 * 47 + 1, so 30 * 11 ≡ 1 (mod 47)\n    have h1 : 11 * (30 * x) ≡ 11 * 42 [MOD 47] := Nat.ModEq.mul_left 11 hx\n    have h2 : (11 * 30) * x ≡ 462 [MOD 47] := by\n      rw [← Nat.mul_assoc] at h1\n      exact h1\n    have h3 : 11 * 30 = 7 * 47 + 1 := by norm_num\n    have h4 : 11 * 30 ≡ 1 [MOD 47] := by\n      nth_rw 1 [h3]\n      exact Nat.ModEq.add_left_multiple 1 7 47\n    have h5 : (11 * 30) * x ≡ 1 * x [MOD 47] := Nat.ModEq.mul_right x h4\n    have h6 : x ≡ 462 [MOD 47] := Nat.ModEq.trans (Nat.ModEq.symm h5) h2\n    have h7 : 462 = 9 * 47 + 39 := by norm_num\n    have h8 : 462 ≡ 39 [MOD 47] := Nat.ModEq.add_left_multiple 39 9 47\n    have h9 : x ≡ 39 [MOD 47] := Nat.ModEq.trans h6 h8\n    -- Since x ≡ 39 [MOD 47], x = 47k + 39\n    -- This implies x ≥ 39 because x is a natural number.\n    exact Nat.le_of_mod_eq_39 h9\n\nlemma Nat.le_of_mod_eq_39 {x : ℕ} (h : x ≡ 39 [MOD 47]) : 39 ≤ x := by\n  have : x % 47 = 39 % 47 := h\n  rw [Nat.mod_eq_of_lt (by norm_num : 39 < 47)] at this\n  have h_le := Nat.mod_le x 47\n  rw [this] at h_le\n  -- Alternatively, x = 47 * (x / 47) + 39\n  have h_exp : x = 47 * (x / 47) + 39 := by\n    rw [← this, Nat.div_add_mod x 47]\n  nth_rw 1 [h_exp]\n  exact Nat.le_add_left 39 (47 * (x / 47))",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 34
+            },
+            "endPos": {
+              "line": 15,
+              "column": 61
+            },
+            "data": "Unknown constant `Nat.ModEq.add_left_multiple`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 12
+            },
+            "endPos": {
+              "line": 28,
+              "column": 39
+            },
+            "data": "Unknown constant `Nat.ModEq.add_left_multiple`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 66
+            },
+            "endPos": {
+              "line": 30,
+              "column": 68
+            },
+            "data": "Application type mismatch: The argument\n  h5\nhas type\n  11 * 30 * x ≡ 1 * x [MOD 47]\nbut is expected to have type\n  11 * 30 * x ≡ x [MOD 47]\nin the application\n  ModEq.symm h5"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.22622084617614746
+      }
+    },
+    {
+      "index": 14,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Define the set**: Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$.\n2.  **Solve the linear congruence**: Since 47 is prime and $\\gcd(30, 47) = 1$, the congruence $30x \\equiv 42 \\pmod{47}$ has a unique solution modulo 47.\n3.  **Find the specific solution**: \n    - We want to solve $30x = 47k + 42$.\n    - Multiplying $30x \\equiv 42 \\pmod{47}$ by the modular inverse of 30 modulo 47:\n    - $30 \\cdot 11 = 330 = 47 \\cdot 7 + 1$, so $30^{-1} \\equiv 11 \\pmod{47}$.\n    - $x \\equiv 42 \\cdot 11 \\pmod{47} \\equiv 462 \\pmod{47}$.\n    - Since $462 = 47 \\cdot 9 + 39$, we have $x \\equiv 39 \\pmod{47}$.\n4.  **Characterize the set**: $x \\in S \\iff x = 47k + 39$ for some $k \\in \\mathbb{N}$.\n5.  **Identify the least element**: The smallest value occurs at $k=0$, which is $x=39$.\n6.  **Verify**: Show $39 \\in S$ and $\\forall x < 39, x \\notin S$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Show 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Show 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- 30 * x ≡ 42 (mod 47)\n    -- We can use modular inverse logic. 30 * 11 = 330 = 47 * 7 + 1.\n    have h1 : (11 * (30 * x)) % 47 = (11 * 42) % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    have h2 : (11 * 30 * x) % 47 = (330 * x) % 47 := by rw [Nat.mul_assoc]\n    have h3 : (330 * x) % 47 = (1 * x) % 47 := by\n      rw [Nat.mul_mod, (show 330 % 47 = 1 by norm_num), Nat.one_mul, Nat.mod_mod]\n    rw [h2, h3] at h1\n    have h4 : (11 * 42) % 47 = 39 := by norm_num\n    rw [h4] at h1\n    -- Now we have x % 47 = 39\n    have h5 : 47 * (x / 47) + 39 = x := by\n      rw [← h1, Nat.div_add_mod]\n    omega\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Show 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Show 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- 30 * x ≡ 42 (mod 47)\n    -- We can use modular inverse logic. 30 * 11 = 330 = 47 * 7 + 1.\n    have h1 : (11 * (30 * x)) % 47 = (11 * 42) % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    have h2 : (11 * 30 * x) % 47 = (330 * x) % 47 := by rw [Nat.mul_assoc]\n    have h3 : (330 * x) % 47 = (1 * x) % 47 := by\n      rw [Nat.mul_mod, (show 330 % 47 = 1 by norm_num), Nat.one_mul, Nat.mod_mod]\n    rw [h2, h3] at h1\n    have h4 : (11 * 42) % 47 = 39 := by norm_num\n    rw [h4] at h1\n    -- Now we have x % 47 = 39\n    have h5 : 47 * (x / 47) + 39 = x := by\n      rw [← h1, Nat.div_add_mod]\n    omega",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 10
+            },
+            "endPos": {
+              "line": 21,
+              "column": 23
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a % ?n * (?b % ?n) % ?n\nin the target expression\n  11 * (30 * x) % 47 = 11 * 42 % 47\n\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\n⊢ 11 * (30 * x) % 47 = 11 * 42 % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 47
+            },
+            "endPos": {
+              "line": 24,
+              "column": 81
+            },
+            "data": "unsolved goals\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\nh1 : 11 * (30 * x) % 47 = 11 * 42 % 47\nh2 : 11 * 30 * x % 47 = 330 * x % 47\n⊢ x % 47 = 1 * x % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 8
+            },
+            "endPos": {
+              "line": 25,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  11 * 30 * x % 47\nin the target expression\n  11 * (30 * x) % 47 = 11 * 42 % 47\n\ncase right\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\nh1 : 11 * (30 * x) % 47 = 11 * 42 % 47\nh2 : 11 * 30 * x % 47 = 330 * x % 47\nh3 : 330 * x % 47 = 1 * x % 47\n⊢ 39 ≤ x"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.07927417755126953
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ satisfying $30x \\equiv 42 \\pmod{47}$, we proceed as follows:\n\n### Proof Sketch\n1.  **Characterize the Set:** Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$. Since 47 is a prime number and $\\gcd(30, 47) = 1$, the linear congruence $30x \\equiv 42 \\pmod{47}$ has a unique solution modulo 47.\n2.  **Solve the Congruence:**\n    *   We want to find $30^{-1} \\pmod{47}$. Using the Extended Euclidean Algorithm or testing values:\n    *   $30 \\times 11 = 330 = 47 \\times 7 + 1$. Thus, $30 \\times 11 \\equiv 1 \\pmod{47}$.\n    *   Multiplying both sides of $30x \\equiv 42$ by 11 gives $x \\equiv 42 \\times 11 \\pmod{47}$.\n    *   $42 \\times 11 = 462$.\n    *   $462 = 47 \\times 9 + 39$. So, $x \\equiv 39 \\pmod{47}$.\n3.  **Identify the Elements:** The set $S$ consists of all natural numbers of the form $47k + 39$ for $k \\in \\mathbb{N}_{\\ge 0}$.\n4.  **Find the Minimum:** The smallest such natural number is $47(0) + 39 = 39$.\n5.  **Verify \"IsLeast\":**\n    *   $39 \\in S$: Check $30 \\times 39 = 1170$. $1170 = 47 \\times 24 + 42$, so $1170 \\equiv 42 \\pmod{47}$.\n    *   $39$ is the lower bound: For any $x \\in S$, $x \\equiv 39 \\pmod{47}$ implies $x \\ge 39$ because $x$ must be of the form $47k + 39$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    -- Since 47 is prime and gcd(30, 47) = 1, the solution is unique mod 47\n    have h : 30 * x ≡ 30 * 39 [MOD 47] := by\n      trans 42\n      · exact hx\n      · unfold Nat.ModEq\n        norm_num\n    -- Use the fact that 30 and 47 are coprime to cancel 30\n    have h_coprime : Nat.Coprime 30 47 := by norm_num\n    have h_sol : x ≡ 39 [MOD 47] := by\n      exact (Nat.ModEq.cancel_left_coprime h_coprime h)\n    -- A number x ≡ 39 [MOD 47] must be at least 39\n    unfold Nat.ModEq at h_sol\n    have h_mod : x % 47 = 39 % 47 := h_sol\n    norm_num at h_mod\n    -- Since x % 47 = 39, x = 47 * k + 39\n    have : x ≥ x % 47 := Nat.mod_le x 47\n    rw [h_mod] at this\n    exact this\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    -- Since 47 is prime and gcd(30, 47) = 1, the solution is unique mod 47\n    have h : 30 * x ≡ 30 * 39 [MOD 47] := by\n      trans 42\n      · exact hx\n      · unfold Nat.ModEq\n        norm_num\n    -- Use the fact that 30 and 47 are coprime to cancel 30\n    have h_coprime : Nat.Coprime 30 47 := by norm_num\n    have h_sol : x ≡ 39 [MOD 47] := by\n      exact (Nat.ModEq.cancel_left_coprime h_coprime h)\n    -- A number x ≡ 39 [MOD 47] must be at least 39\n    unfold Nat.ModEq at h_sol\n    have h_mod : x % 47 = 39 % 47 := h_sol\n    norm_num at h_mod\n    -- Since x % 47 = 39, x = 47 * k + 39\n    have : x ≥ x % 47 := Nat.mod_le x 47\n    rw [h_mod] at this\n    exact this",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 13
+            },
+            "endPos": {
+              "line": 24,
+              "column": 42
+            },
+            "data": "Unknown constant `Nat.ModEq.cancel_left_coprime`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.08287930488586426
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the set $S$**: Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$.\n2.  **Solve the Linear Congruence**: Since 47 is prime and $30$ is not a multiple of 47, an inverse exists. We need to find $x$ such that $30x \\equiv 42 \\pmod{47}$.\n3.  **Find the modular inverse**: We search for $30^{-1} \\pmod{47}$. Through calculation (e.g., Extended Euclidean Algorithm), we find $30 \\cdot 11 = 330$. Since $330 = 47 \\cdot 7 + 1$, the inverse of $30$ modulo $47$ is $11$.\n4.  **Isolate $x$**: Multiply both sides of $30x \\equiv 42 \\pmod{47}$ by $11$:\n    $x \\equiv 11 \\cdot 42 \\pmod{47}$\n    $11 \\cdot 42 = 462$\n    $462 = 47 \\cdot 9 + 39$, so $x \\equiv 39 \\pmod{47}$.\n5.  **Identify the least element**: The solutions in natural numbers are $x \\in \\{39, 39+47, 39+94, \\dots\\}$. The smallest such natural number is 39.\n6.  **Verify conditions**:\n    -   $30 \\cdot 39 = 1170$.\n    -   $1170 = 47 \\cdot 24 + 42$, thus $1170 \\equiv 42 \\pmod{47}$.\n    -   For any $x < 39$, $30x \\equiv 42 \\pmod{47}$ is impossible because the only solutions are $39 + 47k$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  -- Define the set S\n  let S := { x : ℕ | 30 * x ≡ 42 [MOD 47] }\n  constructor\n  · -- Prove 39 is in S\n    show 30 * 39 ≡ 42 [MOD 47]\n    · unfold Nat.ModEq\n      norm_num\n  · -- Prove 39 is the lower bound of S\n    intro x hx\n    show 39 ≤ x\n    · unfold Nat.ModEq at hx\n      -- 30 * x ≡ 42 [MOD 47]\n      -- Since 47 is prime, we can multiply by the inverse of 30 mod 47.\n      -- The inverse of 30 mod 47 is 11, because 30 * 11 = 330 = 7 * 47 + 1.\n      have h1 : 11 * (30 * x) % 47 = (11 * 42) % 47 := by\n        rw [← Nat.mul_mod, hx, Nat.mul_mod]\n      have h2 : 11 * 30 % 47 = 1 := by norm_num\n      have h3 : (11 * 30 * x) % 47 = x % 47 := by\n        rw [Nat.mul_assoc, Nat.mul_mod, h2]\n        norm_num\n      have h4 : (11 * 42) % 47 = 39 := by norm_num\n      rw [h3] at h1\n      rw [h4] at h1\n      -- Since x % 47 = 39, x must be at least 39.\n      exact Nat.le_of_mod_eq__iff.mpr h1\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  -- Define the set S\n  let S := { x : ℕ | 30 * x ≡ 42 [MOD 47] }\n  constructor\n  · -- Prove 39 is in S\n    show 30 * 39 ≡ 42 [MOD 47]\n    · unfold Nat.ModEq\n      norm_num\n  · -- Prove 39 is the lower bound of S\n    intro x hx\n    show 39 ≤ x\n    · unfold Nat.ModEq at hx\n      -- 30 * x ≡ 42 [MOD 47]\n      -- Since 47 is prime, we can multiply by the inverse of 30 mod 47.\n      -- The inverse of 30 mod 47 is 11, because 30 * 11 = 330 = 7 * 47 + 1.\n      have h1 : 11 * (30 * x) % 47 = (11 * 42) % 47 := by\n        rw [← Nat.mul_mod, hx, Nat.mul_mod]\n      have h2 : 11 * 30 % 47 = 1 := by norm_num\n      have h3 : (11 * 30 * x) % 47 = x % 47 := by\n        rw [Nat.mul_assoc, Nat.mul_mod, h2]\n        norm_num\n      have h4 : (11 * 42) % 47 = 39 := by norm_num\n      rw [h3] at h1\n      rw [h4] at h1\n      -- Since x % 47 = 39, x must be at least 39.\n      exact Nat.le_of_mod_eq__iff.mpr h1",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 12
+            },
+            "endPos": {
+              "line": 24,
+              "column": 25
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a % ?n * (?b % ?n) % ?n\nin the target expression\n  11 * (30 * x) % 47 = 11 * 42 % 47\n\nS : Set ℕ := {x | 30 * x ≡ 42 [MOD 47]}\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\n⊢ 11 * (30 * x) % 47 = 11 * 42 % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 40
+            },
+            "endPos": {
+              "line": 27,
+              "column": 42
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  11 * 30 % 47\nin the target expression\n  11 % 47 * (30 * x % 47) % 47 = x % 47\n\nS : Set ℕ := {x | 30 * x ≡ 42 [MOD 47]}\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\nh1 : 11 * (30 * x) % 47 = 11 * 42 % 47\nh2 : 11 * 30 % 47 = 1\n⊢ 11 % 47 * (30 * x % 47) % 47 = x % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 10
+            },
+            "endPos": {
+              "line": 30,
+              "column": 12
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  11 * 30 * x % 47\nin the target expression\n  11 * (30 * x) % 47 = 11 * 42 % 47\n\ncase right\nS : Set ℕ := {x | 30 * x ≡ 42 [MOD 47]}\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\nh1 : 11 * (30 * x) % 47 = 11 * 42 % 47\nh2 : 11 * 30 % 47 = 1\nh3 : 11 * 30 * x % 47 = x % 47\nh4 : 11 * 42 % 47 = 39\n⊢ 39 ≤ x"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.08322834968566895
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the Set**: Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$. Since 47 is prime and $\\gcd(30, 47) = 1$, the linear congruence $30x \\equiv 42 \\pmod{47}$ has a unique solution modulo 47.\n2.  **Solve the Congruence**: \n    *   We seek the modular inverse of 30 modulo 47. Using the extended Euclidean algorithm or trial, we find $30 \\cdot 11 = 330 = 47 \\cdot 7 + 1$. Thus, $30^{-1} \\equiv 11 \\pmod{47}$.\n    *   Multiply both sides of $30x \\equiv 42$ by 11: $x \\equiv 11 \\cdot 42 \\pmod{47}$.\n    *   $11 \\cdot 42 = 462$.\n    *   $462 = 47 \\cdot 9 + 39$. Thus, $x \\equiv 39 \\pmod{47}$.\n3.  **Identify the Least Natural Solution**: The set $S$ consists of all $x \\in \\mathbb{N}$ of the form $47k + 39$ for $k \\in \\{0, 1, 2, \\dots\\}$. The smallest such natural number is clearly $39$ (when $k=0$).\n4.  **Formalize in Lean**: Use properties of `ZMod 47` to show that $30 \\cdot 39 \\equiv 42 \\pmod{47}$ and that any $x < 39$ cannot satisfy the congruence.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Show that 39 is in the set\n    simp only [Set.mem_setOf_eq]\n    -- 30 * 39 = 1170. 1170 = 47 * 24 + 42\n    show (30 * 39) % 47 = 42 % 47\n    norm_num\n  · -- Show that 39 is the lower bound\n    intro x hx\n    simp only [Set.mem_setOf_eq] at hx\n    -- Use ZMod 47 for easier algebraic manipulation\n    let x' : ZMod 47 := x\n    have h : (30 : ZMod 47) * x' = 42 := by\n      rw [← ZMod.val_eq_val_iff] at hx\n      simp [x']\n      exact hx\n    -- Multiply by inverse of 30 in ZMod 47\n    -- 30 * 11 = 330 = 7 * 47 + 1, so 30⁻¹ = 11\n    have h_inv : (30 : ZMod 47) * 11 = 1 := by norm_num\n    have h_sol : x' = 11 * 42 := by\n      calc\n        x' = 1 * x' := by rw [one_mul]\n         _ = (11 * 30) * x' := by rw [mul_comm, h_inv]\n         _ = 11 * (30 * x') := by rw [mul_assoc]\n         _ = 11 * 42 := by rw [h]\n    -- Calculate 11 * 42 mod 47\n    have h_val : x' = 39 := by\n      rw [h_sol]\n      norm_num\n    -- Translate back from ZMod to Nat\n    have h_eq : x % 47 = 39 := by\n      have : x'.val = 39 := by \n        rw [h_val]\n        norm_num\n      exact this\n    -- x % 47 = 39 implies x >= 39\n    exact Nat.le_of_mod_lt h_eq\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Show that 39 is in the set\n    simp only [Set.mem_setOf_eq]\n    -- 30 * 39 = 1170. 1170 = 47 * 24 + 42\n    show (30 * 39) % 47 = 42 % 47\n    norm_num\n  · -- Show that 39 is the lower bound\n    intro x hx\n    simp only [Set.mem_setOf_eq] at hx\n    -- Use ZMod 47 for easier algebraic manipulation\n    let x' : ZMod 47 := x\n    have h : (30 : ZMod 47) * x' = 42 := by\n      rw [← ZMod.val_eq_val_iff] at hx\n      simp [x']\n      exact hx\n    -- Multiply by inverse of 30 in ZMod 47\n    -- 30 * 11 = 330 = 7 * 47 + 1, so 30⁻¹ = 11\n    have h_inv : (30 : ZMod 47) * 11 = 1 := by norm_num\n    have h_sol : x' = 11 * 42 := by\n      calc\n        x' = 1 * x' := by rw [one_mul]\n         _ = (11 * 30) * x' := by rw [mul_comm, h_inv]\n         _ = 11 * (30 * x') := by rw [mul_assoc]\n         _ = 11 * 42 := by rw [h]\n    -- Calculate 11 * 42 mod 47\n    have h_val : x' = 39 := by\n      rw [h_sol]\n      norm_num\n    -- Translate back from ZMod to Nat\n    have h_eq : x % 47 = 39 := by\n      have : x'.val = 39 := by \n        rw [h_val]\n        norm_num\n      exact this\n    -- x % 47 = 39 implies x >= 39\n    exact Nat.le_of_mod_lt h_eq",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 12
+            },
+            "endPos": {
+              "line": 21,
+              "column": 31
+            },
+            "data": "Unknown constant `ZMod.val_eq_val_iff`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 44
+            },
+            "endPos": {
+              "line": 26,
+              "column": 55
+            },
+            "data": "unsolved goals\nx : ℕ\nhx : 30 * x ≡ 42 [MOD 47]\nx' : ZMod 47 := ↑x\nh : 30 * x' = 42\n⊢ 330 = 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 48
+            },
+            "endPos": {
+              "line": 30,
+              "column": 53
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  30 * 11\nin the target expression\n  x' * 1 = 11 * 30 * x'\n\nx : ℕ\nhx : 30 * x ≡ 42 [MOD 47]\nx' : ZMod 47 := ↑x\nh : 30 * x' = 42\nh_inv : 30 * 11 = 1\n⊢ x' * 1 = 11 * 30 * x'"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 28
+            },
+            "endPos": {
+              "line": 36,
+              "column": 14
+            },
+            "data": "unsolved goals\nx : ℕ\nhx : 30 * x ≡ 42 [MOD 47]\nx' : ZMod 47 := ↑x\nh : 30 * x' = 42\nh_inv : 30 * 11 = 1\nh_sol : x' = 11 * 42\n⊢ 462 = 39"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 39,
+              "column": 28
+            },
+            "endPos": {
+              "line": 41,
+              "column": 16
+            },
+            "data": "unsolved goals\nx : ℕ\nhx : 30 * x ≡ 42 [MOD 47]\nx' : ZMod 47 := ↑x\nh : 30 * x' = 42\nh_inv : 30 * 11 = 1\nh_sol : x' = 11 * 42\nh_val : x' = 39\n⊢ ZMod.val 39 = 39"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 27
+            },
+            "endPos": {
+              "line": 44,
+              "column": 31
+            },
+            "data": "Application type mismatch: The argument\n  h_eq\nhas type\n  x % 47 = 39\nbut is expected to have type\n  x % 39 < x\nin the application\n  le_of_mod_lt h_eq"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.44744253158569336
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "To prove that $39$ is the least natural number satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the Set**: Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$.\n2.  **Solve the Congruence**: Since $47$ is a prime number, $30$ has a modular inverse modulo $47$. We find $30^{-1} \\pmod{47}$ using the extended Euclidean algorithm or trial: $30 \\cdot 11 = 330 = 47 \\cdot 7 + 1$, so $30^{-1} \\equiv 11 \\pmod{47}$.\n3.  **Multiply by Inverse**: $x \\equiv 42 \\cdot 11 \\pmod{47}$.\n    $42 \\cdot 11 = 462$.\n    $462 = 47 \\cdot 9 + 39$.\n    Thus, $x \\equiv 39 \\pmod{47}$.\n4.  **Least Element**: The natural numbers satisfying $x \\equiv 39 \\pmod{47}$ are of the form $47k + 39$ for $k \\in \\mathbb{N}$. The smallest such value is obtained at $k=0$, which is $39$.\n5.  **Verify**: Show that $30 \\cdot 39 \\equiv 42 \\pmod{47}$ and that for any $x < 39$, $30x \\not\\equiv 42 \\pmod{47}$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove 39 is in the set\n    simp only [Set.mem_setOf_eq]\n    show 30 * 39 % 47 = 42 % 47\n    norm_num\n  · -- Prove 39 is the lower bound\n    intro x hx\n    simp only [Set.mem_setOf_eq] at hx\n    -- 30x ≡ 42 (mod 47)\n    -- Since gcd(30, 47) = 1, we can multiply by the inverse.\n    -- 11 is the inverse of 30 modulo 47 because 30 * 11 = 330 = 7 * 47 + 1.\n    have hinv : 11 * (30 * x) % 47 = 11 * 42 % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    have hsimp : 11 * 30 % 47 = 1 := by norm_num\n    rw [Nat.mul_assoc, Nat.mul_mod, hsimp] at hinv\n    simp only [one_mul, Nat.one_mod] at hinv\n    -- Now we have x % 47 = (11 * 42) % 47\n    have hrhs : 11 * 42 % 47 = 39 := by norm_num\n    rw [hrhs] at hinv\n    -- x % 47 = 39 implies x = 47 * k + 39\n    have : 39 ≤ x % 47 := le_of_eq hinv.symm\n    exact (Nat.le_mod_iff (by norm_num)).mp this\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove 39 is in the set\n    simp only [Set.mem_setOf_eq]\n    show 30 * 39 % 47 = 42 % 47\n    norm_num\n  · -- Prove 39 is the lower bound\n    intro x hx\n    simp only [Set.mem_setOf_eq] at hx\n    -- 30x ≡ 42 (mod 47)\n    -- Since gcd(30, 47) = 1, we can multiply by the inverse.\n    -- 11 is the inverse of 30 modulo 47 because 30 * 11 = 330 = 7 * 47 + 1.\n    have hinv : 11 * (30 * x) % 47 = 11 * 42 % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    have hsimp : 11 * 30 % 47 = 1 := by norm_num\n    rw [Nat.mul_assoc, Nat.mul_mod, hsimp] at hinv\n    simp only [one_mul, Nat.one_mod] at hinv\n    -- Now we have x % 47 = (11 * 42) % 47\n    have hrhs : 11 * 42 % 47 = 39 := by norm_num\n    rw [hrhs] at hinv\n    -- x % 47 = 39 implies x = 47 * k + 39\n    have : 39 ≤ x % 47 := le_of_eq hinv.symm\n    exact (Nat.le_mod_iff (by norm_num)).mp this",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 10
+            },
+            "endPos": {
+              "line": 21,
+              "column": 23
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a % ?n * (?b % ?n) % ?n\nin the target expression\n  11 * (30 * x) % 47 = 11 * 42 % 47\n\nx : ℕ\nhx : 30 * x ≡ 42 [MOD 47]\n⊢ 11 * (30 * x) % 47 = 11 * 42 % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 21
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?n * ?m * ?k\nin the target expression\n  11 * (30 * x) % 47 = 11 * 42 % 47\n\ncase right\nx : ℕ\nhx : 30 * x ≡ 42 [MOD 47]\nhinv : 11 * (30 * x) % 47 = 11 * 42 % 47\nhsimp : 11 * 30 % 47 = 1\n⊢ 39 ≤ x"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.04868602752685547
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the Set**: Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$. Since 47 is prime and $\\gcd(30, 47) = 1$, the linear congruence has a unique solution modulo 47.\n2.  **Solve the Congruence**:\n    *   Find the modular inverse of 30 modulo 47. Using the extended Euclidean algorithm or trial, we find $30 \\times 11 = 330 = 47 \\times 7 + 1$. Thus, $30^{-1} \\equiv 11 \\pmod{47}$.\n    *   Multiply both sides by 11: $x \\equiv 42 \\times 11 \\pmod{47}$.\n    *   $42 \\times 11 = 462$. Since $462 = 47 \\times 9 + 39$, we have $x \\equiv 39 \\pmod{47}$.\n3.  **Identify the Least Element**: The set $S$ consists of numbers of the form $39 + 47k$ for $k \\in \\{0, 1, 2, \\dots\\}$. The smallest such natural number is 39 (when $k=0$).\n4.  **Verification**:\n    *   $30 \\times 39 = 1170$.\n    *   $1170 = 24 \\times 47 + 42$. Thus $1170 \\equiv 42 \\pmod{47}$.\n    *   For any $x < 39$, $30x \\not\\equiv 42 \\pmod{47}$ because $x \\equiv 39 \\pmod{47}$ is the unique solution in the range $[0, 46]$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Show 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Show 39 is the lower bound\n    intro n hn\n    show 39 ≤ n\n    have h : 30 * n ≡ 42 [MOD 47] := hn\n    -- Since 47 is prime and doesn't divide 30, we can use the modular inverse\n    -- 30 * 11 = 330 = 47 * 7 + 1, so 11 is the inverse\n    have h_inv : 11 * (30 * n) ≡ 11 * 42 [MOD 47] := h.mul_left 11\n    have h_assoc : (11 * 30) * n ≡ 462 [MOD 47] := by\n      rw [← mul_assoc]\n      exact h_inv\n    have h_simp : 1 * n ≡ 39 [MOD 47] := by\n      convert h_assoc using 1\n      · unfold Nat.ModEq; norm_num\n      · unfold Nat.ModEq; norm_num\n    rw [one_mul] at h_simp\n    -- n ≡ 39 [MOD 47] implies n = 39 + 47k\n    apply Nat.le_of_mod_eq_mod h_simp\n    exact (by norm_num)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Show 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Show 39 is the lower bound\n    intro n hn\n    show 39 ≤ n\n    have h : 30 * n ≡ 42 [MOD 47] := hn\n    -- Since 47 is prime and doesn't divide 30, we can use the modular inverse\n    -- 30 * 11 = 330 = 47 * 7 + 1, so 11 is the inverse\n    have h_inv : 11 * (30 * n) ≡ 11 * 42 [MOD 47] := h.mul_left 11\n    have h_assoc : (11 * 30) * n ≡ 462 [MOD 47] := by\n      rw [← mul_assoc]\n      exact h_inv\n    have h_simp : 1 * n ≡ 39 [MOD 47] := by\n      convert h_assoc using 1\n      · unfold Nat.ModEq; norm_num\n      · unfold Nat.ModEq; norm_num\n    rw [one_mul] at h_simp\n    -- n ≡ 39 [MOD 47] implies n = 39 + 47k\n    apply Nat.le_of_mod_eq_mod h_simp\n    exact (by norm_num)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 10
+            },
+            "endPos": {
+              "line": 22,
+              "column": 21
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a * (?b * ?c)\nin the target expression\n  11 * 30 * n ≡ 462 [MOD 47]\n\nn : ℕ\nhn : n ∈ {x | 30 * x ≡ 42 [MOD 47]}\nh : 30 * n ≡ 42 [MOD 47]\nh_inv : 11 * (30 * n) ≡ 11 * 42 [MOD 47]\n⊢ 11 * 30 * n ≡ 462 [MOD 47]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 15
+            },
+            "endPos": {
+              "line": 26,
+              "column": 24
+            },
+            "data": "Tactic `unfold` failed to unfold `ModEq` in\n  1 * n = 11 * 30 * n"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 15
+            },
+            "endPos": {
+              "line": 27,
+              "column": 24
+            },
+            "data": "Tactic `unfold` failed to unfold `ModEq` in\n  39 = 462"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 10
+            },
+            "endPos": {
+              "line": 30,
+              "column": 30
+            },
+            "data": "Unknown constant `Nat.le_of_mod_eq_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 4
+            },
+            "endPos": {
+              "line": 31,
+              "column": 23
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.12694978713989258
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the set**: Let $S = \\{ x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47} \\}$.\n2.  **Solve the congruence**:\n    *   The modular inverse of $30 \\pmod{47}$ exists because $\\gcd(30, 47) = 1$.\n    *   By the Extended Euclidean Algorithm: $30 \\cdot 11 = 330 = 47 \\cdot 7 + 1$. Thus, $30^{-1} \\equiv 11 \\pmod{47}$.\n    *   Multiplying $30x \\equiv 42 \\pmod{47}$ by 11 gives $x \\equiv 42 \\cdot 11 \\pmod{47}$.\n    *   $462 = 47 \\cdot 9 + 39$. Thus, $x \\equiv 39 \\pmod{47}$.\n3.  **Identify the elements**: The set $S$ consists of all natural numbers of the form $47k + 39$ for $k \\in \\mathbb{N}$ (i.e., $\\{39, 86, 133, \\dots\\}$).\n4.  **Least element property**:\n    *   39 is in the set ($30 \\cdot 39 = 1170 = 24 \\cdot 47 + 42 \\equiv 42 \\pmod{47}$).\n    *   For any $x < 39$, $x \\equiv 39 \\pmod{47}$ is impossible for $x \\in \\mathbb{N}$ because the smallest non-negative solution to the congruence is 39.\n    *   Therefore, 39 is the lower bound and an element of the set.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Show that 39 is in the set\n    simp [Nat.ModEq]\n    rfl\n  · -- Show that 39 is the lower bound\n    intro x hx\n    simp [Nat.ModEq] at hx\n    -- 30 * x ≡ 42 [MOD 47]\n    -- Multiply both sides by the modular inverse of 30 mod 47, which is 11.\n    have h1 : 11 * (30 * x) % 47 = (11 * 42) % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    -- Simplify 11 * 30 % 47\n    have h2 : (11 * 30) % 47 = 1 := by norm_num\n    -- Simplify 11 * 42 % 47\n    have h3 : (11 * 42) % 47 = 39 := by norm_num\n    -- Combine to show x % 47 = 39\n    rw [← Nat.mul_assoc, Nat.mul_mod, h2] at h1\n    simp at h1\n    -- Since x % 47 = 39, x must be at least 39\n    have h4 : x % 47 = 39 := h1\n    exact Nat.le_of_mod_lt (h4.symm ▸ (Nat.mod_lt x (show 0 < 47 by norm_num)))\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Show that 39 is in the set\n    simp [Nat.ModEq]\n    rfl\n  · -- Show that 39 is the lower bound\n    intro x hx\n    simp [Nat.ModEq] at hx\n    -- 30 * x ≡ 42 [MOD 47]\n    -- Multiply both sides by the modular inverse of 30 mod 47, which is 11.\n    have h1 : 11 * (30 * x) % 47 = (11 * 42) % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    -- Simplify 11 * 30 % 47\n    have h2 : (11 * 30) % 47 = 1 := by norm_num\n    -- Simplify 11 * 42 % 47\n    have h3 : (11 * 42) % 47 = 39 := by norm_num\n    -- Combine to show x % 47 = 39\n    rw [← Nat.mul_assoc, Nat.mul_mod, h2] at h1\n    simp at h1\n    -- Since x % 47 = 39, x must be at least 39\n    have h4 : x % 47 = 39 := h1\n    exact Nat.le_of_mod_lt (h4.symm ▸ (Nat.mod_lt x (show 0 < 47 by norm_num)))",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 4
+            },
+            "endPos": {
+              "line": 12,
+              "column": 7
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 10
+            },
+            "endPos": {
+              "line": 19,
+              "column": 23
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a % ?n * (?b % ?n) % ?n\nin the target expression\n  11 * (30 * x) % 47 = 11 * 42 % 47\n\nx : ℕ\nhx : 30 * x % 47 = 42\n⊢ 11 * (30 * x) % 47 = 11 * 42 % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 38
+            },
+            "endPos": {
+              "line": 29,
+              "column": 78
+            },
+            "data": "Type mismatch\n  mod_lt x\n    (have this := ?m.171;\n    this)\nhas type\n  x % 47 < 47\nbut is expected to have type\n  x % (x % 47) < x"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.20366859436035156
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the Set**: Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$. Since 47 is a prime number and $\\gcd(30, 47) = 1$, the linear congruence $30x \\equiv 42 \\pmod{47}$ has a unique solution modulo 47.\n2.  **Solve the Congruence**:\n    *   We seek $x$ such that $30x \\equiv 42 \\pmod{47}$.\n    *   Divide both sides by 6 (since $\\gcd(6, 47) = 1$): $5x \\equiv 7 \\pmod{47}$.\n    *   Multiply by 19 (the modular inverse of 5 mod 47, since $5 \\times 19 = 95 = 2 \\times 47 + 1$):\n        $x \\equiv 7 \\times 19 \\pmod{47} \\implies x \\equiv 133 \\pmod{47}$.\n    *   Since $133 = 2 \\times 47 + 39$, we have $x \\equiv 39 \\pmod{47}$.\n3.  **Identify the Least Element**:\n    *   The set $S$ consists of all natural numbers of the form $47k + 39$ for $k \\in \\mathbb{N} \\cup \\{0\\}$.\n    *   The smallest such natural number is obtained when $k=0$, which is 39.\n4.  **Formalize in Lean**: Show that 39 is a member of the set and that any $x < 39$ is not.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    calc\n      30 * 39 = 1170 := by norm_num\n      _ = 24 * 47 + 42 := by norm_num\n      _ ≡ 42 [MOD 47] := by apply Nat.modEq_add_fac_self_left\n  · -- Prove 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    -- 30x ≡ 42 [MOD 47] implies 5x ≡ 7 [MOD 47] because gcd(6, 47) = 1\n    have h1 : 6 * (5 * x) ≡ 6 * 7 [MOD 47] := by\n      rw [← mul_assoc]\n      exact hx\n    have h2 : 5 * x ≡ 7 [MOD 47] := \n      Nat.ModEq.cancel_left_div_gcd (by norm_num : 0 < 6) h1\n    -- Multiply by 19 (inverse of 5 mod 47)\n    have h3 : 19 * (5 * x) ≡ 19 * 7 [MOD 47] := Nat.ModEq.mul_left 19 h2\n    have h4 : 95 * x ≡ 133 [MOD 47] := by rwa [← mul_assoc] at h3\n    -- 95 ≡ 1 [MOD 47] and 133 ≡ 39 [MOD 47]\n    have h5 : 95 * x ≡ 1 * x [MOD 47] := Nat.ModEq.mul_right x (by norm_num [Nat.ModEq])\n    have h6 : 1 * x ≡ 39 [MOD 47] := Nat.ModEq.trans (Nat.ModEq.symm h5) (Nat.ModEq.trans h4 (by norm_num [Nat.ModEq]))\n    rw [one_mul] at h6\n    -- Since x ≡ 39 [MOD 47], x must be at least 39 if it's not smaller than 39.\n    -- If x < 39, then x % 47 = x, so x = 39, which is a contradiction.\n    contrapose! h6\n    apply Nat.ModEq.ne_of_lt\n    · assumption\n    · exact h6\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    calc\n      30 * 39 = 1170 := by norm_num\n      _ = 24 * 47 + 42 := by norm_num\n      _ ≡ 42 [MOD 47] := by apply Nat.modEq_add_fac_self_left\n  · -- Prove 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    -- 30x ≡ 42 [MOD 47] implies 5x ≡ 7 [MOD 47] because gcd(6, 47) = 1\n    have h1 : 6 * (5 * x) ≡ 6 * 7 [MOD 47] := by\n      rw [← mul_assoc]\n      exact hx\n    have h2 : 5 * x ≡ 7 [MOD 47] := \n      Nat.ModEq.cancel_left_div_gcd (by norm_num : 0 < 6) h1\n    -- Multiply by 19 (inverse of 5 mod 47)\n    have h3 : 19 * (5 * x) ≡ 19 * 7 [MOD 47] := Nat.ModEq.mul_left 19 h2\n    have h4 : 95 * x ≡ 133 [MOD 47] := by rwa [← mul_assoc] at h3\n    -- 95 ≡ 1 [MOD 47] and 133 ≡ 39 [MOD 47]\n    have h5 : 95 * x ≡ 1 * x [MOD 47] := Nat.ModEq.mul_right x (by norm_num [Nat.ModEq])\n    have h6 : 1 * x ≡ 39 [MOD 47] := Nat.ModEq.trans (Nat.ModEq.symm h5) (Nat.ModEq.trans h4 (by norm_num [Nat.ModEq]))\n    rw [one_mul] at h6\n    -- Since x ≡ 39 [MOD 47], x must be at least 39 if it's not smaller than 39.\n    -- If x < 39, then x % 47 = x, so x = 39, which is a contradiction.\n    contrapose! h6\n    apply Nat.ModEq.ne_of_lt\n    · assumption\n    · exact h6",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 34
+            },
+            "endPos": {
+              "line": 15,
+              "column": 61
+            },
+            "data": "Unknown constant `Nat.modEq_add_fac_self_left`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 58
+            },
+            "endPos": {
+              "line": 24,
+              "column": 60
+            },
+            "data": "Application type mismatch: The argument\n  h1\nhas type\n  6 * (5 * x) ≡ 6 * 7 [MOD 47]\nbut is expected to have type\n  ?m.134 * ?m.132 ≡ ?m.134 * ?m.133 [MOD 6]\nin the application\n  ModEq.cancel_left_div_gcd ?m.142 h1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 10
+            },
+            "endPos": {
+              "line": 35,
+              "column": 28
+            },
+            "data": "Unknown constant `Nat.ModEq.ne_of_lt`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 4
+            },
+            "endPos": {
+              "line": 36,
+              "column": 16
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1253504753112793
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "To prove that $39$ is the least natural number satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Define the Set**: Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$.\n2.  **Solve the Linear Congruence**: Since $47$ is prime and $\\gcd(30, 47) = 1$, the congruence $30x \\equiv 42 \\pmod{47}$ has a unique solution modulo $47$.\n3.  **Modular Inverse**: Calculate the modular inverse of $30$ modulo $47$. Using the extended Euclidean algorithm:\n    *   $47 = 1 \\cdot 30 + 17$\n    *   $30 = 1 \\cdot 17 + 13$\n    *   $17 = 1 \\cdot 13 + 4$\n    *   $13 = 3 \\cdot 4 + 1 \\implies 1 = 13 - 3(17 - 13) = 4 \\cdot 13 - 3 \\cdot 17 = 4(30 - 17) - 3 \\cdot 17 = 4 \\cdot 30 - 7 \\cdot 17 = 4 \\cdot 30 - 7(47 - 30) = 11 \\cdot 30 - 7 \\cdot 47$.\n    *   Thus, $30^{-1} \\equiv 11 \\pmod{47}$.\n4.  **Find $x$**: Multiply both sides of $30x \\equiv 42 \\pmod{47}$ by $11$:\n    *   $x \\equiv 11 \\cdot 42 \\pmod{47}$\n    *   $11 \\cdot 42 = 462$\n    *   $462 = 9 \\cdot 47 + 39$.\n    *   So, $x \\equiv 39 \\pmod{47}$.\n5.  **Characterize the Set**: $x \\in S \\iff x = 39 + 47k$ for some $k \\in \\mathbb{N}$.\n6.  **Verify Least Element**: Since $k \\ge 0$, the smallest such natural number is $39$ (at $k=0$).\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- 30 * x ≡ 42 [MOD 47] implies 30 * x ≡ 11 * 30 * x ≡ 11 * 42 [MOD 47]\n    -- Since 11 * 30 = 330 = 7 * 47 + 1, 11 is the inverse.\n    have h1 : 11 * (30 * x) % 47 = 11 * 42 % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    have h2 : 11 * 30 * x % 47 = (330 * x) % 47 := by ring_nf\n    have h3 : 330 % 47 = 1 := by norm_num\n    have h4 : (330 * x) % 47 = (330 % 47 * (x % 47)) % 47 := by rw [Nat.mul_mod]\n    rw [h3, one_mul, Nat.mod_mod] at h4\n    have h5 : 11 * 42 % 47 = 39 := by norm_num\n    rw [← MulZeroClass.mul_zero, ← h2, h1, h5] at h4\n    -- Now we have x % 47 = 39\n    have h_mod : x % 47 = 39 := h4\n    -- Since x % 47 = 39, x must be at least 39\n    apply Nat.le_of_mod_lt h_mod\n    norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- 30 * x ≡ 42 [MOD 47] implies 30 * x ≡ 11 * 30 * x ≡ 11 * 42 [MOD 47]\n    -- Since 11 * 30 = 330 = 7 * 47 + 1, 11 is the inverse.\n    have h1 : 11 * (30 * x) % 47 = 11 * 42 % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    have h2 : 11 * 30 * x % 47 = (330 * x) % 47 := by ring_nf\n    have h3 : 330 % 47 = 1 := by norm_num\n    have h4 : (330 * x) % 47 = (330 % 47 * (x % 47)) % 47 := by rw [Nat.mul_mod]\n    rw [h3, one_mul, Nat.mod_mod] at h4\n    have h5 : 11 * 42 % 47 = 39 := by norm_num\n    rw [← MulZeroClass.mul_zero, ← h2, h1, h5] at h4\n    -- Now we have x % 47 = 39\n    have h_mod : x % 47 = 39 := h4\n    -- Since x % 47 = 39, x must be at least 39\n    apply Nat.le_of_mod_lt h_mod\n    norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 10
+            },
+            "endPos": {
+              "line": 19,
+              "column": 23
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a % ?n * (?b % ?n) % ?n\nin the target expression\n  11 * (30 * x) % 47 = 11 * 42 % 47\n\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\n⊢ 11 * (30 * x) % 47 = 11 * 42 % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 8
+            },
+            "endPos": {
+              "line": 25,
+              "column": 31
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  0\nin the target expression\n  330 * x % 47 = x % 47\n\ncase right\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\nh1 : 11 * (30 * x) % 47 = 11 * 42 % 47\nh2 : 11 * 30 * x % 47 = 330 * x % 47\nh3 : 330 % 47 = 1\nh4 : 330 * x % 47 = x % 47\nh5 : 11 * 42 % 47 = 39\n⊢ 39 ≤ x"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.14079618453979492
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Congruence Simplification**: The equation is $30x \\equiv 42 \\pmod{47}$. Since $\\gcd(30, 47) = 1$, 30 is invertible modulo 47.\n2.  **Modular Inverse**: We find the modular inverse of $30 \\pmod{47}$. By inspection or the extended Euclidean algorithm, $30 \\times 11 = 330 = 47 \\times 7 + 1$. Thus, $30^{-1} \\equiv 11 \\pmod{47}$.\n3.  **Isolation of $x$**: Multiply both sides by 11:\n    $11 \\cdot 30x \\equiv 11 \\cdot 42 \\pmod{47}$\n    $x \\equiv 462 \\pmod{47}$.\n4.  **Reduction**: $462 = 47 \\times 9 + 39$. Thus, $x \\equiv 39 \\pmod{47}$.\n5.  **Smallest Solution**: The set of solutions is $\\{x \\in \\mathbb{N} \\mid x = 39 + 47k, k \\in \\mathbb{N}\\}$. The smallest such natural number is clearly 39.\n6.  **Formal Verification**: We verify that 39 satisfies the condition and that any $x < 39$ does not.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- 30 * x ≡ 42 (mod 47) implies 11 * 30 * x ≡ 11 * 42 (mod 47)\n    have h1 : (11 * (30 * x)) % 47 = (11 * 42) % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    -- Simplify constants: 11 * 30 = 330, 11 * 42 = 462\n    have h2 : 330 * x % 47 = 462 % 47 := by\n      rw [← h1]\n      ring\n    -- Further simplify modulo 47: 330 % 47 = 1, 462 % 47 = 39\n    have h3 : (330 % 47 * (x % 47)) % 47 = 39 := by\n      rw [← Nat.mul_mod, h2]\n      norm_num\n    norm_num at h3\n    -- Result: x % 47 = 39\n    have h4 : x % 47 = 39 := by\n      simpa [h3] using h3\n    -- If x % 47 = 39, then x ≥ 39\n    apply Nat.le_of_mod_lt\n    rw [h4]\n    norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- 30 * x ≡ 42 (mod 47) implies 11 * 30 * x ≡ 11 * 42 (mod 47)\n    have h1 : (11 * (30 * x)) % 47 = (11 * 42) % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    -- Simplify constants: 11 * 30 = 330, 11 * 42 = 462\n    have h2 : 330 * x % 47 = 462 % 47 := by\n      rw [← h1]\n      ring\n    -- Further simplify modulo 47: 330 % 47 = 1, 462 % 47 = 39\n    have h3 : (330 % 47 * (x % 47)) % 47 = 39 := by\n      rw [← Nat.mul_mod, h2]\n      norm_num\n    norm_num at h3\n    -- Result: x % 47 = 39\n    have h4 : x % 47 = 39 := by\n      simpa [h3] using h3\n    -- If x % 47 = 39, then x ≥ 39\n    apply Nat.le_of_mod_lt\n    rw [h4]\n    norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 10
+            },
+            "endPos": {
+              "line": 20,
+              "column": 23
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a % ?n * (?b % ?n) % ?n\nin the target expression\n  11 * (30 * x) % 47 = 11 * 42 % 47\n\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\n⊢ 11 * (30 * x) % 47 = 11 * 42 % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 6
+            },
+            "endPos": {
+              "line": 28,
+              "column": 14
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 8
+            },
+            "endPos": {
+              "line": 35,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  x % 47\nin the target expression\n  x % 39 < x\n\ncase right.h\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\nh1 : 11 * (30 * x) % 47 = 11 * 42 % 47\nh2 : 330 * x % 47 = 462 % 47\nh3 h4 : x % 47 = 39\n⊢ x % 39 < x"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 32,
+              "column": 6
+            },
+            "endPos": {
+              "line": 32,
+              "column": 25
+            },
+            "data": "try 'simp' instead of 'simpa'\n\nNote: This linter can be disabled with `set_option linter.unnecessarySimpa false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.19400405883789062
+      }
+    },
+    {
+      "index": 24,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the Set:** Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$. Since 47 is prime and $\\gcd(30, 47) = 1$, the linear congruence has a unique solution modulo 47.\n2.  **Solve the Congruence:**\n    *   The congruence is $30x \\equiv 42 \\pmod{47}$.\n    *   Divide by 6 (since $\\gcd(6, 47) = 1$): $5x \\equiv 7 \\pmod{47}$.\n    *   To find the modular inverse of 5 modulo 47, observe that $5 \\times 19 = 95 = 2 \\times 47 + 1$. Thus, $5^{-1} \\equiv 19 \\pmod{47}$.\n    *   Multiply by 19: $x \\equiv 19 \\times 7 = 133 \\pmod{47}$.\n    *   $133 = 2 \\times 47 + 39$, so $x \\equiv 39 \\pmod{47}$.\n3.  **Identify the Least Natural Number:** The solutions in $\\mathbb{N}$ are of the form $39 + 47k$ for $k \\in \\{0, 1, 2, \\dots\\}$. The smallest such natural number is $39$ (where $k=0$).\n4.  **Verification:** Check that $30 \\times 39 = 1170$. $1170 = 24 \\times 47 + 42$. Also, check that no $x < 39$ satisfies the condition.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Show that 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Show that 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- We have 30 * x ≡ 42 (mod 47)\n    -- Since 47 is prime, we can use properties of ZMod 47\n    have h : (30 : ZMod 47) * x = 42 := by\n      rw [← ZMod.eq_iff_modEq_nat] at hx\n      push_cast at hx\n      exact hx\n    -- Solve for x in ZMod 47\n    -- 30 * x = 42 => 5 * 6 * x = 7 * 6 => 5 * x = 7 (since 6 is invertible)\n    have h2 : (5 : ZMod 47) * x = 7 := by\n      have h6 : (6 : ZMod 47) ≠ 0 := by norm_num\n      apply (mul_right_inj' h6).mp\n      linear_combination h\n    -- x = 7 * 5⁻¹ = 7 * 19 = 133 = 39 (mod 47)\n    have h3 : (x : ZMod 47) = 39 := by\n      have h5inv : (5 : ZMod 47)⁻¹ = 19 := by\n        apply inv_eq_of_mul_eq_one\n        norm_num\n      rw [← h5inv, ← mul_assoc, inv_mul_cancel (by norm_num : (5 : ZMod 47) ≠ 0), one_mul] at h2\n      rw [h2]\n      norm_num\n    -- From (x : ZMod 47) = 39, we know x ≡ 39 [MOD 47]\n    have h4 : x ≡ 39 [MOD 47] := by\n      rw [ZMod.eq_iff_modEq_nat] at h3\n      exact h3\n    -- Therefore x = 39 + 47k, which implies x ≥ 39\n    apply Nat.le_of_modEq h4 (by norm_num)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Show that 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Show that 39 is the lower bound\n    intro x hx\n    show 39 ≤ x\n    unfold Nat.ModEq at hx\n    -- We have 30 * x ≡ 42 (mod 47)\n    -- Since 47 is prime, we can use properties of ZMod 47\n    have h : (30 : ZMod 47) * x = 42 := by\n      rw [← ZMod.eq_iff_modEq_nat] at hx\n      push_cast at hx\n      exact hx\n    -- Solve for x in ZMod 47\n    -- 30 * x = 42 => 5 * 6 * x = 7 * 6 => 5 * x = 7 (since 6 is invertible)\n    have h2 : (5 : ZMod 47) * x = 7 := by\n      have h6 : (6 : ZMod 47) ≠ 0 := by norm_num\n      apply (mul_right_inj' h6).mp\n      linear_combination h\n    -- x = 7 * 5⁻¹ = 7 * 19 = 133 = 39 (mod 47)\n    have h3 : (x : ZMod 47) = 39 := by\n      have h5inv : (5 : ZMod 47)⁻¹ = 19 := by\n        apply inv_eq_of_mul_eq_one\n        norm_num\n      rw [← h5inv, ← mul_assoc, inv_mul_cancel (by norm_num : (5 : ZMod 47) ≠ 0), one_mul] at h2\n      rw [h2]\n      norm_num\n    -- From (x : ZMod 47) = 39, we know x ≡ 39 [MOD 47]\n    have h4 : x ≡ 39 [MOD 47] := by\n      rw [ZMod.eq_iff_modEq_nat] at h3\n      exact h3\n    -- Therefore x = 39 + 47k, which implies x ≥ 39\n    apply Nat.le_of_modEq h4 (by norm_num)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 12
+            },
+            "endPos": {
+              "line": 21,
+              "column": 33
+            },
+            "data": "Unknown constant `ZMod.eq_iff_modEq_nat`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 37
+            },
+            "endPos": {
+              "line": 27,
+              "column": 48
+            },
+            "data": "unsolved goals\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\nh : 30 * ↑x = 42\n⊢ ¬6 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 13
+            },
+            "endPos": {
+              "line": 28,
+              "column": 30
+            },
+            "data": "failed to synthesize instance of type class\n  IsLeftCancelMulZero (ZMod 47)\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 6
+            },
+            "endPos": {
+              "line": 29,
+              "column": 26
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 14
+            },
+            "endPos": {
+              "line": 33,
+              "column": 34
+            },
+            "data": "Unknown identifier `inv_eq_of_mul_eq_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 8
+            },
+            "endPos": {
+              "line": 34,
+              "column": 16
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 10
+            },
+            "endPos": {
+              "line": 35,
+              "column": 17
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  19\nin the target expression\n  5 * ↑x = 7\n\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\nh : 30 * ↑x = 42\nh2 : 5 * ↑x = 7\nh5inv : 5⁻¹ = 19\n⊢ ↑x = 39"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 40,
+              "column": 10
+            },
+            "endPos": {
+              "line": 40,
+              "column": 31
+            },
+            "data": "Unknown constant `ZMod.eq_iff_modEq_nat`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 43,
+              "column": 10
+            },
+            "endPos": {
+              "line": 43,
+              "column": 25
+            },
+            "data": "Unknown constant `Nat.le_of_modEq`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4588775634765625
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the Set**: Let $S = \\{ x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47} \\}$.\n2.  **Solve the Linear Congruence**: Since 47 is prime and $\\gcd(30, 47) = 1$, the congruence $30x \\equiv 42 \\pmod{47}$ has a unique solution modulo 47.\n3.  **Find the Inverse**: We need to find $30^{-1} \\pmod{47}$. By inspection or the Extended Euclidean Algorithm:\n    $30 \\times 11 = 330 = 47 \\times 7 + 1$, so $30 \\times 11 \\equiv 1 \\pmod{47}$.\n4.  **Isolate $x$**:\n    $x \\equiv 42 \\times 11 \\pmod{47}$\n    $x \\equiv 462 \\pmod{47}$\n    Since $462 = 47 \\times 9 + 39$, we have $x \\equiv 39 \\pmod{47}$.\n5.  **Identify the Least Element**: The set $S$ consists of all $x \\in \\mathbb{N}$ such that $x = 39 + 47k$ for $k \\in \\{0, 1, 2, \\dots\\}$. The smallest such natural number is clearly 39 ($k=0$).\n6.  **Verify**: Show $39 \\in S$ and $\\forall y \\in S, 39 \\le y$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  -- Define the set S\n  let S := { x : ℕ | 30 * x ≡ 42 [MOD 47] }\n  constructor\n  · -- Prove 39 is in S\n    show 30 * 39 ≡ 42 [MOD 47]\n    calc\n      30 * 39 = 1170 := by norm_num\n      _ = 24 * 47 + 42 := by norm_num\n      _ ≡ 42 [MOD 47] := by apply Int.modeq_add_fac_self\n  · -- Prove 39 is the lower bound\n    intro x (hx : 30 * x ≡ 42 [MOD 47])\n    -- Since 30 * 11 ≡ 1 [MOD 47]\n    have h_inv : 30 * 11 ≡ 1 [MOD 47] := by\n      show 330 ≡ 1 [MOD 47]\n      calc\n        330 = 7 * 47 + 1 := by norm_num\n        _ ≡ 1 [MOD 47] := by apply Int.modeq_add_fac_self\n    -- Multiply the original congruence by 11\n    have h_mul : 11 * (30 * x) ≡ 11 * 42 [MOD 47] := Int.Modeq.mul_left 11 hx\n    have h_x : x ≡ 39 [MOD 47] := calc\n      (x : ℤ) ≡ 1 * x [MOD 47] := by rw [Int.one_mul]\n      _ ≡ (11 * 30) * x [MOD 47] := Int.Modeq.mul_right _ h_inv.symm\n      _ ≡ 11 * (30 * x) [MOD 47] := by rw [Int.mul_assoc]\n      _ ≡ 11 * 42 [MOD 47] := h_mul\n      _ ≡ 462 [MOD 47] := by norm_num\n      _ ≡ 9 * 47 + 39 [MOD 47] := by norm_num\n      _ ≡ 39 [MOD 47] := by apply Int.modeq_add_fac_self\n    -- From x ≡ 39 [MOD 47], we have x = 47 * k + 39\n    rcases Int.modeq_iff_dvd.mp h_x with ⟨k, hk⟩\n    have h_val : (x : ℤ) = 47 * k + 39 := by linarith\n    -- Since x is a natural number, x >= 0, and because 47k + 39 = x, \n    -- and x ≡ 39 [MOD 47], x must be 39, 39+47, ...\n    -- Specifically, if k < 0, then 47k + 39 <= -47 + 39 = -8, which contradicts x >= 0.\n    have hk_nonneg : 0 <= k := by\n      by_contra h_neg\n      have h_k_le : k <= -1 := Int.lt_add_one_iff.mp (lt_of_not_ge h_neg)\n      have : (x : ℤ) <= 47 * (-1) + 39 := by\n        rw [h_val]\n        apply add_le_add_right\n        exact Int.mul_le_mul_of_nonneg_left h_k_le (by norm_num)\n      have : (x : ℤ) <= -8 := by linarith\n      have : (x : ℤ) >= 0 := Int.coe_nat_nonneg x\n      linarith\n    -- Thus x = 47k + 39 with k >= 0 implies x >= 39\n    calc\n      x = 47 * k + 39 := by exact_mod_cast h_val\n      _ >= 47 * 0 + 39 := by\n        apply add_le_add_right\n        apply Int.mul_le_mul_of_nonneg_left hk_nonneg (by norm_num)\n      _ = 39 := by norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  -- Define the set S\n  let S := { x : ℕ | 30 * x ≡ 42 [MOD 47] }\n  constructor\n  · -- Prove 39 is in S\n    show 30 * 39 ≡ 42 [MOD 47]\n    calc\n      30 * 39 = 1170 := by norm_num\n      _ = 24 * 47 + 42 := by norm_num\n      _ ≡ 42 [MOD 47] := by apply Int.modeq_add_fac_self\n  · -- Prove 39 is the lower bound\n    intro x (hx : 30 * x ≡ 42 [MOD 47])\n    -- Since 30 * 11 ≡ 1 [MOD 47]\n    have h_inv : 30 * 11 ≡ 1 [MOD 47] := by\n      show 330 ≡ 1 [MOD 47]\n      calc\n        330 = 7 * 47 + 1 := by norm_num\n        _ ≡ 1 [MOD 47] := by apply Int.modeq_add_fac_self\n    -- Multiply the original congruence by 11\n    have h_mul : 11 * (30 * x) ≡ 11 * 42 [MOD 47] := Int.Modeq.mul_left 11 hx\n    have h_x : x ≡ 39 [MOD 47] := calc\n      (x : ℤ) ≡ 1 * x [MOD 47] := by rw [Int.one_mul]\n      _ ≡ (11 * 30) * x [MOD 47] := Int.Modeq.mul_right _ h_inv.symm\n      _ ≡ 11 * (30 * x) [MOD 47] := by rw [Int.mul_assoc]\n      _ ≡ 11 * 42 [MOD 47] := h_mul\n      _ ≡ 462 [MOD 47] := by norm_num\n      _ ≡ 9 * 47 + 39 [MOD 47] := by norm_num\n      _ ≡ 39 [MOD 47] := by apply Int.modeq_add_fac_self\n    -- From x ≡ 39 [MOD 47], we have x = 47 * k + 39\n    rcases Int.modeq_iff_dvd.mp h_x with ⟨k, hk⟩\n    have h_val : (x : ℤ) = 47 * k + 39 := by linarith\n    -- Since x is a natural number, x >= 0, and because 47k + 39 = x, \n    -- and x ≡ 39 [MOD 47], x must be 39, 39+47, ...\n    -- Specifically, if k < 0, then 47k + 39 <= -47 + 39 = -8, which contradicts x >= 0.\n    have hk_nonneg : 0 <= k := by\n      by_contra h_neg\n      have h_k_le : k <= -1 := Int.lt_add_one_iff.mp (lt_of_not_ge h_neg)\n      have : (x : ℤ) <= 47 * (-1) + 39 := by\n        rw [h_val]\n        apply add_le_add_right\n        exact Int.mul_le_mul_of_nonneg_left h_k_le (by norm_num)\n      have : (x : ℤ) <= -8 := by linarith\n      have : (x : ℤ) >= 0 := Int.coe_nat_nonneg x\n      linarith\n    -- Thus x = 47k + 39 with k >= 0 implies x >= 39\n    calc\n      x = 47 * k + 39 := by exact_mod_cast h_val\n      _ >= 47 * 0 + 39 := by\n        apply add_le_add_right\n        apply Int.mul_le_mul_of_nonneg_left hk_nonneg (by norm_num)\n      _ = 39 := by norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 34
+            },
+            "endPos": {
+              "line": 17,
+              "column": 56
+            },
+            "data": "Unknown constant `Int.modeq_add_fac_self`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 35
+            },
+            "endPos": {
+              "line": 25,
+              "column": 57
+            },
+            "data": "Unknown constant `Int.modeq_add_fac_self`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 53
+            },
+            "endPos": {
+              "line": 27,
+              "column": 71
+            },
+            "data": "Unknown constant `Int.Modeq.mul_left`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 6
+            },
+            "endPos": {
+              "line": 29,
+              "column": 13
+            },
+            "data": "Application type mismatch: The argument\n  ↑x\nhas type\n  ℤ\nbut is expected to have type\n  ℕ\nin the application\n  ModEq 47 ↑x"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 36
+            },
+            "endPos": {
+              "line": 30,
+              "column": 55
+            },
+            "data": "Unknown constant `Int.Modeq.mul_right`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 43
+            },
+            "endPos": {
+              "line": 31,
+              "column": 56
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a * ?b * ?c\nin the target expression\n  11 * 30 * x ≡ 11 * (30 * x) [MOD 47]\n\nS : Set ℕ := {x | 30 * x ≡ 42 [MOD 47]}\nx : ℕ\nhx : 30 * x ≡ 42 [MOD 47]\nh_inv : 30 * 11 ≡ 1 [MOD 47]\nh_mul : 11 * (30 * x) ≡ 11 * 42 [MOD 47]\n⊢ 11 * 30 * x ≡ 11 * (30 * x) [MOD 47]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 34
+            },
+            "endPos": {
+              "line": 35,
+              "column": 56
+            },
+            "data": "Unknown constant `Int.modeq_add_fac_self`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 11
+            },
+            "endPos": {
+              "line": 37,
+              "column": 31
+            },
+            "data": "Unknown constant `Int.modeq_iff_dvd.mp`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 41
+            },
+            "endPos": {
+              "line": 37,
+              "column": 48
+            },
+            "data": "Tactic `rcases` failed: `x✝ : ?m.293` is not an inductive datatype"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.21153640747070312
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "To prove that $39$ is the least natural number satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Existence**: Show that $39$ is in the set.\n    *   Calculate $30 \\times 39 = 1170$.\n    *   Check the congruence $1170 \\equiv 42 \\pmod{47}$. Since $1170 = 47 \\times 24 + 42$, the condition holds.\n2.  **Minimality**: Show that for any $x < 39$, $30x \\not\\equiv 42 \\pmod{47}$.\n    *   The linear congruence $30x \\equiv 42 \\pmod{47}$ has a unique solution modulo $47$ because $\\gcd(30, 47) = 1$ ($47$ is prime).\n    *   We can solve $30x \\equiv 42 \\pmod{47}$ by finding the modular inverse of $30 \\pmod{47}$.\n    *   $30^{-1} \\pmod{47}$ is $33$ (since $30 \\times 33 = 990 = 47 \\times 21 + 3$). Alternatively, solving directly shows $x \\equiv 39 \\pmod{47}$.\n    *   Any natural number $x$ satisfying the congruence must be of the form $47k + 39$ for $k \\in \\mathbb{N} \\cup \\{0\\}$.\n    *   The smallest such natural number is $39$ (when $k=0$).\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?mem, ?least⟩\n  · -- Prove 39 satisfies the congruence\n    show 30 * 39 % 47 = 42 % 47\n    norm_num\n  · -- Prove 39 is the least such natural number\n    intro x hx\n    show 39 ≤ x\n    -- 30 * x ≡ 42 [MOD 47]\n    have h : 30 * x ≡ 30 * 39 [MOD 47] := by\n      trans 42\n      · exact hx\n      · norm_num\n    -- Since gcd(30, 47) = 1 and 47 is prime, we can cancel 30\n    have h_gcd : Nat.Coprime 30 47 := by norm_num\n    have h_cong : x ≡ 39 [MOD 47] := (Nat.ModEq.cancel_left h_gcd h)\n    -- x ≡ 39 [MOD 47] implies x = 47 * k + 39\n    rcases (Nat.modEq_iff_exists_ge h_cong) with ⟨k, hk⟩\n    omega\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?mem, ?least⟩\n  · -- Prove 39 satisfies the congruence\n    show 30 * 39 % 47 = 42 % 47\n    norm_num\n  · -- Prove 39 is the least such natural number\n    intro x hx\n    show 39 ≤ x\n    -- 30 * x ≡ 42 [MOD 47]\n    have h : 30 * x ≡ 30 * 39 [MOD 47] := by\n      trans 42\n      · exact hx\n      · norm_num\n    -- Since gcd(30, 47) = 1 and 47 is prime, we can cancel 30\n    have h_gcd : Nat.Coprime 30 47 := by norm_num\n    have h_cong : x ≡ 39 [MOD 47] := (Nat.ModEq.cancel_left h_gcd h)\n    -- x ≡ 39 [MOD 47] implies x = 47 * k + 39\n    rcases (Nat.modEq_iff_exists_ge h_cong) with ⟨k, hk⟩\n    omega",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 38
+            },
+            "endPos": {
+              "line": 23,
+              "column": 59
+            },
+            "data": "Unknown constant `Nat.ModEq.cancel_left`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 12
+            },
+            "endPos": {
+              "line": 25,
+              "column": 35
+            },
+            "data": "Unknown constant `Nat.modEq_iff_exists_ge`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 49
+            },
+            "endPos": {
+              "line": 25,
+              "column": 56
+            },
+            "data": "Tactic `rcases` failed: `x✝ : ?m.90` is not an inductive datatype"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.08014535903930664
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ such that $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Modular Inverse Calculation**: Since 47 is prime and $\\gcd(30, 47) = 1$, the congruence $30x \\equiv 42 \\pmod{47}$ has a unique solution modulo 47.\n2.  **Solve for $x$**:\n    *   $30x \\equiv 42 \\pmod{47}$\n    *   Simplify by dividing by 6 (since $\\gcd(6, 47) = 1$): $5x \\equiv 7 \\pmod{47}$.\n    *   Find the modular inverse of 5 modulo 47. Since $5 \\times 19 = 95 = 2 \\times 47 + 1$, the inverse is 19.\n    *   Multiply by 19: $x \\equiv 19 \\times 7 \\pmod{47}$.\n    *   $19 \\times 7 = 133$.\n    *   $133 = 2 \\times 47 + 39$, so $x \\equiv 39 \\pmod{47}$.\n3.  **Establish Least Element**:\n    *   The set of solutions is $\\{x \\in \\mathbb{N} \\mid x = 39 + 47k, k \\in \\mathbb{N}\\}$.\n    *   The smallest such natural number is clearly 39 ($k=0$).\n    *   Formally, we show 39 is in the set and that any $x < 39$ is not in the set.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Show 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    calc\n      30 * 39 = 1170 := by norm_num\n      _ = 24 * 47 + 42 := by norm_num\n      _ ≡ 42 [MOD 47] := by apply Nat.modEq_add_fac_self\n  · -- Show 39 is the least element\n    intro x hx\n    show 39 ≤ x\n    -- 30x ≡ 42 [MOD 47] implies 5 * 6 * x ≡ 7 * 6 [MOD 47]\n    -- Since gcd(6, 47) = 1, 5x ≡ 7 [MOD 47]\n    have h1 : 5 * x ≡ 7 [MOD 47] := by\n      have h_gcd : Nat.gcd 6 47 = 1 := by norm_num\n      have h_mul : 6 * (5 * x) ≡ 6 * 7 [MOD 47] := by\n        rw [← mul_assoc]\n        exact hx\n      exact (Nat.ModEq.cancel_left_div_nm h_gcd h_mul)\n    -- Multiply by 19 (inverse of 5 mod 47)\n    have h2 : 19 * (5 * x) ≡ 19 * 7 [MOD 47] := Nat.ModEq.mul_left 19 h1\n    have h3 : 95 * x ≡ 133 [MOD 47] := by\n      rw [← mul_assoc] at h2\n      exact h2\n    -- 95 ≡ 1 [MOD 47] and 133 ≡ 39 [MOD 47]\n    have h4 : 95 * x ≡ 1 * x [MOD 47] := Nat.ModEq.mul_right x (by norm_num : 95 ≡ 1 [MOD 47])\n    have h5 : 133 ≡ 39 [MOD 47] := by norm_num\n    have h6 : x ≡ 39 [MOD 47] := Nat.ModEq.trans (Nat.ModEq.symm h4) (Nat.ModEq.trans h3 h5)\n    -- Since x ≡ 39 [MOD 47], x = 47k + 39\n    match Nat.ModEq.exists_lt_symm h6 with\n    | ⟨k, hk⟩ =>\n      -- If x < 39, then since x ≡ 39 [MOD 47], x must be 39 - 47k where k > 0.\n      -- But x is a natural number, and 39 - 47k < 0 for k > 0.\n      -- Formally, x % 47 = 39 % 47 = 39.\n      -- Therefore x ≥ x % 47 = 39.\n      apply Nat.le_of_mod_le\n      rw [h6.mod_eq]\n      norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  refine ⟨?_, ?_⟩\n  · -- Show 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    calc\n      30 * 39 = 1170 := by norm_num\n      _ = 24 * 47 + 42 := by norm_num\n      _ ≡ 42 [MOD 47] := by apply Nat.modEq_add_fac_self\n  · -- Show 39 is the least element\n    intro x hx\n    show 39 ≤ x\n    -- 30x ≡ 42 [MOD 47] implies 5 * 6 * x ≡ 7 * 6 [MOD 47]\n    -- Since gcd(6, 47) = 1, 5x ≡ 7 [MOD 47]\n    have h1 : 5 * x ≡ 7 [MOD 47] := by\n      have h_gcd : Nat.gcd 6 47 = 1 := by norm_num\n      have h_mul : 6 * (5 * x) ≡ 6 * 7 [MOD 47] := by\n        rw [← mul_assoc]\n        exact hx\n      exact (Nat.ModEq.cancel_left_div_nm h_gcd h_mul)\n    -- Multiply by 19 (inverse of 5 mod 47)\n    have h2 : 19 * (5 * x) ≡ 19 * 7 [MOD 47] := Nat.ModEq.mul_left 19 h1\n    have h3 : 95 * x ≡ 133 [MOD 47] := by\n      rw [← mul_assoc] at h2\n      exact h2\n    -- 95 ≡ 1 [MOD 47] and 133 ≡ 39 [MOD 47]\n    have h4 : 95 * x ≡ 1 * x [MOD 47] := Nat.ModEq.mul_right x (by norm_num : 95 ≡ 1 [MOD 47])\n    have h5 : 133 ≡ 39 [MOD 47] := by norm_num\n    have h6 : x ≡ 39 [MOD 47] := Nat.ModEq.trans (Nat.ModEq.symm h4) (Nat.ModEq.trans h3 h5)\n    -- Since x ≡ 39 [MOD 47], x = 47k + 39\n    match Nat.ModEq.exists_lt_symm h6 with\n    | ⟨k, hk⟩ =>\n      -- If x < 39, then since x ≡ 39 [MOD 47], x must be 39 - 47k where k > 0.\n      -- But x is a natural number, and 39 - 47k < 0 for k > 0.\n      -- Formally, x % 47 = 39 % 47 = 39.\n      -- Therefore x ≥ x % 47 = 39.\n      apply Nat.le_of_mod_le\n      rw [h6.mod_eq]\n      norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 34
+            },
+            "endPos": {
+              "line": 15,
+              "column": 56
+            },
+            "data": "Unknown constant `Nat.modEq_add_fac_self`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 13
+            },
+            "endPos": {
+              "line": 26,
+              "column": 41
+            },
+            "data": "Unknown constant `Nat.ModEq.cancel_left_div_nm`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 65
+            },
+            "endPos": {
+              "line": 35,
+              "column": 67
+            },
+            "data": "Application type mismatch: The argument\n  h4\nhas type\n  95 * x ≡ 1 * x [MOD 47]\nbut is expected to have type\n  95 * x ≡ x [MOD 47]\nin the application\n  ModEq.symm h4"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1685655117034912
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the Set:** Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$. Since 47 is prime and $\\gcd(30, 47) = 1$, the linear congruence has a unique solution modulo 47.\n2.  **Find the modular inverse:** We need to solve $30x \\equiv 42 \\pmod{47}$. Multiplying by the modular inverse of 30 modulo 47:\n    *   Using the Extended Euclidean Algorithm or trial: $30 \\cdot 33 = 990$.\n    *   $990 = 21 \\cdot 47 + 3$. This doesn't look right. Let's try $30 \\cdot \\pi \\equiv 1 \\pmod{47}$.\n    *   $30 \\cdot 11 = 330 = 47 \\cdot 7 + 1$. Thus $30^{-1} \\equiv 11 \\pmod{47}$.\n3.  **Solve for $x$:**\n    *   $x \\equiv 42 \\cdot 11 \\pmod{47}$\n    *   $42 \\cdot 11 = 462$\n    *   $462 = 47 \\cdot 9 + 39$.\n    *   So, $x \\equiv 39 \\pmod{47}$.\n4.  **Least element:** The set $S$ is $\\{39, 39 + 47, 39 + 94, \\dots\\}$. The smallest natural number in this set is 39.\n5.  **Verify:**\n    *   $30 \\times 39 = 1170$.\n    *   $1170 = 47 \\times 24 + 42$, so $1170 \\equiv 42 \\pmod{47}$.\n    *   Check that for any $x < 39$, $30x \\not\\equiv 42 \\pmod{47}$. Since the solution is unique modulo 47, no $x \\in [0, 38]$ can satisfy it.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove 39 is in the set\n    simp only [Set.mem_setOf_eq]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove 39 is the lower bound\n    intro n hn\n    simp only [Set.mem_setOf_eq] at hn\n    unfold Nat.ModEq at hn\n    -- Since 47 is prime, we can use modular arithmetic properties\n    have h : (30 * n) % 47 = 42 := hn\n    -- Multiply both sides by 11 (the modular inverse of 30 mod 47)\n    have h_inv : (11 * (30 * n)) % 47 = (11 * 42) % 47 := by\n      rw [← Nat.mul_mod, h, Nat.mul_mod]\n    -- Simplify the left side: 11 * 30 = 330, 330 % 47 = 1\n    have h_left : (11 * (30 * n)) % 47 = n % 47 := by\n      rw [← Nat.mul_assoc, Nat.mul_mod, (show 11 * 30 = 330 from rfl)]\n      norm_num\n    -- Simplify the right side: 11 * 42 = 462, 462 % 47 = 39\n    have h_right : (11 * 42) % 47 = 39 := by\n      norm_num\n    -- Conclude n % 47 = 39\n    have hn_mod : n % 47 = 39 := by\n      rw [← h_left, h_inv, h_right]\n    -- Since n % 47 = 39, n must be at least 39\n    exact Nat.le_of_mod_lt hn_mod (by norm_num)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove 39 is in the set\n    simp only [Set.mem_setOf_eq]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove 39 is the lower bound\n    intro n hn\n    simp only [Set.mem_setOf_eq] at hn\n    unfold Nat.ModEq at hn\n    -- Since 47 is prime, we can use modular arithmetic properties\n    have h : (30 * n) % 47 = 42 := hn\n    -- Multiply both sides by 11 (the modular inverse of 30 mod 47)\n    have h_inv : (11 * (30 * n)) % 47 = (11 * 42) % 47 := by\n      rw [← Nat.mul_mod, h, Nat.mul_mod]\n    -- Simplify the left side: 11 * 30 = 330, 330 % 47 = 1\n    have h_left : (11 * (30 * n)) % 47 = n % 47 := by\n      rw [← Nat.mul_assoc, Nat.mul_mod, (show 11 * 30 = 330 from rfl)]\n      norm_num\n    -- Simplify the right side: 11 * 42 = 462, 462 % 47 = 39\n    have h_right : (11 * 42) % 47 = 39 := by\n      norm_num\n    -- Conclude n % 47 = 39\n    have hn_mod : n % 47 = 39 := by\n      rw [← h_left, h_inv, h_right]\n    -- Since n % 47 = 39, n must be at least 39\n    exact Nat.le_of_mod_lt hn_mod (by norm_num)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 10
+            },
+            "endPos": {
+              "line": 22,
+              "column": 23
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a % ?n * (?b % ?n) % ?n\nin the target expression\n  11 * (30 * n) % 47 = 11 * 42 % 47\n\nn : ℕ\nhn : 30 * n % 47 = 42 % 47\nh : 30 * n % 47 = 42\n⊢ 11 * (30 * n) % 47 = 11 * 42 % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 10
+            },
+            "endPos": {
+              "line": 34,
+              "column": 47
+            },
+            "data": "Function expected at\n  le_of_mod_lt ?m.182\nbut this term has type\n  ?m.181 ≤ ?m.180\n\nNote: Expected a function because this term is being applied to the argument\n  (by norm_num)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 27
+            },
+            "endPos": {
+              "line": 34,
+              "column": 33
+            },
+            "data": "Application type mismatch: The argument\n  hn_mod\nhas type\n  n % 47 = 39\nbut is expected to have type\n  ?m.180 % ?m.181 < ?m.180\nin the application\n  le_of_mod_lt hn_mod"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.17616915702819824
+      }
+    },
+    {
+      "index": 29,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ such that $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Simplification of the Congruence**: The congruence is $30x \\equiv 42 \\pmod{47}$. Since 47 is prime and $\\gcd(30, 47) = 1$, we can multiply both sides by the modular inverse of 30 modulo 47.\n2.  **Finding the Modular Inverse**: Using the Extended Euclidean Algorithm or trial, we find $30 \\cdot 11 = 330 = 47 \\cdot 7 + 1$. Thus, $30^{-1} \\equiv 11 \\pmod{47}$.\n3.  **Solving for $x$**: Multiplying $30x \\equiv 42 \\pmod{47}$ by 11 gives $x \\equiv 462 \\pmod{47}$. Calculating $462 \\div 47 = 9$ with remainder 39, we get $x \\equiv 39 \\pmod{47}$.\n4.  **Least Positive Solution**: The set $\\{x \\in \\mathbb{N} \\mid x \\equiv 39 \\pmod{47}\\}$ is $\\{39, 39 + 47, 39 + 2 \\cdot 47, \\dots\\}$. The smallest element in this set of natural numbers is 39.\n5.  **Formal Verification**: Verify that 39 satisfies the congruence and that any $x < 39$ does not.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove that 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    calc\n      30 * 39 = 1170 := by norm_num\n      _ = 47 * 24 + 42 := by norm_num\n      _ ≡ 42 [MOD 47] := by apply Nat.modEq_add_fac_self_left\n  · -- Prove that 39 is the lower bound\n    intro x hx\n    dsimp at hx\n    -- 30 * x ≡ 42 [MOD 47] implies 11 * (30 * x) ≡ 11 * 42 [MOD 47]\n    have h1 : 11 * (30 * x) ≡ 11 * 42 [MOD 47] := Nat.ModEq.mul_left 11 hx\n    -- 11 * 30 = 330 = 7 * 47 + 1, so 11 * 30 ≡ 1 [MOD 47]\n    have h2 : 330 ≡ 1 [MOD 47] := by\n      show 330 % 47 = 1 % 47\n      norm_num\n    have h3 : 11 * 30 * x ≡ 1 * x [MOD 47] := Nat.ModEq.mul_right x h2\n    -- 11 * 42 = 462 = 9 * 47 + 39, so 11 * 42 ≡ 39 [MOD 47]\n    have h4 : 462 ≡ 39 [MOD 47] := by\n      show 462 % 47 = 39 % 47\n      norm_num\n    -- Combining gives x ≡ 39 [MOD 47]\n    have h5 : x ≡ 39 [MOD 47] := h3.symm.trans (h1.trans h4)\n    -- From x ≡ 39 [MOD 47], we have x = 47 * k + 39 for some k\n    -- Since x is a natural number, x must be at least 39\n    rcases (Nat.modEq_iff_exists_ge h5) with ⟨k, hk⟩\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove that 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    calc\n      30 * 39 = 1170 := by norm_num\n      _ = 47 * 24 + 42 := by norm_num\n      _ ≡ 42 [MOD 47] := by apply Nat.modEq_add_fac_self_left\n  · -- Prove that 39 is the lower bound\n    intro x hx\n    dsimp at hx\n    -- 30 * x ≡ 42 [MOD 47] implies 11 * (30 * x) ≡ 11 * 42 [MOD 47]\n    have h1 : 11 * (30 * x) ≡ 11 * 42 [MOD 47] := Nat.ModEq.mul_left 11 hx\n    -- 11 * 30 = 330 = 7 * 47 + 1, so 11 * 30 ≡ 1 [MOD 47]\n    have h2 : 330 ≡ 1 [MOD 47] := by\n      show 330 % 47 = 1 % 47\n      norm_num\n    have h3 : 11 * 30 * x ≡ 1 * x [MOD 47] := Nat.ModEq.mul_right x h2\n    -- 11 * 42 = 462 = 9 * 47 + 39, so 11 * 42 ≡ 39 [MOD 47]\n    have h4 : 462 ≡ 39 [MOD 47] := by\n      show 462 % 47 = 39 % 47\n      norm_num\n    -- Combining gives x ≡ 39 [MOD 47]\n    have h5 : x ≡ 39 [MOD 47] := h3.symm.trans (h1.trans h4)\n    -- From x ≡ 39 [MOD 47], we have x = 47 * k + 39 for some k\n    -- Since x is a natural number, x must be at least 39\n    rcases (Nat.modEq_iff_exists_ge h5) with ⟨k, hk⟩\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 34
+            },
+            "endPos": {
+              "line": 15,
+              "column": 61
+            },
+            "data": "Unknown constant `Nat.modEq_add_fac_self_left`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 47
+            },
+            "endPos": {
+              "line": 31,
+              "column": 60
+            },
+            "data": "Application type mismatch: The argument\n  ModEq.trans h1 h4\nhas type\n  11 * (30 * x) ≡ 39 [MOD 47]\nbut is expected to have type\n  11 * 30 * x ≡ ?m.205 [MOD 47]\nin the application\n  ModEq.trans (ModEq.symm h3) (ModEq.trans h1 h4)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 12
+            },
+            "endPos": {
+              "line": 34,
+              "column": 35
+            },
+            "data": "Unknown constant `Nat.modEq_iff_exists_ge`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 45
+            },
+            "endPos": {
+              "line": 34,
+              "column": 52
+            },
+            "data": "Tactic `rcases` failed: `x✝ : ?m.212` is not an inductive datatype"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1120603084564209
+      }
+    },
+    {
+      "index": 30,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the set**: Let $S = \\{ x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47} \\}$.\n2.  **Solve the congruence**:\n    *   The modular inverse of $30$ modulo $47$ is $11$, because $30 \\times 11 = 330 = 47 \\times 7 + 1 \\equiv 1 \\pmod{47}$.\n    *   Multiplying both sides of $30x \\equiv 42 \\pmod{47}$ by $11$ gives $x \\equiv 42 \\times 11 \\pmod{47}$.\n    *   $42 \\times 11 = 462$. Since $462 = 47 \\times 9 + 39$, we have $x \\equiv 39 \\pmod{47}$.\n3.  **Identify the elements**: The set $S$ consists of all natural numbers of the form $47k + 39$ for $k \\in \\mathbb{N}$.\n4.  **Find the least element**:\n    *   For $k=0$, $x = 39$.\n    *   Since $47k + 39 \\ge 39$ for all $k \\ge 0$, 39 is indeed the least element.\n5.  **Formal verification**: Use `IsLeast` definition: $39 \\in S$ and $\\forall x \\in S, 39 \\le x$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove that 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove that 39 is the lower bound for the set\n    intro x hx\n    unfold Nat.ModEq at hx\n    -- 30 * x ≡ 42 [MOD 47] implies 11 * (30 * x) ≡ 11 * 42 [MOD 47]\n    have h1 : (11 * (30 * x)) % 47 = (11 * 42) % 47 := by\n      rw [Nat.mul_mod, hx, ← Nat.mul_mod]\n    -- Simplify the left side: 330 * x ≡ 1 * x ≡ x [MOD 47]\n    have h2 : (11 * 30 * x) % 47 = x % 47 := by\n      rw [Nat.mul_assoc, Nat.mul_mod, (by norm_num : 330 % 47 = 1), Nat.one_mul, Nat.mod_mod]\n    -- Simplify the right side: 462 ≡ 39 [MOD 47]\n    have h3 : (11 * 42) % 47 = 39 := by\n      norm_num\n    -- Combine to get x % 47 = 39\n    rw [h2] at h1\n    rw [h3] at h1\n    -- From x % 47 = 39, we have x = 47 * k + 39\n    have h_ge : x % 47 ≤ x := Nat.mod_le x 47\n    rw [h1] at h_ge\n    exact h_ge\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove that 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    norm_num\n  · -- Prove that 39 is the lower bound for the set\n    intro x hx\n    unfold Nat.ModEq at hx\n    -- 30 * x ≡ 42 [MOD 47] implies 11 * (30 * x) ≡ 11 * 42 [MOD 47]\n    have h1 : (11 * (30 * x)) % 47 = (11 * 42) % 47 := by\n      rw [Nat.mul_mod, hx, ← Nat.mul_mod]\n    -- Simplify the left side: 330 * x ≡ 1 * x ≡ x [MOD 47]\n    have h2 : (11 * 30 * x) % 47 = x % 47 := by\n      rw [Nat.mul_assoc, Nat.mul_mod, (by norm_num : 330 % 47 = 1), Nat.one_mul, Nat.mod_mod]\n    -- Simplify the right side: 462 ≡ 39 [MOD 47]\n    have h3 : (11 * 42) % 47 = 39 := by\n      norm_num\n    -- Combine to get x % 47 = 39\n    rw [h2] at h1\n    rw [h3] at h1\n    -- From x % 47 = 39, we have x = 47 * k + 39\n    have h_ge : x % 47 ≤ x := Nat.mod_le x 47\n    rw [h1] at h_ge\n    exact h_ge",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 38
+            },
+            "endPos": {
+              "line": 22,
+              "column": 66
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  330 % 47\nin the target expression\n  11 % 47 * (30 * x % 47) % 47 = x % 47\n\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\nh1 : 11 * (30 * x) % 47 = 11 * 42 % 47\n⊢ 11 % 47 * (30 * x % 47) % 47 = x % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 8
+            },
+            "endPos": {
+              "line": 27,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  11 * 30 * x % 47\nin the target expression\n  11 * (30 * x) % 47 = 11 * 42 % 47\n\ncase right\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\nh1 : 11 * (30 * x) % 47 = 11 * 42 % 47\nh2 : 11 * 30 * x % 47 = x % 47\nh3 : 11 * 42 % 47 = 39\n⊢ 39 ≤ x"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.10828685760498047
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the set $S$**: Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$.\n2.  **Solve the linear congruence**:\n    *   The congruence is $30x \\equiv 42 \\pmod{47}$.\n    *   Since $\\gcd(30, 47) = 1$, we can multiply by the modular inverse of 30 modulo 47.\n    *   Observe that $30 \\times 11 = 330 = 47 \\times 7 + 1$. Thus $30^{-1} \\equiv 11 \\pmod{47}$.\n    *   Multiply both sides by 11: $x \\equiv 11 \\cdot 42 \\pmod{47}$.\n    *   $11 \\cdot 42 = 462$. Since $462 = 47 \\times 9 + 39$, we have $x \\equiv 39 \\pmod{47}$.\n3.  **Membership**: Since $39 \\equiv 39 \\pmod{47}$, $39 \\in S$.\n4.  **Minimality**:\n    *   Any $x \\in S$ must satisfy $x \\equiv 39 \\pmod{47}$.\n    *   By definition of modular congruence, $x = 47k + 39$ for some integer $k$.\n    *   Since $x \\in \\mathbb{N}$, we must have $47k + 39 \\ge 0$, which implies $k \\ge 0$ (since $k$ is an integer).\n    *   The smallest such $x$ occurs at $k=0$, yielding $x = 39$.\n    *   Thus, 39 is the lower bound for all $x \\in S$ and $39 \\in S$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    -- 30 * 39 = 1170\n    -- 1170 = 47 * 24 + 42\n    -- 42 = 47 * 0 + 42\n    native_decide\n  · -- Prove 39 is the lower bound\n    intro x hx\n    unfold Nat.ModEq at hx\n    -- x satisfies 30 * x ≡ 42 [MOD 47]\n    -- Multiply both sides by the modular inverse of 30 modulo 47\n    -- 30 * 11 = 330 = 47 * 7 + 1, so inverse is 11\n    have h1 : 11 * (30 * x) % 47 = (11 * 42) % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    have h2 : 11 * (30 * x) = 330 * x := by ring\n    rw [h2] at h1\n    have h3 : 330 % 47 = 1 := by native_decide\n    have h4 : (330 * x) % 47 = ((330 % 47) * (x % 47)) % 47 := Nat.mul_mod 330 x 47\n    rw [h3, one_mul, Nat.mod_mod] at h4\n    rw [h4] at h1\n    -- Now we have x % 47 = (11 * 42) % 47\n    have h5 : (11 * 42) % 47 = 39 := by native_decide\n    rw [h5] at h1\n    -- Since x % 47 = 39, x must be at least 39\n    exact Nat.le_of_mod_lt (h1.symm ▸ (by native_decide : 39 < 47))\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  constructor\n  · -- Prove 39 is in the set\n    show 30 * 39 ≡ 42 [MOD 47]\n    unfold Nat.ModEq\n    -- 30 * 39 = 1170\n    -- 1170 = 47 * 24 + 42\n    -- 42 = 47 * 0 + 42\n    native_decide\n  · -- Prove 39 is the lower bound\n    intro x hx\n    unfold Nat.ModEq at hx\n    -- x satisfies 30 * x ≡ 42 [MOD 47]\n    -- Multiply both sides by the modular inverse of 30 modulo 47\n    -- 30 * 11 = 330 = 47 * 7 + 1, so inverse is 11\n    have h1 : 11 * (30 * x) % 47 = (11 * 42) % 47 := by\n      rw [← Nat.mul_mod, hx, Nat.mul_mod]\n    have h2 : 11 * (30 * x) = 330 * x := by ring\n    rw [h2] at h1\n    have h3 : 330 % 47 = 1 := by native_decide\n    have h4 : (330 * x) % 47 = ((330 % 47) * (x % 47)) % 47 := Nat.mul_mod 330 x 47\n    rw [h3, one_mul, Nat.mod_mod] at h4\n    rw [h4] at h1\n    -- Now we have x % 47 = (11 * 42) % 47\n    have h5 : (11 * 42) % 47 = 39 := by native_decide\n    rw [h5] at h1\n    -- Since x % 47 = 39, x must be at least 39\n    exact Nat.le_of_mod_lt (h1.symm ▸ (by native_decide : 39 < 47))",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 10
+            },
+            "endPos": {
+              "line": 24,
+              "column": 23
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a % ?n * (?b % ?n) % ?n\nin the target expression\n  11 * (30 * x) % 47 = 11 * 42 % 47\n\nx : ℕ\nhx : x ∈ {x | 30 * x % 47 = 42 % 47}\n⊢ 11 * (30 * x) % 47 = 11 * 42 % 47"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 38
+            },
+            "endPos": {
+              "line": 35,
+              "column": 66
+            },
+            "data": "Type mismatch\n  ?m.237\nhas type\n  39 < 47\nbut is expected to have type\n  x % (x % 47) < x"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.11915397644042969
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "To prove that 39 is the least natural number $x$ satisfying $30x \\equiv 42 \\pmod{47}$, we follow these steps:\n\n### Proof Sketch\n1.  **Characterize the Set**: Let $S = \\{x \\in \\mathbb{N} \\mid 30x \\equiv 42 \\pmod{47}\\}$. Since 47 is prime and $\\gcd(30, 47) = 1$, the linear congruence $30x \\equiv 42 \\pmod{47}$ has a unique solution modulo 47.\n2.  **Solve the Congruence**:\n    *   We seek $x$ such that $30x \\equiv 42 \\pmod{47}$.\n    *   Dividing by 6 (since $\\gcd(6, 47) = 1$): $5x \\equiv 7 \\pmod{47}$.\n    *   Multiply by 19 (the modular inverse of 5 mod 47, since $5 \\cdot 19 = 95 = 2 \\cdot 47 + 1$):\n        $x \\equiv 7 \\cdot 19 \\pmod{47}$\n        $x \\equiv 133 \\pmod{47}$\n    *   Since $133 = 2 \\cdot 47 + 39$, we have $x \\equiv 39 \\pmod{47}$.\n3.  **Membership**: Verify that $39 \\in S$ by calculating $30 \\cdot 39 = 1170$. Since $1170 = 24 \\cdot 47 + 42$, $30 \\cdot 39 \\equiv 42 \\pmod{47}$ holds.\n4.  **Minimality**: Any $x \\in S$ must satisfy $x = 39 + 47k$ for some integer $k$. For $x$ to be a natural number, $k$ must be at least 0. The smallest such natural number is $39$ (where $k=0$). Thus, 39 is the least element of $S$.\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  -- Define the set S\n  let S := { x : ℕ | 30 * x ≡ 42 [MOD 47] }\n  constructor\n  · -- Show that 39 is in S\n    show 30 * 39 ≡ 42 [MOD 47]\n    -- 30 * 39 = 1170\n    -- 1170 = 24 * 47 + 42\n    norm_num [Nat.ModEq]\n  · -- Show that 39 is the lower bound for all x in S\n    intro x hx\n    show 39 ≤ x\n    -- From 30 * x ≡ 42 [MOD 47]\n    -- Since 6 is coprime to 47, we can divide by 6\n    have h1 : 5 * x ≡ 7 [MOD 47] := by\n      have h_div : 6 * (5 * x) ≡ 6 * 7 [MOD 47] := by\n        rw [← Nat.mul_assoc]\n        exact hx\n      exact (Nat.ModEq.mul_left_cancel_iff (by norm_num) h_div).mp rfl\n    -- Multiply by 19 (inverse of 5 mod 47)\n    have h2 : 19 * (5 * x) ≡ 19 * 7 [MOD 47] := Nat.ModEq.mul_left 19 h1\n    have h3 : 95 * x ≡ 133 [MOD 47] := by\n      rw [Nat.mul_assoc] at h2\n      exact h2\n    -- 95 ≡ 1 [MOD 47] and 133 ≡ 39 [MOD 47]\n    have h4 : 95 * x ≡ 1 * x [MOD 47] := Nat.ModEq.mul_right x (by norm_num [Nat.ModEq])\n    have h5 : 1 * x ≡ 39 [MOD 47] := Nat.ModEq.trans (Nat.ModEq.symm h4) (Nat.ModEq.trans h3 (by norm_num [Nat.ModEq]))\n    rw [Nat.one_mul] at h5\n    -- Since x ≡ 39 [MOD 47], x = 39 + 47 * k\n    have : 39 % 47 ≤ x % 47 := by\n      rw [h5]\n      norm_num\n    -- Specifically, x ≡ 39 [MOD 47] implies x ≥ 39 if x is in ℕ\n    zify [Nat.ModEq] at h5\n    have : ∃ k : ℤ, ↑x = 47 * k + 39 := by\n      use (↑x - 39) / 47\n      rw [← Int.emod_eq_zero_iff_dvd, Int.sub_emod, h5]\n      norm_num\n    rcases this with ⟨k, hk⟩\n    -- Since x ≥ 0, and k is an integer, if k < 0, then 47k + 39 < 0\n    have k_nonneg : 0 ≤ k := by\n      by_contra h_neg\n      have : k ≤ -1 := Int.lt_add_one_iff.mp (lt_of_not_ge h_neg)\n      have : 47 * k + 39 ≤ 47 * (-1) + 39 := by rel [this]\n      linarith\n    -- Therefore x = 47k + 39 ≥ 39\n    have : 39 ≤ 47 * k + 39 := by\n      have : 0 ≤ 47 * k := by nlinarith\n      linarith\n    exact_mod_cast this\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_64 : IsLeast { x : ℕ | 30 * x ≡ 42 [MOD 47] } 39 := by\n  -- Define the set S\n  let S := { x : ℕ | 30 * x ≡ 42 [MOD 47] }\n  constructor\n  · -- Show that 39 is in S\n    show 30 * 39 ≡ 42 [MOD 47]\n    -- 30 * 39 = 1170\n    -- 1170 = 24 * 47 + 42\n    norm_num [Nat.ModEq]\n  · -- Show that 39 is the lower bound for all x in S\n    intro x hx\n    show 39 ≤ x\n    -- From 30 * x ≡ 42 [MOD 47]\n    -- Since 6 is coprime to 47, we can divide by 6\n    have h1 : 5 * x ≡ 7 [MOD 47] := by\n      have h_div : 6 * (5 * x) ≡ 6 * 7 [MOD 47] := by\n        rw [← Nat.mul_assoc]\n        exact hx\n      exact (Nat.ModEq.mul_left_cancel_iff (by norm_num) h_div).mp rfl\n    -- Multiply by 19 (inverse of 5 mod 47)\n    have h2 : 19 * (5 * x) ≡ 19 * 7 [MOD 47] := Nat.ModEq.mul_left 19 h1\n    have h3 : 95 * x ≡ 133 [MOD 47] := by\n      rw [Nat.mul_assoc] at h2\n      exact h2\n    -- 95 ≡ 1 [MOD 47] and 133 ≡ 39 [MOD 47]\n    have h4 : 95 * x ≡ 1 * x [MOD 47] := Nat.ModEq.mul_right x (by norm_num [Nat.ModEq])\n    have h5 : 1 * x ≡ 39 [MOD 47] := Nat.ModEq.trans (Nat.ModEq.symm h4) (Nat.ModEq.trans h3 (by norm_num [Nat.ModEq]))\n    rw [Nat.one_mul] at h5\n    -- Since x ≡ 39 [MOD 47], x = 39 + 47 * k\n    have : 39 % 47 ≤ x % 47 := by\n      rw [h5]\n      norm_num\n    -- Specifically, x ≡ 39 [MOD 47] implies x ≥ 39 if x is in ℕ\n    zify [Nat.ModEq] at h5\n    have : ∃ k : ℤ, ↑x = 47 * k + 39 := by\n      use (↑x - 39) / 47\n      rw [← Int.emod_eq_zero_iff_dvd, Int.sub_emod, h5]\n      norm_num\n    rcases this with ⟨k, hk⟩\n    -- Since x ≥ 0, and k is an integer, if k < 0, then 47k + 39 < 0\n    have k_nonneg : 0 ≤ k := by\n      by_contra h_neg\n      have : k ≤ -1 := Int.lt_add_one_iff.mp (lt_of_not_ge h_neg)\n      have : 47 * k + 39 ≤ 47 * (-1) + 39 := by rel [this]\n      linarith\n    -- Therefore x = 47k + 39 ≥ 39\n    have : 39 ≤ 47 * k + 39 := by\n      have : 0 ≤ 47 * k := by nlinarith\n      linarith\n    exact_mod_cast this",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 13
+            },
+            "endPos": {
+              "line": 26,
+              "column": 42
+            },
+            "data": "Unknown constant `Nat.ModEq.mul_left_cancel_iff`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 10
+            },
+            "endPos": {
+              "line": 30,
+              "column": 23
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?n * ?m * ?k\nin the target expression\n  19 * (5 * x) ≡ 19 * 7 [MOD 47]\n\nS : Set ℕ := {x | 30 * x ≡ 42 [MOD 47]}\nx : ℕ\nhx : x ∈ {x | 30 * x ≡ 42 [MOD 47]}\nh1 : 5 * x ≡ 7 [MOD 47]\nh2 : 19 * (5 * x) ≡ 19 * 7 [MOD 47]\n⊢ 95 * x ≡ 133 [MOD 47]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 39,
+              "column": 6
+            },
+            "endPos": {
+              "line": 39,
+              "column": 14
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 44,
+              "column": 12
+            },
+            "endPos": {
+              "line": 44,
+              "column": 36
+            },
+            "data": "Unknown constant `Int.emod_eq_zero_iff_dvd`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 57,
+              "column": 4
+            },
+            "endPos": {
+              "line": 57,
+              "column": 23
+            },
+            "data": "mod_cast has type\n  (39 : ℤ) ≤ 47 * k + 39\nbut is expected to have type\n  (39 : ℕ) ≤ x"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.43958520889282227
+      }
+    }
+  ]
+}

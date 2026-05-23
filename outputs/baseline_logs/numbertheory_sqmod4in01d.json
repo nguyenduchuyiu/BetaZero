@@ -1,0 +1,1622 @@
+{
+  "problem": "problems/miniF2F-test/numbertheory_sqmod4in01d.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 16:08:50",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 1,
+    "completed_count": 1,
+    "solved": true
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "To prove that the square of any integer $a$ is congruent to either $0$ or $1$ modulo $4$, we consider the parity of $a$:\n\n1.  **Case 1 ($a$ is even):** Let $a = 2k$ for some integer $k$. Then $a^2 = (2k)^2 = 4k^2$. This is clearly a multiple of $4$, so $a^2 \\equiv 0 \\pmod 4$.\n2.  **Case 2 ($a$ is odd):** Let $a = 2k + 1$ for some integer $k$. Then $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This leaves a remainder of $1$ when divided by $4$, so $a^2 \\equiv 1 \\pmod 4$.\n\nThe theorem follows by these two exhaustive cases.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the remainder of a modulo 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases h with\n  | inl h0 =>\n    -- Case a is even: a = 2k\n    left\n    obtain ⟨k, hk⟩ := Int.dvd_iff_emod_eq_zero.mpr h0\n    rw [hk]\n    ring_nf\n    -- 4k^2 is clearly 0 mod 4\n    show (4 * k ^ 2) % 4 = 0\n    rw [Int.mul_emod_right]\n  | inr h1 =>\n    -- Case a is odd: a = 2k + 1\n    right\n    -- We can represent a as 2 * (a / 2) + 1\n    have hk : a = 2 * (a / 2) + 1 := by\n      rw [← Int.ediv_add_emod a 2, h1, add_comm]\n    rw [hk]\n    ring_nf\n    -- (4 * ( (a/2)^2 + (a/2) ) + 1) is 1 mod 4\n    show (4 * ( (a / 2) ^ 2 + (a / 2) ) + 1) % 4 = 1 % 4\n    rw [Int.add_emod, Int.mul_emod_right]\n    rfl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the remainder of a modulo 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases h with\n  | inl h0 =>\n    -- Case a is even: a = 2k\n    left\n    obtain ⟨k, hk⟩ := Int.dvd_iff_emod_eq_zero.mpr h0\n    rw [hk]\n    ring_nf\n    -- 4k^2 is clearly 0 mod 4\n    show (4 * k ^ 2) % 4 = 0\n    rw [Int.mul_emod_right]\n  | inr h1 =>\n    -- Case a is odd: a = 2k + 1\n    right\n    -- We can represent a as 2 * (a / 2) + 1\n    have hk : a = 2 * (a / 2) + 1 := by\n      rw [← Int.ediv_add_emod a 2, h1, add_comm]\n    rw [hk]\n    ring_nf\n    -- (4 * ( (a/2)^2 + (a/2) ) + 1) is 1 mod 4\n    show (4 * ( (a / 2) ^ 2 + (a / 2) ) + 1) % 4 = 1 % 4\n    rw [Int.add_emod, Int.mul_emod_right]\n    rfl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 28
+            },
+            "data": "'show' tactic failed, pattern\n  4 * k ^ 2 % 4 = 0\nis not definitionally equal to target\n  k ^ 2 * 4 ≡ 0 [ZMOD 4]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 37
+            },
+            "endPos": {
+              "line": 26,
+              "column": 48
+            },
+            "data": "unsolved goals\na : ℤ\nh1 : a % 2 = 1\n⊢ 1 + 2 * (a / 2) = 2 * ((1 + 2 * (a / 2)) / 2) + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 4
+            },
+            "endPos": {
+              "line": 30,
+              "column": 56
+            },
+            "data": "'show' tactic failed, pattern\n  (4 * ((a / 2) ^ 2 + a / 2) + 1) % 4 = 1 % 4\nis not definitionally equal to target\n  1 + a / 2 * 4 + (a / 2) ^ 2 * 4 ≡ 1 [ZMOD 4]"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 26,
+              "column": 12
+            },
+            "endPos": {
+              "line": 26,
+              "column": 29
+            },
+            "data": "`Int.ediv_add_emod` has been deprecated: Use `Int.mul_ediv_add_emod` instead"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.17535710334777832
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "To prove that the square of any integer $a$ is congruent to $0$ or $1$ modulo $4$, we consider the parity of $a$:\n\n1.  **Case 1: $a$ is even.** Then $a = 2k$ for some integer $k$. Squaring gives $a^2 = (2k)^2 = 4k^2$. Since $4k^2$ is a multiple of $4$, $a^2 \\equiv 0 \\pmod 4$.\n2.  **Case 2: $a$ is odd.** Then $a = 2k + 1$ for some integer $k$. Squaring gives $a^2 = (2k+1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This implies $a^2 \\equiv 1 \\pmod 4$.\n\nSince every integer is either even or odd, the result holds for all $a$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Use the property that every integer is either even or odd\n  rcases Int.even_or_odd a with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case: a is even (a = 2 * k)\n    left\n    rw [Int.ModEq]\n    calc\n      (2 * k) ^ 2 % 4 = (4 * k ^ 2) % 4 := by ring_nf\n      _ = 0 := by simp\n  · -- Case: a is odd (a = 2 * k + 1)\n    right\n    rw [Int.ModEq]\n    calc\n      (2 * k + 1) ^ 2 % 4 = (4 * (k ^ 2 + k) + 1) % 4 := by ring_nf\n      _ = 1 % 4 := Int.add_mul_mod_self_left 1 4 (k ^ 2 + k)\n      _ = 1 := by norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Use the property that every integer is either even or odd\n  rcases Int.even_or_odd a with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case: a is even (a = 2 * k)\n    left\n    rw [Int.ModEq]\n    calc\n      (2 * k) ^ 2 % 4 = (4 * k ^ 2) % 4 := by ring_nf\n      _ = 0 := by simp\n  · -- Case: a is odd (a = 2 * k + 1)\n    right\n    rw [Int.ModEq]\n    calc\n      (2 * k + 1) ^ 2 % 4 = (4 * (k ^ 2 + k) + 1) % 4 := by ring_nf\n      _ = 1 % 4 := Int.add_mul_mod_self_left 1 4 (k ^ 2 + k)\n      _ = 1 := by norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 6
+            },
+            "endPos": {
+              "line": 15,
+              "column": 39
+            },
+            "data": "invalid 'calc' step, left-hand side is\n  (2 * k) ^ 2 % 4 : Int\nbut is expected to be\n  (k + k) ^ 2 % 4 : Int"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 19
+            },
+            "endPos": {
+              "line": 22,
+              "column": 44
+            },
+            "data": "Unknown constant `Int.add_mul_mod_self_left`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2913472652435303
+      }
+    },
+    {
+      "index": 3,
+      "status": "FAILED",
+      "raw_text": "To prove that for any integer $a$, $a^2 \\equiv 0 \\pmod 4$ or $a^2 \\equiv 1 \\pmod 4$, we consider the parity of $a$:\n\n1.  **Case 1 ($a$ is even):** Let $a = 2k$ for some integer $k$. Then $a^2 = (2k)^2 = 4k^2$. This clearly implies $a^2 \\equiv 0 \\pmod 4$.\n2.  **Case 2 ($a$ is odd):** Let $a = 2k + 1$ for some integer $k$. Then $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This implies $a^2 \\equiv 1 \\pmod 4$.\n\nSince every integer is either even or odd, these two cases cover all possibilities.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  have h := Int.even_or_odd a\n  cases' h with h_even h_odd\n  · -- Case a is even: a = 2k\n    obtain ⟨k, rfl⟩ := h_even\n    left\n    -- (2k)^2 = 4 * k^2\n    have h1 : (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n    rw [h1]\n    -- 4 * k^2 ≡ 0 [ZMOD 4]\n    exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  · -- Case a is odd: a = 2k + 1\n    obtain ⟨k, rfl⟩ := h_odd\n    right\n    -- (2k + 1)^2 = 4(k^2 + k) + 1\n    have h1 : (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n    rw [h1]\n    -- 4(k^2 + k) + 1 ≡ 1 [ZMOD 4]\n    exact Int.modEq_add_fac_self\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  have h := Int.even_or_odd a\n  cases' h with h_even h_odd\n  · -- Case a is even: a = 2k\n    obtain ⟨k, rfl⟩ := h_even\n    left\n    -- (2k)^2 = 4 * k^2\n    have h1 : (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n    rw [h1]\n    -- 4 * k^2 ≡ 0 [ZMOD 4]\n    exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  · -- Case a is odd: a = 2k + 1\n    obtain ⟨k, rfl⟩ := h_odd\n    right\n    -- (2k + 1)^2 = 4(k^2 + k) + 1\n    have h1 : (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n    rw [h1]\n    -- 4(k^2 + k) + 1 ≡ 1 [ZMOD 4]\n    exact Int.modEq_add_fac_self",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 8
+            },
+            "endPos": {
+              "line": 17,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (2 * k) ^ 2\nin the target expression\n  (k + k) ^ 2 ≡ 0 [ZMOD 4]\n\ncase inl.h\nk : ℤ\nh1 : (2 * k) ^ 2 = 4 * k ^ 2\n⊢ (k + k) ^ 2 ≡ 0 [ZMOD 4]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 4
+            },
+            "endPos": {
+              "line": 27,
+              "column": 32
+            },
+            "data": "Type mismatch\n  Int.modEq_add_fac_self\nhas type\n  ?m.193 + ?m.195 * ?m.194 ≡ ?m.193 [ZMOD ?m.195]\nbut is expected to have type\n  4 * (k ^ 2 + k) + 1 ≡ 1 [ZMOD 4]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.10734724998474121
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "The theorem states that for any integer $a$, its square is congruent to either $0$ or $1$ modulo $4$.\n\n### Proof Sketch\n1. Use the division algorithm (modular arithmetic) to express $a$ in terms of its remainder modulo 4. Specifically, every integer $a$ is congruent to $0, 1, 2,$ or $3 \\pmod 4$.\n2. Case 1: If $a \\equiv 0 \\pmod 4$, then $a^2 \\equiv 0^2 = 0 \\pmod 4$.\n3. Case 2: If $a \\equiv 1 \\pmod 4$, then $a^2 \\equiv 1^2 = 1 \\pmod 4$.\n4. Case 3: If $a \\equiv 2 \\pmod 4$, then $a^2 \\equiv 2^2 = 4 \\equiv 0 \\pmod 4$.\n5. Case 4: If $a \\equiv 3 \\pmod 4$, then $a^2 \\equiv 3^2 = 9 \\equiv 1 \\pmod 4$.\n6. In all possible cases, $a^2 \\pmod 4$ is either $0$ or $1$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the value of a modulo 4\n  let r := a % 4\n  have h : r = 0 ∨ r = 1 ∨ r = 2 ∨ r = 3 := by\n    have h1 : 0 ≤ r ∧ r < 4 := Int.emod_nonneg_cond a (by norm_num)\n    revert h1\n    generalize r = r'\n    decide\n  -- Case analysis on the remainder\n  rcases h with r0 | r1 | r2 | r3\n  · -- Case a % 4 = 0\n    left\n    have : a ≡ 0 [ZMOD 4] := Int.modEq_iff_Int_emod_eq.mpr r0\n    convert Int.ModEq.pow 2 this\n    norm_num\n  · -- Case a % 4 = 1\n    right\n    have : a ≡ 1 [ZMOD 4] := Int.modEq_iff_Int_emod_eq.mpr r1\n    convert Int.ModEq.pow 2 this\n    norm_num\n  · -- Case a % 4 = 2\n    left\n    have : a ≡ 2 [ZMOD 4] := Int.modEq_iff_Int_emod_eq.mpr r2\n    have h_sq : a^2 ≡ 2^2 [ZMOD 4] := Int.ModEq.pow 2 this\n    convert h_sq\n    norm_num\n  · -- Case a % 4 = 3\n    right\n    have : a ≡ 3 [ZMOD 4] := Int.modEq_iff_Int_emod_eq.mpr r3\n    have h_sq : a^2 ≡ 3^2 [ZMOD 4] := Int.ModEq.pow 2 this\n    have : 3^2 ≡ 1 [ZMOD 4] := by norm_num [Int.ModEq]\n    exact Int.ModEq.trans h_sq this\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the value of a modulo 4\n  let r := a % 4\n  have h : r = 0 ∨ r = 1 ∨ r = 2 ∨ r = 3 := by\n    have h1 : 0 ≤ r ∧ r < 4 := Int.emod_nonneg_cond a (by norm_num)\n    revert h1\n    generalize r = r'\n    decide\n  -- Case analysis on the remainder\n  rcases h with r0 | r1 | r2 | r3\n  · -- Case a % 4 = 0\n    left\n    have : a ≡ 0 [ZMOD 4] := Int.modEq_iff_Int_emod_eq.mpr r0\n    convert Int.ModEq.pow 2 this\n    norm_num\n  · -- Case a % 4 = 1\n    right\n    have : a ≡ 1 [ZMOD 4] := Int.modEq_iff_Int_emod_eq.mpr r1\n    convert Int.ModEq.pow 2 this\n    norm_num\n  · -- Case a % 4 = 2\n    left\n    have : a ≡ 2 [ZMOD 4] := Int.modEq_iff_Int_emod_eq.mpr r2\n    have h_sq : a^2 ≡ 2^2 [ZMOD 4] := Int.ModEq.pow 2 this\n    convert h_sq\n    norm_num\n  · -- Case a % 4 = 3\n    right\n    have : a ≡ 3 [ZMOD 4] := Int.modEq_iff_Int_emod_eq.mpr r3\n    have h_sq : a^2 ≡ 3^2 [ZMOD 4] := Int.ModEq.pow 2 this\n    have : 3^2 ≡ 1 [ZMOD 4] := by norm_num [Int.ModEq]\n    exact Int.ModEq.trans h_sq this",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 31
+            },
+            "endPos": {
+              "line": 12,
+              "column": 51
+            },
+            "data": "Unknown constant `Int.emod_nonneg_cond`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 10
+            },
+            "data": "Expected type must not contain free variables\n  0 ≤ r' ∧ r' < 4 → r' = 0 ∨ r' = 1 ∨ r' = 2 ∨ r' = 3\n\nHint: Use the `+revert` option to automatically clean up and revert free variables"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 29
+            },
+            "endPos": {
+              "line": 20,
+              "column": 58
+            },
+            "data": "Unknown constant `Int.modEq_iff_Int_emod_eq.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 4
+            },
+            "endPos": {
+              "line": 22,
+              "column": 12
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 29
+            },
+            "endPos": {
+              "line": 25,
+              "column": 58
+            },
+            "data": "Unknown constant `Int.modEq_iff_Int_emod_eq.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 4
+            },
+            "endPos": {
+              "line": 27,
+              "column": 12
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 29
+            },
+            "endPos": {
+              "line": 30,
+              "column": 58
+            },
+            "data": "Unknown constant `Int.modEq_iff_Int_emod_eq.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 2
+            },
+            "endPos": {
+              "line": 33,
+              "column": 12
+            },
+            "data": "unsolved goals\ncase h.e'_3\na : ℤ\nr : ℤ := a % 4\nr2 : r = 2\nthis : a ≡ 2 [ZMOD 4]\nh_sq : a ^ 2 ≡ 2 ^ 2 [ZMOD 4]\n⊢ False"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 29
+            },
+            "endPos": {
+              "line": 36,
+              "column": 58
+            },
+            "data": "Unknown constant `Int.modEq_iff_Int_emod_eq.mpr`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.18413186073303223
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "To prove that the square of any integer $a$ is congruent to 0 or 1 modulo 4, we use a case analysis on the parity of $a$.\n\n1.  **Case $a$ is even**: If $a = 2k$ for some integer $k$, then $a^2 = (2k)^2 = 4k^2$. Since $4k^2$ is a multiple of 4, $a^2 \\equiv 0 \\pmod 4$.\n2.  **Case $a$ is odd**: If $a = 2k + 1$ for some integer $k$, then $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This implies $a^2 \\equiv 1 \\pmod 4$.\n\nSince every integer is either even or odd, $a^2 \\equiv 0$ or $1 \\pmod 4$ holds for all $a$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the parity of a\n  have h := Int.emod_two_eq_zero_or_one a\n  cases' h with h_even h_odd\n  · -- Case a is even: a % 2 = 0\n    left\n    have h1 : a ≡ 0 [ZMOD 2] := h_even\n    -- Squaring the congruence\n    have h2 : a^2 ≡ 0^2 [ZMOD 2^2] := Int.sq_mod_sq a 0 2 h1\n    simp at h2\n    exact h2\n  · -- Case a is odd: a % 2 = 1\n    right\n    have h1 : a ≡ 1 [ZMOD 2] := h_odd\n    -- If a = 2k + 1, then a^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1\n    obtain ⟨k, hk⟩ := Int.exists_eq_add_of_and_eq_one h_odd\n    rw [hk]\n    ring_nf\n    -- Show that 4 * (k ^ 2 + k) + 1 ≡ 1 [ZMOD 4]\n    use k ^ 2 + k\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the parity of a\n  have h := Int.emod_two_eq_zero_or_one a\n  cases' h with h_even h_odd\n  · -- Case a is even: a % 2 = 0\n    left\n    have h1 : a ≡ 0 [ZMOD 2] := h_even\n    -- Squaring the congruence\n    have h2 : a^2 ≡ 0^2 [ZMOD 2^2] := Int.sq_mod_sq a 0 2 h1\n    simp at h2\n    exact h2\n  · -- Case a is odd: a % 2 = 1\n    right\n    have h1 : a ≡ 1 [ZMOD 2] := h_odd\n    -- If a = 2k + 1, then a^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1\n    obtain ⟨k, hk⟩ := Int.exists_eq_add_of_and_eq_one h_odd\n    rw [hk]\n    ring_nf\n    -- Show that 4 * (k ^ 2 + k) + 1 ≡ 1 [ZMOD 4]\n    use k ^ 2 + k\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 38
+            },
+            "endPos": {
+              "line": 16,
+              "column": 51
+            },
+            "data": "Unknown constant `Int.sq_mod_sq`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 22
+            },
+            "endPos": {
+              "line": 23,
+              "column": 53
+            },
+            "data": "Unknown constant `Int.exists_eq_add_of_and_eq_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 11
+            },
+            "endPos": {
+              "line": 23,
+              "column": 18
+            },
+            "data": "Tactic `rcases` failed: `x✝ : ?m.124` is not an inductive datatype"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.03704118728637695
+      }
+    },
+    {
+      "index": 6,
+      "status": "FAILED",
+      "raw_text": "To prove that the square of any integer $a$ is congruent to either $0$ or $1$ modulo $4$, we consider the parity of $a$:\n1. If $a$ is even, then $a = 2k$ for some integer $k$. Squaring gives $a^2 = (2k)^2 = 4k^2$. Since $4k^2$ is a multiple of $4$, $a^2 \\equiv 0 \\pmod{4}$.\n2. If $a$ is odd, then $a = 2k + 1$ for some integer $k$. Squaring gives $a^2 = (2k+1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This leaves a remainder of $1$ when divided by $4$, so $a^2 \\equiv 1 \\pmod{4}$.\n\nThe proof in Lean utilizes the `Int.mod_two_eq_zero_or_one` lemma or case analysis on `a % 2` to exhaust these possibilities.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider a modulo 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases h with\n  | inl h0 =>\n    -- Case a is even: a = 2k\n    left\n    obtain ⟨k, hk⟩ := Int.dvd_iff_emod_eq_zero.mpr h0\n    rw [hk, mul_pow]\n    -- (2*k)^2 = 4 * k^2, which is 0 mod 4\n    show (4 * k ^ 2) % 4 = 0 % 4\n    rw [Int.mul_emod_right]\n    rfl\n  | inr h1 =>\n    -- Case a is odd: a = 2k + 1\n    right\n    -- We can represent a as 2 * (a / 2) + 1\n    have hk : a = 2 * (a / 2) + 1 := by\n      rewrite [← Int.ediv_add_emod a 2]\n      rw [h1, add_comm]\n    rw [hk]\n    -- (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1\n    have h_sq : (2 * (a / 2) + 1) ^ 2 = 4 * ((a / 2) ^ 2 + (a / 2)) + 1 := by\n      ring\n    rw [h_sq]\n    -- (4(...) + 1) mod 4 = 1 mod 4\n    show (4 * ((a / 2) ^ 2 + (a / 2)) + 1) % 4 = 1 % 4\n    rw [Int.add_emod, Int.mul_emod_right]\n    simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider a modulo 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases h with\n  | inl h0 =>\n    -- Case a is even: a = 2k\n    left\n    obtain ⟨k, hk⟩ := Int.dvd_iff_emod_eq_zero.mpr h0\n    rw [hk, mul_pow]\n    -- (2*k)^2 = 4 * k^2, which is 0 mod 4\n    show (4 * k ^ 2) % 4 = 0 % 4\n    rw [Int.mul_emod_right]\n    rfl\n  | inr h1 =>\n    -- Case a is odd: a = 2k + 1\n    right\n    -- We can represent a as 2 * (a / 2) + 1\n    have hk : a = 2 * (a / 2) + 1 := by\n      rewrite [← Int.ediv_add_emod a 2]\n      rw [h1, add_comm]\n    rw [hk]\n    -- (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1\n    have h_sq : (2 * (a / 2) + 1) ^ 2 = 4 * ((a / 2) ^ 2 + (a / 2)) + 1 := by\n      ring\n    rw [h_sq]\n    -- (4(...) + 1) mod 4 = 1 mod 4\n    show (4 * ((a / 2) ^ 2 + (a / 2)) + 1) % 4 = 1 % 4\n    rw [Int.add_emod, Int.mul_emod_right]\n    simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 37
+            },
+            "endPos": {
+              "line": 27,
+              "column": 23
+            },
+            "data": "unsolved goals\na : ℤ\nh1 : a % 2 = 1\n⊢ 1 + 2 * (a / 2) = 2 * ((1 + 2 * (a / 2)) / 2) + 1"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 26,
+              "column": 17
+            },
+            "endPos": {
+              "line": 26,
+              "column": 34
+            },
+            "data": "`Int.ediv_add_emod` has been deprecated: Use `Int.mul_ediv_add_emod` instead"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.11759161949157715
+      }
+    },
+    {
+      "index": 7,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Case Analysis on Parity**: Any integer $a$ is either even or odd.\n2.  **Case 1 ($a$ is even)**: Let $a = 2k$ for some integer $k$. Then $a^2 = (2k)^2 = 4k^2$. Since $4k^2$ is a multiple of 4, $a^2 \\equiv 0 \\pmod 4$.\n3.  **Case 2 ($a$ is odd)**: Let $a = 2k + 1$ for some integer $k$. Then $a^2 = (2k+1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This implies $a^2 \\equiv 1 \\pmod 4$.\n4.  **Conclusion**: In all cases, $a^2 \\pmod 4$ is either 0 or 1.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Use modular arithmetic properties by considering a modulo 4\n  -- Alternatively, consider a modulo 2 (even or odd)\n  have h := Int.emod_two_eq_zero_or_one a\n  cases h with\n  | inl h_even =>\n    -- Case: a is even, a = 2k\n    left\n    obtain ⟨k, hk⟩ := Int.even_iff_two_dvd.mp (Int.even_iff.mpr h_even)\n    rw [hk]\n    show (2 * k) ^ 2 ≡ 0 [ZMOD 4]\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  | inr h_odd =>\n    -- Case: a is odd, a = 2k + 1\n    right\n    obtain ⟨k, hk⟩ := Int.odd_iff_exists_bit1.mp (Int.odd_iff.mpr h_odd)\n    rw [hk]\n    show (2 * k + 1) ^ 2 ≡ 1 [ZMOD 4]\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 0 + 1 [ZMOD 4] := Int.ModEq.add (Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2 + k))) (Int.ModEq.refl 1)\n      _ ≡ 1 [ZMOD 4] := by rfl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Use modular arithmetic properties by considering a modulo 4\n  -- Alternatively, consider a modulo 2 (even or odd)\n  have h := Int.emod_two_eq_zero_or_one a\n  cases h with\n  | inl h_even =>\n    -- Case: a is even, a = 2k\n    left\n    obtain ⟨k, hk⟩ := Int.even_iff_two_dvd.mp (Int.even_iff.mpr h_even)\n    rw [hk]\n    show (2 * k) ^ 2 ≡ 0 [ZMOD 4]\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  | inr h_odd =>\n    -- Case: a is odd, a = 2k + 1\n    right\n    obtain ⟨k, hk⟩ := Int.odd_iff_exists_bit1.mp (Int.odd_iff.mpr h_odd)\n    rw [hk]\n    show (2 * k + 1) ^ 2 ≡ 1 [ZMOD 4]\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 0 + 1 [ZMOD 4] := Int.ModEq.add (Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2 + k))) (Int.ModEq.refl 1)\n      _ ≡ 1 [ZMOD 4] := by rfl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 22
+            },
+            "endPos": {
+              "line": 16,
+              "column": 45
+            },
+            "data": "Unknown constant `Int.even_iff_two_dvd.mp`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 11
+            },
+            "endPos": {
+              "line": 16,
+              "column": 18
+            },
+            "data": "Tactic `rcases` failed: `x✝ : ?m.60` is not an inductive datatype"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 22
+            },
+            "endPos": {
+              "line": 25,
+              "column": 48
+            },
+            "data": "Unknown constant `Int.odd_iff_exists_bit1.mp`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 11
+            },
+            "endPos": {
+              "line": 25,
+              "column": 18
+            },
+            "data": "Tactic `rcases` failed: `x✝ : ?m.76` is not an inductive datatype"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.028034448623657227
+      }
+    },
+    {
+      "index": 8,
+      "status": "FAILED",
+      "raw_text": "To prove that $a^2 \\equiv 0 \\pmod 4$ or $a^2 \\equiv 1 \\pmod 4$ for any integer $a$, we consider the parity of $a$:\n\n1.  **Case 1: $a$ is even.** There exists an integer $k$ such that $a = 2k$. Then $a^2 = (2k)^2 = 4k^2$. Since $4k^2$ is a multiple of 4, $a^2 \\equiv 0 \\pmod 4$.\n2.  **Case 2: $a$ is odd.** There exists an integer $k$ such that $a = 2k + 1$. Then $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This implies $a^2 \\equiv 1 \\pmod 4$.\n\nSince every integer is either even or odd, the result holds.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  rcases Int.even_or_odd a with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case: a is even (a = 2k)\n    left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 4 * 0 [ZMOD 4]     := by (rule Int.ModEq.mul; rfl; apply Int.modEq_zero_iff_dvd.mpr; use 0; ring)\n      _ = 0                  := by ring\n  · -- Case: a is odd (a = 2k + 1)\n    right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 4 * 0 + 1 [ZMOD 4]               := by (apply Int.ModEq.add; apply Int.modEq_zero_iff_dvd.mpr; use (k^2 + k); ring; rfl)\n      _ = 1                                 := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  rcases Int.even_or_odd a with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case: a is even (a = 2k)\n    left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 4 * 0 [ZMOD 4]     := by (rule Int.ModEq.mul; rfl; apply Int.modEq_zero_iff_dvd.mpr; use 0; ring)\n      _ = 0                  := by ring\n  · -- Case: a is odd (a = 2k + 1)\n    right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 4 * 0 + 1 [ZMOD 4]               := by (apply Int.ModEq.add; apply Int.modEq_zero_iff_dvd.mpr; use (k^2 + k); ring; rfl)\n      _ = 1                                 := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 37
+            },
+            "endPos": null,
+            "data": "unknown tactic"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 6
+            },
+            "endPos": {
+              "line": 14,
+              "column": 29
+            },
+            "data": "invalid 'calc' step, left-hand side is\n  (2 * k) ^ 2 : Int\nbut is expected to be\n  (k + k) ^ 2 : Int"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 32
+            },
+            "endPos": {
+              "line": 15,
+              "column": 40
+            },
+            "data": "unsolved goals\nk : ℤ\n⊢ 4 * k ^ 2 ≡ 4 * 0 [ZMOD 4]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 8,
+              "column": 86
+            },
+            "endPos": {
+              "line": 15,
+              "column": 40
+            },
+            "data": "unsolved goals\ncase inr\nk : ℤ\n⊢ (2 * k + 1) ^ 2 ≡ 0 [ZMOD 4] ∨ (2 * k + 1) ^ 2 ≡ 1 [ZMOD 4]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.0494227409362793
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "To prove that for any integer $a$, $a^2 \\equiv 0 \\pmod 4$ or $a^2 \\equiv 1 \\pmod 4$, we consider the possible remainders of $a$ when divided by 2 (its parity).\n\n1.  **Case 1: $a$ is even.** Then $a = 2k$ for some integer $k$. Squaring both sides gives $a^2 = (2k)^2 = 4k^2$. This means $a^2$ is a multiple of 4, so $a^2 \\equiv 0 \\pmod 4$.\n2.  **Case 2: $a$ is odd.** Then $a = 2k + 1$ for some integer $k$. Squaring both sides gives $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This means $a^2$ divided by 4 leaves a remainder of 1, so $a^2 \\equiv 1 \\pmod 4$.\n\nSince every integer is either even or odd, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the remainder of a modulo 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases h with\n  | inl h0 =>\n    -- Case a is even: a % 2 = 0\n    left\n    have h1 : a = 2 * (a / 2) := Int.div_add_mod a 2 |>.symm.trans (by rw [h0, add_zero])\n    rw [h1]\n    ring_nf\n    -- Show (2 * (a / 2))^2 is 0 mod 4\n    show 4 * (a / 2) ^ 2 ≡ 0 [ZMOD 4]\n    unfold Int.ModEq\n    simp [Int.mul_emod_right]\n  | inr h1 =>\n    -- Case a is odd: a % 2 = 1\n    right\n    have h2 : a = 2 * (a / 2) + 1 := Int.div_add_mod a 2 |>.symm.trans (by rw [h1])\n    rw [h2]\n    ring_nf\n    -- Show 4 * (a / 2)^2 + 4 * (a / 2) + 1 is 1 mod 4\n    show 4 * (a / 2) ^ 2 + 4 * (a / 2) + 1 ≡ 1 [ZMOD 4]\n    unfold Int.ModEq\n    rw [Int.add_emod, Int.add_emod]\n    simp [Int.mul_emod_right]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the remainder of a modulo 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases h with\n  | inl h0 =>\n    -- Case a is even: a % 2 = 0\n    left\n    have h1 : a = 2 * (a / 2) := Int.div_add_mod a 2 |>.symm.trans (by rw [h0, add_zero])\n    rw [h1]\n    ring_nf\n    -- Show (2 * (a / 2))^2 is 0 mod 4\n    show 4 * (a / 2) ^ 2 ≡ 0 [ZMOD 4]\n    unfold Int.ModEq\n    simp [Int.mul_emod_right]\n  | inr h1 =>\n    -- Case a is odd: a % 2 = 1\n    right\n    have h2 : a = 2 * (a / 2) + 1 := Int.div_add_mod a 2 |>.symm.trans (by rw [h1])\n    rw [h2]\n    ring_nf\n    -- Show 4 * (a / 2)^2 + 4 * (a / 2) + 1 is 1 mod 4\n    show 4 * (a / 2) ^ 2 + 4 * (a / 2) + 1 ≡ 1 [ZMOD 4]\n    unfold Int.ModEq\n    rw [Int.add_emod, Int.add_emod]\n    simp [Int.mul_emod_right]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 33
+            },
+            "endPos": {
+              "line": 15,
+              "column": 48
+            },
+            "data": "Unknown constant `Int.div_add_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 37
+            },
+            "data": "'show' tactic failed, pattern\n  4 * (a / 2) ^ 2 ≡ 0 [ZMOD 4]\nis not definitionally equal to target\n  (a / 2) ^ 2 * 4 ≡ 0 [ZMOD 4]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 37
+            },
+            "endPos": {
+              "line": 25,
+              "column": 52
+            },
+            "data": "Unknown constant `Int.div_add_mod`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 4
+            },
+            "endPos": {
+              "line": 29,
+              "column": 55
+            },
+            "data": "'show' tactic failed, pattern\n  4 * (a / 2) ^ 2 + 4 * (a / 2) + 1 ≡ 1 [ZMOD 4]\nis not definitionally equal to target\n  1 + a / 2 * 4 + (a / 2) ^ 2 * 4 ≡ 1 [ZMOD 4]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.51767897605896
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "To prove that the square of any integer $a$ is congruent to either $0$ or $1$ modulo $4$, we consider the parity of $a$:\n\n1.  **Case $a$ is even**: Let $a = 2k$ for some integer $k$. Then $a^2 = (2k)^2 = 4k^2$. Since $4k^2$ is a multiple of $4$, we have $a^2 \\equiv 0 \\pmod 4$.\n2.  **Case $a$ is odd**: Let $a = 2k + 1$ for some integer $k$. Then $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This implies $a^2 \\equiv 1 \\pmod 4$.\n\nSince every integer is either even or odd, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the remainder of a when divided by 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases h with\n  | inl h0 =>\n    -- Case a is even: a % 2 = 0\n    left\n    have h1 : 2 ∣ a := Int.modEq_zero_iff_dvd.mp h0\n    obtain ⟨k, hk⟩ := h1\n    rw [hk]\n    have h2 : (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n    rw [h2]\n    show 4 * k ^ 2 ≡ 0 [ZMOD 4]\n    exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  | inr h1 =>\n    -- Case a is odd: a % 2 = 1\n    right\n    have h2 : a ≡ 1 [ZMOD 2] := h1\n    obtain ⟨k, hk⟩ := exists_eq_mul_left_add_ite a 2\n    -- Alternatively use a = 2*k + 1 directly from h1\n    have h3 : a = 2 * (a / 2) + 1 := by\n      rw [← Int.ediv_add_emod a 2, h1]\n    set k := a / 2\n    rw [h3]\n    have h4 : (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n    rw [h4]\n    show 4 * (k ^ 2 + k) + 1 ≡ 1 [ZMOD 4]\n    exact Int.modEq_add_fac_self\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the remainder of a when divided by 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases h with\n  | inl h0 =>\n    -- Case a is even: a % 2 = 0\n    left\n    have h1 : 2 ∣ a := Int.modEq_zero_iff_dvd.mp h0\n    obtain ⟨k, hk⟩ := h1\n    rw [hk]\n    have h2 : (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n    rw [h2]\n    show 4 * k ^ 2 ≡ 0 [ZMOD 4]\n    exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  | inr h1 =>\n    -- Case a is odd: a % 2 = 1\n    right\n    have h2 : a ≡ 1 [ZMOD 2] := h1\n    obtain ⟨k, hk⟩ := exists_eq_mul_left_add_ite a 2\n    -- Alternatively use a = 2*k + 1 directly from h1\n    have h3 : a = 2 * (a / 2) + 1 := by\n      rw [← Int.ediv_add_emod a 2, h1]\n    set k := a / 2\n    rw [h3]\n    have h4 : (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n    rw [h4]\n    show 4 * (k ^ 2 + k) + 1 ≡ 1 [ZMOD 4]\n    exact Int.modEq_add_fac_self",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 22
+            },
+            "endPos": {
+              "line": 26,
+              "column": 48
+            },
+            "data": "Unknown identifier `exists_eq_mul_left_add_ite`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 11
+            },
+            "endPos": {
+              "line": 26,
+              "column": 18
+            },
+            "data": "Tactic `rcases` failed: `x✝ : ?m.167` is not an inductive datatype"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.09669280052185059
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Case Analysis on Parity**: Any integer $a$ is either even or odd.\n2.  **Case 1 ($a$ is even)**: Let $a = 2k$ for some integer $k$. Then $a^2 = (2k)^2 = 4k^2$. Since $a^2$ is a multiple of 4, $a^2 \\equiv 0 \\pmod{4}$.\n3.  **Case 2 ($a$ is odd)**: Let $a = 2k + 1$ for some integer $k$. Then $a^2 = (2k+1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. Thus, $a^2 \\equiv 1 \\pmod{4}$.\n4.  **Conclusion**: In both cases, $a^2 \\equiv 0 \\pmod{4}$ or $a^2 \\equiv 1 \\pmod{4}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the parity of a\n  rcases Int.even_or_odd a with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  -- Case 1: a is even (a = 2 * k)\n  · left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  -- Case 2: a is odd (a = 2 * k + 1)\n  · right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 0 + 1 [ZMOD 4] := Int.ModEq.add (Int.modEq_zero_iff_dvd.mpr (by simp)) (refl _)\n      _ = 1 := by rfl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the parity of a\n  rcases Int.even_or_odd a with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  -- Case 1: a is even (a = 2 * k)\n  · left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  -- Case 2: a is odd (a = 2 * k + 1)\n  · right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 0 + 1 [ZMOD 4] := Int.ModEq.add (Int.modEq_zero_iff_dvd.mpr (by simp)) (refl _)\n      _ = 1 := by rfl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 6
+            },
+            "endPos": {
+              "line": 14,
+              "column": 29
+            },
+            "data": "invalid 'calc' step, left-hand side is\n  (2 * k) ^ 2 : Int\nbut is expected to be\n  (k + k) ^ 2 : Int"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.11347794532775879
+      }
+    },
+    {
+      "index": 12,
+      "status": "FAILED",
+      "raw_text": "To prove that $a^2 \\equiv 0 \\pmod 4$ or $a^2 \\equiv 1 \\pmod 4$ for any integer $a$, we consider the parity of $a$:\n1. If $a$ is even, then $a = 2k$ for some integer $k$. Squaring both sides gives $a^2 = 4k^2$. Thus, $a^2 \\equiv 0 \\pmod 4$.\n2. If $a$ is odd, then $a = 2k + 1$ for some integer $k$. Squaring both sides gives $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. Thus, $a^2 \\equiv 1 \\pmod 4$.\n\nSince every integer is either even or odd, the claim holds.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  obtain ⟨k, rfl⟩ | ⟨k, rfl⟩ := Int.even_or_odd a\n  · -- Case: a is even (a = 2 * k)\n    left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  · -- Case: a is odd (a = 2 * k + 1)\n    right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 1 [ZMOD 4] := by \n        apply Int.ModEq.add_left\n        exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2 + k))\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  obtain ⟨k, rfl⟩ | ⟨k, rfl⟩ := Int.even_or_odd a\n  · -- Case: a is even (a = 2 * k)\n    left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  · -- Case: a is odd (a = 2 * k + 1)\n    right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 1 [ZMOD 4] := by \n        apply Int.ModEq.add_left\n        exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2 + k))",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 6
+            },
+            "endPos": {
+              "line": 14,
+              "column": 29
+            },
+            "data": "invalid 'calc' step, left-hand side is\n  (2 * k) ^ 2 : Int\nbut is expected to be\n  (k + k) ^ 2 : Int"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 8
+            },
+            "endPos": {
+              "line": 21,
+              "column": 32
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@Int.ModEq.add_left`\n  ?c + ?a ≡ ?c + ?b [ZMOD ?n]\nwith the goal\n  4 * (k ^ 2 + k) + 1 ≡ 1 [ZMOD 4]\n\nNote: The full type of `@Int.ModEq.add_left` is\n  ∀ {n a b : ℤ} (c : ℤ), a ≡ b [ZMOD n] → c + a ≡ c + b [ZMOD n]\n\nk : ℤ\n⊢ 4 * (k ^ 2 + k) + 1 ≡ 1 [ZMOD 4]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.10426759719848633
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "To prove that $a^2 \\equiv 0 \\text{ or } 1 \\pmod{4}$ for any integer $a$, we consider the parity of $a$:\n\n1.  **Case 1: $a$ is even.** Then $a = 2k$ for some integer $k$. Squaring gives $a^2 = (2k)^2 = 4k^2$. Since $4k^2$ is a multiple of 4, $a^2 \\equiv 0 \\pmod{4}$.\n2.  **Case 2: $a$ is odd.** Then $a = 2k + 1$ for some integer $k$. Squaring gives $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This implies $a^2 \\equiv 1 \\pmod{4}$.\n\nIn both cases, the result holds.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  obtain ⟨k, rfl⟩ | ⟨k, rfl⟩ := Int.even_or_odd a\n  · -- Case a is even: a = 2k\n    left\n    rw [Int.ModEq]\n    calc (2 * k) ^ 2 % 4 \n      = (4 * k ^ 2) % 4 := by ring_nf\n    _ = 0 := Int.mul_mod_right 4 (k ^ 2)\n  · -- Case a is odd: a = 2k + 1\n    right\n    rw [Int.ModEq]\n    calc (2 * k + 1) ^ 2 % 4 \n      = (4 * (k ^ 2 + k) + 1) % 4 := by ring_nf\n    _ = 1 % 4 := Int.add_mul_mod_self_left 1 4 (k ^ 2 + k)\n    _ = 1 := by norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  obtain ⟨k, rfl⟩ | ⟨k, rfl⟩ := Int.even_or_odd a\n  · -- Case a is even: a = 2k\n    left\n    rw [Int.ModEq]\n    calc (2 * k) ^ 2 % 4 \n      = (4 * k ^ 2) % 4 := by ring_nf\n    _ = 0 := Int.mul_mod_right 4 (k ^ 2)\n  · -- Case a is odd: a = 2k + 1\n    right\n    rw [Int.ModEq]\n    calc (2 * k + 1) ^ 2 % 4 \n      = (4 * (k ^ 2 + k) + 1) % 4 := by ring_nf\n    _ = 1 % 4 := Int.add_mul_mod_self_left 1 4 (k ^ 2 + k)\n    _ = 1 := by norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 13
+            },
+            "endPos": {
+              "line": 16,
+              "column": 30
+            },
+            "data": "Unknown constant `Int.mul_mod_right`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 9
+            },
+            "endPos": {
+              "line": 15,
+              "column": 23
+            },
+            "data": "invalid 'calc' step, left-hand side is\n  (2 * k) ^ 2 % 4 : Int\nbut is expected to be\n  (k + k) ^ 2 % 4 : Int"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 17
+            },
+            "endPos": {
+              "line": 22,
+              "column": 42
+            },
+            "data": "Unknown constant `Int.add_mul_mod_self_left`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3105907440185547
+      }
+    },
+    {
+      "index": 14,
+      "status": "FAILED",
+      "raw_text": "To prove that for any integer $a$, $a^2 \\equiv 0 \\pmod 4$ or $a^2 \\equiv 1 \\pmod 4$, we consider the parity of $a$:\n\n1.  **Case 1: $a$ is even.** Then $a = 2k$ for some integer $k$. Squaring both sides gives $a^2 = (2k)^2 = 4k^2$. This means $a^2$ is a multiple of 4, so $a^2 \\equiv 0 \\pmod 4$.\n2.  **Case 2: $a$ is odd.** Then $a = 2k + 1$ for some integer $k$. Squaring both sides gives $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This means $a^2$ leaves a remainder of 1 when divided by 4, so $a^2 \\equiv 1 \\pmod 4$.\n\nSince every integer is either even or odd, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  have h := Int.even_or_odd a\n  rcases h with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case a is even: a = 2k\n    left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 4 * 0 [ZMOD 4] := by rel [Int.modEq_zero_iff_dvd.mpr (Exists.intro (k^2) rfl)]\n      _ = 0 := by ring\n  · -- Case a is odd: a = 2k + 1\n    right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 4 * 0 + 1 [ZMOD 4] := by rel [Int.modEq_zero_iff_dvd.mpr (Exists.intro (k^2 + k) rfl)]\n      _ = 1 := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  have h := Int.even_or_odd a\n  rcases h with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case a is even: a = 2k\n    left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 4 * 0 [ZMOD 4] := by rel [Int.modEq_zero_iff_dvd.mpr (Exists.intro (k^2) rfl)]\n      _ = 0 := by ring\n  · -- Case a is odd: a = 2k + 1\n    right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 4 * 0 + 1 [ZMOD 4] := by rel [Int.modEq_zero_iff_dvd.mpr (Exists.intro (k^2 + k) rfl)]\n      _ = 1 := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 6
+            },
+            "endPos": {
+              "line": 15,
+              "column": 29
+            },
+            "data": "invalid 'calc' step, left-hand side is\n  (2 * k) ^ 2 : Int\nbut is expected to be\n  (k + k) ^ 2 : Int"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 31
+            },
+            "endPos": {
+              "line": 16,
+              "column": 88
+            },
+            "data": "rel failed, cannot prove goal by 'substituting' the listed relationships. The steps which could not be automatically justified were:\nk ^ 2 ≡ 0 [ZMOD 4]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 35
+            },
+            "endPos": {
+              "line": 22,
+              "column": 96
+            },
+            "data": "rel failed, cannot prove goal by 'substituting' the listed relationships. The steps which could not be automatically justified were:\nk ^ 2 + k ≡ 0 [ZMOD 4]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.19976806640625
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "To prove that for any integer $a$, $a^2 \\equiv 0 \\pmod 4$ or $a^2 \\equiv 1 \\pmod 4$, we consider the parity of $a$:\n1. If $a$ is even, then $a = 2k$ for some integer $k$. Squaring both sides gives $a^2 = (2k)^2 = 4k^2$. Since $4k^2$ is a multiple of 4, $a^2 \\equiv 0 \\pmod 4$.\n2. If $a$ is odd, then $a = 2k + 1$ for some integer $k$. Squaring both sides gives $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This implies $a^2 \\equiv 1 \\pmod 4$.\nThus, in all cases, $a^2 \\pmod 4$ is either 0 or 1.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the cases for a modulo 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases' h with h0 h1\n  · -- Case: a is even (a ≡ 0 [MOD 2])\n    left\n    have h_even : ∃ k, a = 2 * k := Int.even_iff.mp (Int.even_iff_mod_two_eq_zero.mpr h0)\n    obtain ⟨k, rfl⟩ := h_even\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  · -- Case: a is odd (a ≡ 1 [MOD 2])\n    right\n    have h_odd : ∃ k, a = 2 * k + 1 := Int.odd_iff.mp (Int.odd_iff_mod_two_eq_one.mpr h1)\n    obtain ⟨k, rfl⟩ := h_odd\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 0 + 1 [ZMOD 4] := Int.ModEq.add (Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2 + k))) (Int.ModEq.refl 1)\n      _ = 1 := by norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the cases for a modulo 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases' h with h0 h1\n  · -- Case: a is even (a ≡ 0 [MOD 2])\n    left\n    have h_even : ∃ k, a = 2 * k := Int.even_iff.mp (Int.even_iff_mod_two_eq_zero.mpr h0)\n    obtain ⟨k, rfl⟩ := h_even\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  · -- Case: a is odd (a ≡ 1 [MOD 2])\n    right\n    have h_odd : ∃ k, a = 2 * k + 1 := Int.odd_iff.mp (Int.odd_iff_mod_two_eq_one.mpr h1)\n    obtain ⟨k, rfl⟩ := h_odd\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 0 + 1 [ZMOD 4] := Int.ModEq.add (Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2 + k))) (Int.ModEq.refl 1)\n      _ = 1 := by norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 53
+            },
+            "endPos": {
+              "line": 14,
+              "column": 85
+            },
+            "data": "Unknown constant `Int.even_iff_mod_two_eq_zero.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 55
+            },
+            "endPos": {
+              "line": 21,
+              "column": 85
+            },
+            "data": "Unknown constant `Int.odd_iff_mod_two_eq_one.mpr`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.20502948760986328
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "To prove that the square of any integer $a$ is congruent to either $0$ or $1$ modulo $4$, we consider the parity of $a$:\n1. If $a$ is even, then $a = 2k$ for some integer $k$. Then $a^2 = (2k)^2 = 4k^2$, which implies $a^2 \\equiv 0 \\pmod 4$.\n2. If $a$ is odd, then $a = 2k + 1$ for some integer $k$. Then $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$, which implies $a^2 \\equiv 1 \\pmod 4$.\n\nSince every integer is either even or odd, the claim follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the case where a is even or odd\n  rcases Int.even_or_odd a with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case: a = 2k\n    left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 4 * 0 [ZMOD 4] := by rel [Int.ModEq.refl 4]\n      _ = 0 := by ring\n  · -- Case: a = 2k + 1\n    right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 4 * 0 + 1 [ZMOD 4] := by rel [Int.ModEq.refl 4]\n      _ = 1 := by ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the case where a is even or odd\n  rcases Int.even_or_odd a with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case: a = 2k\n    left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 4 * 0 [ZMOD 4] := by rel [Int.ModEq.refl 4]\n      _ = 0 := by ring\n  · -- Case: a = 2k + 1\n    right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 4 * 0 + 1 [ZMOD 4] := by rel [Int.ModEq.refl 4]\n      _ = 1 := by ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 6
+            },
+            "endPos": {
+              "line": 14,
+              "column": 29
+            },
+            "data": "invalid 'calc' step, left-hand side is\n  (2 * k) ^ 2 : Int\nbut is expected to be\n  (k + k) ^ 2 : Int"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 31
+            },
+            "endPos": {
+              "line": 15,
+              "column": 53
+            },
+            "data": "rel failed, cannot prove goal by 'substituting' the listed relationships. The steps which could not be automatically justified were:\nk ^ 2 ≡ 0 [ZMOD 4]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 35
+            },
+            "endPos": {
+              "line": 21,
+              "column": 57
+            },
+            "data": "rel failed, cannot prove goal by 'substituting' the listed relationships. The steps which could not be automatically justified were:\nk ^ 2 + k ≡ 0 [ZMOD 4]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.12097811698913574
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  Any integer $a$ is congruent to exactly one of $0, 1, 2, 3$ modulo 4.\n2.  We examine each case:\n    *   If $a \\equiv 0 \\pmod 4$, then $a^2 \\equiv 0^2 = 0 \\pmod 4$.\n    *   If $a \\equiv 1 \\pmod 4$, then $a^2 \\equiv 1^2 = 1 \\pmod 4$.\n    *   If $a \\equiv 2 \\pmod 4$, then $a^2 \\equiv 2^2 = 4 \\equiv 0 \\pmod 4$.\n    *   If $a \\equiv 3 \\pmod 4$, then $a^2 \\equiv 3^2 = 9 \\equiv 1 \\pmod 4$.\n3.  In all cases, $a^2 \\pmod 4$ is either 0 or 1.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the value of a modulo 4\n  let m := a % 4\n  have h_cases : m = 0 ∨ m = 1 ∨ m = 2 ∨ m = 3 := by\n    have h_bounds : 0 ≤ a % 4 ∧ a % 4 < 4 := Int.emod_nonneg a (by norm_num) \n    have : a % 4 < 4 := Int.emod_lt a (by norm_num)\n    interval_cases (a % 4) <;> aesop\n  \n  -- Relate a^2 mod 4 to (a % 4)^2 mod 4\n  have h_mod : a ^ 2 ≡ (a % 4) ^ 2 [ZMOD 4] := by\n    apply Int.ModEq.pow\n    exact Int.mod_modEq a 4\n\n  -- Check each case\n  rcases h_cases with h0 | h1 | h2 | h3\n  · -- Case m = 0\n    left\n    rw [h0] at h_mod\n    exact h_mod\n  · -- Case m = 1\n    right\n    rw [h1] at h_mod\n    exact h_mod\n  · -- Case m = 2\n    left\n    rw [h2] at h_mod\n    convert h_mod\n    norm_num\n  · -- Case m = 3\n    right\n    rw [h3] at h_mod\n    convert h_mod\n    norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the value of a modulo 4\n  let m := a % 4\n  have h_cases : m = 0 ∨ m = 1 ∨ m = 2 ∨ m = 3 := by\n    have h_bounds : 0 ≤ a % 4 ∧ a % 4 < 4 := Int.emod_nonneg a (by norm_num) \n    have : a % 4 < 4 := Int.emod_lt a (by norm_num)\n    interval_cases (a % 4) <;> aesop\n  \n  -- Relate a^2 mod 4 to (a % 4)^2 mod 4\n  have h_mod : a ^ 2 ≡ (a % 4) ^ 2 [ZMOD 4] := by\n    apply Int.ModEq.pow\n    exact Int.mod_modEq a 4\n\n  -- Check each case\n  rcases h_cases with h0 | h1 | h2 | h3\n  · -- Case m = 0\n    left\n    rw [h0] at h_mod\n    exact h_mod\n  · -- Case m = 1\n    right\n    rw [h1] at h_mod\n    exact h_mod\n  · -- Case m = 2\n    left\n    rw [h2] at h_mod\n    convert h_mod\n    norm_num\n  · -- Case m = 3\n    right\n    rw [h3] at h_mod\n    convert h_mod\n    norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 64
+            },
+            "endPos": {
+              "line": 12,
+              "column": 75
+            },
+            "data": "unsolved goals\na : ℤ\nm : ℤ := a % 4\n⊢ ¬?m.76 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 27
+            },
+            "data": "Type mismatch\n  Int.mod_modEq a 4\nhas type\n  a % 4 ≡ a [ZMOD 4]\nbut is expected to have type\n  a ≡ a % 4 [ZMOD 4]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 8
+            },
+            "endPos": {
+              "line": 25,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  m\nin the target expression\n  a ^ 2 ≡ (a % 4) ^ 2 [ZMOD 4]\n\ncase inl.h\na : ℤ\nm : ℤ := ⋯\nh_mod : a ^ 2 ≡ (a % 4) ^ 2 [ZMOD 4]\nh0 : m = 0\n⊢ a ^ 2 ≡ 0 [ZMOD 4]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 8
+            },
+            "endPos": {
+              "line": 29,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  m\nin the target expression\n  a ^ 2 ≡ (a % 4) ^ 2 [ZMOD 4]\n\ncase inr.inl.h\na : ℤ\nm : ℤ := ⋯\nh_mod : a ^ 2 ≡ (a % 4) ^ 2 [ZMOD 4]\nh1 : m = 1\n⊢ a ^ 2 ≡ 1 [ZMOD 4]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 8
+            },
+            "endPos": {
+              "line": 33,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  m\nin the target expression\n  a ^ 2 ≡ (a % 4) ^ 2 [ZMOD 4]\n\ncase inr.inr.inl.h\na : ℤ\nm : ℤ := ⋯\nh_mod : a ^ 2 ≡ (a % 4) ^ 2 [ZMOD 4]\nh2 : m = 2\n⊢ a ^ 2 ≡ 0 [ZMOD 4]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 8
+            },
+            "endPos": {
+              "line": 38,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  m\nin the target expression\n  a ^ 2 ≡ (a % 4) ^ 2 [ZMOD 4]\n\ncase inr.inr.inr.h\na : ℤ\nm : ℤ := ⋯\nh_mod : a ^ 2 ≡ (a % 4) ^ 2 [ZMOD 4]\nh3 : m = 3\n⊢ a ^ 2 ≡ 1 [ZMOD 4]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.14969754219055176
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "To prove that $a^2 \\equiv 0$ or $1 \\pmod 4$ for any integer $a$, we consider the parity of $a$:\n1. If $a$ is even, then $a = 2k$ for some integer $k$. Then $a^2 = (2k)^2 = 4k^2$. Thus $a^2 \\equiv 0 \\pmod 4$.\n2. If $a$ is odd, then $a = 2k + 1$ for some integer $k$. Then $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. Thus $a^2 \\equiv 1 \\pmod 4$.\nSince every integer is either even or odd, the theorem follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the case where a is even or odd\n  rcases Int.even_or_odd a with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case: a = 2k (even)\n    left\n    rw [Int.ModEq]\n    ring_nf\n    -- 4k^2 is divisible by 4\n    exact Int.dvd_mul_right 4 (k ^ 2)\n  · -- Case: a = 2k + 1 (odd)\n    right\n    rw [Int.ModEq]\n    ring_nf\n    -- (4k^2 + 4k + 1) - 1 = 4(k^2 + k), which is divisible by 4\n    have h : 4 * k ^ 2 + 4 * k + 1 - 1 = 4 * (k ^ 2 + k) := by ring\n    rw [h]\n    exact Int.dvd_mul_right 4 (k ^ 2 + k)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the case where a is even or odd\n  rcases Int.even_or_odd a with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case: a = 2k (even)\n    left\n    rw [Int.ModEq]\n    ring_nf\n    -- 4k^2 is divisible by 4\n    exact Int.dvd_mul_right 4 (k ^ 2)\n  · -- Case: a = 2k + 1 (odd)\n    right\n    rw [Int.ModEq]\n    ring_nf\n    -- (4k^2 + 4k + 1) - 1 = 4(k^2 + k), which is divisible by 4\n    have h : 4 * k ^ 2 + 4 * k + 1 - 1 = 4 * (k ^ 2 + k) := by ring\n    rw [h]\n    exact Int.dvd_mul_right 4 (k ^ 2 + k)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 37
+            },
+            "data": "Type mismatch\n  Int.dvd_mul_right 4 (k ^ 2)\nhas type\n  4 ∣ 4 * k ^ 2\nbut is expected to have type\n  k ^ 2 * 4 % 4 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 9
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  4 * k ^ 2 + 4 * k + 1 - 1\nin the target expression\n  (1 + k * 4 + k ^ 2 * 4) % 4 = 1\n\ncase inr.h\nk : ℤ\nh : 4 * k ^ 2 + 4 * k + 1 - 1 = 4 * (k ^ 2 + k)\n⊢ (1 + k * 4 + k ^ 2 * 4) % 4 = 1"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.17155146598815918
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "To prove that the square of any integer $a$ is congruent to either $0$ or $1$ modulo $4$, we consider the parity of $a$:\n\n1.  **Case 1 ($a$ is even):** Let $a = 2k$ for some integer $k$. Then $a^2 = (2k)^2 = 4k^2$. This is clearly divisible by $4$, so $a^2 \\equiv 0 \\pmod 4$.\n2.  **Case 2 ($a$ is odd):** Let $a = 2k + 1$ for some integer $k$. Then $a^2 = (2k+1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This leaves a remainder of $1$ when divided by $4$, so $a^2 \\equiv 1 \\pmod 4$.\n\nSince every integer is either even or odd, these two cases cover all possibilities.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the parity of a\n  rcases Int.even_or_odd a with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case a is even: a = 2k\n    left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by \n        rw [Int.modEq_zero_iff_dvd]\n        exact dvd_mul_right 4 (k ^ 2)\n  · -- Case a is odd: a = 2k + 1\n    right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 1 [ZMOD 4] := by\n        rw [Int.modEq_iff_dvd]\n        ring_nf\n        exact dvd_mul_right 4 (k ^ 2 + k)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the parity of a\n  rcases Int.even_or_odd a with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case a is even: a = 2k\n    left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by \n        rw [Int.modEq_zero_iff_dvd]\n        exact dvd_mul_right 4 (k ^ 2)\n  · -- Case a is odd: a = 2k + 1\n    right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 1 [ZMOD 4] := by\n        rw [Int.modEq_iff_dvd]\n        ring_nf\n        exact dvd_mul_right 4 (k ^ 2 + k)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 6
+            },
+            "endPos": {
+              "line": 14,
+              "column": 29
+            },
+            "data": "invalid 'calc' step, left-hand side is\n  (2 * k) ^ 2 : Int\nbut is expected to be\n  (k + k) ^ 2 : Int"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 8
+            },
+            "endPos": {
+              "line": 25,
+              "column": 41
+            },
+            "data": "Type mismatch\n  dvd_mul_right 4 (k ^ 2 + k)\nhas type\n  4 ∣ 4 * (k ^ 2 + k)\nbut is expected to have type\n  4 ∣ -(k * 4) - k ^ 2 * 4"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.22717881202697754
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "To prove that $a^2 \\equiv 0 \\pmod 4$ or $a^2 \\equiv 1 \\pmod 4$ for any integer $a$, we consider the parity of $a$:\n1. If $a$ is even, then $a = 2k$ for some integer $k$. Then $a^2 = (2k)^2 = 4k^2$, which implies $a^2 \\equiv 0 \\pmod 4$.\n2. If $a$ is odd, then $a = 2k + 1$ for some integer $k$. Then $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$, which implies $a^2 \\equiv 1 \\pmod 4$.\nIn Lean, we can use `Int.mod_two_eq_zero_or_one` or `Int.even_or_odd` to split into these cases.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider cases for a modulo 2\n  have h := Int.mod_two_eq_zero_or_one a\n  cases h with\n  | inl h0 =>\n    -- Case a ≡ 0 [ZMOD 2], so a is even\n    left\n    obtain ⟨k, hk⟩ := Int.even_iff_two_dvd.mpr (Int.dvd_of_mod_eq_zero h0)\n    rw [hk]\n    ring_nf\n    show (4 * k ^ 2) % 4 = 0 % 4\n    rw [Int.mul_mod_right]\n    rfl\n  | inr h1 =>\n    -- Case a ≡ 1 [ZMOD 2], so a is odd\n    right\n    have h_odd : ∃ k, a = 2 * k + 1 := by\n      use a / 2\n      rw [← Int.ediv_add_emod a 2, h1, mul_comm]\n    obtain ⟨k, hk⟩ := h_odd\n    rw [hk]\n    ring_nf\n    -- a^2 = 4(k^2 + k) + 1\n    show (4 * (k ^ 2 + k) + 1) % 4 = 1 % 4\n    rw [Int.add_emod, Int.mul_mod_right]\n    rfl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider cases for a modulo 2\n  have h := Int.mod_two_eq_zero_or_one a\n  cases h with\n  | inl h0 =>\n    -- Case a ≡ 0 [ZMOD 2], so a is even\n    left\n    obtain ⟨k, hk⟩ := Int.even_iff_two_dvd.mpr (Int.dvd_of_mod_eq_zero h0)\n    rw [hk]\n    ring_nf\n    show (4 * k ^ 2) % 4 = 0 % 4\n    rw [Int.mul_mod_right]\n    rfl\n  | inr h1 =>\n    -- Case a ≡ 1 [ZMOD 2], so a is odd\n    right\n    have h_odd : ∃ k, a = 2 * k + 1 := by\n      use a / 2\n      rw [← Int.ediv_add_emod a 2, h1, mul_comm]\n    obtain ⟨k, hk⟩ := h_odd\n    rw [hk]\n    ring_nf\n    -- a^2 = 4(k^2 + k) + 1\n    show (4 * (k ^ 2 + k) + 1) % 4 = 1 % 4\n    rw [Int.add_emod, Int.mul_mod_right]\n    rfl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 12
+            },
+            "endPos": {
+              "line": 10,
+              "column": 38
+            },
+            "data": "Unknown constant `Int.mod_two_eq_zero_or_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 8,
+              "column": 86
+            },
+            "endPos": {
+              "line": 33,
+              "column": 7
+            },
+            "data": "unsolved goals\na : ℤ\n⊢ a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.018194198608398438
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "To prove that any integer squared is congruent to $0$ or $1$ modulo $4$, we consider the parity of the integer. Every integer $a$ is either even ($a = 2k$) or odd ($a = 2k+1$).\n\n1.  **Case 1: $a$ is even.** Let $a = 2k$. Then $a^2 = (2k)^2 = 4k^2$. Since $4k^2$ is a multiple of $4$, $a^2 \\equiv 0 \\pmod 4$.\n2.  **Case 2: $a$ is odd.** Let $a = 2k+1$. Then $a^2 = (2k+1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This implies $a^2 \\equiv 1 \\pmod 4$.\n\nSince every integer is either even or odd, $a^2$ is always congruent to $0$ or $1$ modulo $4$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the cases for a modulo 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases' h with h0 h1\n  · -- Case a ≡ 0 [ZMOD 2]\n    left\n    have h2 : a = 2 * (a / 2) := Int.mul_ediv_cancel' (Int.dvd_of_emod_eq_zero h0)\n    rw [h2]\n    ring_nf\n    exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (a / 2 ^ 2))\n  · -- Case a ≡ 1 [ZMOD 2]\n    right\n    have h2 : a = 2 * (a / 2) + 1 := by\n      rw [← Int.ediv_add_emod a 2, h1]\n    rw [h2]\n    ring_nf\n    -- a^2 = 4 * ((a / 2)^2 + (a / 2)) + 1\n    -- We want to show 4 * ((a / 2)^2 + (a / 2)) + 1 ≡ 1 [ZMOD 4]\n    -- This is equivalent to showing 4 * ((a / 2)^2 + (a / 2)) is divisible by 4\n    show (4 * ((a / 2) ^ 2 + (a / 2)) + 1) ≡ 1 [ZMOD 4]\n    unfold Int.ModEq\n    rw [Int.add_emod, Int.mul_emod_right]\n    simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the cases for a modulo 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases' h with h0 h1\n  · -- Case a ≡ 0 [ZMOD 2]\n    left\n    have h2 : a = 2 * (a / 2) := Int.mul_ediv_cancel' (Int.dvd_of_emod_eq_zero h0)\n    rw [h2]\n    ring_nf\n    exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (a / 2 ^ 2))\n  · -- Case a ≡ 1 [ZMOD 2]\n    right\n    have h2 : a = 2 * (a / 2) + 1 := by\n      rw [← Int.ediv_add_emod a 2, h1]\n    rw [h2]\n    ring_nf\n    -- a^2 = 4 * ((a / 2)^2 + (a / 2)) + 1\n    -- We want to show 4 * ((a / 2)^2 + (a / 2)) + 1 ≡ 1 [ZMOD 4]\n    -- This is equivalent to showing 4 * ((a / 2)^2 + (a / 2)) is divisible by 4\n    show (4 * ((a / 2) ^ 2 + (a / 2)) + 1) ≡ 1 [ZMOD 4]\n    unfold Int.ModEq\n    rw [Int.add_emod, Int.mul_emod_right]\n    simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 33
+            },
+            "endPos": {
+              "line": 14,
+              "column": 82
+            },
+            "data": "Type mismatch\n  Int.mul_ediv_cancel' (Int.dvd_of_emod_eq_zero h0)\nhas type\n  2 * (a / 2) = a\nbut is expected to have type\n  a = 2 * (a / 2)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 37
+            },
+            "endPos": {
+              "line": 17,
+              "column": 66
+            },
+            "data": "Application type mismatch: The argument\n  dvd_mul_right 4 (a / 2 ^ 2)\nhas type\n  4 ∣ 4 * (a / 2 ^ 2)\nbut is expected to have type\n  4 ∣ (a / 2) ^ 2 * 4\nin the application\n  Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (a / 2 ^ 2))"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 37
+            },
+            "endPos": {
+              "line": 21,
+              "column": 38
+            },
+            "data": "unsolved goals\na : ℤ\nh1 : a % 2 = 1\n⊢ 2 * (a / 2) + 1 = 2 * ((2 * (a / 2) + 1) / 2) + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 4
+            },
+            "endPos": {
+              "line": 27,
+              "column": 55
+            },
+            "data": "'show' tactic failed, pattern\n  4 * ((a / 2) ^ 2 + a / 2) + 1 ≡ 1 [ZMOD 4]\nis not definitionally equal to target\n  1 + a / 2 * 4 + (a / 2) ^ 2 * 4 ≡ 1 [ZMOD 4]"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 21,
+              "column": 12
+            },
+            "endPos": {
+              "line": 21,
+              "column": 29
+            },
+            "data": "`Int.ediv_add_emod` has been deprecated: Use `Int.mul_ediv_add_emod` instead"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.27277350425720215
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "To prove that any square of an integer is congruent to either 0 or 1 modulo 4, we perform a case analysis on the parity of the integer $a$.\n\n1.  **Case 1: $a$ is even.** If $a = 2k$ for some integer $k$, then $a^2 = (2k)^2 = 4k^2$. Since $4k^2$ is a multiple of 4, $a^2 \\equiv 0 \\pmod 4$.\n2.  **Case 2: $a$ is odd.** If $a = 2k + 1$ for some integer $k$, then $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This implies $a^2 \\equiv 1 \\pmod 4$.\n\nSince every integer is either even or odd, $a^2$ must be congruent to 0 or 1 modulo 4.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Use case analysis on whether a is even or odd\n  have h := Int.even_or_odd a\n  cases' h with h_even h_odd\n  · -- Case: a is even (a = 2k)\n    rcases h_even with ⟨k, rfl⟩\n    left\n    -- (2*k)^2 = 4 * k^2\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  · -- Case: a is odd (a = 2k + 1)\n    rcases h_odd with ⟨k, rfl⟩\n    right\n    -- (2*k + 1)^2 = 4 * (k^2 + k) + 1\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 0 + 1 [ZMOD 4] := by\n        apply Int.ModEq.add\n        · exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2 + k))\n        · exact Int.ModEq.refl 1\n      _ = 1 := by norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Use case analysis on whether a is even or odd\n  have h := Int.even_or_odd a\n  cases' h with h_even h_odd\n  · -- Case: a is even (a = 2k)\n    rcases h_even with ⟨k, rfl⟩\n    left\n    -- (2*k)^2 = 4 * k^2\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  · -- Case: a is odd (a = 2k + 1)\n    rcases h_odd with ⟨k, rfl⟩\n    right\n    -- (2*k + 1)^2 = 4 * (k^2 + k) + 1\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 0 + 1 [ZMOD 4] := by\n        apply Int.ModEq.add\n        · exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2 + k))\n        · exact Int.ModEq.refl 1\n      _ = 1 := by norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 6
+            },
+            "endPos": {
+              "line": 17,
+              "column": 29
+            },
+            "data": "invalid 'calc' step, left-hand side is\n  (2 * k) ^ 2 : Int\nbut is expected to be\n  (k + k) ^ 2 : Int"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.17387866973876953
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "To prove that the square of any integer $a$ is congruent to either $0$ or $1$ modulo $4$, we consider the parity of $a$:\n\n1.  **Case $a$ is even**: Let $a = 2k$ for some integer $k$. Then $a^2 = (2k)^2 = 4k^2$. This means $a^2 \\equiv 0 \\pmod 4$.\n2.  **Case $a$ is odd**: Let $a = 2k + 1$ for some integer $k$. Then $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This means $a^2 \\equiv 1 \\pmod 4$.\n\nSince every integer is either even or odd, $a^2 \\pmod 4$ must be either $0$ or $1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  have h := Int.emod_two_eq_zero_or_one a\n  cases' h with h_even h_odd\n  · -- Case a is even: a % 2 = 0 => a = 2k\n    left\n    have h1 : a ≡ 0 [ZMOD 2] := h_even\n    obtain ⟨k, hk⟩ := Int.modEq_iff_dvd.mp h1\n    have ha : a = 2 * k := by linarith\n    rw [ha]\n    ring_nf\n    show 4 * k ^ 2 ≡ 0 [ZMOD 4]\n    exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  · -- Case a is odd: a % 2 = 1 => a = 2k + 1\n    right\n    have h1 : a ≡ 1 [ZMOD 2] := h_odd\n    obtain ⟨k, hk⟩ := Int.modEq_iff_dvd.mp h1\n    have ha : a = 2 * k + 1 := by linarith\n    rw [ha]\n    ring_nf\n    show 4 * (k ^ 2 + k) + 1 ≡ 1 [ZMOD 4]\n    -- Since 4 * (k^2 + k) is divisible by 4, the expression is congruent to 1 mod 4\n    apply Int.modEq_iff_dvd.mpr\n    ring_nf\n    exact dvd_mul_right 4 (k ^ 2 + k)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  have h := Int.emod_two_eq_zero_or_one a\n  cases' h with h_even h_odd\n  · -- Case a is even: a % 2 = 0 => a = 2k\n    left\n    have h1 : a ≡ 0 [ZMOD 2] := h_even\n    obtain ⟨k, hk⟩ := Int.modEq_iff_dvd.mp h1\n    have ha : a = 2 * k := by linarith\n    rw [ha]\n    ring_nf\n    show 4 * k ^ 2 ≡ 0 [ZMOD 4]\n    exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  · -- Case a is odd: a % 2 = 1 => a = 2k + 1\n    right\n    have h1 : a ≡ 1 [ZMOD 2] := h_odd\n    obtain ⟨k, hk⟩ := Int.modEq_iff_dvd.mp h1\n    have ha : a = 2 * k + 1 := by linarith\n    rw [ha]\n    ring_nf\n    show 4 * (k ^ 2 + k) + 1 ≡ 1 [ZMOD 4]\n    -- Since 4 * (k^2 + k) is divisible by 4, the expression is congruent to 1 mod 4\n    apply Int.modEq_iff_dvd.mpr\n    ring_nf\n    exact dvd_mul_right 4 (k ^ 2 + k)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 30
+            },
+            "endPos": {
+              "line": 16,
+              "column": 38
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na : ℤ\nh_even : a % 2 = 0\nh1 : a ≡ 0 [ZMOD 2]\nk : ℤ\nhk : 0 - a = 2 * k\na✝ : a < 2 * k\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 31
+            },
+            "data": "'show' tactic failed, pattern\n  4 * k ^ 2 ≡ 0 [ZMOD 4]\nis not definitionally equal to target\n  k ^ 2 * 4 ≡ 0 [ZMOD 4]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 34
+            },
+            "endPos": {
+              "line": 25,
+              "column": 42
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na : ℤ\nh_odd : a % 2 = 1\nh1 : a ≡ 1 [ZMOD 2]\nk : ℤ\nhk : 1 - a = 2 * k\na✝ : a < 2 * k + 1\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 4
+            },
+            "endPos": {
+              "line": 28,
+              "column": 41
+            },
+            "data": "'show' tactic failed, pattern\n  4 * (k ^ 2 + k) + 1 ≡ 1 [ZMOD 4]\nis not definitionally equal to target\n  1 + k * 4 + k ^ 2 * 4 ≡ 1 [ZMOD 4]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.23116827011108398
+      }
+    },
+    {
+      "index": 24,
+      "status": "FAILED",
+      "raw_text": "To prove that $a^2 \\equiv 0 \\pmod 4$ or $a^2 \\equiv 1 \\pmod 4$ for any integer $a$, we consider the parity of $a$:\n1. If $a$ is even, then $a = 2k$ for some integer $k$. Squaring both sides gives $a^2 = (2k)^2 = 4k^2$. Since $a^2$ is a multiple of 4, it follows that $a^2 \\equiv 0 \\pmod 4$.\n2. If $a$ is odd, then $a = 2k + 1$ for some integer $k$. Squaring both sides gives $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This implies $a^2 \\equiv 1 \\pmod 4$.\nSince every integer is either even or odd, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  rcases Int.even_or_odd a with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case: a is even (a = 2 * k)\n    left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by \n        apply Int.modEq_zero_iff_dvd.mpr\n        exact dvd_mul_right 4 (k ^ 2)\n  · -- Case: a is odd (a = 2 * k + 1)\n    right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 1 [ZMOD 4] := by\n        apply Int.modEq_iff_dvd.mpr\n        ring_nf\n        exact dvd_mul_right 4 (k ^ 2 + k)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  rcases Int.even_or_odd a with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case: a is even (a = 2 * k)\n    left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by \n        apply Int.modEq_zero_iff_dvd.mpr\n        exact dvd_mul_right 4 (k ^ 2)\n  · -- Case: a is odd (a = 2 * k + 1)\n    right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 1 [ZMOD 4] := by\n        apply Int.modEq_iff_dvd.mpr\n        ring_nf\n        exact dvd_mul_right 4 (k ^ 2 + k)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 6
+            },
+            "endPos": {
+              "line": 14,
+              "column": 29
+            },
+            "data": "invalid 'calc' step, left-hand side is\n  (2 * k) ^ 2 : Int\nbut is expected to be\n  (k + k) ^ 2 : Int"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 8
+            },
+            "endPos": {
+              "line": 25,
+              "column": 41
+            },
+            "data": "Type mismatch\n  dvd_mul_right 4 (k ^ 2 + k)\nhas type\n  4 ∣ 4 * (k ^ 2 + k)\nbut is expected to have type\n  4 ∣ -(k * 4) - k ^ 2 * 4"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.19803714752197266
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "To prove that the square of any integer $a$ is congruent to $0$ or $1$ modulo $4$, we consider the parity of $a$:\n\n1.  **Case 1 ($a$ is even):** Let $a = 2k$ for some integer $k$. Then $a^2 = (2k)^2 = 4k^2$. This is clearly divisible by $4$, so $a^2 \\equiv 0 \\pmod{4}$.\n2.  **Case 2 ($a$ is odd):** Let $a = 2k + 1$ for some integer $k$. Then $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. Thus, $a^2 \\equiv 1 \\pmod{4}$.\n\nSince every integer is either even or odd, these two cases cover all possibilities.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  obtain ⟨k, rfl⟩ | ⟨k, rfl⟩ := Int.even_or_odd a\n  · -- Case: a is even (a = 2 * k)\n    left\n    rw [Int.ModEq]\n    ring_nf\n    -- 4k^2 % 4 = 0\n    exact Int.mul_rem_left_low 4 (k ^ 2)\n  · -- Case: a is odd (a = 2 * k + 1)\n    right\n    rw [Int.ModEq]\n    -- (2k + 1)^2 = 4(k^2 + k) + 1\n    have h : (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n    rw [h]\n    -- (4(...) + 1) % 4 = 1 % 4 = 1\n    exact Int.add_mul_rem_left 1 (k ^ 2 + k) 4\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  obtain ⟨k, rfl⟩ | ⟨k, rfl⟩ := Int.even_or_odd a\n  · -- Case: a is even (a = 2 * k)\n    left\n    rw [Int.ModEq]\n    ring_nf\n    -- 4k^2 % 4 = 0\n    exact Int.mul_rem_left_low 4 (k ^ 2)\n  · -- Case: a is odd (a = 2 * k + 1)\n    right\n    rw [Int.ModEq]\n    -- (2k + 1)^2 = 4(k^2 + k) + 1\n    have h : (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n    rw [h]\n    -- (4(...) + 1) % 4 = 1 % 4 = 1\n    exact Int.add_mul_rem_left 1 (k ^ 2 + k) 4",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 10
+            },
+            "endPos": {
+              "line": 16,
+              "column": 30
+            },
+            "data": "Unknown constant `Int.mul_rem_left_low`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 10
+            },
+            "endPos": {
+              "line": 24,
+              "column": 30
+            },
+            "data": "Unknown constant `Int.add_mul_rem_left`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1777799129486084
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "To prove that $a^2 \\equiv 0 \\pmod 4$ or $a^2 \\equiv 1 \\pmod 4$ for any integer $a$, we consider the parity of $a$:\n1. If $a$ is even, then $a = 2k$ for some integer $k$. Squaring both sides gives $a^2 = 4k^2$, which implies $a^2 \\equiv 0 \\pmod 4$.\n2. If $a$ is odd, then $a = 2k + 1$ for some integer $k$. Squaring both sides gives $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$, which implies $a^2 \\equiv 1 \\pmod 4$.\nSince every integer is either even or odd, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  obtain ⟨k, rfl⟩ | ⟨k, rfl⟩ := Int.even_or_odd a\n  · -- Case: a is even (a = 2k)\n    left\n    rw [sq]\n    calc\n      (2 * k) * (2 * k) = 4 * (k * k) := by ring\n      _ ≡ 0 [ZMOD 4] := by exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k * k))\n  · -- Case: a is odd (a = 2k + 1)\n    right\n    rw [sq]\n    calc\n      (2 * k + 1) * (2 * k + 1) = 4 * (k * k + k) + 1 := by ring\n      _ ≡ 0 + 1 [ZMOD 4] := Int.ModEq.add (Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k * k + k))) (refl 1)\n      _ ≡ 1 [ZMOD 4] := by rfl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  obtain ⟨k, rfl⟩ | ⟨k, rfl⟩ := Int.even_or_odd a\n  · -- Case: a is even (a = 2k)\n    left\n    rw [sq]\n    calc\n      (2 * k) * (2 * k) = 4 * (k * k) := by ring\n      _ ≡ 0 [ZMOD 4] := by exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k * k))\n  · -- Case: a is odd (a = 2k + 1)\n    right\n    rw [sq]\n    calc\n      (2 * k + 1) * (2 * k + 1) = 4 * (k * k + k) + 1 := by ring\n      _ ≡ 0 + 1 [ZMOD 4] := Int.ModEq.add (Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k * k + k))) (refl 1)\n      _ ≡ 1 [ZMOD 4] := by rfl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 6
+            },
+            "endPos": {
+              "line": 15,
+              "column": 37
+            },
+            "data": "invalid 'calc' step, left-hand side is\n  2 * k * (2 * k) : Int\nbut is expected to be\n  (k + k) * (k + k) : Int"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1737196445465088
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "To prove that the square of any integer $a$ is congruent to either $0$ or $1$ modulo $4$, we consider the parity of $a$:\n\n1.  If $a$ is even, there exists an integer $k$ such that $a = 2k$. Then $a^2 = (2k)^2 = 4k^2$. Since $4k^2$ is a multiple of $4$, we have $a^2 \\equiv 0 \\pmod{4}$.\n2.  If $a$ is odd, there exists an integer $k$ such that $a = 2k + 1$. Then $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This implies $a^2 \\equiv 1 \\pmod{4}$.\n\nThus, in all cases, $a^2 \\equiv 0 \\pmod{4}$ or $a^2 \\equiv 1 \\pmod{4}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the parity of a\n  rcases Int.even_or_odd a with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case: a is even (a = 2 * k)\n    left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 4 * 0 [ZMOD 4]     := by apply Int.ModEq.mul_left; exact Int.modEq_zero_iff_dvd.mpr (show 4 ∣ 4 by decide)\n      _ ≡ 0 [ZMOD 4]         := by simp\n  · -- Case: a is odd (a = 2 * k + 1)\n    right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 4 * 0 + 1 [ZMOD 4]              := by apply Int.ModEq.add_right; apply Int.ModEq.mul_left; exact Int.modEq_zero_iff_dvd.mpr (show 4 ∣ 4 by decide)\n      _ ≡ 1 [ZMOD 4]                      := by simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the parity of a\n  rcases Int.even_or_odd a with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case: a is even (a = 2 * k)\n    left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 4 * 0 [ZMOD 4]     := by apply Int.ModEq.mul_left; exact Int.modEq_zero_iff_dvd.mpr (show 4 ∣ 4 by decide)\n      _ ≡ 0 [ZMOD 4]         := by simp\n  · -- Case: a is odd (a = 2 * k + 1)\n    right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 4 * 0 + 1 [ZMOD 4]              := by apply Int.ModEq.add_right; apply Int.ModEq.mul_left; exact Int.modEq_zero_iff_dvd.mpr (show 4 ∣ 4 by decide)\n      _ ≡ 1 [ZMOD 4]                      := by simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 6
+            },
+            "endPos": {
+              "line": 14,
+              "column": 29
+            },
+            "data": "invalid 'calc' step, left-hand side is\n  (2 * k) ^ 2 : Int\nbut is expected to be\n  (k + k) ^ 2 : Int"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 95
+            },
+            "endPos": {
+              "line": 15,
+              "column": 115
+            },
+            "data": "Type mismatch\n  this\nhas type\n  (4 : ℕ) ∣ 4\nbut is expected to have type\n  (4 : ℤ) ∣ k ^ 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 135
+            },
+            "endPos": {
+              "line": 21,
+              "column": 155
+            },
+            "data": "Type mismatch\n  this\nhas type\n  (4 : ℕ) ∣ 4\nbut is expected to have type\n  (4 : ℤ) ∣ k ^ 2 + k"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.17452716827392578
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "To prove that the square of any integer $a$ is congruent to either $0$ or $1$ modulo $4$, we consider the possible remainders of $a$ when divided by $2$. Any integer $a$ can be represented as either $2k$ (even) or $2k+1$ (odd) for some integer $k$.\n\n1.  **Case $a = 2k$**:\n    Squaring $a$ gives $a^2 = (2k)^2 = 4k^2$.\n    By definition, $4k^2 \\equiv 0 \\pmod 4$.\n2.  **Case $a = 2k+1$**:\n    Squaring $a$ gives $a^2 = (2k+1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$.\n    By definition, $4(k^2 + k) + 1 \\equiv 1 \\pmod 4$.\n\nSince every integer is either even or odd, $a^2 \\pmod 4$ must be $0$ or $1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the parity of a\n  have h := Int.emod_two_eq_zero_or_one a\n  cases' h with h0 h1\n  · -- Case: a is even (a ≡ 0 [ZMOD 2])\n    left\n    have h_div : 2 ∣ a := Int.modEq_zero_iff_dvd.mp h0\n    obtain ⟨k, rfl⟩ := h_div\n    calc (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n    _ ≡ 0 [ZMOD 4] := by exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  · -- Case: a is odd (a ≡ 1 [ZMOD 2])\n    right\n    have h_mod : a % 2 = 1 := h1\n    obtain ⟨k, hk⟩ := Int.exists_eq_mul_left_add_ite a 2\n    -- Since a % 2 = 1, a = 2 * k + 1\n    rw [h_mod] at hk\n    calc a ^ 2 = (2 * k + 1) ^ 2 := by rw [hk]\n    _ = 4 * (k ^ 2 + k) + 1 := by ring\n    _ ≡ 1 [ZMOD 4] := by\n      apply Int.modEq_add_fac_self (n := 4) (a := 1) (k := k ^ 2 + k)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the parity of a\n  have h := Int.emod_two_eq_zero_or_one a\n  cases' h with h0 h1\n  · -- Case: a is even (a ≡ 0 [ZMOD 2])\n    left\n    have h_div : 2 ∣ a := Int.modEq_zero_iff_dvd.mp h0\n    obtain ⟨k, rfl⟩ := h_div\n    calc (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n    _ ≡ 0 [ZMOD 4] := by exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  · -- Case: a is odd (a ≡ 1 [ZMOD 2])\n    right\n    have h_mod : a % 2 = 1 := h1\n    obtain ⟨k, hk⟩ := Int.exists_eq_mul_left_add_ite a 2\n    -- Since a % 2 = 1, a = 2 * k + 1\n    rw [h_mod] at hk\n    calc a ^ 2 = (2 * k + 1) ^ 2 := by rw [hk]\n    _ = 4 * (k ^ 2 + k) + 1 := by ring\n    _ ≡ 1 [ZMOD 4] := by\n      apply Int.modEq_add_fac_self (n := 4) (a := 1) (k := k ^ 2 + k)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 22
+            },
+            "endPos": {
+              "line": 21,
+              "column": 52
+            },
+            "data": "Unknown constant `Int.exists_eq_mul_left_add_ite`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 11
+            },
+            "endPos": {
+              "line": 21,
+              "column": 18
+            },
+            "data": "Tactic `rcases` failed: `x✝ : ?m.167` is not an inductive datatype"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.10311388969421387
+      }
+    },
+    {
+      "index": 29,
+      "status": "FAILED",
+      "raw_text": "To prove that the square of any integer $a$ is congruent to either $0$ or $1$ modulo $4$, we consider the parity of $a$:\n1.  **Case 1 ($a$ is even):** Let $a = 2k$ for some integer $k$. Then $a^2 = (2k)^2 = 4k^2$. This is clearly a multiple of 4, so $a^2 \\equiv 0 \\pmod 4$.\n2.  **Case 2 ($a$ is odd):** Let $a = 2k + 1$ for some integer $k$. Then $a^2 = (2k+1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This implies $a^2 \\equiv 1 \\pmod 4$.\nSince every integer is either even or odd, $a^2 \\pmod 4$ must be $0$ or $1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the remainder of a when divided by 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases h with\n  | inl h0 =>\n    -- Case a is even: a = 2k\n    have ⟨k, hk⟩ : ∃ k, a = 2 * k := Int.even_iff_two_dvd.mp (Int.even_iff_mod_two_eq_zero.mpr h0)\n    left\n    rw [hk]\n    ring_nf\n    -- 4k^2 ≡ 0 [ZMOD 4]\n    exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  | inr h1 =>\n    -- Case a is odd: a = 2k + 1\n    have ⟨k, hk⟩ : ∃ k, a = 2 * k + 1 := exists_eq_mul_left_add_iff.mpr h1\n    right\n    rw [hk]\n    ring_nf\n    -- 4(k^2 + k) + 1 ≡ 1 [ZMOD 4]\n    show (4 * (k ^ 2 + k) + 1) ≡ 1 [ZMOD 4]\n    exact Int.modEq_add_fac_self 1 (k ^ 2 + k) 4\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the remainder of a when divided by 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases h with\n  | inl h0 =>\n    -- Case a is even: a = 2k\n    have ⟨k, hk⟩ : ∃ k, a = 2 * k := Int.even_iff_two_dvd.mp (Int.even_iff_mod_two_eq_zero.mpr h0)\n    left\n    rw [hk]\n    ring_nf\n    -- 4k^2 ≡ 0 [ZMOD 4]\n    exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  | inr h1 =>\n    -- Case a is odd: a = 2k + 1\n    have ⟨k, hk⟩ : ∃ k, a = 2 * k + 1 := exists_eq_mul_left_add_iff.mpr h1\n    right\n    rw [hk]\n    ring_nf\n    -- 4(k^2 + k) + 1 ≡ 1 [ZMOD 4]\n    show (4 * (k ^ 2 + k) + 1) ≡ 1 [ZMOD 4]\n    exact Int.modEq_add_fac_self 1 (k ^ 2 + k) 4",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 37
+            },
+            "endPos": {
+              "line": 14,
+              "column": 60
+            },
+            "data": "Unknown constant `Int.even_iff_two_dvd.mp`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 37
+            },
+            "endPos": {
+              "line": 19,
+              "column": 62
+            },
+            "data": "Application type mismatch: The argument\n  dvd_mul_right 4 (k ^ 2)\nhas type\n  4 ∣ 4 * k ^ 2\nbut is expected to have type\n  4 ∣ k ^ 2 * 4\nin the application\n  Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 41
+            },
+            "endPos": {
+              "line": 22,
+              "column": 71
+            },
+            "data": "Unknown identifier `exists_eq_mul_left_add_iff.mpr`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 4
+            },
+            "endPos": {
+              "line": 27,
+              "column": 43
+            },
+            "data": "'show' tactic failed, pattern\n  4 * (k ^ 2 + k) + 1 ≡ 1 [ZMOD 4]\nis not definitionally equal to target\n  1 + k * 4 + k ^ 2 * 4 ≡ 1 [ZMOD 4]"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.20137643814086914
+      }
+    },
+    {
+      "index": 30,
+      "status": "SOLVED",
+      "raw_text": "To prove that $a^2 \\equiv 0 \\pmod 4$ or $a^2 \\equiv 1 \\pmod 4$ for any integer $a$, we consider the parity of $a$:\n\n1.  **Case 1: $a$ is even.** There exists an integer $k$ such that $a = 2k$.\n    Then $a^2 = (2k)^2 = 4k^2$.\n    This implies $a^2 \\equiv 0 \\pmod 4$.\n2.  **Case 2: $a$ is odd.** There exists an integer $k$ such that $a = 2k + 1$.\n    Then $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$.\n    This implies $a^2 \\equiv 1 \\pmod 4$.\n\nSince every integer is either even or odd, the result follows.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the cases for a modulo 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases h with\n  | inl h0 =>\n    -- Case a is even: a ≡ 0 [ZMOD 2]\n    left\n    have h1 : 2 ∣ a := Int.modEq_zero_iff_dvd.mp h0\n    obtain ⟨k, rfl⟩ := h1\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  | inr h1 =>\n    -- Case a is odd: a ≡ 1 [ZMOD 2]\n    right\n    have h2 : a % 2 = 1 := h1\n    obtain ⟨k, hk⟩ : ∃ k, a = 2 * k + 1 := by\n      exists a / 2\n      exact (Int.ediv_add_emod a 2).symm.trans (congr_arg (fun x => 2 * (a / 2) + x) h2)\n    calc\n      a ^ 2 = (2 * k + 1) ^ 2 := by rw [hk]\n      _ = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 0 + 1 [ZMOD 4] := Int.ModEq.add (Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2 + k))) (Int.ModEq.refl 1)\n      _ ≡ 1 [ZMOD 4] := by rfl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the cases for a modulo 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases h with\n  | inl h0 =>\n    -- Case a is even: a ≡ 0 [ZMOD 2]\n    left\n    have h1 : 2 ∣ a := Int.modEq_zero_iff_dvd.mp h0\n    obtain ⟨k, rfl⟩ := h1\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  | inr h1 =>\n    -- Case a is odd: a ≡ 1 [ZMOD 2]\n    right\n    have h2 : a % 2 = 1 := h1\n    obtain ⟨k, hk⟩ : ∃ k, a = 2 * k + 1 := by\n      exists a / 2\n      exact (Int.ediv_add_emod a 2).symm.trans (congr_arg (fun x => 2 * (a / 2) + x) h2)\n    calc\n      a ^ 2 = (2 * k + 1) ^ 2 := by rw [hk]\n      _ = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 0 + 1 [ZMOD 4] := Int.ModEq.add (Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2 + k))) (Int.ModEq.refl 1)\n      _ ≡ 1 [ZMOD 4] := by rfl",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 26,
+              "column": 13
+            },
+            "endPos": {
+              "line": 26,
+              "column": 30
+            },
+            "data": "`Int.ediv_add_emod` has been deprecated: Use `Int.mul_ediv_add_emod` instead"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.13962221145629883
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "To prove that $a^2 \\equiv 0 \\pmod 4$ or $a^2 \\equiv 1 \\pmod 4$ for any integer $a$, we consider the parity of $a$:\n\n1.  **Case $a$ is even**: If $a = 2k$ for some integer $k$, then $a^2 = (2k)^2 = 4k^2$. Since $4k^2$ is a multiple of 4, $a^2 \\equiv 0 \\pmod 4$.\n2.  **Case $a$ is odd**: If $a = 2k + 1$ for some integer $k$, then $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. Thus $a^2 \\equiv 1 \\pmod 4$.\n\nSince every integer is either even or odd, these two cases cover all possibilities.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  have h := Int.even_or_odd a\n  rcases h with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case a = 2k (even)\n    left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by\n        apply Int.modEq_zero_iff_dvd.mpr\n        exact dvd_mul_right 4 (k ^ 2)\n  · -- Case a = 2k + 1 (odd)\n    right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 1 [ZMOD 4] := by\n        apply Int.modEq_iff_dvd.mpr\n        ring_nf\n        exact dvd_mul_right 4 (k ^ 2 + k)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider whether a is even or odd\n  have h := Int.even_or_odd a\n  rcases h with ⟨k, rfl⟩ | ⟨k, rfl⟩\n  · -- Case a = 2k (even)\n    left\n    calc\n      (2 * k) ^ 2 = 4 * k ^ 2 := by ring\n      _ ≡ 0 [ZMOD 4] := by\n        apply Int.modEq_zero_iff_dvd.mpr\n        exact dvd_mul_right 4 (k ^ 2)\n  · -- Case a = 2k + 1 (odd)\n    right\n    calc\n      (2 * k + 1) ^ 2 = 4 * (k ^ 2 + k) + 1 := by ring\n      _ ≡ 1 [ZMOD 4] := by\n        apply Int.modEq_iff_dvd.mpr\n        ring_nf\n        exact dvd_mul_right 4 (k ^ 2 + k)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 6
+            },
+            "endPos": {
+              "line": 15,
+              "column": 29
+            },
+            "data": "invalid 'calc' step, left-hand side is\n  (2 * k) ^ 2 : Int\nbut is expected to be\n  (k + k) ^ 2 : Int"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 8
+            },
+            "endPos": {
+              "line": 26,
+              "column": 41
+            },
+            "data": "Type mismatch\n  dvd_mul_right 4 (k ^ 2 + k)\nhas type\n  4 ∣ 4 * (k ^ 2 + k)\nbut is expected to have type\n  4 ∣ -(k * 4) - k ^ 2 * 4"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1393744945526123
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "To prove that for any integer $a$, $a^2 \\equiv 0 \\pmod 4$ or $a^2 \\equiv 1 \\pmod 4$, we consider the parity of $a$:\n1. If $a$ is even, then $a = 2k$ for some integer $k$. Squaring both sides gives $a^2 = (2k)^2 = 4k^2$. This clearly implies $a^2 \\equiv 0 \\pmod 4$.\n2. If $a$ is odd, then $a = 2k + 1$ for some integer $k$. Squaring both sides gives $a^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 4(k^2 + k) + 1$. This implies $a^2 \\equiv 1 \\pmod 4$.\n\nSince every integer is either even or odd, $a^2$ must be congruent to either 0 or 1 modulo 4.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the cases for a modulo 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases h with\n  | inl h0 =>\n    -- Case: a is even, a ≡ 0 [ZMOD 2]\n    left\n    have h1 : 2 ∣ a := Int.ediv_add_emod a 2 ▸ by \n      rw [h0, add_zero]\n      exact dvd_mul_left 2 (a / 2)\n    obtain ⟨k, hk⟩ := h1\n    rw [hk]\n    ring_nf\n    -- 4k^2 is clearly 0 mod 4\n    show 4 * k ^ 2 ≡ 0 [ZMOD 4]\n    exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  | inr h1 =>\n    -- Case: a is odd, a ≡ 1 [ZMOD 2]\n    right\n    have h2 : ∃ k, a = 2 * k + 1 := by\n      use a / 2\n      exact (Int.ediv_add_emod a 2).symm.trans (by rw [h1])\n    obtain ⟨k, hk⟩ := h2\n    rw [hk]\n    ring_nf\n    -- 4k^2 + 4k + 1 is 1 mod 4\n    show 4 * (k ^ 2 + k) + 1 ≡ 1 [ZMOD 4]\n    exact Int.modEq_add_fac_self\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_sqmod4in01d (a : ℤ) : a ^ 2 ≡ 0 [ZMOD 4] ∨ a ^ 2 ≡ 1 [ZMOD 4] := by\n  -- Consider the cases for a modulo 2\n  have h := Int.emod_two_eq_zero_or_one a\n  cases h with\n  | inl h0 =>\n    -- Case: a is even, a ≡ 0 [ZMOD 2]\n    left\n    have h1 : 2 ∣ a := Int.ediv_add_emod a 2 ▸ by \n      rw [h0, add_zero]\n      exact dvd_mul_left 2 (a / 2)\n    obtain ⟨k, hk⟩ := h1\n    rw [hk]\n    ring_nf\n    -- 4k^2 is clearly 0 mod 4\n    show 4 * k ^ 2 ≡ 0 [ZMOD 4]\n    exact Int.modEq_zero_iff_dvd.mpr (dvd_mul_right 4 (k ^ 2))\n  | inr h1 =>\n    -- Case: a is odd, a ≡ 1 [ZMOD 2]\n    right\n    have h2 : ∃ k, a = 2 * k + 1 := by\n      use a / 2\n      exact (Int.ediv_add_emod a 2).symm.trans (by rw [h1])\n    obtain ⟨k, hk⟩ := h2\n    rw [hk]\n    ring_nf\n    -- 4k^2 + 4k + 1 is 1 mod 4\n    show 4 * (k ^ 2 + k) + 1 ≡ 1 [ZMOD 4]\n    exact Int.modEq_add_fac_self",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 6
+            },
+            "endPos": {
+              "line": 17,
+              "column": 34
+            },
+            "data": "Type mismatch\n  dvd_mul_left 2 (a / 2)\nhas type\n  2 ∣ a / 2 * 2\nbut is expected to have type\n  2 ∣ 2 * (a / 2)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 4
+            },
+            "endPos": {
+              "line": 22,
+              "column": 31
+            },
+            "data": "'show' tactic failed, pattern\n  4 * k ^ 2 ≡ 0 [ZMOD 4]\nis not definitionally equal to target\n  k ^ 2 * 4 ≡ 0 [ZMOD 4]"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 4
+            },
+            "endPos": {
+              "line": 34,
+              "column": 41
+            },
+            "data": "'show' tactic failed, pattern\n  4 * (k ^ 2 + k) + 1 ≡ 1 [ZMOD 4]\nis not definitionally equal to target\n  1 + k * 4 + k ^ 2 * 4 ≡ 1 [ZMOD 4]"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 15,
+              "column": 23
+            },
+            "endPos": {
+              "line": 15,
+              "column": 40
+            },
+            "data": "`Int.ediv_add_emod` has been deprecated: Use `Int.mul_ediv_add_emod` instead"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 29,
+              "column": 13
+            },
+            "endPos": {
+              "line": 29,
+              "column": 30
+            },
+            "data": "`Int.ediv_add_emod` has been deprecated: Use `Int.mul_ediv_add_emod` instead"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.18608927726745605
+      }
+    }
+  ]
+}

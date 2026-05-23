@@ -1,0 +1,1054 @@
+{
+  "problem": "problems/miniF2F-test/induction_divisibility_9div10tonm1.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 15:37:25",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 3,
+    "completed_count": 3,
+    "solved": true
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "To prove that $9 \\mid 10^n - 1$ for all $n \\in \\mathbb{N}$, we can use induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n = 0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the base case holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We want to show $9 \\mid 10^{k+1} - 1$.\n3.  Observe that $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n4.  Rewrite this as $10 \\cdot (10^k - 1) + 10 - 1 = 10 \\cdot (10^k - 1) + 9$.\n5.  By the inductive hypothesis, $9 \\mid 10^k - 1$, so $9 \\mid 10(10^k - 1)$.\n6.  Since $9 \\mid 9$, it follows that $9$ divides the sum $10(10^k - 1) + 9$.\n7.  Thus, $9 \\mid 10^{k+1} - 1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = 10 * (10^k - 1) + 9\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      rw [pow_succ, Nat.mul_sub_left_distrib, mul_one]\n      simp only [Nat.sub_add_cancel (Nat.one_le_pow _ _ (by norm_num))]\n    rw [h]\n    apply dvd_add\n    · exact dvd_mul_of_dvd_right ih 10\n    · exact dvd_refl 9\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = 10 * (10^k - 1) + 9\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      rw [pow_succ, Nat.mul_sub_left_distrib, mul_one]\n      simp only [Nat.sub_add_cancel (Nat.one_le_pow _ _ (by norm_num))]\n    rw [h]\n    apply dvd_add\n    · exact dvd_mul_of_dvd_right ih 10\n    · exact dvd_refl 9",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 57
+            },
+            "endPos": {
+              "line": 16,
+              "column": 68
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 0 < ?m.108"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 6
+            },
+            "endPos": {
+              "line": 16,
+              "column": 71
+            },
+            "data": "`simp` made no progress"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.11427998542785645
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Base Case ($n=0$):**\n    The expression $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$ (because $0 = 9 \\times 0$), the base case holds.\n\n2.  **Inductive Step:**\n    Assume the inductive hypothesis $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We want to show $9 \\mid 10^{k+1} - 1$.\n    Rewrite the expression:\n    $10^{k+1} - 1 = 10 \\cdot 10^k - 1$\n    $10^{k+1} - 1 = (9 + 1) \\cdot 10^k - 1$\n    $10^{k+1} - 1 = 9 \\cdot 10^k + (10^k - 1)$\n    By the inductive hypothesis, $9$ divides $10^k - 1$. Since $9$ also clearly divides $9 \\cdot 10^k$, $9$ must divide their sum. Thus, $9 \\mid 10^{k+1} - 1$.\n\n3.  **Conclusion:**\n    By the principle of mathematical induction, $9 \\mid 10^n - 1$ for all $n \\in \\mathbb{N}$.\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero =>\n    -- Base Case: 10^0 - 1 = 0\n    simp\n  | succ k ih =>\n    -- Inductive Step: Show 9 | 10^(k+1) - 1 given 9 | 10^k - 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, Nat.mul_comm]\n      nth_rw 1 [show 10 = 9 + 1 by norm_num]\n      rw [Nat.add_mul, Nat.one_mul, Nat.add_tsub_assoc]\n      exact Nat.one_le_pow k (by norm_num)\n    rw [h]\n    apply Nat.dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero =>\n    -- Base Case: 10^0 - 1 = 0\n    simp\n  | succ k ih =>\n    -- Inductive Step: Show 9 | 10^(k+1) - 1 given 9 | 10^k - 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, Nat.mul_comm]\n      nth_rw 1 [show 10 = 9 + 1 by norm_num]\n      rw [Nat.add_mul, Nat.one_mul, Nat.add_tsub_assoc]\n      exact Nat.one_le_pow k (by norm_num)\n    rw [h]\n    apply Nat.dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 36
+            },
+            "endPos": {
+              "line": 19,
+              "column": 54
+            },
+            "data": "Unknown constant `Nat.add_tsub_assoc`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1256105899810791
+      }
+    },
+    {
+      "index": 3,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\nWe prove $9 \\mid 10^n - 1$ for all $n \\in \\mathbb{N}$ by induction on $n$:\n\n1.  **Base Case ($n = 0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\times 0 = 0$, $9 \\mid 0$.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\geq 0$. We want to show $9 \\mid 10^{k+1} - 1$.\n    *   Observe that $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n    *   This can be rewritten as $10 \\cdot (10^k - 1) + 10 - 1 = 10(10^k - 1) + 9$.\n    *   By the inductive hypothesis, $10^k - 1$ is divisible by 9.\n    *   Since both terms $10(10^k - 1)$ and $9$ are divisible by 9, their sum is also divisible by 9.\n\nAlternatively, this follows directly from the property of modular arithmetic where $10 \\equiv 1 \\pmod 9$, implying $10^n \\equiv 1^n \\equiv 1 \\pmod 9$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Case n = 0: 10^0 - 1 = 0, and 9 | 0\n    simp\n  | succ k ih => \n    -- Case n = k + 1: 10^(k+1) - 1 = 10 * 10^k - 1\n    -- We rewrite this as 10 * (10^k - 1) + 9\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      calc\n        10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n        _ = 10 * 10 ^ k - 10 + 9 := by \n          have h_ge : 10 * 10^k ≥ 10 := by \n            rw [ge_iff_le]\n            apply le_mul_of_one_le_right (by norm_num)\n            apply one_le_pow _ _ (by norm_num)\n          rw [Nat.sub_add_comm h_ge]\n          norm_num\n        _ = 10 * (10 ^ k - 1) + 9 := by \n          rw [Nat.mul_sub_left_distrib]\n          simp\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_of_dvd_right ih\n    · apply dvd_refl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Case n = 0: 10^0 - 1 = 0, and 9 | 0\n    simp\n  | succ k ih => \n    -- Case n = k + 1: 10^(k+1) - 1 = 10 * 10^k - 1\n    -- We rewrite this as 10 * (10^k - 1) + 9\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      calc\n        10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n        _ = 10 * 10 ^ k - 10 + 9 := by \n          have h_ge : 10 * 10^k ≥ 10 := by \n            rw [ge_iff_le]\n            apply le_mul_of_one_le_right (by norm_num)\n            apply one_le_pow _ _ (by norm_num)\n          rw [Nat.sub_add_comm h_ge]\n          norm_num\n        _ = 10 * (10 ^ k - 1) + 9 := by \n          rw [Nat.mul_sub_left_distrib]\n          simp\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_of_dvd_right ih\n    · apply dvd_refl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 46
+            },
+            "endPos": {
+              "line": 18,
+              "column": 62
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 ^ k * 10 - 1 = 10 * 10 ^ k - 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 14
+            },
+            "endPos": {
+              "line": 24,
+              "column": 35
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  10 * 10 ^ k + ?m.255 - 10\nin the target expression\n  10 * 10 ^ k - 1 = 10 * 10 ^ k - 10 + 9\n\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\nh_ge : 10 * 10 ^ k ≥ 10\n⊢ 10 * 10 ^ k - 1 = 10 * 10 ^ k - 10 + 9"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 10
+            },
+            "endPos": {
+              "line": 28,
+              "column": 14
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2853376865386963
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\nWe use induction on $n \\in \\mathbb{N}$:\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the base case holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k$. We want to show $9 \\mid 10^{k+1} - 1$.\n    Observe that:\n    $10^{k+1} - 1 = 10 \\cdot 10^k - 1$\n    $10^{k+1} - 1 = (9 + 1) \\cdot 10^k - 1$\n    $10^{k+1} - 1 = 9 \\cdot 10^k + (10^k - 1)$\n    Since $9 \\mid 9 \\cdot 10^k$ and $9 \\mid 10^k - 1$ (by the inductive hypothesis), their sum is also divisible by 9.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, Nat.mul_comm, ← Nat.add_one_mul, Nat.add_mul]\n      simp only [one_mul, Nat.add_sub_assoc (Nat.one_le_pow k 10)]\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, Nat.mul_comm, ← Nat.add_one_mul, Nat.add_mul]\n      simp only [one_mul, Nat.add_sub_assoc (Nat.one_le_pow k 10)]\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 34
+            },
+            "endPos": {
+              "line": 15,
+              "column": 51
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?n * ?m + ?m\nin the target expression\n  10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1)\n\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.11455082893371582
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "To prove that $9 \\mid 10^n - 1$ for all $n \\in \\mathbb{N}$, we use mathematical induction:\n\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the base case holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. This implies there exists an integer $m$ such that $10^k - 1 = 9m$, or $10^k = 9m + 1$.\n3.  We check the case for $k+1$:\n    $10^{k+1} - 1 = 10 \\cdot 10^k - 1$\n    Substituting the inductive hypothesis:\n    $10(9m + 1) - 1 = 90m + 10 - 1 = 90m + 9 = 9(10m + 1)$.\n4.  Since $10m + 1$ is an integer, $9 \\mid 10^{k+1} - 1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero =>\n    -- Base case: 10^0 - 1 = 0, and 9 | 0\n    simp\n  | succ k ih =>\n    -- Inductive step: 10^(k+1) - 1 = 10 * 10^k - 1\n    -- We rewrite 10 * 10^k - 1 as 10 * (10^k - 1) + 9\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      rw [pow_succ, Nat.mul_sub_left_distrib, mul_one]\n      simp only [Nat.sub_add_cancel (Nat.one_le_pow (succ k) 10 (by norm_num))]\n    rw [h]\n    -- Since 9 | (10^k - 1) (by IH) and 9 | 9, 9 divides the sum\n    apply Nat.dvd_add\n    · apply dvd_mul_of_dvd_right ih\n    · apply dvd_refl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero =>\n    -- Base case: 10^0 - 1 = 0, and 9 | 0\n    simp\n  | succ k ih =>\n    -- Inductive step: 10^(k+1) - 1 = 10 * 10^k - 1\n    -- We rewrite 10 * 10^k - 1 as 10 * (10^k - 1) + 9\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      rw [pow_succ, Nat.mul_sub_left_distrib, mul_one]\n      simp only [Nat.sub_add_cancel (Nat.one_le_pow (succ k) 10 (by norm_num))]\n    rw [h]\n    -- Since 9 | (10^k - 1) (by IH) and 9 | 9, 9 divides the sum\n    apply Nat.dvd_add\n    · apply dvd_mul_of_dvd_right ih\n    · apply dvd_refl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 6
+            },
+            "endPos": {
+              "line": 18,
+              "column": 79
+            },
+            "data": "`simp` made no progress"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.11183309555053711
+      }
+    },
+    {
+      "index": 6,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the base case holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We want to show $9 \\mid 10^{k+1} - 1$.\n3.  Rewrite the target expression: $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n4.  Further decompose: $10 \\cdot 10^k - 1 = (9 + 1) \\cdot 10^k - 1 = 9 \\cdot 10^k + (10^k - 1)$.\n5.  By the inductive hypothesis, $9 \\mid (10^k - 1)$.\n6.  Clearly, $9 \\mid 9 \\cdot 10^k$.\n7.  Since $9$ divides both terms in the sum, $9$ divides their sum: $9 \\cdot 10^k + (10^k - 1) = 10^{k+1} - 1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: 10^0 - 1 = 0\n    simp\n  | succ k ih => \n    -- Inductive step: 10^(k+1) - 1 = 10 * 10^k - 1\n    -- Rewrite 10 * 10^k - 1 as 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, ← one_mul (10 ^ k), ← add_mul, Nat.add_comm, Nat.add_sub_assoc]\n      · simp\n      · apply Nat.one_le_pow; simp\n    rw [h]\n    apply Nat.dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: 10^0 - 1 = 0\n    simp\n  | succ k ih => \n    -- Inductive step: 10^(k+1) - 1 = 10 * 10^k - 1\n    -- Rewrite 10 * 10^k - 1 as 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, ← one_mul (10 ^ k), ← add_mul, Nat.add_comm, Nat.add_sub_assoc]\n      · simp\n      · apply Nat.one_le_pow; simp\n    rw [h]\n    apply Nat.dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 40
+            },
+            "endPos": {
+              "line": 17,
+              "column": 49
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a * ?c + ?b * ?c\nin the target expression\n  1 * 10 ^ k * 10 - 1 = 9 * (1 * 10 ^ k) + (1 * 10 ^ k - 1)\n\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 1 * 10 ^ k * 10 - 1 = 9 * (1 * 10 ^ k) + (1 * 10 ^ k - 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.19915413856506348
+      }
+    },
+    {
+      "index": 7,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the base case holds.\n2.  **Inductive Step:** Assume $9 \\mid (10^k - 1)$ for some $k \\in \\mathbb{N}$. We need to show $9 \\mid (10^{k+1} - 1)$.\n3.  Observe that $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n4.  Rewrite the expression: $10 \\cdot 10^k - 1 = (9 + 1) \\cdot 10^k - 1 = 9 \\cdot 10^k + (10^k - 1)$.\n5.  By the inductive hypothesis, $9 \\mid (10^k - 1)$.\n6.  Clearly, $9 \\mid 9 \\cdot 10^k$.\n7.  Since $9$ divides both terms, $9$ divides their sum: $9 \\mid (9 \\cdot 10^k + 10^k - 1)$, which simplifies to $9 \\mid (10^{k+1} - 1)$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, ← add_tsub_assoc_of_le (one_le_pow k (by norm_num))]\n      ring\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, ← add_tsub_assoc_of_le (one_le_pow k (by norm_num))]\n      ring\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 58
+            },
+            "endPos": {
+              "line": 15,
+              "column": 69
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ ℕ"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.19524812698364258
+      }
+    },
+    {
+      "index": 8,
+      "status": "FAILED",
+      "raw_text": "To prove that $9 \\mid 10^n - 1$ for all $n \\in \\mathbb{N}$, we can use induction on $n$:\n\n1.  **Base Case ($n = 0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\times 0 = 0$, $9$ divides $0$.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We want to show $9 \\mid 10^{k+1} - 1$.\n    Observe that $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n    We can rewrite this as $10 \\cdot 10^k - 10 + 9$, which equals $10(10^k - 1) + 9$.\n    By the inductive hypothesis, $9 \\mid 10^k - 1$, so $9$ divides $10(10^k - 1)$.\n    Since $9$ also divides $9$, it must divide their sum $10(10^k - 1) + 9$.\n\nAlternatively, using modular arithmetic, $10 \\equiv 1 \\pmod{9}$ implies $10^n \\equiv 1^n \\equiv 1 \\pmod{9}$, which means $10^n - 1 \\equiv 0 \\pmod{9}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: 10^0 - 1 = 0, which is divisible by 9\n    simp\n  | succ k ih => \n    -- Inductive step: 10^(k+1) - 1 = 10 * 10^k - 1\n    -- Rewriting as 10 * (10^k - 1) + 9\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      calc\n        10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n        _ = 10 * 10 ^ k - 10 + 9 := by \n          rw [Nat.sub_add_comm]\n          norm_num\n          apply Nat.one_le_pow\n          norm_num\n        _ = 10 * (10 ^ k - 1) + 9 := by rw [Nat.mul_sub_left_distrib]; norm_num\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_of_dvd_right ih\n    · apply dvd_refl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: 10^0 - 1 = 0, which is divisible by 9\n    simp\n  | succ k ih => \n    -- Inductive step: 10^(k+1) - 1 = 10 * 10^k - 1\n    -- Rewriting as 10 * (10^k - 1) + 9\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      calc\n        10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n        _ = 10 * 10 ^ k - 10 + 9 := by \n          rw [Nat.sub_add_comm]\n          norm_num\n          apply Nat.one_le_pow\n          norm_num\n        _ = 10 * (10 ^ k - 1) + 9 := by rw [Nat.mul_sub_left_distrib]; norm_num\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_of_dvd_right ih\n    · apply dvd_refl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 46
+            },
+            "endPos": {
+              "line": 18,
+              "column": 62
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 ^ k * 10 - 1 = 10 * 10 ^ k - 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 14
+            },
+            "endPos": {
+              "line": 20,
+              "column": 30
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?m.212 + ?m.213 - ?m.214\nin the target expression\n  10 * 10 ^ k - 1 = 10 * 10 ^ k - 10 + 9\n\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 * 10 ^ k - 1 = 10 * 10 ^ k - 10 + 9"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 71
+            },
+            "endPos": {
+              "line": 24,
+              "column": 79
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.23330259323120117
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\nWe use mathematical induction on $n \\in \\mathbb{N}$.\n\n1.  **Base Case ($n = 0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the base case holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\geq 0$. This means $10^k - 1 = 9m$ for some integer $m$, or $10^k \\equiv 1 \\pmod{9}$.\n3.  **To Prove:** $9 \\mid 10^{k+1} - 1$.\n    Consider the expression:\n    $10^{k+1} - 1 = 10 \\cdot 10^k - 1$\n    $= (9 + 1) \\cdot 10^k - 1$\n    $= 9 \\cdot 10^k + (10^k - 1)$\n4.  By the inductive hypothesis, $9 \\mid 10^k - 1$. Since $9 \\mid 9 \\cdot 10^k$, it follows that $9$ divides their sum, $10^{k+1} - 1$.\n\nAlternatively, using modular arithmetic:\n$10 \\equiv 1 \\pmod{9} \\implies 10^n \\equiv 1^n \\equiv 1 \\pmod{9}$, which implies $10^n - 1 \\equiv 0 \\pmod{9}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Case n = 0\n    simp\n  · -- Case n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    rw [pow_succ, ← Nat.sub_add_comm (Nat.one_le_pow k 10 (by norm_num))]\n    have h : 10 * 10 ^ k = (9 + 1) * 10 ^ k := by rfl\n    rw [h, add_mul, one_mul]\n    apply Nat.dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Case n = 0\n    simp\n  · -- Case n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    rw [pow_succ, ← Nat.sub_add_comm (Nat.one_le_pow k 10 (by norm_num))]\n    have h : 10 * 10 ^ k = (9 + 1) * 10 ^ k := by rfl\n    rw [h, add_mul, one_mul]\n    apply Nat.dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 18
+            },
+            "endPos": {
+              "line": 14,
+              "column": 72
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  10 ^ k - 1 + ?m.40\nin the target expression\n  9 ∣ 10 ^ k * 10 - 1\n\ncase succ\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 9 ∣ 10 ^ k * 10 - 1"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.04454207420349121
+      }
+    },
+    {
+      "index": 10,
+      "status": "SOLVED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the base case holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$ (Inductive Hypothesis). We want to show $9 \\mid 10^{k+1} - 1$.\n3.  Rewrite the target expression: $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n4.  Decompose the expression: $10 \\cdot 10^k - 1 = (9 \\cdot 10^k) + (10^k - 1)$.\n5.  By the Inductive Hypothesis, $9 \\mid 10^k - 1$.\n6.  Clearly, $9 \\mid 9 \\cdot 10^k$.\n7.  Since 9 divides both terms of the sum, it divides the sum: $9 \\mid (9 \\cdot 10^k) + (10^k - 1)$.\n8.  Thus, $9 \\mid 10^{k+1} - 1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, Nat.mul_comm, ← Nat.add_sub_assoc]\n      · congr\n        ring\n      · apply Nat.one_le_pow\n        norm_num\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, Nat.mul_comm, ← Nat.add_sub_assoc]\n      · congr\n        ring\n      · apply Nat.one_le_pow\n        norm_num\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.18917441368103027
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\nWe prove the statement $9 \\mid 10^n - 1$ by induction on $n$.\n1.  **Base Case ($n = 0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\times 0 = 0$, $9 \\mid 0$ holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We want to show $9 \\mid 10^{k+1} - 1$.\n    We can rewrite $10^{k+1} - 1$ as:\n    $$10^{k+1} - 1 = 10 \\cdot 10^k - 1 = 10 \\cdot 10^k - 10 + 9 = 10(10^k - 1) + 9.$$\n    By the inductive hypothesis, $9 \\mid 10^k - 1$, so $10^k - 1 = 9m$ for some integer $m$.\n    Thus, $10^{k+1} - 1 = 10(9m) + 9 = 9(10m + 1)$.\n    Since $10m + 1$ is an integer, $9 \\mid 10^{k+1} - 1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      rw [pow_succ, Nat.mul_sub_left_distrib]\n      simp\n    rw [h]\n    -- Since 9 | (10^k - 1) and 9 | 9, 9 divides the sum\n    apply dvd_add\n    · exact dvd_mul_of_dvd_right ih 10\n    · exact dvd_refl 9\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      rw [pow_succ, Nat.mul_sub_left_distrib]\n      simp\n    rw [h]\n    -- Since 9 | (10^k - 1) and 9 | 9, 9 divides the sum\n    apply dvd_add\n    · exact dvd_mul_of_dvd_right ih 10\n    · exact dvd_refl 9",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 57
+            },
+            "endPos": {
+              "line": 16,
+              "column": 10
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 ^ k * 10 = 10 * 10 ^ k - 10 + 8 + 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.22164440155029297
+      }
+    },
+    {
+      "index": 12,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Base Case**: For $n = 0$, $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the base case holds.\n2.  **Inductive Step**: Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$ (Inductive Hypothesis). We want to show $9 \\mid 10^{k+1} - 1$.\n3.  Observe that $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n4.  Rewrite the expression: $10 \\cdot 10^k - 1 = (9 + 1) \\cdot 10^k - 1 = 9 \\cdot 10^k + (10^k - 1)$.\n5.  By the inductive hypothesis, $9 \\mid 10^k - 1$. Also, $9 \\mid 9 \\cdot 10^k$ is trivial.\n6.  The sum of two multiples of 9 is also a multiple of 9, hence $9 \\mid 10^{k+1} - 1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    have h : 10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n    have h_split : 10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [add_comm, ← add_sub_assoc]\n      · ring\n      · exact one_le_pow k (by norm_num)\n    rw [h, h_split]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    have h : 10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n    have h_split : 10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [add_comm, ← add_sub_assoc]\n      · ring\n      · exact one_le_pow k (by norm_num)\n    rw [h, h_split]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 51
+            },
+            "endPos": {
+              "line": 13,
+              "column": 67
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 ^ k * 10 - 1 = 10 * 10 ^ k - 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 20
+            },
+            "endPos": {
+              "line": 15,
+              "column": 35
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a + (?b - ?c)\nin the target expression\n  10 * 10 ^ k - 1 = 10 ^ k - 1 + 9 * 10 ^ k\n\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\nh : 10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1\n⊢ 10 * 10 ^ k - 1 = 10 ^ k - 1 + 9 * 10 ^ k"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.13038969039916992
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the base case holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We want to show $9 \\mid 10^{k+1} - 1$.\n3.  Rewrite the target expression: $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n4.  Decompose $10$ as $9 + 1$: $(9 + 1) \\cdot 10^k - 1 = 9 \\cdot 10^k + (10^k - 1)$.\n5.  By the inductive hypothesis, $9$ divides $10^k - 1$.\n6.  Clearly, $9$ divides $9 \\cdot 10^k$.\n7.  Since $9$ divides both terms, it divides their sum, $10^{k+1} - 1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, ← add_one_mul, one_mul, add_tsub_assoc_of_le]\n      exact one_le_pow k (by norm_num)\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, ← add_one_mul, one_mul, add_tsub_assoc_of_le]\n      exact one_le_pow k (by norm_num)\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 20
+            },
+            "endPos": {
+              "line": 15,
+              "column": 33
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?n * ?m + ?m\nin the target expression\n  10 ^ k * 10 - 1 = 9 * 10 ^ k + (10 ^ k - 1)\n\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 ^ k * 10 - 1 = 9 * 10 ^ k + (10 ^ k - 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.11304855346679688
+      }
+    },
+    {
+      "index": 14,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\nThe goal is to prove that $9 \\mid (10^n - 1)$ for all $n \\in \\mathbb{N}$ using induction.\n\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\times 0 = 0$, $9 \\mid 0$ holds.\n2.  **Inductive Step:** Assume $9 \\mid (10^k - 1)$ for some $k$. We want to show $9 \\mid (10^{k+1} - 1)$.\n    *   Observe the identity: $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n    *   Rewrite as: $10 \\cdot 10^k - 10 + 9$.\n    *   Factor: $10(10^k - 1) + 9$.\n    *   By the inductive hypothesis, $10^k - 1 = 9m$ for some integer $m$.\n    *   So, $10^{k+1} - 1 = 10(9m) + 9 = 9(10m + 1)$.\n    *   Since $10m + 1$ is an integer, $9 \\mid (10^{k+1} - 1)$.\n\nThe theorem is proved by induction.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: n = 0\n    simp\n  | succ k ih => \n    -- Inductive step: n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = 10 * (10^k - 1) + 9\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      calc\n        10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := rfl\n        _ = 10 * 10 ^ k - 10 + 9 := by \n          rw [Nat.sub_add_comm]\n          norm_num\n          apply Nat.one_le_pow'\n          norm_num\n        _ = 10 * (10 ^ k - 1) + 9 := by \n          rw [Nat.mul_sub_left_distrib]\n          simp\n    rw [h]\n    apply Nat.dvd_add\n    · apply Nat.dvd_mul_of_dvd_right ih\n    · apply dvd_refl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: n = 0\n    simp\n  | succ k ih => \n    -- Inductive step: n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = 10 * (10^k - 1) + 9\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      calc\n        10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := rfl\n        _ = 10 * 10 ^ k - 10 + 9 := by \n          rw [Nat.sub_add_comm]\n          norm_num\n          apply Nat.one_le_pow'\n          norm_num\n        _ = 10 * (10 ^ k - 1) + 9 := by \n          rw [Nat.mul_sub_left_distrib]\n          simp\n    rw [h]\n    apply Nat.dvd_add\n    · apply Nat.dvd_mul_of_dvd_right ih\n    · apply dvd_refl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 14
+            },
+            "endPos": {
+              "line": 20,
+              "column": 30
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?m.209 + ?m.210 - ?m.211\nin the target expression\n  10 * 10 ^ k - 1 = 10 * 10 ^ k - 10 + 9\n\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 * 10 ^ k - 1 = 10 * 10 ^ k - 10 + 9"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 10
+            },
+            "endPos": {
+              "line": 26,
+              "column": 14
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 46
+            },
+            "endPos": {
+              "line": 18,
+              "column": 49
+            },
+            "data": "Type mismatch\n  rfl\nhas type\n  ?m.130 = ?m.130\nbut is expected to have type\n  10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 12
+            },
+            "endPos": {
+              "line": 29,
+              "column": 36
+            },
+            "data": "Unknown constant `Nat.dvd_mul_of_dvd_right`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.45525240898132324
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the base case holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We want to show $9 \\mid 10^{k+1} - 1$.\n3.  Rewrite the target expression: $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n4.  Decompose $10$ as $(9 + 1)$: $10^{k+1} - 1 = (9 + 1) \\cdot 10^k - 1 = 9 \\cdot 10^k + (10^k - 1)$.\n5.  By the inductive hypothesis, $9 \\mid 10^k - 1$. Additionally, $9 \\mid 9 \\cdot 10^k$ is trivial.\n6.  The sum of two multiples of 9 is also a multiple of 9, so $9 \\mid 10^{k+1} - 1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, ← one_add_mul, add_comm]\n      nth_rw 2 [← one_mul (10 ^ k)]\n      rw [← add_mul, Nat.add_sub_assoc]\n      · simp [add_comm]\n      · apply Nat.one_le_pow\n        norm_num\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, ← one_add_mul, add_comm]\n      nth_rw 2 [← one_mul (10 ^ k)]\n      rw [← add_mul, Nat.add_sub_assoc]\n      · simp [add_comm]\n      · apply Nat.one_le_pow\n        norm_num\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 20
+            },
+            "endPos": {
+              "line": 15,
+              "column": 33
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?b + ?a * ?b\nin the target expression\n  10 ^ k * 10 - 1 = 9 * 10 ^ k + (10 ^ k - 1)\n\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 ^ k * 10 - 1 = 9 * 10 ^ k + (10 ^ k - 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.12076926231384277
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$ is true, the base case holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. This means $10^k - 1 = 9m$ for some integer $m$, or equivalently, $10^k \\equiv 1 \\pmod{9}$.\n3.  Consider the case for $n = k+1$:\n    $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n4.  Rewrite $10$ as $(9 + 1)$:\n    $10 \\cdot 10^k - 1 = (9 + 1) \\cdot 10^k - 1 = 9 \\cdot 10^k + (10^k - 1)$.\n5.  By the induction hypothesis, $9 \\mid (10^k - 1)$. Clearly, $9 \\mid 9 \\cdot 10^k$.\n6.  Since $9$ divides both terms, $9$ divides their sum: $9 \\mid 10^{k+1} - 1$.\n7.  By the principle of mathematical induction, the statement holds for all $n \\in \\mathbb{N}$.\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: 10^0 - 1 = 0\n    simp\n  | succ k ih =>\n    -- Inductive step: 10^(k+1) - 1 = 10 * 10^k - 1\n    rw [pow_succ]\n    -- Rewrite 10 * 10^k - 1 as 9 * 10^k + (10^k - 1)\n    have h : 10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      zify [one_le_pow k (by norm_num)]\n      ring\n    rw [h]\n    -- Apply divisibility rules\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: 10^0 - 1 = 0\n    simp\n  | succ k ih =>\n    -- Inductive step: 10^(k+1) - 1 = 10 * 10^k - 1\n    rw [pow_succ]\n    -- Rewrite 10 * 10^k - 1 as 9 * 10^k + (10^k - 1)\n    have h : 10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      zify [one_le_pow k (by norm_num)]\n      ring\n    rw [h]\n    -- Apply divisibility rules\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 26
+            },
+            "endPos": {
+              "line": 18,
+              "column": 37
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ ℕ"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 60
+            },
+            "endPos": {
+              "line": 19,
+              "column": 10
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ ↑(10 ^ k * 10 - 1) = ↑(10 ^ k - 1) + 10 ^ k * 9"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 8
+            },
+            "endPos": {
+              "line": 20,
+              "column": 9
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  10 * 10 ^ k - 1\nin the target expression\n  9 ∣ 10 ^ k * 10 - 1\n\ncase succ\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\nh : 10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1)\n⊢ 9 ∣ 10 ^ k * 10 - 1"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.41823887825012207
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\nWe use mathematical induction on $n$.\n1.  **Base Case ($n = 0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the statement holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We want to show $9 \\mid 10^{k+1} - 1$.\n    *   Observe that $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n    *   Rewrite this as $10 \\cdot 10^k - 10 + 9 = 10(10^k - 1) + 9$.\n    *   By the inductive hypothesis, $9$ divides $10^k - 1$, so $9$ divides $10(10^k - 1)$.\n    *   Since $9$ also divides $9$, it divides the entire sum $10(10^k - 1) + 9$.\n3.  **Conclusion:** By induction, $9 \\mid 10^n - 1$ for all $n \\in \\mathbb{N}$.\n\nAlternatively, using modular arithmetic: $10 \\equiv 1 \\pmod 9 \\implies 10^n \\equiv 1^n \\equiv 1 \\pmod 9 \\implies 10^n - 1 \\equiv 0 \\pmod 9$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: 10^0 - 1 = 0, and 9 divides 0.\n    simp\n  | succ k ih => \n    -- Inductive step: 10^(k+1) - 1 = 10 * 10^k - 1\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      calc\n        10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n        _ = 10 * 10 ^ k - 10 + 9 := by \n          rw [Nat.sub_add_comm]\n          norm_num\n        _ = 10 * (10 ^ k - 1) + 9 := by rw [Nat.mul_sub_left_distrib, mul_one]\n    rw [h]\n    -- Since 9 divides (10^k - 1) and 9 divides 9, 9 divides the sum.\n    apply dvd_add\n    · apply dvd_mul_of_dvd_right ih\n    · apply dvd_refl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: 10^0 - 1 = 0, and 9 divides 0.\n    simp\n  | succ k ih => \n    -- Inductive step: 10^(k+1) - 1 = 10 * 10^k - 1\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      calc\n        10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n        _ = 10 * 10 ^ k - 10 + 9 := by \n          rw [Nat.sub_add_comm]\n          norm_num\n        _ = 10 * (10 ^ k - 1) + 9 := by rw [Nat.mul_sub_left_distrib, mul_one]\n    rw [h]\n    -- Since 9 divides (10^k - 1) and 9 divides 9, 9 divides the sum.\n    apply dvd_add\n    · apply dvd_mul_of_dvd_right ih\n    · apply dvd_refl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 46
+            },
+            "endPos": {
+              "line": 17,
+              "column": 62
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 ^ k * 10 - 1 = 10 * 10 ^ k - 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 14
+            },
+            "endPos": {
+              "line": 19,
+              "column": 30
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?m.212 + ?m.213 - ?m.214\nin the target expression\n  10 * 10 ^ k - 1 = 10 * 10 ^ k - 10 + 9\n\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 * 10 ^ k - 1 = 10 * 10 ^ k - 10 + 9"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2450242042541504
+      }
+    },
+    {
+      "index": 18,
+      "status": "SOLVED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the statement holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We want to show $9 \\mid 10^{k+1} - 1$.\n3.  **Algebraic Manipulation:**\n    $$10^{k+1} - 1 = 10 \\cdot 10^k - 1$$\n    $$10^{k+1} - 1 = (9 + 1) \\cdot 10^k - 1$$\n    $$10^{k+1} - 1 = 9 \\cdot 10^k + (10^k - 1)$$\n4.  **Conclusion:** By the inductive hypothesis, $9 \\mid (10^k - 1)$. Since $9$ clearly divides $9 \\cdot 10^k$, it must divide their sum. Thus, $9 \\mid 10^{k+1} - 1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: 10^0 - 1 = 0, which is divisible by 9\n    simp\n  | succ k ih => \n    -- Inductive step: assume 9 | 10^k - 1, show 9 | 10^(k+1) - 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, ← add_tsub_assoc_of_le (one_le_pow k 10 (by norm_num))]\n      ring\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: 10^0 - 1 = 0, which is divisible by 9\n    simp\n  | succ k ih => \n    -- Inductive step: assume 9 | 10^k - 1, show 9 | 10^(k+1) - 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, ← add_tsub_assoc_of_le (one_le_pow k 10 (by norm_num))]\n      ring\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2949497699737549
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the base case holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We need to show $9 \\mid 10^{k+1} - 1$.\n3.  Rewrite the target expression: $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n4.  Further manipulate the expression to involve the inductive hypothesis:\n    $10 \\cdot 10^k - 1 = (9 + 1) \\cdot 10^k - 1 = 9 \\cdot 10^k + (10^k - 1)$.\n5.  Since $9 \\mid 9 \\cdot 10^k$ and $9 \\mid 10^k - 1$ (by the inductive hypothesis), their sum is also divisible by 9.\n6.  Thus, $9 \\mid 10^{k+1} - 1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: assume 9 ∣ 10^k - 1, show 9 ∣ 10^(k+1) - 1\n    have h : 10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n    rw [h]\n    -- Rewrite 10 * 10^k as (9 + 1) * 10^k\n    have h1 : 10 * 10 ^ k - 1 = (9 * 10 ^ k) + (10 ^ k - 1) := by\n      rw [show 10 * 10 ^ k = (9 + 1) * 10 ^ k by rfl]\n      rw [add_mul, one_mul]\n      rw [Nat.add_sub_assoc]\n      apply Nat.one_le_pow\n      simp\n    rw [h1]\n    apply dvd_add\n    · -- Show 9 ∣ 9 * 10^k\n      apply dvd_mul_right\n    · -- Show 9 ∣ 10^k - 1\n      exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: assume 9 ∣ 10^k - 1, show 9 ∣ 10^(k+1) - 1\n    have h : 10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n    rw [h]\n    -- Rewrite 10 * 10^k as (9 + 1) * 10^k\n    have h1 : 10 * 10 ^ k - 1 = (9 * 10 ^ k) + (10 ^ k - 1) := by\n      rw [show 10 * 10 ^ k = (9 + 1) * 10 ^ k by rfl]\n      rw [add_mul, one_mul]\n      rw [Nat.add_sub_assoc]\n      apply Nat.one_le_pow\n      simp\n    rw [h1]\n    apply dvd_add\n    · -- Show 9 ∣ 9 * 10^k\n      apply dvd_mul_right\n    · -- Show 9 ∣ 10^k - 1\n      exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 51
+            },
+            "endPos": {
+              "line": 13,
+              "column": 67
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 ^ k * 10 - 1 = 10 * 10 ^ k - 1"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.21712803840637207
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "To prove that $9 \\mid 10^n - 1$ for all $n \\in \\mathbb{N}$, we use induction on $n$.\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\cdot 0 = 0$, the statement holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k$. We want to show $9 \\mid 10^{k+1} - 1$.\n    We can write $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n    By adding and subtracting 10, we get $10(10^k - 1) + 10 - 1 = 10(10^k - 1) + 9$.\n    Since $9 \\mid (10^k - 1)$ by the inductive hypothesis, $9$ divides $10(10^k - 1)$.\n    Since $9$ also divides $9$, it divides their sum, $10^{k+1} - 1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: assume 9 | 10^k - 1, prove 9 | 10^(k+1) - 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = 10 * (10^k - 1) + 10 - 1 = 10 * (10^k - 1) + 9\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      rw [pow_succ, Nat.mul_sub_left_distrib, mul_one]\n      apply Nat.sub_add_cancel\n      apply Nat.one_le_pow _ _ (by norm_num)\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_of_dvd_right ih\n    · apply dvd_refl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: assume 9 | 10^k - 1, prove 9 | 10^(k+1) - 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = 10 * (10^k - 1) + 10 - 1 = 10 * (10^k - 1) + 9\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      rw [pow_succ, Nat.mul_sub_left_distrib, mul_one]\n      apply Nat.sub_add_cancel\n      apply Nat.one_le_pow _ _ (by norm_num)\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_of_dvd_right ih\n    · apply dvd_refl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 6
+            },
+            "endPos": {
+              "line": 16,
+              "column": 30
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@Nat.sub_add_cancel`\n  ?n - ?m + ?m = ?n\nwith the goal\n  10 ^ k * 10 - 1 = 10 * 10 ^ k - 10 + 9\n\nNote: The full type of `@Nat.sub_add_cancel` is\n  ∀ {n m : ℕ}, m ≤ n → n - m + m = n\n\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 ^ k * 10 - 1 = 10 * 10 ^ k - 10 + 9"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.18401122093200684
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Base Case ($n=0$):**\n    $10^0 - 1 = 1 - 1 = 0$.\n    Since $9 \\times 0 = 0$, $9$ divides $0$.\n2.  **Inductive Step:**\n    Assume $9 \\mid (10^k - 1)$ for some $k \\in \\mathbb{N}$ (Inductive Hypothesis).\n    We want to show $9 \\mid (10^{k+1} - 1)$.\n    We rewrite $10^{k+1} - 1$ as:\n    $10^{k+1} - 1 = 10 \\cdot 10^k - 1$\n    $10^{k+1} - 1 = (9 + 1) \\cdot 10^k - 1$\n    $10^{k+1} - 1 = 9 \\cdot 10^k + (10^k - 1)$\n3.  **Conclusion:**\n    The first term $9 \\cdot 10^k$ is clearly divisible by $9$.\n    The second term $10^k - 1$ is divisible by $9$ by the Inductive Hypothesis.\n    The sum of two multiples of $9$ is a multiple of $9$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: 10^0 - 1 = 0, and 9 | 0\n    simp\n  | succ k ih => \n    -- Inductive step: 10^(k+1) - 1 = 10 * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, Nat.mul_comm]\n      nth_rewrite 1 [← one_mul (10 ^ k)]\n      rw [← add_mul, Nat.add_comm, Nat.add_sub_assoc]\n      · norm_num\n      · apply Nat.one_le_pow; norm_num\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: 10^0 - 1 = 0, and 9 | 0\n    simp\n  | succ k ih => \n    -- Inductive step: 10^(k+1) - 1 = 10 * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, Nat.mul_comm]\n      nth_rewrite 1 [← one_mul (10 ^ k)]\n      rw [← add_mul, Nat.add_comm, Nat.add_sub_assoc]\n      · norm_num\n      · apply Nat.one_le_pow; norm_num\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 10
+            },
+            "endPos": {
+              "line": 18,
+              "column": 19
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a * ?c + ?b * ?c\nin the target expression\n  10 * (1 * 10 ^ k) - 1 = 9 * 10 ^ k + (10 ^ k - 1)\n\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 * (1 * 10 ^ k) - 1 = 9 * 10 ^ k + (10 ^ k - 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1924753189086914
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "To prove that $9 \\mid 10^n - 1$ for all $n \\in \\mathbb{N}$, we proceed by induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the base case holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We want to show $9 \\mid 10^{k+1} - 1$.\n3.  Observe that $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n4.  Rewrite this as $10 \\cdot 10^k - 10 + 9$.\n5.  Factorize: $10(10^k - 1) + 9$.\n6.  By the inductive hypothesis, $9 \\mid (10^k - 1)$, so $9 \\mid 10(10^k - 1)$. Since $9 \\mid 9$, the sum is also divisible by 9.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: 10^0 - 1 = 0, and 9 divides 0.\n    simp\n  | succ k ih => \n    -- Inductive step: 10^(k+1) - 1 = 10 * 10^k - 1\n    -- We can write 10 * 10^k - 1 as (9 * 10^k) + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, ← add_sub_assoc]\n      · ring\n      · exact one_le_pow k 10 (by norm_num)\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: 10^0 - 1 = 0, and 9 divides 0.\n    simp\n  | succ k ih => \n    -- Inductive step: 10^(k+1) - 1 = 10 * 10^k - 1\n    -- We can write 10 * 10^k - 1 as (9 * 10^k) + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, ← add_sub_assoc]\n      · ring\n      · exact one_le_pow k 10 (by norm_num)\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 20
+            },
+            "endPos": {
+              "line": 17,
+              "column": 35
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a + (?b - ?c)\nin the target expression\n  10 ^ k * 10 - 1 = 9 * 10 ^ k + (10 ^ k - 1)\n\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 ^ k * 10 - 1 = 9 * 10 ^ k + (10 ^ k - 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1861557960510254
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the statement holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We want to show $9 \\mid 10^{k+1} - 1$.\n3.  Rewrite the target expression: $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n4.  Decompose the expression: $10 \\cdot 10^k - 1 = (9 + 1) \\cdot 10^k - 1 = 9 \\cdot 10^k + (10^k - 1)$.\n5.  By the inductive hypothesis, $9 \\mid (10^k - 1)$. Clearly, $9 \\mid 9 \\cdot 10^k$.\n6.  Since $9$ divides both terms, $9$ divides their sum $10^{k+1} - 1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    simp\n  | succ k ih =>\n    -- 10^(k+1) - 1 = 10 * 10^k - 1\n    have h : 10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n    rw [h]\n    -- 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h_split : 10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      zify\n      ring\n    rw [h_split]\n    -- Since 9 | 9 * 10^k and 9 | 10^k - 1, their sum is divisible by 9\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    simp\n  | succ k ih =>\n    -- 10^(k+1) - 1 = 10 * 10^k - 1\n    have h : 10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n    rw [h]\n    -- 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h_split : 10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      zify\n      ring\n    rw [h_split]\n    -- Since 9 | 9 * 10^k and 9 | 10^k - 1, their sum is divisible by 9\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 51
+            },
+            "endPos": {
+              "line": 14,
+              "column": 67
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 ^ k * 10 - 1 = 10 * 10 ^ k - 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 66
+            },
+            "endPos": {
+              "line": 19,
+              "column": 10
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\nh : 10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1\n⊢ ↑(10 ^ k * 10 - 1) = ↑(10 ^ k - 1) + 10 ^ k * 9"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3546745777130127
+      }
+    },
+    {
+      "index": 24,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\nWe use mathematical induction on $n$.\n1.  **Base Case ($n = 0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the base case holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We want to show $9 \\mid 10^{k+1} - 1$.\n    *   Observe that $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n    *   Rewrite this as $10 \\cdot 10^k - 10 + 9$.\n    *   Factor out the 10: $10(10^k - 1) + 9$.\n    *   By the inductive hypothesis, $9$ divides $10^k - 1$, so $9$ divides $10(10^k - 1)$.\n    *   Since $9$ also divides $9$, it divides the entire sum $10(10^k - 1) + 9$.\n    *   Thus, $9 \\mid 10^{k+1} - 1$.\n\nThe induction is complete.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: assume 9 ∣ 10^k - 1, show 9 ∣ 10^(k+1) - 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = 10 * 10^k - 10 + 9 = 10 * (10^k - 1) + 9\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      rw [pow_succ, Nat.mul_sub_left_distrib]\n      simp only [mul_one]\n      apply Nat.sub_add_cancel\n      apply Nat.one_le_pow _ _ (by norm_num)\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_of_dvd_right ih\n    · apply dvd_refl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: assume 9 ∣ 10^k - 1, show 9 ∣ 10^(k+1) - 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = 10 * 10^k - 10 + 9 = 10 * (10^k - 1) + 9\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      rw [pow_succ, Nat.mul_sub_left_distrib]\n      simp only [mul_one]\n      apply Nat.sub_add_cancel\n      apply Nat.one_le_pow _ _ (by norm_num)\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_of_dvd_right ih\n    · apply dvd_refl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 6
+            },
+            "endPos": {
+              "line": 17,
+              "column": 30
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@Nat.sub_add_cancel`\n  ?n - ?m + ?m = ?n\nwith the goal\n  10 ^ k * 10 - 1 = 10 * 10 ^ k - 10 + 9\n\nNote: The full type of `@Nat.sub_add_cancel` is\n  ∀ {n m : ℕ}, m ≤ n → n - m + m = n\n\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 ^ k * 10 - 1 = 10 * 10 ^ k - 10 + 9"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.17963862419128418
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "To prove that $9$ divides $10^n - 1$ for all $n \\in \\mathbb{N}$, we use induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n = 0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\times 0 = 0$, $9 \\mid 0$ holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We want to show $9 \\mid 10^{k+1} - 1$.\n    *   Rewrite $10^{k+1} - 1$ as $10 \\cdot 10^k - 1$.\n    *   Decompose $10 \\cdot 10^k$ as $(9 + 1) \\cdot 10^k$.\n    *   This gives: $9 \\cdot 10^k + (10^k - 1)$.\n    *   The first term $9 \\cdot 10^k$ is clearly divisible by $9$.\n    *   The second term $10^k - 1$ is divisible by $9$ by the inductive hypothesis.\n    *   Therefore, their sum is divisible by $9$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step\n    -- 10^(k+1) - 1 = 10 * 10^k - 1\n    have h : 10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n    rw [h]\n    -- 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h_split : 10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      zify\n      ring\n    rw [h_split]\n    apply dvd_add\n    · -- 9 ∣ 9 * 10^k\n      apply dvd_mul_right\n    · -- 9 ∣ 10^k - 1 (Inductive Hypothesis)\n      exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step\n    -- 10^(k+1) - 1 = 10 * 10^k - 1\n    have h : 10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n    rw [h]\n    -- 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h_split : 10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      zify\n      ring\n    rw [h_split]\n    apply dvd_add\n    · -- 9 ∣ 9 * 10^k\n      apply dvd_mul_right\n    · -- 9 ∣ 10^k - 1 (Inductive Hypothesis)\n      exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 51
+            },
+            "endPos": {
+              "line": 14,
+              "column": 67
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 ^ k * 10 - 1 = 10 * 10 ^ k - 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 66
+            },
+            "endPos": {
+              "line": 19,
+              "column": 10
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\nh : 10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1\n⊢ ↑(10 ^ k * 10 - 1) = ↑(10 ^ k - 1) + 10 ^ k * 9"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.29140520095825195
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\nWe proceed by induction on $n$.\n1.  **Base Case ($n = 0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the statement holds for $n=0$.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We want to show $9 \\mid 10^{k+1} - 1$.\n    *   Observe that $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n    *   We can rewrite this as $10 \\cdot 10^k - 10 + 9$.\n    *   Factorizing gives $10(10^k - 1) + 9$.\n    *   By the inductive hypothesis, $10^k - 1$ is divisible by 9. Since 9 is also divisible by 9, the entire expression $10(10^k - 1) + 9$ is divisible by 9.\n\nThus, by the principle of mathematical induction, $9 \\mid 10^n - 1$ for all $n \\in \\mathbb{N}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: assume 9 | 10^k - 1, prove 9 | 10^(k+1) - 1\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      calc\n        10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n        _ = 10 * 10 ^ k - 10 + 9 := by\n          rw [Nat.sub_add_comm]\n          simp\n          apply Nat.one_le_pow'\n          norm_num\n        _ = 10 * (10 ^ k - 1) + 9 := by rw [Nat.mul_sub_left_distrib, mul_one]\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_of_dvd_right ih\n    · apply dvd_refl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: assume 9 | 10^k - 1, prove 9 | 10^(k+1) - 1\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      calc\n        10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n        _ = 10 * 10 ^ k - 10 + 9 := by\n          rw [Nat.sub_add_comm]\n          simp\n          apply Nat.one_le_pow'\n          norm_num\n        _ = 10 * (10 ^ k - 1) + 9 := by rw [Nat.mul_sub_left_distrib, mul_one]\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_of_dvd_right ih\n    · apply dvd_refl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 46
+            },
+            "endPos": {
+              "line": 15,
+              "column": 62
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 ^ k * 10 - 1 = 10 * 10 ^ k - 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 14
+            },
+            "endPos": {
+              "line": 17,
+              "column": 30
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?m.212 + ?m.213 - ?m.214\nin the target expression\n  10 * 10 ^ k - 1 = 10 * 10 ^ k - 10 + 9\n\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 * 10 ^ k - 1 = 10 * 10 ^ k - 10 + 9"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.21577906608581543
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the base case holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We need to show $9 \\mid 10^{k+1} - 1$.\n3.  Rewrite $10^{k+1} - 1$ as:\n    $10 \\cdot 10^k - 1 = (9 + 1) \\cdot 10^k - 1 = 9 \\cdot 10^k + (10^k - 1)$.\n4.  By the inductive hypothesis, $9 \\mid 10^k - 1$.\n5.  Since $9$ clearly divides $9 \\cdot 10^k$, it must divide the sum $9 \\cdot 10^k + (10^k - 1)$.\n6.  Therefore, $9 \\mid 10^{k+1} - 1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step\n    rw [Nat.pow_succ, ← Nat.sub_add_comm (Nat.one_le_pow k 10 (by norm_num))]\n    have h : 10 * 10 ^ k - 1 = (9 + 1) * 10 ^ k - 1 := by rfl\n    rw [h, add_mul, one_mul, add_tsub_assoc (Nat.one_le_pow k 10 (by norm_num))]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step\n    rw [Nat.pow_succ, ← Nat.sub_add_comm (Nat.one_le_pow k 10 (by norm_num))]\n    have h : 10 * 10 ^ k - 1 = (9 + 1) * 10 ^ k - 1 := by rfl\n    rw [h, add_mul, one_mul, add_tsub_assoc (Nat.one_le_pow k 10 (by norm_num))]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 22
+            },
+            "endPos": {
+              "line": 13,
+              "column": 76
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  10 ^ k - 1 + ?m.38\nin the target expression\n  9 ∣ 10 ^ k * 10 - 1\n\ncase succ\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 9 ∣ 10 ^ k * 10 - 1"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.09136390686035156
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\times 0 = 0$, $9 \\mid 0$ holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We want to show $9 \\mid 10^{k+1} - 1$.\n3.  Rewrite $10^{k+1} - 1$ as $10 \\cdot 10^k - 1$.\n4.  Further decompose: $10 \\cdot 10^k - 1 = (9 + 1) \\cdot 10^k - 1 = 9 \\cdot 10^k + (10^k - 1)$.\n5.  By the inductive hypothesis, $9 \\mid 10^k - 1$.\n6.  Clearly, $9 \\mid 9 \\cdot 10^k$.\n7.  The sum of two multiples of 9 is a multiple of 9, hence $9 \\mid 10^{k+1} - 1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: assume 9 | 10^k - 1, prove 9 | 10^(k+1) - 1\n    rw [pow_succ 10 k]\n    -- Rewrite 10 * 10^k - 1 as 9 * 10^k + (10^k - 1)\n    have h : 10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      zify [one_le_pow k (show 1 ≤ 10 by norm_num)]\n      ring\n    rw [h]\n    apply dvd_add\n    · -- 9 divides 9 * 10^k\n      apply dvd_mul_right\n    · -- 9 divides 10^k - 1 by inductive hypothesis\n      exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: assume 9 | 10^k - 1, prove 9 | 10^(k+1) - 1\n    rw [pow_succ 10 k]\n    -- Rewrite 10 * 10^k - 1 as 9 * 10^k + (10^k - 1)\n    have h : 10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      zify [one_le_pow k (show 1 ≤ 10 by norm_num)]\n      ring\n    rw [h]\n    apply dvd_add\n    · -- 9 divides 9 * 10^k\n      apply dvd_mul_right\n    · -- 9 divides 10^k - 1 by inductive hypothesis\n      exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 26
+            },
+            "endPos": {
+              "line": 16,
+              "column": 49
+            },
+            "data": "Type mismatch\n  this\nhas type\n  1 ≤ 10\nof sort `Prop` but is expected to have type\n  ℕ\nof sort `Type`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 60
+            },
+            "endPos": {
+              "line": 17,
+              "column": 10
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ ↑(10 ^ k * 10 - 1) = ↑(10 ^ k - 1) + 10 ^ k * 9"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 8
+            },
+            "endPos": {
+              "line": 18,
+              "column": 9
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  10 * 10 ^ k - 1\nin the target expression\n  9 ∣ 10 ^ k * 10 - 1\n\ncase succ\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\nh : 10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1)\n⊢ 9 ∣ 10 ^ k * 10 - 1"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3028113842010498
+      }
+    },
+    {
+      "index": 29,
+      "status": "SOLVED",
+      "raw_text": "### Proof Sketch\nWe proceed by induction on $n$.\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the base case holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We want to show $9 \\mid 10^{k+1} - 1$.\n    We can rewrite the expression as:\n    $10^{k+1} - 1 = 10 \\cdot 10^k - 1$\n    $10^{k+1} - 1 = (9 + 1) \\cdot 10^k - 1$\n    $10^{k+1} - 1 = 9 \\cdot 10^k + (10^k - 1)$\n    Since $9 \\mid 9 \\cdot 10^k$ and $9 \\mid 10^k - 1$ (by the inductive hypothesis), their sum is also divisible by 9. Thus, $9 \\mid 10^{k+1} - 1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, ← Nat.add_sub_assoc (Nat.one_le_pow k 10 (by norm_num))]\n      ring\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, ← Nat.add_sub_assoc (Nat.one_le_pow k 10 (by norm_num))]\n      ring\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2278900146484375
+      }
+    },
+    {
+      "index": 30,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\nWe proceed by induction on $n$.\n1.  **Base Case ($n = 0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9$ divides $0$, the base case holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^n - 1$ for some $n \\in \\mathbb{N}$. We want to show $9 \\mid 10^{n+1} - 1$.\n    *   Observe that $10^{n+1} - 1 = 10 \\cdot 10^n - 1$.\n    *   Rewrite this as $10(10^n - 1) + 10 - 1$.\n    *   Simplifying gives $10(10^n - 1) + 9$.\n    *   By the inductive hypothesis, $10^n - 1$ is divisible by $9$. Since $9$ is also divisible by $9$, their sum $10(10^n - 1) + 9$ is divisible by $9$.\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    -- We have 10^(k+1) - 1 = 10 * 10^k - 1\n    -- Which is 10 * (10^k - 1) + 10 - 1\n    -- Which is 10 * (10^k - 1) + 9\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      rw [pow_succ, Nat.mul_sub_left_distrib]\n      simp\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_of_dvd_right ih\n    · apply dvd_refl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step: n = k + 1\n    -- We have 10^(k+1) - 1 = 10 * 10^k - 1\n    -- Which is 10 * (10^k - 1) + 10 - 1\n    -- Which is 10 * (10^k - 1) + 9\n    have h : 10 ^ (k + 1) - 1 = 10 * (10 ^ k - 1) + 9 := by\n      rw [pow_succ, Nat.mul_sub_left_distrib]\n      simp\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_of_dvd_right ih\n    · apply dvd_refl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 57
+            },
+            "endPos": {
+              "line": 18,
+              "column": 10
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 ^ k * 10 = 10 * 10 ^ k - 10 + 8 + 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.18858766555786133
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\mid 0$, the base case holds.\n2.  **Inductive Step:** Assume $9 \\mid 10^k - 1$ for some $k \\in \\mathbb{N}$. We need to show $9 \\mid 10^{k+1} - 1$.\n3.  Rewrite the expression: $10^{k+1} - 1 = 10 \\cdot 10^k - 1$.\n4.  Decompose $10$ as $(9 + 1)$: $10^{k+1} - 1 = (9 + 1) \\cdot 10^k - 1 = 9 \\cdot 10^k + (10^k - 1)$.\n5.  By the inductive hypothesis, $9 \\mid 10^k - 1$.\n6.  Since $9$ clearly divides $9 \\cdot 10^k$, and $9$ divides $10^k - 1$, it must divide their sum. Thus, $9 \\mid 10^{k+1} - 1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: 10^0 - 1 = 0, which is divisible by 9\n    simp\n  | succ k ih => \n    -- Inductive step: Assume 9 | 10^k - 1, show 9 | 10^(k+1) - 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1\n    have h : 10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n    rw [h]\n    -- 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h_split : 10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [← add_sub_assoc]\n      · ring\n      · exact one_le_pow k (by norm_num)\n    rw [h_split]\n    -- Since 9 | 9 * 10^k and 9 | 10^k - 1, then 9 divides the sum\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction n with\n  | zero => \n    -- Base case: 10^0 - 1 = 0, which is divisible by 9\n    simp\n  | succ k ih => \n    -- Inductive step: Assume 9 | 10^k - 1, show 9 | 10^(k+1) - 1\n    -- 10^(k+1) - 1 = 10 * 10^k - 1\n    have h : 10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1 := by rw [pow_succ]\n    rw [h]\n    -- 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h_split : 10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [← add_sub_assoc]\n      · ring\n      · exact one_le_pow k (by norm_num)\n    rw [h_split]\n    -- Since 9 | 9 * 10^k and 9 | 10^k - 1, then 9 divides the sum\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 51
+            },
+            "endPos": {
+              "line": 16,
+              "column": 67
+            },
+            "data": "unsolved goals\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 ^ k * 10 - 1 = 10 * 10 ^ k - 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 10
+            },
+            "endPos": {
+              "line": 20,
+              "column": 25
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a + (?b - ?c)\nin the target expression\n  10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1)\n\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\nh : 10 ^ (k + 1) - 1 = 10 * 10 ^ k - 1\n⊢ 10 * 10 ^ k - 1 = 9 * 10 ^ k + (10 ^ k - 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.14752817153930664
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\nWe use mathematical induction on $n$.\n1.  **Base Case ($n=0$):** $10^0 - 1 = 1 - 1 = 0$. Since $9 \\times 0 = 0$, $9 \\mid 0$ is true.\n2.  **Inductive Step:** Assume $9 \\mid (10^k - 1)$ for some $k \\in \\mathbb{N}$. We want to show $9 \\mid (10^{k+1} - 1)$.\n    We can write:\n    $10^{k+1} - 1 = 10 \\cdot 10^k - 1$\n    $10^{k+1} - 1 = (9 + 1) \\cdot 10^k - 1$\n    $10^{k+1} - 1 = 9 \\cdot 10^k + (10^k - 1)$\n    By the inductive hypothesis, $9 \\mid (10^k - 1)$. Also, $9 \\mid (9 \\cdot 10^k)$ is trivially true.\n    Since 9 divides both terms, it divides their sum. Thus, $9 \\mid (10^{k+1} - 1)$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, ← add_one_mul, add_comm, one_mul]\n      nth_rewrite 1 [← Nat.sub_add_cancel (one_le_pow k (by norm_num))]\n      rw [add_assoc, add_comm 1, ← add_assoc, Nat.add_sub_cancel]\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_divisibility_9div10tonm1 (n : ℕ) : 9 ∣ 10 ^ n - 1 := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    simp\n  · -- Inductive step\n    -- 10^(k+1) - 1 = 10 * 10^k - 1 = (9 + 1) * 10^k - 1 = 9 * 10^k + (10^k - 1)\n    have h : 10 ^ (k + 1) - 1 = 9 * 10 ^ k + (10 ^ k - 1) := by\n      rw [pow_succ, ← add_one_mul, add_comm, one_mul]\n      nth_rewrite 1 [← Nat.sub_add_cancel (one_le_pow k (by norm_num))]\n      rw [add_assoc, add_comm 1, ← add_assoc, Nat.add_sub_cancel]\n    rw [h]\n    apply dvd_add\n    · apply dvd_mul_right\n    · exact ih",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 20
+            },
+            "endPos": {
+              "line": 15,
+              "column": 33
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?n * ?m + ?m\nin the target expression\n  10 ^ k * 10 - 1 = 9 * 10 ^ k + (10 ^ k - 1)\n\nk : ℕ\nih : 9 ∣ 10 ^ k - 1\n⊢ 10 ^ k * 10 - 1 = 9 * 10 ^ k + (10 ^ k - 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.11579513549804688
+      }
+    }
+  ]
+}

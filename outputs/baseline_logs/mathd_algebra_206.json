@@ -1,0 +1,1052 @@
+{
+  "problem": "problems/miniF2F-test/mathd_algebra_206.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 15:43:12",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 11,
+    "completed_count": 11,
+    "solved": true
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "To prove that $a + b = -1$, we follow these steps:\n\n1.  **Evaluate the function at the roots:** Given $f(x) = x^2 + ax + b$, the conditions $f(2a) = 0$ and $f(b) = 0$ give us two equations:\n    *   $(2a)^2 + a(2a) + b = 0 \\implies 4a^2 + 2a^2 + b = 0 \\implies 6a^2 + b = 0$.\n    *   $b^2 + ab + b = 0 \\implies b(b + a + 1) = 0$.\n2.  **Analyze the second equation:** From $b(b + a + 1) = 0$, either $b = 0$ or $b + a + 1 = 0$.\n3.  **Case $b = 0$:** If $b = 0$, then $6a^2 + 0 = 0 \\implies a = 0$. This implies $2a = 0$ and $b = 0$, so $2a = b$. However, the hypothesis $h_1$ states $2a \\neq b$. Thus, $b$ cannot be $0$.\n4.  **Case $b + a + 1 = 0$:** Since $b \\neq 0$, we must have $b + a + 1 = 0$, which simplifies directly to $a + b = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Evaluate the polynomial at 2a and b\n  have eq1 : 6 * a^2 + b = 0 := by\n    rw [h₀] at h₂\n    ring_nf at h₂\n    exact h₂\n  have eq2 : b^2 + a * b + b = 0 := by\n    rw [h₀] at h₃\n    ring_nf at h₃\n    exact h₃\n  \n  -- From eq2, we have b * (b + a + 1) = 0\n  have h_mul : b * (b + a + 1) = 0 := by\n    linear_combination eq2\n  \n  -- If b = 0, then eq1 implies a = 0, which contradicts h1\n  have b_ne_zero : b ≠ 0 := by\n    intro hb\n    rw [hb] at eq1\n    have a_zero : a = 0 := by\n      nlinarith\n    apply h₁\n    rw [a_zero, hb]\n    norm_num\n  \n  -- Since b * (b + a + 1) = 0 and b != 0, b + a + 1 must be 0\n  have h_sum : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp h_mul).resolve_left b_ne_zero\n  \n  -- Final result\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Evaluate the polynomial at 2a and b\n  have eq1 : 6 * a^2 + b = 0 := by\n    rw [h₀] at h₂\n    ring_nf at h₂\n    exact h₂\n  have eq2 : b^2 + a * b + b = 0 := by\n    rw [h₀] at h₃\n    ring_nf at h₃\n    exact h₃\n  \n  -- From eq2, we have b * (b + a + 1) = 0\n  have h_mul : b * (b + a + 1) = 0 := by\n    linear_combination eq2\n  \n  -- If b = 0, then eq1 implies a = 0, which contradicts h1\n  have b_ne_zero : b ≠ 0 := by\n    intro hb\n    rw [hb] at eq1\n    have a_zero : a = 0 := by\n      nlinarith\n    apply h₁\n    rw [a_zero, hb]\n    norm_num\n  \n  -- Since b * (b + a + 1) = 0 and b != 0, b + a + 1 must be 0\n  have h_sum : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp h_mul).resolve_left b_ne_zero\n  \n  -- Final result\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₂\nhas type\n  a ^ 2 * 6 + b = 0\nbut is expected to have type\n  6 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 4
+            },
+            "endPos": {
+              "line": 18,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₃\nhas type\n  b + b * a + b ^ 2 = 0\nbut is expected to have type\n  b ^ 2 + a * b + b = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.1181609630584717
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "To prove that $a + b = -1$ given the quadratic function $f(x) = x^2 + ax + b$ with roots $2a$ and $b$ (where $2a \\neq b$), we follow these steps:\n\n### Proof Sketch\n1.  **Define the function values:** Since $2a$ and $b$ are roots, we have $f(2a) = (2a)^2 + a(2a) + b = 0$ and $f(b) = b^2 + a(b) + b = 0$.\n2.  **Simplify the equations:**\n    *   From $f(2a) = 0$: $4a^2 + 2a^2 + b = 0 \\implies 6a^2 + b = 0 \\implies b = -6a^2$.\n    *   From $f(b) = 0$: $b^2 + ab + b = 0 \\implies b(b + a + 1) = 0$.\n3.  **Analyze cases for $b(b + a + 1) = 0$:**\n    *   **Case $b = 0$:** If $b=0$, then from $b = -6a^2$, we get $a=0$. This implies $2a = 0$ and $b = 0$, contradicting the hypothesis $2a \\neq b$. Thus $b \\neq 0$.\n    *   **Case $b + a + 1 = 0$:** This directly implies $a + b = -1$.\n4.  **Conclusion:** The only consistent solution given $2a \\neq b$ is $a + b = -1$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into h₂ and h₃\n  rw [h₀] at h₂ h₃\n  -- h₂: (2 * a) ^ 2 + a * (2 * a) + b = 0\n  -- h₃: b ^ 2 + a * b + b = 0\n  have eq1 : 6 * a ^ 2 + b = 0 := by\n    ring_nf at h₂\n    exact h₂\n  have eq2 : b * (b + a + 1) = 0 := by\n    ring_nf at h₃\n    exact h₃\n  -- From eq2, either b = 0 or b + a + 1 = 0\n  cases' mul_eq_zero.mp eq2 with hb hb\n  · -- Case b = 0\n    rw [hb] at eq1\n    have a_zero : a = 0 := by\n      simp at eq1\n      exact eq1\n    -- If a=0 and b=0, then 2*a = b, contradicting h₁\n    subst hb a_zero\n    simp at h₁\n  · -- Case b + a + 1 = 0\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into h₂ and h₃\n  rw [h₀] at h₂ h₃\n  -- h₂: (2 * a) ^ 2 + a * (2 * a) + b = 0\n  -- h₃: b ^ 2 + a * b + b = 0\n  have eq1 : 6 * a ^ 2 + b = 0 := by\n    ring_nf at h₂\n    exact h₂\n  have eq2 : b * (b + a + 1) = 0 := by\n    ring_nf at h₃\n    exact h₃\n  -- From eq2, either b = 0 or b + a + 1 = 0\n  cases' mul_eq_zero.mp eq2 with hb hb\n  · -- Case b = 0\n    rw [hb] at eq1\n    have a_zero : a = 0 := by\n      simp at eq1\n      exact eq1\n    -- If a=0 and b=0, then 2*a = b, contradicting h₁\n    subst hb a_zero\n    simp at h₁\n  · -- Case b + a + 1 = 0\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₂\nhas type\n  a ^ 2 * 6 + b = 0\nbut is expected to have type\n  6 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₃\nhas type\n  b + b * a + b ^ 2 = 0\nbut is expected to have type\n  b * (b + a + 1) = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.31186461448669434
+      }
+    },
+    {
+      "index": 3,
+      "status": "SOLVED",
+      "raw_text": "To solve this problem, we evaluate the function $f(x) = x^2 + ax + b$ at the given zeros $2a$ and $b$.\n\n**Proof Sketch:**\n1.  **Evaluate $f(b) = 0$:**\n    Substituting $x = b$ into $f(x)$, we get $b^2 + ab + b = 0$.\n    This factors as $b(b + a + 1) = 0$.\n    This implies $b = 0$ or $b + a + 1 = 0$.\n2.  **Evaluate $f(2a) = 0$:**\n    Substituting $x = 2a$ into $f(x)$, we get $(2a)^2 + a(2a) + b = 0$, which simplifies to $6a^2 + b = 0$, or $b = -6a^2$.\n3.  **Analyze Case 1: $b = 0$:**\n    If $b = 0$, then $-6a^2 = 0$, so $a = 0$.\n    This gives $2a = 0$ and $b = 0$. However, the problem states $2a \\neq b$, so $0 \\neq 0$ is a contradiction. Thus $b \\neq 0$.\n4.  **Analyze Case 2: $b + a + 1 = 0$:**\n    If $b \\neq 0$, it must be that $b + a + 1 = 0$, which directly implies $a + b = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Use the definition of f to expand h₂ and h₃\n  rw [h₀] at h₂ h₃\n  -- h₂: (2a)^2 + a(2a) + b = 0  => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h4 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- h₃: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have h5 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- From h5, either b = 0 or b + a + 1 = 0\n  rcases mul_eq_zero.mp h5 with h_b_zero | h_ab_one\n  · -- Case b = 0\n    rw [h_b_zero] at h4\n    have h_a_zero : a = 0 := by\n      exact pow_eq_zero (show a^2 = 0 by linarith)\n    -- If a=0 and b=0, then 2a = b, contradicting h₁\n    have h_contra : 2 * a = b := by\n      rw [h_a_zero, h_b_zero]\n      norm_num\n    contradiction\n  · -- Case b + a + 1 = 0\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Use the definition of f to expand h₂ and h₃\n  rw [h₀] at h₂ h₃\n  -- h₂: (2a)^2 + a(2a) + b = 0  => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h4 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- h₃: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have h5 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- From h5, either b = 0 or b + a + 1 = 0\n  rcases mul_eq_zero.mp h5 with h_b_zero | h_ab_one\n  · -- Case b = 0\n    rw [h_b_zero] at h4\n    have h_a_zero : a = 0 := by\n      exact pow_eq_zero (show a^2 = 0 by linarith)\n    -- If a=0 and b=0, then 2a = b, contradicting h₁\n    have h_contra : 2 * a = b := by\n      rw [h_a_zero, h_b_zero]\n      norm_num\n    contradiction\n  · -- Case b + a + 1 = 0\n    linarith",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 23,
+              "column": 12
+            },
+            "endPos": {
+              "line": 23,
+              "column": 23
+            },
+            "data": "`pow_eq_zero` has been deprecated: Use `eq_zero_of_pow_eq_zero` instead"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.433290958404541
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "To prove that $a + b = -1$, we use the given functional form $f(x) = x^2 + ax + b$ and the roots provided.\n\n**Proof Sketch:**\n1.  From $f(2a) = 0$, we substitute $x = 2a$ into the definition: $(2a)^2 + a(2a) + b = 0$, which simplifies to $4a^2 + 2a^2 + b = 0$, or $6a^2 + b = 0$. Thus, $b = -6a^2$.\n2.  From $f(b) = 0$, we substitute $x = b$: $b^2 + ab + b = 0$.\n3.  Factor the second equation: $b(b + a + 1) = 0$. This implies $b = 0$ or $b + a + 1 = 0$.\n4.  Case $b = 0$: If $b = 0$, then $6a^2 = 0 \\implies a = 0$. This gives $2a = 0$ and $b = 0$, which implies $2a = b$. However, the hypothesis $h_1$ states $2a \\neq b$, so this case is impossible.\n5.  Case $b + a + 1 = 0$: This directly gives $a + b = -1$, which is the desired result.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into h₂ and h₃\n  rw [h₀] at h₂ h₃\n  -- Simplify h₂: (2a)^2 + a(2a) + b = 0 => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h4 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- Simplify h₃: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have h5 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- From h5, either b = 0 or b + a + 1 = 0\n  rcases mul_eq_zero.mp h5 with h_b_zero | h_sum_neg_one\n  · -- Case b = 0: substitute into h4 to get 6a^2 = 0, so a = 0\n    rw [h_b_zero] at h4\n    have h_a_zero : a = 0 := by\n      exact pow_eq_zero (by linarith)\n    -- This implies 2a = 0 and b = 0, contradicting h₁\n    subst h_a_zero h_b_zero\n    simp at h₁\n  · -- Case b + a + 1 = 0: this implies a + b = -1\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into h₂ and h₃\n  rw [h₀] at h₂ h₃\n  -- Simplify h₂: (2a)^2 + a(2a) + b = 0 => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h4 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- Simplify h₃: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have h5 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- From h5, either b = 0 or b + a + 1 = 0\n  rcases mul_eq_zero.mp h5 with h_b_zero | h_sum_neg_one\n  · -- Case b = 0: substitute into h4 to get 6a^2 = 0, so a = 0\n    rw [h_b_zero] at h4\n    have h_a_zero : a = 0 := by\n      exact pow_eq_zero (by linarith)\n    -- This implies 2a = 0 and b = 0, contradicting h₁\n    subst h_a_zero h_b_zero\n    simp at h₁\n  · -- Case b + a + 1 = 0: this implies a + b = -1\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 28
+            },
+            "endPos": {
+              "line": 23,
+              "column": 36
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₁ : 2 * a ≠ b\nh₂ : (2 * a) ^ 2 + a * (2 * a) + b = 0\nh₃ : b ^ 2 + a * b + b = 0\nh4 : 6 * a ^ 2 + 0 = 0\nh5 : b * (b + a + 1) = 0\nh_b_zero : b = 0\na✝ : a ^ ?m.194 < 0\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 23,
+              "column": 12
+            },
+            "endPos": {
+              "line": 23,
+              "column": 23
+            },
+            "data": "`pow_eq_zero` has been deprecated: Use `eq_zero_of_pow_eq_zero` instead"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.30362606048583984
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem \\( a + b = -1 \\), we follow these steps:\n\n1.  **Evaluate the function at the given points**: Using the definition \\( f(x) = x^2 + ax + b \\), we substitute the roots provided in the hypotheses:\n    *   \\( f(2a) = (2a)^2 + a(2a) + b = 4a^2 + 2a^2 + b = 6a^2 + b \\).\n    *   \\( f(b) = b^2 + a(b) + b = b^2 + ab + b \\).\n2.  **Set up the system of equations**: From \\( f(2a) = 0 \\) and \\( f(b) = 0 \\), we get:\n    *   (1) \\( 6a^2 + b = 0 \\implies b = -6a^2 \\).\n    *   (2) \\( b^2 + ab + b = 0 \\).\n3.  **Solve the system**: Substitute \\( b = -6a^2 \\) into (2):\n    *   \\( (-6a^2)^2 + a(-6a^2) + (-6a^2) = 0 \\)\n    *   \\( 36a^4 - 6a^3 - 6a^2 = 0 \\).\n4.  **Factorize**: \\( 6a^2(6a^2 - a - 1) = 0 \\).\n    *   Case 1: \\( a = 0 \\). Then \\( b = -6(0)^2 = 0 \\). This implies \\( 2a = b \\), which contradicts \\( h_1 \\).\n    *   Case 2: \\( 6a^2 - a - 1 = 0 \\). Using the quadratic formula, \\( a = \\frac{1 \\pm \\sqrt{1 + 24}}{12} \\), so \\( a = \\frac{1}{2} \\) or \\( a = -1/3 \\).\n5.  **Test solutions**:\n    *   If \\( a = 1/2 \\), then \\( b = -6(1/2)^2 = -3/2 \\). \\( 2a = 1 \\), \\( b = -1.5 \\). \\( 2a \\neq b \\) holds. \\( a + b = 1/2 - 3/2 = -1 \\).\n    *   If \\( a = -1/3 \\), then \\( b = -6(-1/3)^2 = -2/3 \\). \\( 2a = -2/3 \\), \\( b = -2/3 \\). This implies \\( 2a = b \\), contradicting \\( h_1 \\).\n6.  **Conclusion**: The only valid solution is \\( a + b = -1 \\).\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Evaluate f(2a) = 0\n  have h_2a : 6 * a ^ 2 + b = 0 := by\n    rw [h₀] at h₂\n    ring_nf at h₂\n    exact h₂\n  -- Evaluate f(b) = 0\n  have h_b : b * (b + a + 1) = 0 := by\n    rw [h₀] at h₃\n    ring_nf at h₃\n    linear_combination h₃\n  -- From h_2a, b = -6a^2\n  have hb_val : b = -6 * a ^ 2 := by linarith\n  -- Substitute b into h_b\n  rw [hb_val] at h_b\n  replace h_b : -6 * a ^ 2 * (-6 * a ^ 2 + a + 1) = 0 := by\n    linear_combination h_b\n  -- Analyze the product factors\n  have cases_a : a = 0 ∨ 6 * a ^ 2 - a - 1 = 0 := by\n    -- -6 * a^2 * (-6a^2 + a + 1) = 0 => a^2 = 0 or -6a^2 + a + 1 = 0\n    have h_prod : a ^ 2 = 0 ∨ -6 * a ^ 2 + a + 1 = 0 := by\n      aesop\n    rcases h_prod with h_a0 | h_quad\n    · left\n      exact pow_eq_zero h_a0\n    · right\n      linarith\n  rcases cases_a with rfl | h_quad\n  · -- Case a = 0\n    have b_zero : b = 0 := by linarith\n    contradiction\n  · -- Case 6a^2 - a - 1 = 0\n    -- Note that b = -6a^2, so 6a^2 = -b.\n    -- Substituting into h_quad: -b - a - 1 = 0 => a + b = -1\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Evaluate f(2a) = 0\n  have h_2a : 6 * a ^ 2 + b = 0 := by\n    rw [h₀] at h₂\n    ring_nf at h₂\n    exact h₂\n  -- Evaluate f(b) = 0\n  have h_b : b * (b + a + 1) = 0 := by\n    rw [h₀] at h₃\n    ring_nf at h₃\n    linear_combination h₃\n  -- From h_2a, b = -6a^2\n  have hb_val : b = -6 * a ^ 2 := by linarith\n  -- Substitute b into h_b\n  rw [hb_val] at h_b\n  replace h_b : -6 * a ^ 2 * (-6 * a ^ 2 + a + 1) = 0 := by\n    linear_combination h_b\n  -- Analyze the product factors\n  have cases_a : a = 0 ∨ 6 * a ^ 2 - a - 1 = 0 := by\n    -- -6 * a^2 * (-6a^2 + a + 1) = 0 => a^2 = 0 or -6a^2 + a + 1 = 0\n    have h_prod : a ^ 2 = 0 ∨ -6 * a ^ 2 + a + 1 = 0 := by\n      aesop\n    rcases h_prod with h_a0 | h_quad\n    · left\n      exact pow_eq_zero h_a0\n    · right\n      linarith\n  rcases cases_a with rfl | h_quad\n  · -- Case a = 0\n    have b_zero : b = 0 := by linarith\n    contradiction\n  · -- Case 6a^2 - a - 1 = 0\n    -- Note that b = -6a^2, so 6a^2 = -b.\n    -- Substituting into h_quad: -b - a - 1 = 0 => a + b = -1\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₂\nhas type\n  a ^ 2 * 6 + b = 0\nbut is expected to have type\n  6 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 39,
+              "column": 4
+            },
+            "endPos": {
+              "line": 39,
+              "column": 17
+            },
+            "data": "Tactic `contradiction` failed\n\ncase inl\nb : ℝ\nf : ℝ → ℝ\nh₃ : f b = 0\nh₀ : ∀ (x : ℝ), f x = x ^ 2 + 0 * x + b\nh₁ : 2 * 0 ≠ b\nh₂ : f (2 * 0) = 0\nh_2a : 6 * 0 ^ 2 + b = 0\nhb_val : b = -6 * 0 ^ 2\nh_b : -6 * 0 ^ 2 * (-6 * 0 ^ 2 + 0 + 1) = 0\nb_zero : b = 0\n⊢ 0 + b = -1"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 33,
+              "column": 12
+            },
+            "endPos": {
+              "line": 33,
+              "column": 23
+            },
+            "data": "`pow_eq_zero` has been deprecated: Use `eq_zero_of_pow_eq_zero` instead"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 1.229827880859375
+      }
+    },
+    {
+      "index": 6,
+      "status": "SOLVED",
+      "raw_text": "To prove $a + b = -1$, we use the given function $f(x) = x^2 + ax + b$ and its roots.\n\n**Proof Sketch:**\n1.  Substitute $x = 2a$ and $x = b$ into $f(x) = 0$ using the given conditions $h_2$ and $h_3$.\n2.  From $f(2a) = 0$, we get $(2a)^2 + a(2a) + b = 0$, which simplifies to $6a^2 + b = 0$. Thus $b = -6a^2$.\n3.  From $f(b) = 0$, we get $b^2 + ab + b = 0$. Factoring gives $b(b + a + 1) = 0$.\n4.  This implies $b = 0$ or $b + a + 1 = 0$.\n5.  If $b = 0$, then from $6a^2 + b = 0$ we get $a = 0$. This implies $2a = 0$ and $b = 0$, which contradicts the condition $2a \\neq b$.\n6.  Therefore, $b \\neq 0$, so we must have $b + a + 1 = 0$.\n7.  Rearranging $b + a + 1 = 0$ yields $a + b = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Use h₀ to expand h₂ and h₃\n  rw [h₀] at h₂ h₃\n  -- h₂: (2a)^2 + a(2a) + b = 0  => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have ha : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- h₃: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have hb : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- From hb, either b = 0 or b + a + 1 = 0\n  cases' mul_eq_zero.mp hb with h_b_zero h_sum_neg_one\n  · -- Case b = 0\n    rw [h_b_zero] at ha\n    -- 6a^2 = 0 => a = 0\n    have h_a_zero : a = 0 := by\n      nlinarith\n    -- If a = 0 and b = 0, then 2a = b, which contradicts h₁\n    subst h_b_zero h_a_zero\n    simp at h₁\n  · -- Case b + a + 1 = 0\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Use h₀ to expand h₂ and h₃\n  rw [h₀] at h₂ h₃\n  -- h₂: (2a)^2 + a(2a) + b = 0  => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have ha : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- h₃: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have hb : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- From hb, either b = 0 or b + a + 1 = 0\n  cases' mul_eq_zero.mp hb with h_b_zero h_sum_neg_one\n  · -- Case b = 0\n    rw [h_b_zero] at ha\n    -- 6a^2 = 0 => a = 0\n    have h_a_zero : a = 0 := by\n      nlinarith\n    -- If a = 0 and b = 0, then 2a = b, which contradicts h₁\n    subst h_b_zero h_a_zero\n    simp at h₁\n  · -- Case b + a + 1 = 0\n    linarith",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.7466721534729004
+      }
+    },
+    {
+      "index": 7,
+      "status": "SOLVED",
+      "raw_text": "To prove that $a + b = -1$, we follow these steps:\n\n1.  **Evaluate the function values**: From the definition $f(x) = x^2 + ax + b$, the equations $f(2a) = 0$ and $f(b) = 0$ give:\n    *   $(2a)^2 + a(2a) + b = 0 \\implies 6a^2 + b = 0 \\implies b = -6a^2$.\n    *   $b^2 + ab + b = 0 \\implies b(b + a + 1) = 0$.\n2.  **Analyze the product**: From $b(b + a + 1) = 0$, we have two cases: $b = 0$ or $b + a + 1 = 0$.\n3.  **Case $b = 0$**: If $b = 0$, then $6a^2 = 0 \\implies a = 0$. This implies $2a = 0$ and $b = 0$, which contradicts the hypothesis $2a \\neq b$.\n4.  **Case $b + a + 1 = 0$**: This directly implies $a + b = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the conditions h2 and h3\n  rw [h₀] at h₂ h₃\n  -- Simplify the equations\n  have h4 : 6 * a^2 + b = 0 := by\n    calc\n      6 * a^2 + b = (2 * a)^2 + a * (2 * a) + b := by ring\n      _ = 0 := h₂\n  have h5 : b * (b + a + 1) = 0 := by\n    calc\n      b * (b + a + 1) = b^2 + a * b + b := by ring\n      _ = 0 := h₃\n  -- From h5, either b = 0 or b + a + 1 = 0\n  rcases mul_eq_zero.mp h5 with h_b_zero | h_sum_zero\n  · -- Case b = 0\n    rw [h_b_zero] at h4\n    have h_a_zero : a = 0 := by\n      nlinarith\n    -- If a=0 and b=0, then 2a = b, which contradicts h1\n    subst h_a_zero h_b_zero\n    simp at h₁\n  · -- Case a + b + 1 = 0\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the conditions h2 and h3\n  rw [h₀] at h₂ h₃\n  -- Simplify the equations\n  have h4 : 6 * a^2 + b = 0 := by\n    calc\n      6 * a^2 + b = (2 * a)^2 + a * (2 * a) + b := by ring\n      _ = 0 := h₂\n  have h5 : b * (b + a + 1) = 0 := by\n    calc\n      b * (b + a + 1) = b^2 + a * b + b := by ring\n      _ = 0 := h₃\n  -- From h5, either b = 0 or b + a + 1 = 0\n  rcases mul_eq_zero.mp h5 with h_b_zero | h_sum_zero\n  · -- Case b = 0\n    rw [h_b_zero] at h4\n    have h_a_zero : a = 0 := by\n      nlinarith\n    -- If a=0 and b=0, then 2a = b, which contradicts h1\n    subst h_a_zero h_b_zero\n    simp at h₁\n  · -- Case a + b + 1 = 0\n    linarith",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.8276216983795166
+      }
+    },
+    {
+      "index": 8,
+      "status": "FAILED",
+      "raw_text": "To prove that $a + b = -1$, we follow these steps:\n\n1.  **Formulate Equations**: From the definition of $f$ and the given zeros, we substitute $x = 2a$ and $x = b$ into the quadratic equation:\n    *   $f(2a) = (2a)^2 + a(2a) + b = 4a^2 + 2a^2 + b = 6a^2 + b = 0$.\n    *   $f(b) = b^2 + ab + b = b(b + a + 1) = 0$.\n2.  **Analyze the Second Equation**: From $b(b + a + 1) = 0$, either $b = 0$ or $b + a + 1 = 0$.\n3.  **Case $b = 0$**: If $b = 0$, the first equation $6a^2 + b = 0$ implies $6a^2 = 0$, so $a = 0$. This leads to $2a = 0$ and $b = 0$, which implies $2a = b$. This contradicts the hypothesis $2a \\neq b$.\n4.  **Case $b + a + 1 = 0$**: If $b + a + 1 = 0$, it follows directly that $a + b = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the root equations\n  have h_eq1 : 6 * a^2 + b = 0 := by\n    rw [h₀] at h₂\n    ring_nf at h₂\n    exact h₂\n  have h_eq2 : b^2 + a * b + b = 0 := by\n    rw [h₀] at h₃\n    ring_nf at h₃\n    exact h₃\n  \n  -- Factor the second equation: b * (b + a + 1) = 0\n  have h_factor : b * (b + a + 1) = 0 := by\n    linear_combination h_eq2\n    \n  -- Analyze the factors\n  rcases mul_eq_zero.mp h_factor with hb | hab\n  · -- Case b = 0\n    subst hb\n    -- If b = 0, then 6 * a^2 = 0 implies a = 0\n    have ha : a = 0 := by\n      revert h_eq1\n      ring_nf\n      intro h\n      exact pow_eq_zero h\n    subst ha\n    -- This contradicts 2 * a ≠ b\n    contradiction\n  · -- Case b + a + 1 = 0\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the root equations\n  have h_eq1 : 6 * a^2 + b = 0 := by\n    rw [h₀] at h₂\n    ring_nf at h₂\n    exact h₂\n  have h_eq2 : b^2 + a * b + b = 0 := by\n    rw [h₀] at h₃\n    ring_nf at h₃\n    exact h₃\n  \n  -- Factor the second equation: b * (b + a + 1) = 0\n  have h_factor : b * (b + a + 1) = 0 := by\n    linear_combination h_eq2\n    \n  -- Analyze the factors\n  rcases mul_eq_zero.mp h_factor with hb | hab\n  · -- Case b = 0\n    subst hb\n    -- If b = 0, then 6 * a^2 = 0 implies a = 0\n    have ha : a = 0 := by\n      revert h_eq1\n      ring_nf\n      intro h\n      exact pow_eq_zero h\n    subst ha\n    -- This contradicts 2 * a ≠ b\n    contradiction\n  · -- Case b + a + 1 = 0\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₂\nhas type\n  a ^ 2 * 6 + b = 0\nbut is expected to have type\n  6 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 4
+            },
+            "endPos": {
+              "line": 18,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₃\nhas type\n  b + b * a + b ^ 2 = 0\nbut is expected to have type\n  b ^ 2 + a * b + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 24
+            },
+            "endPos": {
+              "line": 33,
+              "column": 25
+            },
+            "data": "Application type mismatch: The argument\n  h\nhas type\n  a ^ 2 * 6 = 0\nbut is expected to have type\n  a ^ ?m.225 = 0\nin the application\n  pow_eq_zero h"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 36,
+              "column": 4
+            },
+            "endPos": {
+              "line": 36,
+              "column": 17
+            },
+            "data": "Tactic `contradiction` failed\n\ncase inl\nf : ℝ → ℝ\nh₃ : f 0 = 0\nh₂ : f (2 * 0) = 0\nh₀ : ∀ (x : ℝ), f x = x ^ 2 + 0 * x + 0\nh₁ : 2 * 0 ≠ 0\nh_eq1 : 6 * 0 ^ 2 + 0 = 0\nh_eq2 : 0 ^ 2 + 0 * 0 + 0 = 0\nh_factor : 0 * (0 + 0 + 1) = 0\n⊢ 0 + 0 = -1"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 33,
+              "column": 12
+            },
+            "endPos": {
+              "line": 33,
+              "column": 23
+            },
+            "data": "`pow_eq_zero` has been deprecated: Use `eq_zero_of_pow_eq_zero` instead"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.42395782470703125
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "To prove $a + b = -1$, we use the definition of the quadratic function $f(x) = x^2 + ax + b$ and its roots.\n\n**Proof Sketch:**\n1.  From $f(2a) = 0$, we have $(2a)^2 + a(2a) + b = 0$, which simplifies to $6a^2 + b = 0$, or $b = -6a^2$.\n2.  From $f(b) = 0$, we have $b^2 + ab + b = 0$. Since $b = -6a^2$, we can factor this as $b(b + a + 1) = 0$.\n3.  This implies $b = 0$ or $b + a + 1 = 0$.\n4.  If $b = 0$, then $6a^2 = 0 \\implies a = 0$. This gives $2a = 0$ and $b = 0$, which contradicts the assumption $2a \\neq b$.\n5.  Therefore, we must have $b + a + 1 = 0$, which simplifies to $a + b = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute f into the given root equations\n  rw [h₀] at h₂ h₃\n  -- h₂: (2a)^2 + a(2a) + b = 0  => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h_eq1 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- h₃: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have h_eq2 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- From h_eq2, either b = 0 or b + a + 1 = 0\n  rcases mul_eq_zero.mp h_eq2 with hb | hab\n  · -- Case b = 0\n    rw [hb] at h_eq1\n    have ha : a = 0 := by\n      exact pow_eq_zero (by linarith)\n    -- If a=0 and b=0, then 2a = b, contradicting h₁\n    have h_contra : 2 * a = b := by\n      rw [ha, hb]\n      norm_num\n    contradiction\n  · -- Case b + a + 1 = 0\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute f into the given root equations\n  rw [h₀] at h₂ h₃\n  -- h₂: (2a)^2 + a(2a) + b = 0  => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h_eq1 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- h₃: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have h_eq2 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- From h_eq2, either b = 0 or b + a + 1 = 0\n  rcases mul_eq_zero.mp h_eq2 with hb | hab\n  · -- Case b = 0\n    rw [hb] at h_eq1\n    have ha : a = 0 := by\n      exact pow_eq_zero (by linarith)\n    -- If a=0 and b=0, then 2a = b, contradicting h₁\n    have h_contra : 2 * a = b := by\n      rw [ha, hb]\n      norm_num\n    contradiction\n  · -- Case b + a + 1 = 0\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 28
+            },
+            "endPos": {
+              "line": 23,
+              "column": 36
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₁ : 2 * a ≠ b\nh₂ : (2 * a) ^ 2 + a * (2 * a) + b = 0\nh₃ : b ^ 2 + a * b + b = 0\nh_eq1 : 6 * a ^ 2 + 0 = 0\nh_eq2 : b * (b + a + 1) = 0\nhb : b = 0\na✝ : a ^ ?m.194 < 0\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 23,
+              "column": 12
+            },
+            "endPos": {
+              "line": 23,
+              "column": 23
+            },
+            "data": "`pow_eq_zero` has been deprecated: Use `eq_zero_of_pow_eq_zero` instead"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.3142690658569336
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "Here is the proof sketch and the final Lean 4 code.\n\n### Proof Sketch\n1.  **Define the Equations:** Based on the definition of $f$, we have $f(x) = x^2 + ax + b$.\n2.  **Use the Roots:** The conditions $f(2a) = 0$ and $f(b) = 0$ give us two algebraic equations:\n    *   $(2a)^2 + a(2a) + b = 0 \\implies 6a^2 + b = 0$.\n    *   $b^2 + ab + b = 0 \\implies b(b + a + 1) = 0$.\n3.  **Analyze the Cases:**\n    *   If $b = 0$, then $6a^2 + 0 = 0 \\implies a = 0$. This implies $2a = b = 0$, which contradicts the hypothesis $2a \\neq b$.\n    *   Therefore, $b \\neq 0$. Dividing the second equation by $b$ yields $b + a + 1 = 0$.\n4.  **Conclude:** Rearranging $b + a + 1 = 0$ gives $a + b = -1$.\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into h2 and h3\n  rw [h₀] at h₂ h₃\n  -- Simplify the equations\n  have eq1 : 6 * a ^ 2 + b = 0 := by\n    ring_nf at h₂\n    exact h₂\n  have eq2 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- Show that b cannot be 0\n  have hb : b ≠ 0 := by\n    intro hb0\n    rw [hb0] at eq1\n    have ha0 : a = 0 := by\n      nlinarith\n    apply h₁\n    rw [hb0, ha0]\n    norm_num\n  -- From b * (b + a + 1) = 0 and b ≠ 0, we get b + a + 1 = 0\n  have final_eq : b + a + 1 = 0 := by\n    exact mul_eq_zero.mp eq2 |>.resolve_left hb\n  -- Conclude a + b = -1\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into h2 and h3\n  rw [h₀] at h₂ h₃\n  -- Simplify the equations\n  have eq1 : 6 * a ^ 2 + b = 0 := by\n    ring_nf at h₂\n    exact h₂\n  have eq2 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- Show that b cannot be 0\n  have hb : b ≠ 0 := by\n    intro hb0\n    rw [hb0] at eq1\n    have ha0 : a = 0 := by\n      nlinarith\n    apply h₁\n    rw [hb0, ha0]\n    norm_num\n  -- From b * (b + a + 1) = 0 and b ≠ 0, we get b + a + 1 = 0\n  have final_eq : b + a + 1 = 0 := by\n    exact mul_eq_zero.mp eq2 |>.resolve_left hb\n  -- Conclude a + b = -1\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₂\nhas type\n  a ^ 2 * 6 + b = 0\nbut is expected to have type\n  6 * a ^ 2 + b = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.8489842414855957
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "To prove $a + b = -1$, we use the definition of the quadratic function $f(x) = x^2 + ax + b$ and the given zeros.\n\n**Proof Sketch:**\n1.  **Substitute Zeros:** From $f(2a) = 0$, we have $(2a)^2 + a(2a) + b = 0$, which simplifies to $6a^2 + b = 0$, or $b = -6a^2$.\n2.  **Substitute Second Zero:** From $f(b) = 0$, we have $b^2 + ab + b = 0$.\n3.  **Factorize:** Factoring the second equation gives $b(b + a + 1) = 0$. This implies $b = 0$ or $b + a + 1 = 0$.\n4.  **Case $b = 0$:** If $b = 0$, then $6a^2 = 0$, so $a = 0$. However, the condition $2a \\neq b$ (given as $h_1$) would mean $0 \\neq 0$, a contradiction.\n5.  **Conclusion:** Thus, we must have $b + a + 1 = 0$, which simplifies to $a + b = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the root equations\n  rw [h₀] at h₂ h₃\n  -- Simplify h₂: (2a)^2 + a(2a) + b = 0 => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have hb : b = -6 * a^2 := by\n    linarith [h₂]\n  -- Substitute f(b) = 0: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have h_zero : b * (b + a + 1) = 0 := by\n    calc b * (b + a + 1) = b^2 + a * b + b := by ring\n    _ = 0 := h₃\n  -- Analyze the factors: either b = 0 or b + a + 1 = 0\n  cases mul_eq_zero.mp h_zero with\n  | inl hb_zero =>\n    -- If b = 0, then 6a^2 = 0, so a = 0\n    have ha_zero : a = 0 := by\n      rw [hb_zero] at hb\n      linarith\n    -- This implies 2a = b, which contradicts h₁\n    subst hb_zero ha_zero\n    exact (h₁ (by norm_num)).elim\n  | inr hab_one =>\n    -- If b + a + 1 = 0, then a + b = -1\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the root equations\n  rw [h₀] at h₂ h₃\n  -- Simplify h₂: (2a)^2 + a(2a) + b = 0 => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have hb : b = -6 * a^2 := by\n    linarith [h₂]\n  -- Substitute f(b) = 0: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have h_zero : b * (b + a + 1) = 0 := by\n    calc b * (b + a + 1) = b^2 + a * b + b := by ring\n    _ = 0 := h₃\n  -- Analyze the factors: either b = 0 or b + a + 1 = 0\n  cases mul_eq_zero.mp h_zero with\n  | inl hb_zero =>\n    -- If b = 0, then 6a^2 = 0, so a = 0\n    have ha_zero : a = 0 := by\n      rw [hb_zero] at hb\n      linarith\n    -- This implies 2a = b, which contradicts h₁\n    subst hb_zero ha_zero\n    exact (h₁ (by norm_num)).elim\n  | inr hab_one =>\n    -- If b + a + 1 = 0, then a + b = -1\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 6
+            },
+            "endPos": {
+              "line": 25,
+              "column": 14
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₁ : 2 * a ≠ b\nh₂ : (2 * a) ^ 2 + a * (2 * a) + b = 0\nh₃ : b ^ 2 + a * b + b = 0\nhb : 0 = -6 * a ^ 2\nh_zero : b * (b + a + 1) = 0\nhb_zero : b = 0\na✝ : a < 0\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.32654261589050293
+      }
+    },
+    {
+      "index": 12,
+      "status": "FAILED",
+      "raw_text": "To solve for $a + b$, we follow these steps:\n\n### Proof Sketch\n1.  **Define the quadratic equation**: Given $f(x) = x^2 + ax + b$, the roots of the equation $f(x) = 0$ are $x_1$ and $x_2$.\n2.  **Evaluate the roots**: From $f(2a) = 0$ and $f(b) = 0$, we know $2a$ and $b$ are roots. Since $2a \\neq b$ (given by $h_1$), these are the two distinct roots of the quadratic.\n3.  **Vieta's Formulas**:\n    *   The sum of roots $x_1 + x_2 = -a$. Here, $2a + b = -a$.\n    *   The product of roots $x_1 x_2 = b$. Here, $(2a)(b) = b$.\n4.  **Solve the system**:\n    *   From $2ab = b$, and since $2a \\neq b$, if $b \\neq 0$, then $2a = 1 \\implies a = 1/2$.\n    *   Substitute $a = 1/2$ into $2a + b = -a \\implies 3a + b = 0 \\implies 3(1/2) + b = 0 \\implies b = -3/2$.\n    *   Calculate $a + b = 1/2 - 3/2 = -1$.\n5.  **Edge Case ($b=0$)**: If $b = 0$, then $3a + 0 = 0 \\implies a = 0$. But $2a \\neq b$ requires $0 \\neq 0$, a contradiction. Thus $b \\neq 0$ is guaranteed.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute 2a into the function definition\n  have h4 : (2 * a)^2 + a * (2 * a) + b = 0 := by\n    rw [← h₀ (2 * a), h₂]\n  -- Substitute b into the function definition\n  have h5 : b^2 + a * b + b = 0 := by\n    rw [← h₀ b, h₃]\n  \n  -- Simplify the first equation: 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h6 : 6 * a^2 + b = 0 := by\n    linear_combination h4\n  \n  -- Simplify the second equation: b(b + a + 1) = 0\n  have h7 : b * (b + a + 1) = 0 := by\n    linear_combination h5\n  \n  -- If b = 0, then from h6, 6a^2 = 0 => a = 0. \n  -- But 2a ≠ b implies 0 ≠ 0, which is a contradiction.\n  have hb_ne_zero : b ≠ 0 := by\n    intro hb0\n    rw [hb0] at h6 h₁\n    have ha0 : a = 0 := by\n      nlinarith\n    exact h₁ (by rw [ha0, hb0]; norm_num)\n\n  -- Since b ≠ 0 and b * (b + a + 1) = 0, we must have b + a + 1 = 0\n  have h_sum : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp h7).resolve_left hb_ne_zero\n  \n  -- Therefore, a + b = -1\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute 2a into the function definition\n  have h4 : (2 * a)^2 + a * (2 * a) + b = 0 := by\n    rw [← h₀ (2 * a), h₂]\n  -- Substitute b into the function definition\n  have h5 : b^2 + a * b + b = 0 := by\n    rw [← h₀ b, h₃]\n  \n  -- Simplify the first equation: 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h6 : 6 * a^2 + b = 0 := by\n    linear_combination h4\n  \n  -- Simplify the second equation: b(b + a + 1) = 0\n  have h7 : b * (b + a + 1) = 0 := by\n    linear_combination h5\n  \n  -- If b = 0, then from h6, 6a^2 = 0 => a = 0. \n  -- But 2a ≠ b implies 0 ≠ 0, which is a contradiction.\n  have hb_ne_zero : b ≠ 0 := by\n    intro hb0\n    rw [hb0] at h6 h₁\n    have ha0 : a = 0 := by\n      nlinarith\n    exact h₁ (by rw [ha0, hb0]; norm_num)\n\n  -- Since b ≠ 0 and b * (b + a + 1) = 0, we must have b + a + 1 = 0\n  have h_sum : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp h7).resolve_left hb_ne_zero\n  \n  -- Therefore, a + b = -1\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 26
+            },
+            "endPos": {
+              "line": 32,
+              "column": 29
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  b\nin the target expression\n  2 * 0 = 0\n\na b : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₁ : 2 * a ≠ 0\nh₂ : f (2 * a) = 0\nh₃ : f b = 0\nh4 : (2 * a) ^ 2 + a * (2 * a) + b = 0\nh5 : b ^ 2 + a * b + b = 0\nh6 : 6 * a ^ 2 + 0 = 0\nh7 : b * (b + a + 1) = 0\nhb0 : b = 0\nha0 : a = 0\n⊢ 2 * 0 = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.0527422428131104
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "To prove $a + b = -1$, we use the given conditions and the properties of quadratic functions.\n\n**Proof Sketch:**\n1.  **Substitute values into the function:** From $f(x) = x^2 + ax + b$, we evaluate $f(2a)$ and $f(b)$.\n2.  **Form equations:**\n    *   $f(2a) = (2a)^2 + a(2a) + b = 4a^2 + 2a^2 + b = 6a^2 + b = 0 \\implies b = -6a^2$.\n    *   $f(b) = b^2 + ab + b = 0 \\implies b(b + a + 1) = 0$.\n3.  **Analyze the second equation:**\n    *   If $b = 0$, then $b = -6a^2 \\implies a = 0$. This leads to $2a = 0$ and $b = 0$, which contradicts $2a \\neq b$.\n    *   Thus $b \\neq 0$, which implies $b + a + 1 = 0$.\n4.  **Conclude:** From $b + a + 1 = 0$, it follows directly that $a + b = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into h₂ and h₃\n  have h_eq1 : (2 * a) ^ 2 + a * (2 * a) + b = 0 := by\n    rw [← h₀]\n    exact h₂\n  have h_eq2 : b ^ 2 + a * b + b = 0 := by\n    rw [← h₀]\n    exact h₃\n\n  -- Simplify h_eq1 to express b in terms of a\n  have h_b : b = -6 * a ^ 2 := by\n    calc\n      b = (4 * a ^ 2 + 2 * a ^ 2 + b) - 6 * a ^ 2 := by ring\n      _ = 0 - 6 * a ^ 2 := by rw [h_eq1]; ring\n      _ = -6 * a ^ 2 := by ring\n\n  -- Factorize h_eq2\n  have h_factor : b * (b + a + 1) = 0 := by\n    rw [← h_eq2]\n    ring\n\n  -- Show b cannot be 0\n  have hb_ne_zero : b ≠ 0 := by\n    intro hb0\n    have ha0 : a = 0 := by\n      rw [hb0] at h_b\n      linarith\n    apply h₁\n    rw [ha0, hb0]\n    norm_num\n\n  -- From b * (b + a + 1) = 0 and b ≠ 0, conclude b + a + 1 = 0\n  have h_final : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp h_factor).resolve_left hb_ne_zero\n\n  -- Conclude a + b = -1\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into h₂ and h₃\n  have h_eq1 : (2 * a) ^ 2 + a * (2 * a) + b = 0 := by\n    rw [← h₀]\n    exact h₂\n  have h_eq2 : b ^ 2 + a * b + b = 0 := by\n    rw [← h₀]\n    exact h₃\n\n  -- Simplify h_eq1 to express b in terms of a\n  have h_b : b = -6 * a ^ 2 := by\n    calc\n      b = (4 * a ^ 2 + 2 * a ^ 2 + b) - 6 * a ^ 2 := by ring\n      _ = 0 - 6 * a ^ 2 := by rw [h_eq1]; ring\n      _ = -6 * a ^ 2 := by ring\n\n  -- Factorize h_eq2\n  have h_factor : b * (b + a + 1) = 0 := by\n    rw [← h_eq2]\n    ring\n\n  -- Show b cannot be 0\n  have hb_ne_zero : b ≠ 0 := by\n    intro hb0\n    have ha0 : a = 0 := by\n      rw [hb0] at h_b\n      linarith\n    apply h₁\n    rw [ha0, hb0]\n    norm_num\n\n  -- From b * (b + a + 1) = 0 and b ≠ 0, conclude b + a + 1 = 0\n  have h_final : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp h_factor).resolve_left hb_ne_zero\n\n  -- Conclude a + b = -1\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 34
+            },
+            "endPos": {
+              "line": 22,
+              "column": 39
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (2 * a) ^ 2 + a * (2 * a) + b\nin the target expression\n  4 * a ^ 2 + 2 * a ^ 2 + b - 6 * a ^ 2 = 0 - 6 * a ^ 2\n\na b : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₁ : 2 * a ≠ b\nh₂ : f (2 * a) = 0\nh₃ : f b = 0\nh_eq1 : (2 * a) ^ 2 + a * (2 * a) + b = 0\nh_eq2 : b ^ 2 + a * b + b = 0\n⊢ 4 * a ^ 2 + 2 * a ^ 2 + b - 6 * a ^ 2 = 0 - 6 * a ^ 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 35,
+              "column": 6
+            },
+            "endPos": {
+              "line": 35,
+              "column": 14
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₁ : 2 * a ≠ b\nh₂ : f (2 * a) = 0\nh₃ : f b = 0\nh_eq1 : (2 * a) ^ 2 + a * (2 * a) + b = 0\nh_eq2 : b ^ 2 + a * b + b = 0\nh_b : 0 = -6 * a ^ 2\nh_factor : b * (b + a + 1) = 0\nhb0 : b = 0\na✝ : a < 0\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4143974781036377
+      }
+    },
+    {
+      "index": 14,
+      "status": "SOLVED",
+      "raw_text": "To prove $a + b = -1$, we use the given functional form $f(x) = x^2 + ax + b$ and the roots $2a$ and $b$.\n\n**Proof Sketch:**\n1.  **Evaluate Root Equations:** From $f(2a) = 0$, we have $(2a)^2 + a(2a) + b = 0$, which simplifies to $6a^2 + b = 0$. Thus, $b = -6a^2$.\n2.  **Evaluate Second Root:** From $f(b) = 0$, we have $b^2 + ab + b = 0$. Factoring gives $b(b + a + 1) = 0$.\n3.  **Case Analysis:**\n    *   If $b = 0$, then $6a^2 = 0 \\implies a = 0$. This implies $2a = b = 0$, which contradicts the hypothesis $2a \\neq b$.\n    *   Therefore, $b \\neq 0$, which implies $b + a + 1 = 0$.\n4.  **Conclusion:** Rearranging $b + a + 1 = 0$ yields $a + b = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the root equations\n  have h_root1 : (2 * a) ^ 2 + a * (2 * a) + b = 0 := by\n    rw [← h₀]\n    exact h₂\n  have h_root2 : b ^ 2 + a * b + b = 0 := by\n    rw [← h₀]\n    exact h₃\n  \n  -- Simplify the first root equation to get b in terms of a\n  -- 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0 => b = -6a^2\n  have hb : b = -6 * a ^ 2 := by\n    linarith [h_root1]\n  \n  -- Substitute b into the second root equation and factor\n  -- b(b + a + 1) = 0\n  have h_factor : b * (b + a + 1) = 0 := by\n    linear_combination h_root2\n  \n  -- Analyze the cases for the factorized equation\n  rcases mul_eq_zero.mp h_factor with hb_zero | hab\n  · -- Case b = 0\n    have ha_zero : a = 0 := by\n      rw [hb_zero] at hb\n      simp at hb\n      exact hb\n    -- This leads to 2a = 0 and b = 0, contradicting 2a ≠ b\n    have h_contra : 2 * a = b := by\n      rw [ha_zero, hb_zero]\n      norm_num\n    contradiction\n  · -- Case b + a + 1 = 0\n    linarith [hab]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the root equations\n  have h_root1 : (2 * a) ^ 2 + a * (2 * a) + b = 0 := by\n    rw [← h₀]\n    exact h₂\n  have h_root2 : b ^ 2 + a * b + b = 0 := by\n    rw [← h₀]\n    exact h₃\n  \n  -- Simplify the first root equation to get b in terms of a\n  -- 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0 => b = -6a^2\n  have hb : b = -6 * a ^ 2 := by\n    linarith [h_root1]\n  \n  -- Substitute b into the second root equation and factor\n  -- b(b + a + 1) = 0\n  have h_factor : b * (b + a + 1) = 0 := by\n    linear_combination h_root2\n  \n  -- Analyze the cases for the factorized equation\n  rcases mul_eq_zero.mp h_factor with hb_zero | hab\n  · -- Case b = 0\n    have ha_zero : a = 0 := by\n      rw [hb_zero] at hb\n      simp at hb\n      exact hb\n    -- This leads to 2a = 0 and b = 0, contradicting 2a ≠ b\n    have h_contra : 2 * a = b := by\n      rw [ha_zero, hb_zero]\n      norm_num\n    contradiction\n  · -- Case b + a + 1 = 0\n    linarith [hab]",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5211887359619141
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "To prove $a + b = -1$, we start by substituting the definition of $f(x)$ into the given conditions $f(2a) = 0$ and $f(b) = 0$.\n\n1.  **Analyze $f(2a) = 0$**:\n    Substituting $2a$ into $x^2 + ax + b$ gives $(2a)^2 + a(2a) + b = 0$, which simplifies to $4a^2 + 2a^2 + b = 0$, or $6a^2 + b = 0$. Thus, $b = -6a^2$.\n\n2.  **Analyze $f(b) = 0$**:\n    Substituting $b$ into $x^2 + ax + b$ gives $b^2 + ab + b = 0$. Factoring out $b$, we get $b(b + a + 1) = 0$.\n\n3.  **Evaluate cases**:\n    - If $b = 0$, then from $6a^2 + b = 0$, we get $a = 0$. However, the condition $2a \\neq b$ becomes $0 \\neq 0$, which is a contradiction. Thus $b \\neq 0$.\n    - Since $b \\neq 0$, we must have $b + a + 1 = 0$, which simplifies to $a + b = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Use h₀ to expand h₂ and h₃\n  have h2_expanded : (2 * a) ^ 2 + a * (2 * a) + b = 0 := by\n    rw [← h₀]\n    exact h₂\n  have h3_expanded : b ^ 2 + a * b + b = 0 := by\n    rw [← h₀]\n    exact h₃\n\n  -- Simplify h2_expanded: 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h_b_eq : b = -6 * a ^ 2 := by\n    linear_combination h2_expanded\n\n  -- Simplify h3_expanded: b(b + a + 1) = 0\n  have h_b_prod : b * (b + a + 1) = 0 := by\n    linear_combination h3_expanded\n\n  -- We need to show b ≠ 0 to conclude b + a + 1 = 0\n  have h_b_ne_zero : b ≠ 0 := by\n    intro hb0\n    -- If b = 0, then 6a^2 = 0 implies a = 0\n    have ha0 : a = 0 := by\n      rw [hb0] at h_b_eq\n      simp at h_b_eq\n      exact h_b_eq\n    -- This contradicts 2a ≠ b\n    apply h₁\n    rw [ha0, hb0]\n    simp\n\n  -- Since b ≠ 0 and b * (b + a + 1) = 0, we have b + a + 1 = 0\n  have h_sum : b + a + 1 = 0 := by\n    exact mul_eq_zero.mp h_b_prod |>.resolve_left h_b_ne_zero\n\n  -- Therefore a + b = -1\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Use h₀ to expand h₂ and h₃\n  have h2_expanded : (2 * a) ^ 2 + a * (2 * a) + b = 0 := by\n    rw [← h₀]\n    exact h₂\n  have h3_expanded : b ^ 2 + a * b + b = 0 := by\n    rw [← h₀]\n    exact h₃\n\n  -- Simplify h2_expanded: 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h_b_eq : b = -6 * a ^ 2 := by\n    linear_combination h2_expanded\n\n  -- Simplify h3_expanded: b(b + a + 1) = 0\n  have h_b_prod : b * (b + a + 1) = 0 := by\n    linear_combination h3_expanded\n\n  -- We need to show b ≠ 0 to conclude b + a + 1 = 0\n  have h_b_ne_zero : b ≠ 0 := by\n    intro hb0\n    -- If b = 0, then 6a^2 = 0 implies a = 0\n    have ha0 : a = 0 := by\n      rw [hb0] at h_b_eq\n      simp at h_b_eq\n      exact h_b_eq\n    -- This contradicts 2a ≠ b\n    apply h₁\n    rw [ha0, hb0]\n    simp\n\n  -- Since b ≠ 0 and b * (b + a + 1) = 0, we have b + a + 1 = 0\n  have h_sum : b + a + 1 = 0 := by\n    exact mul_eq_zero.mp h_b_prod |>.resolve_left h_b_ne_zero\n\n  -- Therefore a + b = -1\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 6
+            },
+            "endPos": {
+              "line": 33,
+              "column": 18
+            },
+            "data": "Type mismatch\n  h_b_eq\nhas type\n  0 = -(6 * a ^ 2)\nbut is expected to have type\n  a = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3312845230102539
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "To prove that $a + b = -1$ given $f(x) = x^2 + ax + b$ with $f(2a) = 0$ and $f(b) = 0$ (under the condition $2a \\neq b$), we follow these steps:\n\n1.  **Evaluate the roots**: Since $2a$ and $b$ are roots of the quadratic equation $x^2 + ax + b = 0$, and $2a \\neq b$, these are the two distinct roots of the polynomial.\n2.  **Vieta's Formulas**:\n    *   The sum of the roots is $2a + b$. According to Vieta's formulas, for $x^2 + ax + b$, the sum of roots is $-a$. Thus, $2a + b = -a$.\n    *   The product of the roots is $(2a)(b)$. According to Vieta's formulas, the product is $b$. Thus, $2ab = b$.\n3.  **Solve for $a$ and $b$**:\n    *   From $2ab = b$, we have $b(2a - 1) = 0$. This implies $b = 0$ or $a = 1/2$.\n    *   If $b = 0$, the sum equation $2a + 0 = -a$ implies $a = 0$. If $a = 0$ and $b = 0$, then $2a = b$, which contradicts the assumption $2a \\neq b$.\n    *   Therefore, we must have $a = 1/2$.\n    *   Substitute $a = 1/2$ into the sum equation $2a + b = -a$:\n        $2(1/2) + b = -1/2 \\implies 1 + b = -1/2 \\implies b = -3/2$.\n4.  **Final Calculation**: $a + b = 1/2 + (-3/2) = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the root equations\n  have r1 : (2 * a) ^ 2 + a * (2 * a) + b = 0 := by\n    rw [← h₀]\n    exact h₂\n  have r2 : b ^ 2 + a * b + b = 0 := by\n    rw [← h₀]\n    exact h₃\n  \n  -- Simplify the first root equation: 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h4 : 6 * a ^ 2 + b = 0 := by\n    ring_nf at r1\n    exact r1\n  \n  -- From h4, b = -6a^2. Substitute into r2:\n  -- (-6a^2)^2 + a(-6a^2) + (-6a^2) = 0\n  -- 36a^4 - 6a^3 - 6a^2 = 0\n  have h5 : 6 * a^2 * (6 * a^2 - a - 1) = 0 := by\n    calc 6 * a^2 * (6 * a^2 - a - 1) \n      _ = 36 * a^4 - 6 * a^3 - 6 * a^2 := by ring\n      _ = (-6 * a^2)^2 + a * (-6 * a^2) + (-6 * a^2) := by ring\n      _ = b^2 + a * b + b := by rw [← h4]; ring\n      _ = 0 := r2\n\n  -- Either a=0 or 6a^2 - a - 1 = 0\n  have h_cases : a = 0 ∨ 6 * a^2 - a - 1 = 0 := by\n    have h_prod := mul_eq_zero.mp h5\n    cases h_prod with\n    | inl h0 => left; nlinarith\n    | inr h1 => right; exact h1\n\n  cases h_cases with\n  | inl ha0 => \n    -- If a = 0, then b = -6(0)^2 = 0, but 2a != b\n    have hb0 : b = 0 := by nlinarith\n    exfalso\n    exact h₁ (by nlinarith)\n  | inr h_quad =>\n    -- If 6a^2 - a - 1 = 0, we solve for a.\n    -- Factors as (3a + 1)(2a - 1) = 0\n    have h_factors : (3 * a + 1) * (2 * a - 1) = 0 := by\n      nlinarith\n    cases mul_eq_zero.mp h_factors with\n    | inl ha1 => \n      -- If a = -1/3, then b = -6(-1/3)^2 = -6/9 = -2/3.\n      -- Check 2a != b: 2(-1/3) = -2/3, so 2a = b, contradiction.\n      have hb1 : b = -2/3 := by nlinarith\n      exfalso\n      have ha_val : a = -1/3 := by linarith\n      apply h₁\n      rw [ha_val, hb1]\n      norm_num\n    | inr ha2 => \n      -- If a = 1/2, then b = -6(1/2)^2 = -6/4 = -3/2.\n      -- Then a + b = 1/2 - 3/2 = -1.\n      have ha_val : a = 1/2 := by linarith\n      have hb_val : b = -3/2 := by nlinarith\n      rw [ha_val, hb_val]\n      norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the root equations\n  have r1 : (2 * a) ^ 2 + a * (2 * a) + b = 0 := by\n    rw [← h₀]\n    exact h₂\n  have r2 : b ^ 2 + a * b + b = 0 := by\n    rw [← h₀]\n    exact h₃\n  \n  -- Simplify the first root equation: 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h4 : 6 * a ^ 2 + b = 0 := by\n    ring_nf at r1\n    exact r1\n  \n  -- From h4, b = -6a^2. Substitute into r2:\n  -- (-6a^2)^2 + a(-6a^2) + (-6a^2) = 0\n  -- 36a^4 - 6a^3 - 6a^2 = 0\n  have h5 : 6 * a^2 * (6 * a^2 - a - 1) = 0 := by\n    calc 6 * a^2 * (6 * a^2 - a - 1) \n      _ = 36 * a^4 - 6 * a^3 - 6 * a^2 := by ring\n      _ = (-6 * a^2)^2 + a * (-6 * a^2) + (-6 * a^2) := by ring\n      _ = b^2 + a * b + b := by rw [← h4]; ring\n      _ = 0 := r2\n\n  -- Either a=0 or 6a^2 - a - 1 = 0\n  have h_cases : a = 0 ∨ 6 * a^2 - a - 1 = 0 := by\n    have h_prod := mul_eq_zero.mp h5\n    cases h_prod with\n    | inl h0 => left; nlinarith\n    | inr h1 => right; exact h1\n\n  cases h_cases with\n  | inl ha0 => \n    -- If a = 0, then b = -6(0)^2 = 0, but 2a != b\n    have hb0 : b = 0 := by nlinarith\n    exfalso\n    exact h₁ (by nlinarith)\n  | inr h_quad =>\n    -- If 6a^2 - a - 1 = 0, we solve for a.\n    -- Factors as (3a + 1)(2a - 1) = 0\n    have h_factors : (3 * a + 1) * (2 * a - 1) = 0 := by\n      nlinarith\n    cases mul_eq_zero.mp h_factors with\n    | inl ha1 => \n      -- If a = -1/3, then b = -6(-1/3)^2 = -6/9 = -2/3.\n      -- Check 2a != b: 2(-1/3) = -2/3, so 2a = b, contradiction.\n      have hb1 : b = -2/3 := by nlinarith\n      exfalso\n      have ha_val : a = -1/3 := by linarith\n      apply h₁\n      rw [ha_val, hb1]\n      norm_num\n    | inr ha2 => \n      -- If a = 1/2, then b = -6(1/2)^2 = -6/4 = -3/2.\n      -- Then a + b = 1/2 - 3/2 = -1.\n      have ha_val : a = 1/2 := by linarith\n      have hb_val : b = -3/2 := by nlinarith\n      rw [ha_val, hb_val]\n      norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 4
+            },
+            "endPos": {
+              "line": 21,
+              "column": 12
+            },
+            "data": "Type mismatch\n  r1\nhas type\n  a ^ 2 * 6 + b = 0\nbut is expected to have type\n  6 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 36
+            },
+            "endPos": {
+              "line": 30,
+              "column": 40
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  0\nin the target expression\n  (-6 * a ^ 2) ^ 2 + a * (-6 * a ^ 2) + -6 * a ^ 2 = b ^ 2 + a * b + b\n\na b : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₁ : 2 * a ≠ b\nh₂ : f (2 * a) = 0\nh₃ : f b = 0\nr1 : (2 * a) ^ 2 + a * (2 * a) + b = 0\nr2 : b ^ 2 + a * b + b = 0\nh4 : 6 * a ^ 2 + b = 0\n⊢ (-6 * a ^ 2) ^ 2 + a * (-6 * a ^ 2) + -6 * a ^ 2 = b ^ 2 + a * b + b"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 2.693713426589966
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Define the equations:** From $f(x) = x^2 + ax + b$, we substitute the given zeros:\n    *   $f(2a) = (2a)^2 + a(2a) + b = 4a^2 + 2a^2 + b = 6a^2 + b = 0$.\n    *   $f(b) = b^2 + ab + b = b(b + a + 1) = 0$.\n2.  **Analyze the zeros:**\n    *   From $f(b) = 0$, we have $b = 0$ or $b + a + 1 = 0$.\n3.  **Case 1: $b = 0$**\n    *   If $b = 0$, then $6a^2 + 0 = 0 \\implies a = 0$.\n    *   This implies $2a = 0$ and $b = 0$, so $2a = b$.\n    *   However, the hypothesis $h_1$ states $2a \\neq b$, so this case is impossible.\n4.  **Case 2: $b + a + 1 = 0$**\n    *   This directly implies $a + b = -1$.\n    *   We must ensure this case is consistent with $h_1$. From $b = -a - 1$ and $6a^2 + b = 0$, we get $6a^2 - a - 1 = 0$. Solving for $a$ gives $a = 1/2$ or $a = -1/3$. In both sub-cases, $2a \\neq b$ is satisfied (for $a=1/2$, $2a=1, b=-3/2$; for $a=-1/3$, $2a=-2/3, b=-2/3$ which is rejected by $h_1$, but since we only need $a+b=-1$ from the factor $b+a+1=0$, the result holds).\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the zero conditions\n  rw [h₀] at h₂ h₃\n  -- Simplify the expressions\n  have eq1 : 6 * a ^ 2 + b = 0 := by\n    ring_nf at h₂\n    exact h₂\n  have eq2 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- From eq2, either b = 0 or b + a + 1 = 0\n  cases' mul_eq_zero.mp eq2 with hb hsum\n  · -- Case b = 0: Show it leads to a contradiction with h₁\n    subst hb\n    have : 6 * a ^ 2 = 0 := by exact eq1\n    have : a = 0 := by exact pow_eq_zero (mul_self_eq_zero.mp this)\n    subst this\n    -- Now 2 * a = 0 and b = 0, contradicting 2 * a ≠ b\n    norm_num at h₁\n  · -- Case b + a + 1 = 0: Directly implies a + b = -1\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the zero conditions\n  rw [h₀] at h₂ h₃\n  -- Simplify the expressions\n  have eq1 : 6 * a ^ 2 + b = 0 := by\n    ring_nf at h₂\n    exact h₂\n  have eq2 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- From eq2, either b = 0 or b + a + 1 = 0\n  cases' mul_eq_zero.mp eq2 with hb hsum\n  · -- Case b = 0: Show it leads to a contradiction with h₁\n    subst hb\n    have : 6 * a ^ 2 = 0 := by exact eq1\n    have : a = 0 := by exact pow_eq_zero (mul_self_eq_zero.mp this)\n    subst this\n    -- Now 2 * a = 0 and b = 0, contradicting 2 * a ≠ b\n    norm_num at h₁\n  · -- Case b + a + 1 = 0: Directly implies a + b = -1\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₂\nhas type\n  a ^ 2 * 6 + b = 0\nbut is expected to have type\n  6 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 31
+            },
+            "endPos": {
+              "line": 22,
+              "column": 40
+            },
+            "data": "Type mismatch\n  eq1\nhas type\n  6 * a ^ 2 + 0 = 0\nbut is expected to have type\n  6 * a ^ 2 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 62
+            },
+            "endPos": {
+              "line": 23,
+              "column": 66
+            },
+            "data": "Application type mismatch: The argument\n  this\nhas type\n  6 * a ^ 2 = 0\nbut is expected to have type\n  a ^ ?m.228 * a ^ ?m.228 = 0\nin the application\n  mul_self_eq_zero.mp this"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 23,
+              "column": 29
+            },
+            "endPos": {
+              "line": 23,
+              "column": 40
+            },
+            "data": "`pow_eq_zero` has been deprecated: Use `eq_zero_of_pow_eq_zero` instead"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.4043426513671875
+      }
+    },
+    {
+      "index": 18,
+      "status": "SOLVED",
+      "raw_text": "To prove that $a + b = -1$, we use the given function $f(x) = x^2 + ax + b$ and the roots $2a$ and $b$.\n\n**Proof Sketch:**\n1.  **Evaluate Roots:** Given $f(2a) = 0$ and $f(b) = 0$, we substitute these into the definition of $f$:\n    *   $f(2a) = (2a)^2 + a(2a) + b = 4a^2 + 2a^2 + b = 6a^2 + b = 0 \\implies b = -6a^2$.\n    *   $f(b) = b^2 + ab + b = 0 \\implies b(b + a + 1) = 0$.\n2.  **Analyze $b(b + a + 1) = 0$:**\n    *   If $b = 0$, then $6a^2 = 0 \\implies a = 0$. This implies $2a = 0$ and $b = 0$, so $2a = b$, which contradicts the given $2a \\neq b$.\n    *   Thus, $b \\neq 0$, which implies $b + a + 1 = 0$.\n3.  **Conclusion:** From $b + a + 1 = 0$, we immediately obtain $a + b = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into h2 and h3\n  rw [h₀] at h₂ h₃\n  -- h2 simplifies to 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h4 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- h3 simplifies to b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have h5 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- Show that b cannot be 0\n  have hb_ne_zero : b ≠ 0 := by\n    intro hb0\n    -- If b = 0, then 6a^2 = 0 => a = 0\n    have ha0 : a = 0 := by\n      rw [hb0] at h4\n      simp at h4\n      exact h4\n    -- If a = 0 and b = 0, then 2a = b, contradicting h1\n    apply h₁\n    rw [ha0, hb0]\n    norm_num\n  -- Since b * (b + a + 1) = 0 and b != 0, b + a + 1 must be 0\n  have h6 : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp h5).resolve_left hb_ne_zero\n  -- Therefore, a + b = -1\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into h2 and h3\n  rw [h₀] at h₂ h₃\n  -- h2 simplifies to 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h4 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- h3 simplifies to b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have h5 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- Show that b cannot be 0\n  have hb_ne_zero : b ≠ 0 := by\n    intro hb0\n    -- If b = 0, then 6a^2 = 0 => a = 0\n    have ha0 : a = 0 := by\n      rw [hb0] at h4\n      simp at h4\n      exact h4\n    -- If a = 0 and b = 0, then 2a = b, contradicting h1\n    apply h₁\n    rw [ha0, hb0]\n    norm_num\n  -- Since b * (b + a + 1) = 0 and b != 0, b + a + 1 must be 0\n  have h6 : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp h5).resolve_left hb_ne_zero\n  -- Therefore, a + b = -1\n  linarith",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3037228584289551
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "To solve the theorem $a + b = -1$ given $f(x) = x^2 + ax + b$ with $f(2a) = 0$ and $f(b) = 0$, we follow these steps:\n\n### Proof Sketch\n1.  **Formulate equations from roots:** Since $2a$ and $b$ are roots of the quadratic function $f(x) = x^2 + ax + b$, we substitute them into the definition:\n    *   $f(2a) = (2a)^2 + a(2a) + b = 0 \\implies 6a^2 + b = 0$.\n    *   $f(b) = b^2 + a(b) + b = 0 \\implies b(b + a + 1) = 0$.\n2.  **Analyze the second equation ($b(b + a + 1) = 0$):**\n    *   If $b = 0$, then from $6a^2 + b = 0$, we get $a = 0$. However, this implies $2a = b = 0$, which contradicts the given condition $2a \\neq b$.\n    *   Therefore, $b \\neq 0$, which forces $b + a + 1 = 0$.\n3.  **Conclusion:** Rearranging $b + a + 1 = 0$ directly yields $a + b = -1$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the root equations\n  have h4 : (2 * a) ^ 2 + a * (2 * a) + b = 0 := by\n    rw [← h₀]\n    exact h₂\n  have h5 : b ^ 2 + a * b + b = 0 := by\n    rw [← h₀]\n    exact h₃\n  \n  -- Simplify h4 to get b = -6a^2\n  have h6 : 6 * a ^ 2 + b = 0 := by\n    ring_nf at h4\n    exact h4\n  \n  -- Factor h5: b * (b + a + 1) = 0\n  have h7 : b * (b + a + 1) = 0 := by\n    ring_nf at h5\n    exact h5\n  \n  -- Prove b cannot be 0\n  have h_b_ne_zero : b ≠ 0 := by\n    intro hb\n    -- If b = 0, then 6a^2 = 0 implies a = 0\n    have ha : a = 0 := by\n      rw [hb] at h6\n      simp at h6\n      exact h6\n    -- This implies 2a = b, contradicting h1\n    have h_contra : 2 * a = b := by\n      rw [ha, hb]\n      simp\n    exact h₁ h_contra\n\n  -- Since b * (b + a + 1) = 0 and b != 0, b + a + 1 = 0\n  have h8 : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp h7).resolve_left h_b_ne_zero\n  \n  -- Conclude a + b = -1\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the root equations\n  have h4 : (2 * a) ^ 2 + a * (2 * a) + b = 0 := by\n    rw [← h₀]\n    exact h₂\n  have h5 : b ^ 2 + a * b + b = 0 := by\n    rw [← h₀]\n    exact h₃\n  \n  -- Simplify h4 to get b = -6a^2\n  have h6 : 6 * a ^ 2 + b = 0 := by\n    ring_nf at h4\n    exact h4\n  \n  -- Factor h5: b * (b + a + 1) = 0\n  have h7 : b * (b + a + 1) = 0 := by\n    ring_nf at h5\n    exact h5\n  \n  -- Prove b cannot be 0\n  have h_b_ne_zero : b ≠ 0 := by\n    intro hb\n    -- If b = 0, then 6a^2 = 0 implies a = 0\n    have ha : a = 0 := by\n      rw [hb] at h6\n      simp at h6\n      exact h6\n    -- This implies 2a = b, contradicting h1\n    have h_contra : 2 * a = b := by\n      rw [ha, hb]\n      simp\n    exact h₁ h_contra\n\n  -- Since b * (b + a + 1) = 0 and b != 0, b + a + 1 = 0\n  have h8 : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp h7).resolve_left h_b_ne_zero\n  \n  -- Conclude a + b = -1\n  linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 4
+            },
+            "endPos": {
+              "line": 21,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h4\nhas type\n  a ^ 2 * 6 + b = 0\nbut is expected to have type\n  6 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 4
+            },
+            "endPos": {
+              "line": 26,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h5\nhas type\n  b + b * a + b ^ 2 = 0\nbut is expected to have type\n  b * (b + a + 1) = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.49722790718078613
+      }
+    },
+    {
+      "index": 20,
+      "status": "SOLVED",
+      "raw_text": "To prove $a + b = -1$, we use the given functional form $f(x) = x^2 + ax + b$ and the roots provided.\n\n**Proof Sketch:**\n1.  From $f(2a) = 0$, we have $(2a)^2 + a(2a) + b = 0$, which simplifies to $6a^2 + b = 0$, or $b = -6a^2$.\n2.  From $f(b) = 0$, we have $b^2 + ab + b = 0$. Factoring gives $b(b + a + 1) = 0$.\n3.  This implies $b = 0$ or $b + a + 1 = 0$.\n4.  If $b = 0$, then from $6a^2 + b = 0$, we get $a = 0$. However, if $a=0$ and $b=0$, then $2a = 0$ and $b = 0$, which contradicts the hypothesis $2a \\neq b$.\n5.  Therefore, we must have $b + a + 1 = 0$, which simplifies directly to $a + b = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the root equations\n  rw [h₀] at h₂ h₃\n  -- h₂ gives: (2*a)^2 + a*(2*a) + b = 0 => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h4 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- h₃ gives: b^2 + a*b + b = 0 => b(b + a + 1) = 0\n  have h5 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- From h5, either b = 0 or b + a + 1 = 0\n  cases' mul_eq_zero.mp h5 with hb hb\n  · -- Case b = 0: substitute into h4 to get 6a^2 = 0 => a = 0\n    have ha : a = 0 := by\n      rw [hb] at h4\n      simp at h4\n      exact h4\n    -- If a = 0 and b = 0, then 2a = 0 and b = 0, contradicting 2a ≠ b\n    subst ha hb\n    simp at h₁\n  · -- Case b + a + 1 = 0: this directly implies a + b = -1\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the root equations\n  rw [h₀] at h₂ h₃\n  -- h₂ gives: (2*a)^2 + a*(2*a) + b = 0 => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h4 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- h₃ gives: b^2 + a*b + b = 0 => b(b + a + 1) = 0\n  have h5 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- From h5, either b = 0 or b + a + 1 = 0\n  cases' mul_eq_zero.mp h5 with hb hb\n  · -- Case b = 0: substitute into h4 to get 6a^2 = 0 => a = 0\n    have ha : a = 0 := by\n      rw [hb] at h4\n      simp at h4\n      exact h4\n    -- If a = 0 and b = 0, then 2a = 0 and b = 0, contradicting 2a ≠ b\n    subst ha hb\n    simp at h₁\n  · -- Case b + a + 1 = 0: this directly implies a + b = -1\n    linarith",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.318087100982666
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "To prove $a + b = -1$ given $f(x) = x^2 + ax + b$, $f(2a) = 0$, and $f(b) = 0$ with $2a \\neq b$, we follow these steps:\n\n1.  **Use the roots of the quadratic:** Since $2a$ and $b$ are the roots of the quadratic $f(x) = x^2 + ax + b$, we can use Vieta's formulas.\n2.  **Sum of roots:** The sum of the roots is $(2a) + b = -a$. This simplifies to $3a + b = 0$, or $b = -3a$.\n3.  **Product of roots:** The product of the roots is $(2a) \\cdot b = b$.\n4.  **Solve for constants:** From $(2a)b = b$, we have $b(2a - 1) = 0$.\n    *   If $b = 0$, then $3a + 0 = 0 \\implies a = 0$. However, this implies $2a = 0$ and $b = 0$, contradicting the condition $2a \\neq b$.\n    *   Thus, $2a - 1 = 0$, which gives $a = 1/2$.\n5.  **Calculate b:** Substituting $a = 1/2$ into $b = -3a$ gives $b = -3/2$.\n6.  **Final result:** $a + b = 1/2 - 3/2 = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Use the equations derived from f(2a) = 0 and f(b) = 0\n  have eq1 : (2 * a)^2 + a * (2 * a) + b = 0 := by\n    rw [← h₀]\n    exact h₂\n  have eq2 : b^2 + a * b + b = 0 := by\n    rw [← h₀]\n    exact h₃\n\n  -- Simplify eq1: 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0 => b = -6a^2\n  have h_b_val : b = -6 * a^2 := by linarith [eq1]\n\n  -- Substitute b in eq2: (-6a^2)^2 + a(-6a^2) + (-6a^2) = 0\n  -- 36a^4 - 6a^3 - 6a^2 = 0\n  -- 6a^2 (6a^2 - a - 1) = 0\n  have eq3 : 36 * a^4 - 6 * a^3 - 6 * a^2 = 0 := by\n    rw [h_b_val] at eq2\n    ring_nf at eq2\n    exact eq2\n\n  -- Factor out 6a^2: 6a^2 * (3*a + 1) * (2*a - 1) = 0\n  have eq4 : 6 * a^2 * (3 * a + 1) * (2 * a - 1) = 0 := by\n    ring_nf\n    exact eq3\n\n  -- This gives possible values for a: 0, -1/3, 1/2\n  -- Case 1: a = 0\n  by_cases ha0 : a = 0\n  · rw [ha0] at h_b_val\n    simp at h_b_val\n    -- If a=0 and b=0, then 2a = b, which contradicts h1\n    subst h_b_val\n    contradiction\n\n  -- Case 2: a = -1/3\n  by_cases ha1 : a = -1/3\n  · rw [ha1] at h_b_val\n    have hb : b = -2/3 := by\n      field_simp [h_b_val]\n      ring\n    -- If a = -1/3 and b = -2/3, then 2a = -2/3 = b, contradiction\n    subst hb\n    have : 2 * a = b := by\n      rw [ha1]\n      norm_num\n    contradiction\n\n  -- Case 3: 2*a - 1 = 0 => a = 1/2\n  have ha2 : a = 1/2 := by\n    have h_prod : (3 * a + 1) * (2 * a - 1) = 0 := by\n      nlinarith [eq4]\n    cases' eq_zero_or_eq_zero_of_mul_eq_zero h_prod with h_a_neg_third h_a_half\n    · exfalso\n      apply ha1\n      linarith\n    · linarith\n\n  -- Calculate b for a = 1/2\n  have hb_final : b = -3/2 := by\n    rw [ha2] at h_b_val\n    norm_num at h_b_val\n    exact h_b_val\n\n  -- Final sum a + b = 1/2 - 3/2 = -1\n  rw [ha2, hb_final]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Use the equations derived from f(2a) = 0 and f(b) = 0\n  have eq1 : (2 * a)^2 + a * (2 * a) + b = 0 := by\n    rw [← h₀]\n    exact h₂\n  have eq2 : b^2 + a * b + b = 0 := by\n    rw [← h₀]\n    exact h₃\n\n  -- Simplify eq1: 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0 => b = -6a^2\n  have h_b_val : b = -6 * a^2 := by linarith [eq1]\n\n  -- Substitute b in eq2: (-6a^2)^2 + a(-6a^2) + (-6a^2) = 0\n  -- 36a^4 - 6a^3 - 6a^2 = 0\n  -- 6a^2 (6a^2 - a - 1) = 0\n  have eq3 : 36 * a^4 - 6 * a^3 - 6 * a^2 = 0 := by\n    rw [h_b_val] at eq2\n    ring_nf at eq2\n    exact eq2\n\n  -- Factor out 6a^2: 6a^2 * (3*a + 1) * (2*a - 1) = 0\n  have eq4 : 6 * a^2 * (3 * a + 1) * (2 * a - 1) = 0 := by\n    ring_nf\n    exact eq3\n\n  -- This gives possible values for a: 0, -1/3, 1/2\n  -- Case 1: a = 0\n  by_cases ha0 : a = 0\n  · rw [ha0] at h_b_val\n    simp at h_b_val\n    -- If a=0 and b=0, then 2a = b, which contradicts h1\n    subst h_b_val\n    contradiction\n\n  -- Case 2: a = -1/3\n  by_cases ha1 : a = -1/3\n  · rw [ha1] at h_b_val\n    have hb : b = -2/3 := by\n      field_simp [h_b_val]\n      ring\n    -- If a = -1/3 and b = -2/3, then 2a = -2/3 = b, contradiction\n    subst hb\n    have : 2 * a = b := by\n      rw [ha1]\n      norm_num\n    contradiction\n\n  -- Case 3: 2*a - 1 = 0 => a = 1/2\n  have ha2 : a = 1/2 := by\n    have h_prod : (3 * a + 1) * (2 * a - 1) = 0 := by\n      nlinarith [eq4]\n    cases' eq_zero_or_eq_zero_of_mul_eq_zero h_prod with h_a_neg_third h_a_half\n    · exfalso\n      apply ha1\n      linarith\n    · linarith\n\n  -- Calculate b for a = 1/2\n  have hb_final : b = -3/2 := by\n    rw [ha2] at h_b_val\n    norm_num at h_b_val\n    exact h_b_val\n\n  -- Final sum a + b = 1/2 - 3/2 = -1\n  rw [ha2, hb_final]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 4
+            },
+            "endPos": {
+              "line": 27,
+              "column": 13
+            },
+            "data": "Type mismatch\n  eq2\nhas type\n  -(a ^ 2 * 6) - a ^ 3 * 6 + a ^ 4 * Nat.rawCast 36 = 0\nbut is expected to have type\n  36 * a ^ 4 - 6 * a ^ 3 - 6 * a ^ 2 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 32,
+              "column": 4
+            },
+            "endPos": {
+              "line": 32,
+              "column": 13
+            },
+            "data": "Type mismatch\n  eq3\nhas type\n  36 * a ^ 4 - 6 * a ^ 3 - 6 * a ^ 2 = 0\nbut is expected to have type\n  -(a ^ 2 * 6) - a ^ 3 * 6 + a ^ 4 * 36 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 41,
+              "column": 4
+            },
+            "endPos": {
+              "line": 41,
+              "column": 17
+            },
+            "data": "Tactic `contradiction` failed\n\ncase pos\na : ℝ\nf : ℝ → ℝ\nh₂ : f (2 * a) = 0\neq3 : 36 * a ^ 4 - 6 * a ^ 3 - 6 * a ^ 2 = 0\neq4 : 6 * a ^ 2 * (3 * a + 1) * (2 * a - 1) = 0\nha0 : a = 0\nh₀ : ∀ (x : ℝ), f x = x ^ 2 + a * x + 0\nh₁ : 2 * a ≠ 0\nh₃ : f 0 = 0\neq1 : (2 * a) ^ 2 + a * (2 * a) + 0 = 0\neq2 : 0 ^ 2 + a * 0 + 0 = 0\n⊢ a + 0 = -1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 46,
+              "column": 26
+            },
+            "endPos": {
+              "line": 48,
+              "column": 10
+            },
+            "data": "unsolved goals\na b : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₁ : 2 * a ≠ b\nh₂ : f (2 * a) = 0\nh₃ : f b = 0\neq1 : (2 * a) ^ 2 + a * (2 * a) + b = 0\neq2 : b ^ 2 + a * b + b = 0\nh_b_val : b = -6 * (-1 / 3) ^ 2\neq3 : 36 * a ^ 4 - 6 * a ^ 3 - 6 * a ^ 2 = 0\neq4 : 6 * a ^ 2 * (3 * a + 1) * (2 * a - 1) = 0\nha0 : ¬a = 0\nha1 : a = -1 / 3\n⊢ b * 3 = -2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 51,
+              "column": 19
+            },
+            "endPos": {
+              "line": 51,
+              "column": 20
+            },
+            "data": "Unknown identifier `b`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 51,
+              "column": 24
+            },
+            "endPos": {
+              "line": 53,
+              "column": 14
+            },
+            "data": "unsolved goals\na : ℝ\nf : ℝ → ℝ\nh₂ : f (2 * a) = 0\neq3 : 36 * a ^ 4 - 6 * a ^ 3 - 6 * a ^ 2 = 0\neq4 : 6 * a ^ 2 * (3 * a + 1) * (2 * a - 1) = 0\nha0 : ¬a = 0\nha1 : a = -1 / 3\nh₀ : ∀ (x : ℝ), f x = x ^ 2 + a * x + -2 / 3\nh₁ : 2 * a ≠ -2 / 3\nh₃ : f (-2 / 3) = 0\neq1 : (2 * a) ^ 2 + a * (2 * a) + -2 / 3 = 0\neq2 : (-2 / 3) ^ 2 + a * (-2 / 3) + -2 / 3 = 0\nh_b_val : -2 / 3 = -6 * (-1 / 3) ^ 2\n⊢ -(2 / 3) = sorry ()"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 54,
+              "column": 4
+            },
+            "endPos": {
+              "line": 54,
+              "column": 17
+            },
+            "data": "Tactic `contradiction` failed\n\ncase pos\na : ℝ\nf : ℝ → ℝ\nh₂ : f (2 * a) = 0\neq3 : 36 * a ^ 4 - 6 * a ^ 3 - 6 * a ^ 2 = 0\neq4 : 6 * a ^ 2 * (3 * a + 1) * (2 * a - 1) = 0\nha0 : ¬a = 0\nha1 : a = -1 / 3\nh₀ : ∀ (x : ℝ), f x = x ^ 2 + a * x + -2 / 3\nh₁ : 2 * a ≠ -2 / 3\nh₃ : f (-2 / 3) = 0\neq1 : (2 * a) ^ 2 + a * (2 * a) + -2 / 3 = 0\neq2 : (-2 / 3) ^ 2 + a * (-2 / 3) + -2 / 3 = 0\nh_b_val : -2 / 3 = -6 * (-1 / 3) ^ 2\nthis : 2 * a = sorry\n⊢ a + -2 / 3 = -1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 59,
+              "column": 6
+            },
+            "endPos": {
+              "line": 59,
+              "column": 21
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₁ : 2 * a ≠ b\nh₂ : f (2 * a) = 0\nh₃ : f b = 0\neq1 : (2 * a) ^ 2 + a * (2 * a) + b = 0\neq2 : b ^ 2 + a * b + b = 0\nh_b_val : b = -6 * a ^ 2\neq3 : 36 * a ^ 4 - 6 * a ^ 3 - 6 * a ^ 2 = 0\neq4 : 6 * a ^ 2 * (3 * a + 1) * (2 * a - 1) = 0\nha0 : ¬a = 0\nha1 : ¬a = -1 / 3\na✝ : (3 * a + 1) * (2 * a - 1) < 0\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 70,
+              "column": 4
+            },
+            "endPos": {
+              "line": 70,
+              "column": 17
+            },
+            "data": "Type mismatch\n  h_b_val\nhas type\n  b = -(3 / 2)\nbut is expected to have type\n  b = -3 / 2"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.0925068855285645
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "To prove that $a + b = -1$ given the quadratic function $f(x) = x^2 + ax + b$ with roots $2a$ and $b$ (where $2a \\neq b$), we follow these steps:\n\n### Proof Sketch\n1.  **Use the Root Information**: Since $2a$ and $b$ are roots of $f(x) = x^2 + ax + b$, we can relate the coefficients to the roots using Vieta's formulas or by plugging the roots into the equation.\n2.  **Vieta's Formulas**:\n    *   Sum of roots: $(2a) + b = -a$\n    *   Product of roots: $(2a) \\cdot b = b$\n3.  **Solve for $a$**:\n    *   From the product formula: $2ab = b$.\n    *   Since $2a \\neq b$, we need to check if $b$ can be zero. If $b=0$, then $2a+0 = -a \\implies 3a=0 \\implies a=0$. This gives $2a=0$ and $b=0$, which contradicts $2a \\neq b$.\n    *   Thus $b \\neq 0$. Dividing $2ab = b$ by $b$ gives $2a = 1$, so $a = 1/2$.\n4.  **Solve for $b$**:\n    *   Substitute $a = 1/2$ into the sum formula: $2(1/2) + b = - (1/2)$.\n    *   $1 + b = -1/2 \\implies b = -3/2$.\n5.  **Final Calculation**:\n    *   $a + b = 1/2 + (-3/2) = -2/2 = -1$.\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Extract equations from h2 and h3 using h0\n  have eq1 : (2 * a)^2 + a * (2 * a) + b = 0 := by\n    rw [h₀] at h₂\n    exact h₂\n  have eq2 : b^2 + a * b + b = 0 := by\n    rw [h₀] at h₃\n    exact h₃\n  \n  -- Simplify eq1: 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h_b : b = -6 * a^2 := by\n    linarith [eq1]\n  \n  -- Substitute b into eq2: b(b + a + 1) = 0\n  have eq2_factor : b * (b + a + 1) = 0 := by\n    linear_combination eq2\n  \n  -- Show b cannot be 0\n  have b_ne_zero : b ≠ 0 := by\n    intro hb\n    have : a = 0 := by\n      rw [hb] at h_b\n      linarith\n    apply h₁\n    rw [hb, this]\n    norm_num\n\n  -- Since b != 0, b + a + 1 = 0\n  have final_eq : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp eq2_factor).resolve_left b_ne_zero\n    \n  -- Therefore a + b = -1\n  linarith [final_eq]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Extract equations from h2 and h3 using h0\n  have eq1 : (2 * a)^2 + a * (2 * a) + b = 0 := by\n    rw [h₀] at h₂\n    exact h₂\n  have eq2 : b^2 + a * b + b = 0 := by\n    rw [h₀] at h₃\n    exact h₃\n  \n  -- Simplify eq1: 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h_b : b = -6 * a^2 := by\n    linarith [eq1]\n  \n  -- Substitute b into eq2: b(b + a + 1) = 0\n  have eq2_factor : b * (b + a + 1) = 0 := by\n    linear_combination eq2\n  \n  -- Show b cannot be 0\n  have b_ne_zero : b ≠ 0 := by\n    intro hb\n    have : a = 0 := by\n      rw [hb] at h_b\n      linarith\n    apply h₁\n    rw [hb, this]\n    norm_num\n\n  -- Since b != 0, b + a + 1 = 0\n  have final_eq : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp eq2_factor).resolve_left b_ne_zero\n    \n  -- Therefore a + b = -1\n  linarith [final_eq]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 6
+            },
+            "endPos": {
+              "line": 31,
+              "column": 14
+            },
+            "data": "linarith failed to find a contradiction\ncase h1.h\na b : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₁ : 2 * a ≠ b\nh₂ : f (2 * a) = 0\nh₃ : f b = 0\neq1 : (2 * a) ^ 2 + a * (2 * a) + b = 0\neq2 : b ^ 2 + a * b + b = 0\nh_b : 0 = -6 * a ^ 2\neq2_factor : b * (b + a + 1) = 0\nhb : b = 0\na✝ : a < 0\n⊢ False\nfailed"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4286010265350342
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "To prove $a + b = -1$, we use the definition of the quadratic function $f(x) = x^2 + ax + b$ and its roots.\n\n**Proof Sketch:**\n1.  From $f(2a) = 0$, we have $(2a)^2 + a(2a) + b = 0$, which simplifies to $6a^2 + b = 0$, so $b = -6a^2$.\n2.  From $f(b) = 0$, we have $b^2 + ab + b = 0$. Since $b = -6a^2$, we substitute this into the equation: $(-6a^2)^2 + a(-6a^2) + (-6a^2) = 0$.\n3.  This simplifies to $36a^4 - 6a^3 - 6a^2 = 0$. Factoring out $6a^2$, we get $6a^2(6a^2 - a - 1) = 0$.\n4.  Case 1: $a = 0$. Then $b = -6(0)^2 = 0$. But $2a \\neq b$ is given ($2(0) \\neq 0$ is false), so $a \\neq 0$.\n5.  Case 2: $6a^2 - a - 1 = 0$. This quadratic factors as $(3a + 1)(2a - 1) = 0$, giving $a = -1/3$ or $a = 1/2$.\n6.  If $a = 1/2$, then $b = -6(1/2)^2 = -3/2$. Then $2a = 1$ and $b = -1.5$, which satisfies $2a \\neq b$. Here $a + b = 1/2 - 3/2 = -1$.\n7.  If $a = -1/3$, then $b = -6(-1/3)^2 = -2/3$. Here $2a = -2/3$ and $b = -2/3$, which contradicts $2a \\neq b$.\n8.  Thus, $a + b = -1$ is the only valid solution.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute f into h2 and h3\n  rw [h₀] at h₂ h₃\n  -- Simplify h2: (2a)^2 + a(2a) + b = 0 => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have hb : b = -6 * a^2 := by\n    linarith [h₂]\n  -- Substitute b into h3: (-6a^2)^2 + a(-6a^2) + (-6a^2) = 0\n  rw [hb] at h₃\n  have h_poly : 6 * a^2 * (6 * a^2 - a - 1) = 0 := by\n    ring_nf at h₃\n    ring_nf\n    exact h₃\n  -- Analyze the cases for a\n  have ha_cases : a = 0 ∨ 3 * a + 1 = 0 ∨ 2 * a - 1 = 0 := by\n    rw [mul_eq_zero] at h_poly\n    cases h_poly with\n    | inl h => left; linarith\n    | inr h =>\n      right\n      -- factor 6a^2 - a - 1 = (3a + 1)(2a - 1)\n      have h_fact : 6 * a^2 - a - 1 = (3 * a + 1) * (2 * a - 1) := by ring\n      rw [h_fact, mul_eq_zero] at h\n      exact h\n  -- Eliminate invalid cases using h1\n  rcases ha_cases with ha0 | ha1 | ha2\n  · -- Case a = 0\n    subst ha0\n    simp [hb] at h₁\n  · -- Case a = -1/3\n    have ha : a = -1/3 := by linarith\n    subst ha\n    have hb_val : b = -2/3 := by\n      rw [hb]\n      ring\n    -- This contradicts 2a != b\n    exfalso\n    apply h₁\n    linarith\n  · -- Case a = 1/2\n    have ha : a = 1/2 := by linarith\n    subst ha\n    have hb_val : b = -3/2 := by\n      rw [hb]\n      ring\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute f into h2 and h3\n  rw [h₀] at h₂ h₃\n  -- Simplify h2: (2a)^2 + a(2a) + b = 0 => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have hb : b = -6 * a^2 := by\n    linarith [h₂]\n  -- Substitute b into h3: (-6a^2)^2 + a(-6a^2) + (-6a^2) = 0\n  rw [hb] at h₃\n  have h_poly : 6 * a^2 * (6 * a^2 - a - 1) = 0 := by\n    ring_nf at h₃\n    ring_nf\n    exact h₃\n  -- Analyze the cases for a\n  have ha_cases : a = 0 ∨ 3 * a + 1 = 0 ∨ 2 * a - 1 = 0 := by\n    rw [mul_eq_zero] at h_poly\n    cases h_poly with\n    | inl h => left; linarith\n    | inr h =>\n      right\n      -- factor 6a^2 - a - 1 = (3a + 1)(2a - 1)\n      have h_fact : 6 * a^2 - a - 1 = (3 * a + 1) * (2 * a - 1) := by ring\n      rw [h_fact, mul_eq_zero] at h\n      exact h\n  -- Eliminate invalid cases using h1\n  rcases ha_cases with ha0 | ha1 | ha2\n  · -- Case a = 0\n    subst ha0\n    simp [hb] at h₁\n  · -- Case a = -1/3\n    have ha : a = -1/3 := by linarith\n    subst ha\n    have hb_val : b = -2/3 := by\n      rw [hb]\n      ring\n    -- This contradicts 2a != b\n    exfalso\n    apply h₁\n    linarith\n  · -- Case a = 1/2\n    have ha : a = 1/2 := by linarith\n    subst ha\n    have hb_val : b = -3/2 := by\n      rw [hb]\n      ring\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 19
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?m.222 * ?m.221 = 0\nin the target expression\n  6 * a ^ 2 * (6 * a ^ 2 - a - 1) = 0\n\na b : ℝ\nf : ℝ → ℝ\nh₀ : ∀ (x : ℝ), f x = x ^ 2 + a * x + b\nh₁ : 2 * a ≠ b\nh₂ : (2 * a) ^ 2 + a * (2 * a) + b = 0\nh₃ : (-6 * a ^ 2) ^ 2 + a * (-6 * a ^ 2) + -6 * a ^ 2 = 0\nhb : b = -6 * a ^ 2\nh_poly : 6 * a ^ 2 * (6 * a ^ 2 - a - 1) = 0\n⊢ a = 0 ∨ 3 * a + 1 = 0 ∨ 2 * a - 1 = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.3110294342041016
+      }
+    },
+    {
+      "index": 24,
+      "status": "SOLVED",
+      "raw_text": "To prove $a + b = -1$ given $f(x) = x^2 + ax + b$, $f(2a) = 0$, $f(b) = 0$, and $2a \\neq b$, we follow these steps:\n\n1.  **Substitute values into the function**: From $f(2a) = 0$, we get $(2a)^2 + a(2a) + b = 0$, which simplifies to $6a^2 + b = 0$.\n2.  **Substitute the second value**: From $f(b) = 0$, we get $b^2 + ab + b = 0$. Factoring out $b$, we have $b(b + a + 1) = 0$.\n3.  **Analyze the cases for $b$**:\n    *   If $b = 0$, then from $6a^2 + b = 0$ we get $a = 0$. However, this implies $2a = 0$ and $b = 0$, which contradicts the condition $2a \\neq b$. Thus, $b \\neq 0$.\n4.  **Solve for $a+b$**: Since $b \\neq 0$, the equation $b(b + a + 1) = 0$ implies $b + a + 1 = 0$.\n5.  **Conclusion**: Rearranging $a + b + 1 = 0$ gives $a + b = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the equations h₂ and h₃\n  rw [h₀] at h₂ h₃\n  -- h₂: (2a)^2 + a(2a) + b = 0 => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h4 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- h₃: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have h5 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- We need to show b ≠ 0 to conclude a + b + 1 = 0 from h5\n  have h6 : b ≠ 0 := by\n    intro hb\n    -- If b = 0, then 6a^2 = 0 implies a = 0\n    rw [hb] at h4\n    have ha : a = 0 := by\n      nlinarith\n    -- If a = 0 and b = 0, then 2a = b, contradicting h₁\n    rw [ha, hb] at h₁\n    simp at h₁\n  -- Since b ≠ 0 and b * (b + a + 1) = 0, it must be that b + a + 1 = 0\n  have h7 : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp h5).resolve_left h6\n  -- Therefore, a + b = -1\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the equations h₂ and h₃\n  rw [h₀] at h₂ h₃\n  -- h₂: (2a)^2 + a(2a) + b = 0 => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h4 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- h₃: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have h5 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- We need to show b ≠ 0 to conclude a + b + 1 = 0 from h5\n  have h6 : b ≠ 0 := by\n    intro hb\n    -- If b = 0, then 6a^2 = 0 implies a = 0\n    rw [hb] at h4\n    have ha : a = 0 := by\n      nlinarith\n    -- If a = 0 and b = 0, then 2a = b, contradicting h₁\n    rw [ha, hb] at h₁\n    simp at h₁\n  -- Since b ≠ 0 and b * (b + a + 1) = 0, it must be that b + a + 1 = 0\n  have h7 : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp h5).resolve_left h6\n  -- Therefore, a + b = -1\n  linarith",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.8703439235687256
+      }
+    },
+    {
+      "index": 25,
+      "status": "SOLVED",
+      "raw_text": "To prove $a + b = -1$ given $f(x) = x^2 + ax + b$ with $f(2a) = 0$ and $f(b) = 0$ (under $2a \\neq b$), we follow these steps:\n\n### Proof Sketch\n1.  **Use the roots of the quadratic**: The problem states that $2a$ and $b$ are roots of the quadratic equation $x^2 + ax + b = 0$.\n2.  **Vieta's Formulas**:\n    *   The sum of the roots is $-(a/1) = -a$. Thus, $(2a) + b = -a$.\n    *   The product of the roots is $b/1 = b$. Thus, $(2a) \\cdot b = b$.\n3.  **Solve for $a$**: From the product equation $2ab = b$, we have $b(2a - 1) = 0$. Since $2a \\neq b$, $b$ cannot be zero (if $b=0$, then $2a=1/2 \\cdot 0 = 0$, which contradicts $2a \\neq b$). Thus, $2a - 1 = 0$, which means $a = 1/2$.\n4.  **Solve for $b$**: Substitute $a = 1/2$ into the sum equation $3a + b = 0$. This gives $3(1/2) + b = 0$, so $b = -3/2$.\n5.  **Final Calculation**: $a + b = 1/2 - 3/2 = -2/2 = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Expand the root conditions using the definition of f\n  simp [h₀] at h₂ h₃\n  -- h₂: (2a)^2 + a(2a) + b = 0 => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have eq1 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- h₃: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have eq2 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- If b = 0, then from eq1, 6a^2 = 0, so a = 0.\n  -- But then 2a = 0 and b = 0, which contradicts h₁ (2a ≠ b).\n  have b_ne_zero : b ≠ 0 := by\n    intro hb\n    rw [hb] at eq1\n    have a_zero : a = 0 := by nlinarith\n    apply h₁\n    rw [hb, a_zero]\n    norm_num\n  -- Since b ≠ 0 and b(b + a + 1) = 0, we must have b + a + 1 = 0\n  have h_sum : b + a + 1 = 0 := by\n    apply (mul_eq_zero.mp eq2).resolve_left b_ne_zero\n  -- Rearranging gives a + b = -1\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Expand the root conditions using the definition of f\n  simp [h₀] at h₂ h₃\n  -- h₂: (2a)^2 + a(2a) + b = 0 => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have eq1 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- h₃: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have eq2 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- If b = 0, then from eq1, 6a^2 = 0, so a = 0.\n  -- But then 2a = 0 and b = 0, which contradicts h₁ (2a ≠ b).\n  have b_ne_zero : b ≠ 0 := by\n    intro hb\n    rw [hb] at eq1\n    have a_zero : a = 0 := by nlinarith\n    apply h₁\n    rw [hb, a_zero]\n    norm_num\n  -- Since b ≠ 0 and b(b + a + 1) = 0, we must have b + a + 1 = 0\n  have h_sum : b + a + 1 = 0 := by\n    apply (mul_eq_zero.mp eq2).resolve_left b_ne_zero\n  -- Rearranging gives a + b = -1\n  linarith",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.7522926330566406
+      }
+    },
+    {
+      "index": 26,
+      "status": "SOLVED",
+      "raw_text": "To prove $a + b = -1$ given $f(x) = x^2 + ax + b$, $f(2a) = 0$, $f(b) = 0$, and $2a \\neq b$:\n\n1.  **Identify Roots**: Since $f(2a) = 0$ and $f(b) = 0$, and $2a \\neq b$, the two distinct roots of the quadratic $x^2 + ax + b$ are $r_1 = 2a$ and $r_2 = b$.\n2.  **Vieta's Formulas**:\n    *   Sum of roots: $r_1 + r_2 = -a \\implies 2a + b = -a \\implies 3a + b = 0$.\n    *   Product of roots: $r_1 \\cdot r_2 = b \\implies (2a) \\cdot b = b$.\n3.  **Solve for $a$**: From $2ab = b$, we have $b(2a - 1) = 0$.\n    *   If $b = 0$, then $3a + 0 = 0 \\implies a = 0$. But $2a \\neq b$ requires $0 \\neq 0$, a contradiction.\n    *   Thus $b \\neq 0$, implying $2a - 1 = 0 \\implies a = 1/2$.\n4.  **Solve for $b$**: Substitute $a = 1/2$ into $3a + b = 0$: $3(1/2) + b = 0 \\implies b = -3/2$.\n5.  **Final Sum**: $a + b = 1/2 - 3/2 = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Use the definition of f to expand the equations\n  rw [h₀] at h₂ h₃\n  simp only [pow_two] at h₂ h₃\n  -- h₂: (2a)^2 + a(2a) + b = 0 => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h4 : 6 * a^2 + b = 0 := by\n    calc 6 * a^2 + b = (2 * a) * (2 * a) + a * (2 * a) + b := by ring\n    _ = 0 := h₂\n  -- h₃: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have h5 : b * (b + a + 1) = 0 := by\n    calc b * (b + a + 1) = b * b + a * b + b := by ring\n    _ = 0 := h₃\n  -- If b = 0, then from h4, 6a^2 = 0 => a = 0.\n  -- But 2a ≠ b implies 0 ≠ 0, a contradiction.\n  have hb : b ≠ 0 := by\n    intro hb_zero\n    rw [hb_zero] at h4 h₁\n    have ha_zero : a = 0 := by nlinarith\n    rw [ha_zero] at h₁\n    simp at h₁\n  -- Since b ≠ 0 and b(b + a + 1) = 0, we must have b + a + 1 = 0.\n  have h_sum : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp h5).resolve_left hb\n  -- Therefore, a + b = -1.\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Use the definition of f to expand the equations\n  rw [h₀] at h₂ h₃\n  simp only [pow_two] at h₂ h₃\n  -- h₂: (2a)^2 + a(2a) + b = 0 => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have h4 : 6 * a^2 + b = 0 := by\n    calc 6 * a^2 + b = (2 * a) * (2 * a) + a * (2 * a) + b := by ring\n    _ = 0 := h₂\n  -- h₃: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have h5 : b * (b + a + 1) = 0 := by\n    calc b * (b + a + 1) = b * b + a * b + b := by ring\n    _ = 0 := h₃\n  -- If b = 0, then from h4, 6a^2 = 0 => a = 0.\n  -- But 2a ≠ b implies 0 ≠ 0, a contradiction.\n  have hb : b ≠ 0 := by\n    intro hb_zero\n    rw [hb_zero] at h4 h₁\n    have ha_zero : a = 0 := by nlinarith\n    rw [ha_zero] at h₁\n    simp at h₁\n  -- Since b ≠ 0 and b(b + a + 1) = 0, we must have b + a + 1 = 0.\n  have h_sum : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp h5).resolve_left hb\n  -- Therefore, a + b = -1.\n  linarith",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.633286714553833
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "To prove $a + b = -1$, we use the given conditions on the quadratic function $f(x) = x^2 + ax + b$.\n\n**Proof Sketch:**\n1.  **Expand the conditions:** From $f(2a) = 0$ and $f(b) = 0$, we substitute these into the definition of $f(x)$:\n    -   $(2a)^2 + a(2a) + b = 0 \\implies 4a^2 + 2a^2 + b = 0 \\implies 6a^2 + b = 0$.\n    -   $b^2 + a(b) + b = 0 \\implies b(b + a + 1) = 0$.\n2.  **Analyze the second equation:** $b(b + a + 1) = 0$ implies either $b = 0$ or $b + a + 1 = 0$.\n3.  **Case $b = 0$:** If $b = 0$, the first equation $6a^2 + b = 0$ implies $6a^2 = 0$, so $a = 0$. However, the condition $2a \\neq b$ becomes $0 \\neq 0$, which is a contradiction.\n4.  **Case $b + a + 1 = 0$:** This directly implies $a + b = -1$.\n5.  **Consistency check:** Since $b = - (a + 1)$, we substitute into $6a^2 + b = 0$ to get $6a^2 - a - 1 = 0$. This quadratic in $a$ has roots $1/2$ and $-1/3$. In both cases, $2a \\neq b$ holds.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the equations f(2a) = 0 and f(b) = 0\n  rw [h₀] at h₂ h₃\n  -- Equation from f(2a) = 0: (2a)^2 + a(2a) + b = 0 => 6a^2 + b = 0\n  have eq1 : 6 * a^2 + b = 0 := by\n    ring_nf at h₂\n    exact h₂\n  -- Equation from f(b) = 0: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have eq2 : b * (b + a + 1) = 0 := by\n    ring_nf at h₃\n    linear_combination h₃\n  -- From eq2, either b = 0 or b + a + 1 = 0\n  rcases mul_eq_zero.mp eq2 with (hb | hab)\n  · -- Case b = 0\n    rw [hb] at eq1\n    -- 6a^2 = 0 => a = 0\n    have ha : a = 0 := by\n      nlinarith\n    -- If a = 0 and b = 0, then 2a = b, which contradicts h₁\n    rw [ha, hb] at h₁\n    simp at h₁\n  · -- Case b + a + 1 = 0\n    -- This directly gives a + b = -1\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the equations f(2a) = 0 and f(b) = 0\n  rw [h₀] at h₂ h₃\n  -- Equation from f(2a) = 0: (2a)^2 + a(2a) + b = 0 => 6a^2 + b = 0\n  have eq1 : 6 * a^2 + b = 0 := by\n    ring_nf at h₂\n    exact h₂\n  -- Equation from f(b) = 0: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have eq2 : b * (b + a + 1) = 0 := by\n    ring_nf at h₃\n    linear_combination h₃\n  -- From eq2, either b = 0 or b + a + 1 = 0\n  rcases mul_eq_zero.mp eq2 with (hb | hab)\n  · -- Case b = 0\n    rw [hb] at eq1\n    -- 6a^2 = 0 => a = 0\n    have ha : a = 0 := by\n      nlinarith\n    -- If a = 0 and b = 0, then 2a = b, which contradicts h₁\n    rw [ha, hb] at h₁\n    simp at h₁\n  · -- Case b + a + 1 = 0\n    -- This directly gives a + b = -1\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₂\nhas type\n  a ^ 2 * 6 + b = 0\nbut is expected to have type\n  6 * a ^ 2 + b = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6644105911254883
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "To prove that $a + b = -1$, we follow these steps:\n\n1.  **Formulate equations from roots:** Since $f(2a) = 0$ and $f(b) = 0$, $2a$ and $b$ are roots of the quadratic $x^2 + ax + b = 0$.\n2.  **Use Vieta's formulas:** For the quadratic $x^2 + ax + b$, the sum of the roots is equal to $-a$ and the product of the roots is equal to $b$.\n    *   Sum: $(2a) + b = -a$\n    *   Product: $(2a) \\cdot b = b$\n3.  **Solve for $a$:** From the product equation $2ab = b$, we have $b(2a - 1) = 0$. This implies $b = 0$ or $2a = 1$.\n    *   Case 1 ($b = 0$): The sum equation becomes $2a + 0 = -a \\implies 3a = 0 \\implies a = 0$. This implies $2a = b$, which contradicts the hypothesis $2a \\neq b$.\n    *   Case 2 ($2a = 1$): This gives $a = 1/2$.\n4.  **Solve for $b$:** Substitute $a = 1/2$ into the sum equation: $2(1/2) + b = - (1/2) \\implies 1 + b = -1/2 \\implies b = -3/2$.\n5.  **Final Calculation:** $a + b = 1/2 - 3/2 = -2/2 = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the root equations\n  rw [h₀] at h₂ h₃\n  -- h₂: (2*a)^2 + a*(2*a) + b = 0  => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  -- h₃: b^2 + a*b + b = 0         => b(b + a + 1) = 0\n  have eq1 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  have eq2 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  \n  -- From eq2, either b = 0 or b + a + 1 = 0.\n  cases' eq_zero_or_eq_zero_of_mul_eq_zero eq2 with hb hb_sum\n  · -- Case b = 0\n    rw [hb] at eq1\n    have ha : a = 0 := by\n      simp at eq1\n      exact eq1\n    -- This leads to 2a = 0 and b = 0, so 2a = b, contradicting h₁\n    subst ha hb\n    contradiction\n  · -- Case b + a + 1 = 0\n    -- This directly gives a + b = -1\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute the definition of f into the root equations\n  rw [h₀] at h₂ h₃\n  -- h₂: (2*a)^2 + a*(2*a) + b = 0  => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  -- h₃: b^2 + a*b + b = 0         => b(b + a + 1) = 0\n  have eq1 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  have eq2 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  \n  -- From eq2, either b = 0 or b + a + 1 = 0.\n  cases' eq_zero_or_eq_zero_of_mul_eq_zero eq2 with hb hb_sum\n  · -- Case b = 0\n    rw [hb] at eq1\n    have ha : a = 0 := by\n      simp at eq1\n      exact eq1\n    -- This leads to 2a = 0 and b = 0, so 2a = b, contradicting h₁\n    subst ha hb\n    contradiction\n  · -- Case b + a + 1 = 0\n    -- This directly gives a + b = -1\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 4
+            },
+            "endPos": {
+              "line": 28,
+              "column": 17
+            },
+            "data": "Tactic `contradiction` failed\n\ncase inl\nf : ℝ → ℝ\neq1 : 6 * 0 ^ 2 + 0 = 0\nh₀ : ∀ (x : ℝ), f x = x ^ 2 + 0 * x + 0\nh₁ : 2 * 0 ≠ 0\nh₂ : (2 * 0) ^ 2 + 0 * (2 * 0) + 0 = 0\nh₃ : 0 ^ 2 + 0 * 0 + 0 = 0\neq2 : 0 * (0 + 0 + 1) = 0\n⊢ 0 + 0 = -1"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.298187255859375
+      }
+    },
+    {
+      "index": 29,
+      "status": "SOLVED",
+      "raw_text": "To prove that $a + b = -1$, we use the given function $f(x) = x^2 + ax + b$ and the fact that $2a$ and $b$ are roots of $f$.\n\n1.  **Plug roots into the function**: From $f(2a) = 0$, we have $(2a)^2 + a(2a) + b = 0$, which simplifies to $6a^2 + b = 0$, hence $b = -6a^2$.\n2.  **Use the second root**: From $f(b) = 0$, we have $b^2 + ab + b = 0$. Factoring out $b$, we get $b(b + a + 1) = 0$.\n3.  **Analyze the cases**:\n    - If $b = 0$, then $6a^2 = 0$ implies $a = 0$. However, the condition $2a \\neq b$ becomes $0 \\neq 0$, which is a contradiction. Thus $b \\neq 0$.\n    - Since $b \\neq 0$, we must have $b + a + 1 = 0$.\n4.  **Conclude**: Rearranging $b + a + 1 = 0$ directly yields $a + b = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Use f(2a) = 0 to express b in terms of a\n  have h4 : (2 * a) ^ 2 + a * (2 * a) + b = 0 := by\n    rw [← h₀]\n    exact h₂\n  have hb_val : b = -6 * a ^ 2 := by\n    linarith [h4]\n  \n  -- Use f(b) = 0\n  have h5 : b ^ 2 + a * b + b = 0 := by\n    rw [← h₀]\n    exact h₃\n  \n  -- Factor f(b) = 0 as b * (b + a + 1) = 0\n  have h6 : b * (b + a + 1) = 0 := by\n    rw [← h5]\n    ring\n  \n  -- Show that b cannot be 0\n  have hb_ne_zero : b ≠ 0 := by\n    intro hb_zero\n    have ha_zero : a = 0 := by\n      rw [hb_zero] at hb_val\n      nlinarith\n    apply h₁\n    rw [ha_zero, hb_zero]\n    simp\n  \n  -- Since b * (b + a + 1) = 0 and b != 0, b + a + 1 = 0\n  have h7 : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp h6).resolve_left hb_ne_zero\n  \n  -- Conclusion\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Use f(2a) = 0 to express b in terms of a\n  have h4 : (2 * a) ^ 2 + a * (2 * a) + b = 0 := by\n    rw [← h₀]\n    exact h₂\n  have hb_val : b = -6 * a ^ 2 := by\n    linarith [h4]\n  \n  -- Use f(b) = 0\n  have h5 : b ^ 2 + a * b + b = 0 := by\n    rw [← h₀]\n    exact h₃\n  \n  -- Factor f(b) = 0 as b * (b + a + 1) = 0\n  have h6 : b * (b + a + 1) = 0 := by\n    rw [← h5]\n    ring\n  \n  -- Show that b cannot be 0\n  have hb_ne_zero : b ≠ 0 := by\n    intro hb_zero\n    have ha_zero : a = 0 := by\n      rw [hb_zero] at hb_val\n      nlinarith\n    apply h₁\n    rw [ha_zero, hb_zero]\n    simp\n  \n  -- Since b * (b + a + 1) = 0 and b != 0, b + a + 1 = 0\n  have h7 : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp h6).resolve_left hb_ne_zero\n  \n  -- Conclusion\n  linarith",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.6412394046783447
+      }
+    },
+    {
+      "index": 30,
+      "status": "SOLVED",
+      "raw_text": "To prove the theorem, we follow these steps:\n1.  **Formulate Equations**: Substitute the values into the function definition $f(x) = x^2 + ax + b$.\n    *   From $f(2a) = 0$, we get $(2a)^2 + a(2a) + b = 0$, which simplifies to $6a^2 + b = 0$.\n    *   From $f(b) = 0$, we get $b^2 + ab + b = 0$, which factors as $b(b + a + 1) = 0$.\n2.  **Analyze the Cases**:\n    *   Case $b = 0$: If $b = 0$, the first equation $6a^2 + 0 = 0$ implies $a = 0$. However, the condition $2a \\neq b$ (given as $h_1$) would result in $0 \\neq 0$, which is a contradiction. Thus $b \\neq 0$.\n    *   Case $b + a + 1 = 0$: Since $b \\neq 0$, the factor $b+a+1$ must be zero.\n3.  **Conclusion**: Solving $a + b + 1 = 0$ directly yields $a + b = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute f(x) definition into h₂ and h₃\n  rw [h₀] at h₂ h₃\n  -- Simplify h₂: (2a)^2 + a(2a) + b = 0 => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have eq1 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- Simplify h₃: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have eq2 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- Determine if b can be zero\n  have b_ne_zero : b ≠ 0 := by\n    intro hb\n    -- If b = 0, then 6a^2 = 0 from eq1, so a = 0\n    have ha : a = 0 := by\n      rw [hb] at eq1\n      simp at eq1\n      exact eq1\n    -- This implies 2a = b (0 = 0), contradicting h₁\n    have h_contra : 2 * a = b := by\n      rw [ha, hb]\n      norm_num\n    exact h₁ h_contra\n  -- Since b * (b + a + 1) = 0 and b ≠ 0, b + a + 1 = 0\n  have h_sum : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp eq2).resolve_left b_ne_zero\n  -- Final result\n  linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute f(x) definition into h₂ and h₃\n  rw [h₀] at h₂ h₃\n  -- Simplify h₂: (2a)^2 + a(2a) + b = 0 => 4a^2 + 2a^2 + b = 0 => 6a^2 + b = 0\n  have eq1 : 6 * a^2 + b = 0 := by\n    linear_combination h₂\n  -- Simplify h₃: b^2 + ab + b = 0 => b(b + a + 1) = 0\n  have eq2 : b * (b + a + 1) = 0 := by\n    linear_combination h₃\n  -- Determine if b can be zero\n  have b_ne_zero : b ≠ 0 := by\n    intro hb\n    -- If b = 0, then 6a^2 = 0 from eq1, so a = 0\n    have ha : a = 0 := by\n      rw [hb] at eq1\n      simp at eq1\n      exact eq1\n    -- This implies 2a = b (0 = 0), contradicting h₁\n    have h_contra : 2 * a = b := by\n      rw [ha, hb]\n      norm_num\n    exact h₁ h_contra\n  -- Since b * (b + a + 1) = 0 and b ≠ 0, b + a + 1 = 0\n  have h_sum : b + a + 1 = 0 := by\n    exact (mul_eq_zero.mp eq2).resolve_left b_ne_zero\n  -- Final result\n  linarith",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3906419277191162
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "To solve the theorem $a + b = -1$, we follow this proof sketch:\n\n1.  **Expand the function values:** Using the definition $f(x) = x^2 + ax + b$, we translate the conditions $f(2a) = 0$ and $f(b) = 0$ into algebraic equations:\n    *   $f(2a) = (2a)^2 + a(2a) + b = 4a^2 + 2a^2 + b = 6a^2 + b = 0$.\n    *   $f(b) = b^2 + ab + b = b(b + a + 1) = 0$.\n2.  **Analyze $f(b) = 0$:** The equation $b(b + a + 1) = 0$ implies either $b = 0$ or $b + a + 1 = 0$.\n3.  **Case $b = 0$:** If $b = 0$, then from $6a^2 + b = 0$, we get $6a^2 = 0$, so $a = 0$. However, the condition $2a \\neq b$ states $2(0) \\neq 0$, which is $0 \\neq 0$, a contradiction. Thus $b \\neq 0$.\n4.  **Case $b + a + 1 = 0$:** Since $b \\neq 0$, we must have $b + a + 1 = 0$, which directly implies $a + b = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute f(2a) = 0 into the definition of f\n  have eq1 : 6 * a^2 + b = 0 := by\n    rw [h₀] at h₂\n    ring_nf at h₂\n    exact h₂\n  \n  -- Substitute f(b) = 0 into the definition of f\n  have eq2 : b^2 + a * b + b = 0 := by\n    rw [h₀] at h₃\n    ring_nf at h₃\n    exact h₃\n    \n  -- Factor eq2: b * (b + a + 1) = 0\n  have eq2_factored : b * (b + a + 1) = 0 := by\n    linear_combination eq2\n    \n  -- Use zero product property\n  cases mul_eq_zero.mp eq2_factored with\n  | inl hb0 => \n    -- Case b = 0: substitute into eq1 to find a\n    rw [hb0] at eq1\n    have ha0 : a = 0 := by\n      simp at eq1\n      exact eq1\n    -- This contradicts h₁: 2*a ≠ b\n    rw [ha0, hb0] at h₁\n    simp at h₁\n  | inr hab1 =>\n    -- Case b + a + 1 = 0\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Substitute f(2a) = 0 into the definition of f\n  have eq1 : 6 * a^2 + b = 0 := by\n    rw [h₀] at h₂\n    ring_nf at h₂\n    exact h₂\n  \n  -- Substitute f(b) = 0 into the definition of f\n  have eq2 : b^2 + a * b + b = 0 := by\n    rw [h₀] at h₃\n    ring_nf at h₃\n    exact h₃\n    \n  -- Factor eq2: b * (b + a + 1) = 0\n  have eq2_factored : b * (b + a + 1) = 0 := by\n    linear_combination eq2\n    \n  -- Use zero product property\n  cases mul_eq_zero.mp eq2_factored with\n  | inl hb0 => \n    -- Case b = 0: substitute into eq1 to find a\n    rw [hb0] at eq1\n    have ha0 : a = 0 := by\n      simp at eq1\n      exact eq1\n    -- This contradicts h₁: 2*a ≠ b\n    rw [ha0, hb0] at h₁\n    simp at h₁\n  | inr hab1 =>\n    -- Case b + a + 1 = 0\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₂\nhas type\n  a ^ 2 * 6 + b = 0\nbut is expected to have type\n  6 * a ^ 2 + b = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 4
+            },
+            "endPos": {
+              "line": 20,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₃\nhas type\n  b + b * a + b ^ 2 = 0\nbut is expected to have type\n  b ^ 2 + a * b + b = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4111483097076416
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Define the system of equations**: From the definition of $f(x) = x^2 + ax + b$, we substitute the given roots $2a$ and $b$ into $f(x) = 0$.\n2.  **Derive equations for $a$ and $b$**:\n    *   $f(2a) = (2a)^2 + a(2a) + b = 4a^2 + 2a^2 + b = 6a^2 + b = 0 \\implies b = -6a^2$.\n    *   $f(b) = b^2 + ab + b = 0$.\n3.  **Factor the second equation**: $b(b + a + 1) = 0$. This implies $b = 0$ or $b + a + 1 = 0$.\n4.  **Case analysis on $b$**:\n    *   If $b = 0$, then from $b = -6a^2$, we have $a = 0$. This implies $2a = 0$ and $b = 0$, so $2a = b$. However, the hypothesis $h_1$ states $2a \\neq b$, so this case is impossible.\n    *   If $b + a + 1 = 0$, then $a + b = -1$.\n5.  **Conclusion**: The only valid solution satisfying $2a \\neq b$ leads to $a + b = -1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Extract equations from the roots of the quadratic\n  have ha : 6 * a^2 + b = 0 := by\n    rw [h₀] at h₂\n    ring_nf at h₂\n    exact h₂\n  have hb : b^2 + a * b + b = 0 := by\n    rw [h₀] at h₃\n    exact h₃\n  \n  -- Factor the second equation: b * (b + a + 1) = 0\n  have h_factor : b * (b + a + 1) = 0 := by\n    linear_combination hb\n  \n  -- Case analysis on b * (b + a + 1) = 0\n  cases mul_eq_zero.mp h_factor with\n  | inl hb_zero =>\n    -- Case b = 0\n    rw [hb_zero] at ha\n    have ha_zero : a = 0 := by\n      nlinarith\n    -- Leads to contradiction: 2a = 0 = b, but h1 says 2a ≠ b\n    subst hb_zero ha_zero\n    simp at h₁\n  | inr hab =>\n    -- Case b + a + 1 = 0\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_206 (a b : ℝ) (f : ℝ → ℝ) (h₀ : ∀ x, f x = x ^ 2 + a * x + b) (h₁ : 2 * a ≠ b)\n  (h₂ : f (2 * a) = 0) (h₃ : f b = 0) : a + b = -1 := by\n  -- Extract equations from the roots of the quadratic\n  have ha : 6 * a^2 + b = 0 := by\n    rw [h₀] at h₂\n    ring_nf at h₂\n    exact h₂\n  have hb : b^2 + a * b + b = 0 := by\n    rw [h₀] at h₃\n    exact h₃\n  \n  -- Factor the second equation: b * (b + a + 1) = 0\n  have h_factor : b * (b + a + 1) = 0 := by\n    linear_combination hb\n  \n  -- Case analysis on b * (b + a + 1) = 0\n  cases mul_eq_zero.mp h_factor with\n  | inl hb_zero =>\n    -- Case b = 0\n    rw [hb_zero] at ha\n    have ha_zero : a = 0 := by\n      nlinarith\n    -- Leads to contradiction: 2a = 0 = b, but h1 says 2a ≠ b\n    subst hb_zero ha_zero\n    simp at h₁\n  | inr hab =>\n    -- Case b + a + 1 = 0\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 12
+            },
+            "data": "Type mismatch\n  h₂\nhas type\n  a ^ 2 * 6 + b = 0\nbut is expected to have type\n  6 * a ^ 2 + b = 0"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.539696455001831
+      }
+    }
+  ]
+}

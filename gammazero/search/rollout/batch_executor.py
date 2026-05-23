@@ -662,6 +662,11 @@ class BatchExecutor:
                     self.failure.handle_system_execute_failure(
                         graph, state, action_type, raw_output, res, prompt
                     )
+                    feedbacks[i][j] = (
+                        res.state_code or self._state_verify_code(state, lean_code),
+                        res.system_errors or "Lean verification failed/timed out.",
+                        "",
+                    )
                     continue
                 state_code, state_vr, subgoals = res.state_code, res.verify, list(res.subgoals)
                 full_code = state_code
@@ -961,9 +966,12 @@ class BatchExecutor:
                     )
                     continue
                 sorr_body = self.failure.apply_failed_action_patch(graph, patch)
+                feedback_str = format_lean_feedback(state_vr)
+                if patch.lean_feedback and ("timeout" in patch.lean_feedback.lower() or "timed out" in patch.lean_feedback.lower()):
+                    feedback_str = patch.lean_feedback
                 feedbacks[i][j] = (
                     patch.verify_code or self._state_verify_code(state, lean_code),
-                    format_lean_feedback(state_vr),
+                    feedback_str,
                     sorr_body,
                 )
 

@@ -1,0 +1,1905 @@
+{
+  "problem": "problems/miniF2F-test/mathd_numbertheory_232.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 15:56:34",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 2,
+    "completed_count": 2,
+    "solved": true
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "To prove that $z = 29$ in $\\mathbb{Z}_{31}$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x + y)^{-1}$, we follow these steps:\n\n### Proof Sketch\n1.  **Inverse Calculation**: In the field $\\mathbb{Z}_{31}$, find the explicit values of $x$ and $y$. Since $3 \\times 21 = 63 \\equiv 1 \\pmod{31}$, we have $x = 21$. Since $5 \\times 25 = 125 = 4 \\times 31 + 1$, we have $y = 25$.\n2.  **Summation**: Calculate the sum $x + y = 21 + 25 = 46$.\n3.  **Modular Reduction**: Reduce $46 \\pmod{31}$ to get $15$. Thus, $z = 15^{-1}$ in $\\mathbb{Z}_{31}$.\n4.  **Final Inverse**: Find the modular inverse of $15 \\pmod{31}$. Since $15 \\times 2 = 30 \\equiv -1 \\pmod{31}$, then $15 \\times (-2) \\equiv 1 \\pmod{31}$.\n5.  **Result**: $-2 \\equiv 29 \\pmod{31}$, so $z = 29$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Calculate the sum 3⁻¹ + 5⁻¹ = (5 + 3) / (3 * 5) = 8 / 15\n  have h_sum : (3 : ZMod 31)⁻¹ + 5⁻¹ = 8 * 15⁻¹ := by\n    apply (inv_add_inv₀ _ _).trans\n    · norm_num\n    · exact (show (3 : ZMod 31) ≠ 0 by decide)\n    · exact (show (5 : ZMod 31) ≠ 0 by decide)\n  -- Apply the calculated sum to z\n  rw [h_sum] at h₂\n  -- z = (8 * 15⁻¹)⁻¹ = 15 * 8⁻¹\n  rw [mul_inv_rev, inv_inv] at h₂\n  -- 8⁻¹ in ZMod 31 is 4 because 8 * 4 = 32 ≡ 1\n  have h_inv8 : (8 : ZMod 31)⁻¹ = 4 := by\n    apply inv_eq_of_mul_eq_one\n    decide\n  -- Final calculation: z = 15 * 4 = 60 ≡ 29 (mod 31)\n  rw [h_inv8] at h₂\n  rw [h₂]\n  decide\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Calculate the sum 3⁻¹ + 5⁻¹ = (5 + 3) / (3 * 5) = 8 / 15\n  have h_sum : (3 : ZMod 31)⁻¹ + 5⁻¹ = 8 * 15⁻¹ := by\n    apply (inv_add_inv₀ _ _).trans\n    · norm_num\n    · exact (show (3 : ZMod 31) ≠ 0 by decide)\n    · exact (show (5 : ZMod 31) ≠ 0 by decide)\n  -- Apply the calculated sum to z\n  rw [h_sum] at h₂\n  -- z = (8 * 15⁻¹)⁻¹ = 15 * 8⁻¹\n  rw [mul_inv_rev, inv_inv] at h₂\n  -- 8⁻¹ in ZMod 31 is 4 because 8 * 4 = 32 ≡ 1\n  have h_inv8 : (8 : ZMod 31)⁻¹ = 4 := by\n    apply inv_eq_of_mul_eq_one\n    decide\n  -- Final calculation: z = 15 * 4 = 60 ≡ 29 (mod 31)\n  rw [h_inv8] at h₂\n  rw [h₂]\n  decide",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 11
+            },
+            "endPos": {
+              "line": 14,
+              "column": 23
+            },
+            "data": "Unknown identifier `inv_add_inv₀`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 14
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 6
+            },
+            "endPos": {
+              "line": 21,
+              "column": 17
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (?a * ?b)⁻¹\nin the target expression\n  z = (8 * 15⁻¹)⁻¹\n\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (8 * 15⁻¹)⁻¹\nh_sum : 3⁻¹ + 5⁻¹ = 8 * 15⁻¹\n⊢ z = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.45310115814208984
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we first express the modular inverses as specific elements of $\\mathbb{Z}/31\\mathbb{Z}$ by finding integers $k$ such that $k \\cdot n \\equiv 1 \\pmod{31}$.\n1. For $x = 3^{-1}$, since $3 \\cdot 21 = 63 = 2 \\cdot 31 + 1$, we have $x = 21$.\n2. For $y = 5^{-1}$, since $5 \\cdot 25 = 125 = 4 \\cdot 31 + 1$, we have $y = 25$.\n3. We then compute $x + y = 21 + 25 = 46 \\equiv 15 \\pmod{31}$.\n4. Finally, we compute $z = (x + y)^{-1} = 15^{-1}$. Since $15 \\cdot 2 = 30 \\equiv -1 \\pmod{31}$, we have $15 \\cdot (-2) \\equiv 1 \\pmod{31}$.\n5. In $\\mathbb{Z}/31\\mathbb{Z}$, $-2 \\equiv 29 \\pmod{31}$, thus $z = 29$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Use the definitions of modular inverse in ZMod 31\n  have hx : x = 21 := by\n    rw [h₀]\n    apply inv_eq_of_mul_eq_one\n    decide\n  have hy : y = 25 := by\n    rw [h₁]\n    apply inv_eq_of_mul_eq_one\n    decide\n  -- Calculate x + y\n  have hxy : x + y = 15 := by\n    rw [hx, hy]\n    decide\n  -- Calculate z as the inverse of (x + y)\n  rw [h₂, hxy]\n  apply inv_eq_of_mul_eq_one\n  decide\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Use the definitions of modular inverse in ZMod 31\n  have hx : x = 21 := by\n    rw [h₀]\n    apply inv_eq_of_mul_eq_one\n    decide\n  have hy : y = 25 := by\n    rw [h₁]\n    apply inv_eq_of_mul_eq_one\n    decide\n  -- Calculate x + y\n  have hxy : x + y = 15 := by\n    rw [hx, hy]\n    decide\n  -- Calculate z as the inverse of (x + y)\n  rw [h₂, hxy]\n  apply inv_eq_of_mul_eq_one\n  decide",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 10
+            },
+            "endPos": {
+              "line": 13,
+              "column": 30
+            },
+            "data": "Unknown identifier `inv_eq_of_mul_eq_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 10
+            },
+            "endPos": {
+              "line": 17,
+              "column": 30
+            },
+            "data": "Unknown identifier `inv_eq_of_mul_eq_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 4
+            },
+            "endPos": {
+              "line": 18,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 8
+            },
+            "endPos": {
+              "line": 25,
+              "column": 28
+            },
+            "data": "Unknown identifier `inv_eq_of_mul_eq_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 2
+            },
+            "endPos": {
+              "line": 26,
+              "column": 8
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.06286764144897461
+      }
+    },
+    {
+      "index": 3,
+      "status": "FAILED",
+      "raw_text": "To prove that $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x + y)^{-1}$, we perform the following steps:\n\n1.  **Evaluate $x$ and $y$**: In the field $\\mathbb{Z}/31\\mathbb{Z}$, we find the modular inverses. Since $3 \\cdot 21 = 63 = 2 \\cdot 31 + 1$, then $3^{-1} = 21$. Similarly, since $5 \\cdot 25 = 125 = 4 \\cdot 31 + 1$, then $5^{-1} = 25$.\n2.  **Calculate $x + y$**: Compute $21 + 25 = 46$. Reducing modulo 31, we get $46 \\equiv 15 \\pmod{31}$.\n3.  **Evaluate $z$**: We need the inverse of 15 modulo 31. Since $15 \\cdot 2 = 30 \\equiv -1 \\pmod{31}$, multiplying by $-1$ gives $15 \\cdot (-2) \\equiv 1$. Thus, $15^{-1} = -2$.\n4.  **Final Result**: In $\\mathbb{Z}/31\\mathbb{Z}$, $-2 \\equiv 29 \\pmod{31}$. Thus $z = 29$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We are working in ZMod 31, which is a field because 31 is prime.\n  -- Calculate 3⁻¹ and 5⁻¹ explicitly.\n  have h3 : (3 : ZMod 31)⁻¹ = 21 := by\n    norm_num\n  have h5 : (5 : ZMod 31)⁻¹ = 25 := by\n    norm_num\n  -- Substitute these numerical values into the equation for z\n  rw [h3, h5] at h₂\n  -- Simplify the sum 21 + 25 = 46 = 15 (mod 31)\n  have hsum : (21 + 25 : ZMod 31) = 15 := by\n    norm_num\n  rw [hsum] at h₂\n  -- Calculate 15⁻¹ in ZMod 31\n  have hinv : (15 : ZMod 31)⁻¹ = 29 := by\n    norm_num\n  -- Conclude the proof\n  rw [hinv] at h₂\n  exact h₂\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We are working in ZMod 31, which is a field because 31 is prime.\n  -- Calculate 3⁻¹ and 5⁻¹ explicitly.\n  have h3 : (3 : ZMod 31)⁻¹ = 21 := by\n    norm_num\n  have h5 : (5 : ZMod 31)⁻¹ = 25 := by\n    norm_num\n  -- Substitute these numerical values into the equation for z\n  rw [h3, h5] at h₂\n  -- Simplify the sum 21 + 25 = 46 = 15 (mod 31)\n  have hsum : (21 + 25 : ZMod 31) = 15 := by\n    norm_num\n  rw [hsum] at h₂\n  -- Calculate 15⁻¹ in ZMod 31\n  have hinv : (15 : ZMod 31)⁻¹ = 29 := by\n    norm_num\n  -- Conclude the proof\n  rw [hinv] at h₂\n  exact h₂",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 36
+            },
+            "endPos": {
+              "line": 15,
+              "column": 12
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\n⊢ 3⁻¹ = 21"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 36
+            },
+            "endPos": {
+              "line": 17,
+              "column": 12
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\nh3 : 3⁻¹ = 21\n⊢ 5⁻¹ = 25"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 42
+            },
+            "endPos": {
+              "line": 22,
+              "column": 12
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (21 + 25)⁻¹\nh3 : 3⁻¹ = 21\nh5 : 5⁻¹ = 25\n⊢ 46 = 15"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 39
+            },
+            "endPos": {
+              "line": 26,
+              "column": 12
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = 15⁻¹\nh3 : 3⁻¹ = 21\nh5 : 5⁻¹ = 25\nhsum : 21 + 25 = 15\n⊢ 15⁻¹ = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.46582961082458496
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "To solve the theorem $z = (3^{-1} + 5^{-1})^{-1} \\pmod{31}$, we follow these steps:\n\n1.  **Evaluate the inverses**: We compute the modular inverses of 3 and 5 modulo 31.\n    *   Since $3 \\times 21 = 63 = 2 \\times 31 + 1$, we have $3^{-1} \\equiv 21 \\pmod{31}$.\n    *   Since $5 \\times 25 = 125 = 4 \\times 31 + 1$, we have $5^{-1} \\equiv 25 \\pmod{31}$.\n2.  **Sum the values**: We find the sum $x + y = 21 + 25 = 46$.\n3.  **Reduce modulo 31**: $46 \\equiv 15 \\pmod{31}$.\n4.  **Find the inverse of the sum**: We compute $z = 15^{-1} \\pmod{31}$.\n    *   Since $15 \\times 2 = 30 \\equiv -1 \\pmod{31}$.\n    *   Then $15 \\times (-2) \\equiv 1 \\pmod{31}$.\n    *   $-2 \\equiv 29 \\pmod{31}$.\n5.  **Conclusion**: Thus, $z = 29$.\n\nIn Lean, we use the property that `ZMod 31` is a field and perform the arithmetic directly.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We perform calculation in ZMod 31\n  have hx : (3 : ZMod 31)⁻¹ = 21 := by norm_num\n  have hy : (5 : ZMod 31)⁻¹ = 25 := by norm_num\n  rw [hx, hy] at h₂\n  -- 21 + 25 = 46. 46 % 31 = 15\n  have hsum : (21 + 25 : ZMod 31) = 15 := by norm_num\n  rw [hsum] at h₂\n  -- 15⁻¹ in ZMod 31 is 29 because 15 * 29 = 435 = 14 * 31 + 1\n  have hinv : (15 : ZMod 31)⁻¹ = 29 := by norm_num\n  rw [hinv] at h₂\n  exact h₂\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We perform calculation in ZMod 31\n  have hx : (3 : ZMod 31)⁻¹ = 21 := by norm_num\n  have hy : (5 : ZMod 31)⁻¹ = 25 := by norm_num\n  rw [hx, hy] at h₂\n  -- 21 + 25 = 46. 46 % 31 = 15\n  have hsum : (21 + 25 : ZMod 31) = 15 := by norm_num\n  rw [hsum] at h₂\n  -- 15⁻¹ in ZMod 31 is 29 because 15 * 29 = 435 = 14 * 31 + 1\n  have hinv : (15 : ZMod 31)⁻¹ = 29 := by norm_num\n  rw [hinv] at h₂\n  exact h₂",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 36
+            },
+            "endPos": {
+              "line": 13,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\n⊢ 3⁻¹ = 21"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 36
+            },
+            "endPos": {
+              "line": 14,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\nhx : 3⁻¹ = 21\n⊢ 5⁻¹ = 25"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 42
+            },
+            "endPos": {
+              "line": 17,
+              "column": 53
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (21 + 25)⁻¹\nhx : 3⁻¹ = 21\nhy : 5⁻¹ = 25\n⊢ 46 = 15"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 39
+            },
+            "endPos": {
+              "line": 20,
+              "column": 50
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = 15⁻¹\nhx : 3⁻¹ = 21\nhy : 5⁻¹ = 25\nhsum : 21 + 25 = 15\n⊢ 15⁻¹ = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4732069969177246
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "To prove that $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x + y)^{-1}$, we perform direct calculations within the finite field $\\mathbb{Z}/31\\mathbb{Z}$:\n\n1.  **Find $x$ and $y$**: $x$ is the modular inverse of 3 modulo 31. Since $3 \\times 21 = 63 = 2 \\times 31 + 1$, $x = 21$. $y$ is the modular inverse of 5 modulo 31. Since $5 \\times 25 = 125 = 4 \\times 31 + 1$, $y = 25$.\n2.  **Calculate $x + y$**: $x + y = 21 + 25 = 46$. Modulo 31, $46 \\equiv 15 \\pmod{31}$.\n3.  **Find $z$**: $z$ is the modular inverse of $15$ modulo 31. We solve $15z \\equiv 1 \\pmod{31}$. Since $15 \\times 2 = 30 \\equiv -1 \\pmod{31}$, then $15 \\times (-2) \\equiv 1 \\pmod{31}$.\n4.  **Final result**: $z \\equiv -2 \\equiv 29 \\pmod{31}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Compute the specific values of 3⁻¹ and 5⁻¹ in ZMod 31\n  have h3 : (3 : ZMod 31)⁻¹ = 21 := by\n    apply inv_eq_of_mul_eq_one\n    decide\n  have h5 : (5 : ZMod 31)⁻¹ = 25 := by\n    apply inv_eq_of_mul_eq_one\n    decide\n  -- Substitute values back into z\n  rw [h3, h5] at h₂\n  -- Simplify the sum 21 + 25 = 46 = 15 (mod 31)\n  have hsum : (21 : ZMod 31) + 25 = 15 := by\n    decide\n  rw [hsum] at h₂\n  -- Compute the inverse of 15 in ZMod 31\n  have h15inv : (15 : ZMod 31)⁻¹ = 29 := by\n    apply inv_eq_of_mul_eq_one\n    decide\n  -- Conclude the proof\n  rw [h15inv] at h₂\n  exact h₂\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Compute the specific values of 3⁻¹ and 5⁻¹ in ZMod 31\n  have h3 : (3 : ZMod 31)⁻¹ = 21 := by\n    apply inv_eq_of_mul_eq_one\n    decide\n  have h5 : (5 : ZMod 31)⁻¹ = 25 := by\n    apply inv_eq_of_mul_eq_one\n    decide\n  -- Substitute values back into z\n  rw [h3, h5] at h₂\n  -- Simplify the sum 21 + 25 = 46 = 15 (mod 31)\n  have hsum : (21 : ZMod 31) + 25 = 15 := by\n    decide\n  rw [hsum] at h₂\n  -- Compute the inverse of 15 in ZMod 31\n  have h15inv : (15 : ZMod 31)⁻¹ = 29 := by\n    apply inv_eq_of_mul_eq_one\n    decide\n  -- Conclude the proof\n  rw [h15inv] at h₂\n  exact h₂",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 10
+            },
+            "endPos": {
+              "line": 14,
+              "column": 30
+            },
+            "data": "Unknown identifier `inv_eq_of_mul_eq_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 10
+            },
+            "endPos": {
+              "line": 17,
+              "column": 30
+            },
+            "data": "Unknown identifier `inv_eq_of_mul_eq_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 4
+            },
+            "endPos": {
+              "line": 18,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 10
+            },
+            "endPos": {
+              "line": 27,
+              "column": 30
+            },
+            "data": "Unknown identifier `inv_eq_of_mul_eq_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 4
+            },
+            "endPos": {
+              "line": 28,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1306610107421875
+      }
+    },
+    {
+      "index": 6,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we follow these steps:\n1.  **Define the field structure**: In Lean, `ZMod 31` is recognized as a field because 31 is prime.\n2.  **Evaluate inverses**: We need to find the modular inverses of $3$ and $5$ modulo 31. Since $3 \\times 21 = 63 = 2 \\times 31 + 1$, we have $3^{-1} \\equiv 21 \\pmod{31}$. Since $5 \\times 25 = 125 = 4 \\times 31 + 1$, we have $5^{-1} \\equiv 25 \\pmod{31}$.\n3.  **Sum the inverses**: $x + y = 21 + 25 = 46 \\equiv 15 \\pmod{31}$.\n4.  **Evaluate the final inverse**: We need $z = 15^{-1} \\pmod{31}$. Since $15 \\times 2 = 30 \\equiv -1 \\pmod{31}$, then $15 \\times (-2) \\equiv 1 \\pmod{31}$.\n5.  **Result**: $-2 \\equiv 29 \\pmod{31}$. Thus $z = 29$.\n\nIn Lean 4, using the `norm_num` tactic on `ZMod n` simplifies these arithmetic operations automatically.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Apply the value to z\n  rw [h₂]\n  -- Use norm_num to perform modular arithmetic in ZMod 31\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Apply the value to z\n  rw [h₂]\n  -- Use norm_num to perform modular arithmetic in ZMod 31\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 35
+            },
+            "endPos": {
+              "line": 15,
+              "column": 10
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\n⊢ (3⁻¹ + 5⁻¹)⁻¹ = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.041837215423583984
+      }
+    },
+    {
+      "index": 7,
+      "status": "FAILED",
+      "raw_text": "To solve the theorem $z = (3^{-1} + 5^{-1})^{-1} \\pmod{31}$, we follow these steps:\n\n### Proof Sketch\n1.  **Inverse of 3 modulo 31**: We need to find $x$ such that $3x \\equiv 1 \\pmod{31}$. Since $3 \\times 21 = 63 = 2 \\times 31 + 1$, then $3^{-1} \\equiv 21 \\pmod{31}$.\n2.  **Inverse of 5 modulo 31**: We need to find $y$ such that $5y \\equiv 1 \\pmod{31}$. Since $5 \\times 25 = 125 = 4 \\times 31 + 1$, then $5^{-1} \\equiv 25 \\pmod{31}$.\n3.  **Sum of Inverses**: Calculate $x + y = 21 + 25 = 46$. Reducing modulo 31, we get $46 \\equiv 15 \\pmod{31}$.\n4.  **Inverse of the Sum**: We need to find $z = 15^{-1} \\pmod{31}$. We seek $z$ such that $15z \\equiv 1 \\pmod{31}$.\n5.  **Calculation**: Observe that $15 \\times 2 = 30 \\equiv -1 \\pmod{31}$. Squaring or multiplying further, $15 \\times (-2) \\equiv 1 \\pmod{31}$. Thus $z \\equiv -2 \\equiv 29 \\pmod{31}$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Evaluate x = 3⁻¹ in ZMod 31\n  have hx : x = 21 := by\n    rw [h₀]\n    norm_num\n  -- Evaluate y = 5⁻¹ in ZMod 31\n  have hy : y = 25 := by\n    rw [h₁]\n    norm_num\n  -- Calculate x + y\n  have hsum : x + y = 15 := by\n    rw [hx, hy]\n    norm_num\n  -- Evaluate z = (x + y)⁻¹ = 15⁻¹ in ZMod 31\n  rw [h₂, hsum]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Evaluate x = 3⁻¹ in ZMod 31\n  have hx : x = 21 := by\n    rw [h₀]\n    norm_num\n  -- Evaluate y = 5⁻¹ in ZMod 31\n  have hy : y = 25 := by\n    rw [h₁]\n    norm_num\n  -- Calculate x + y\n  have hsum : x + y = 15 := by\n    rw [hx, hy]\n    norm_num\n  -- Evaluate z = (x + y)⁻¹ = 15⁻¹ in ZMod 31\n  rw [h₂, hsum]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 22
+            },
+            "endPos": {
+              "line": 13,
+              "column": 12
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (x + y)⁻¹\n⊢ 3⁻¹ = 21"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 22
+            },
+            "endPos": {
+              "line": 17,
+              "column": 12
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (x + y)⁻¹\nhx : x = 21\n⊢ 5⁻¹ = 25"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 28
+            },
+            "endPos": {
+              "line": 21,
+              "column": 12
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (x + y)⁻¹\nhx : x = 21\nhy : y = 25\n⊢ 46 = 15"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 35
+            },
+            "endPos": {
+              "line": 24,
+              "column": 10
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (x + y)⁻¹\nhx : x = 21\nhy : y = 25\nhsum : x + y = 15\n⊢ 15⁻¹ = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4603564739227295
+      }
+    },
+    {
+      "index": 8,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem in Lean 4, we leverage the properties of field arithmetic in the finite field $\\mathbb{Z}/31\\mathbb{Z}$.\n\n### Proof Sketch\n1.  **Inverse Computation**: Since $31$ is prime, $\\mathbb{Z}/31\\mathbb{Z}$ is a field. We interpret the given equations as arithmetic operations in this field.\n2.  **Evaluate $x$ and $y$**: \n    - $x = 3^{-1} \\pmod{31}$ means $3x = 1$. Since $3 \\times 21 = 63 = 2 \\times 31 + 1$, we have $x = 21$.\n    - $y = 5^{-1} \\pmod{31}$ means $5y = 1$. Since $5 \\times 25 = 125 = 4 \\times 31 + 1$, we have $y = 25$.\n3.  **Summation**: Calculate $x + y = 21 + 25 = 46$.\n4.  **Reduction**: $46 \\equiv 15 \\pmod{31}$.\n5.  **Final Inverse**: We need $z = (x + y)^{-1} = 15^{-1} \\pmod{31}$.\n    - We look for $z$ such that $15z \\equiv 1 \\pmod{31}$.\n    - Testing values or using the Extended Euclidean Algorithm: $15 \\times 2 = 30 \\equiv -1 \\pmod{31}$.\n    - Therefore, $15 \\times (-2) \\equiv 1 \\pmod{31}$.\n    - Since $-2 \\equiv 29 \\pmod{31}$, we conclude $z = 29$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Use the field properties of ZMod 31.\n  -- Since 31 is prime, we can compute inverses directly.\n  have h_x : x = 21 := by\n    rw [h₀]\n    norm_num\n  have h_y : y = 25 := by\n    rw [h₁]\n    norm_num\n  rw [h_x, h_y] at h₂\n  rw [h₂]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Use the field properties of ZMod 31.\n  -- Since 31 is prime, we can compute inverses directly.\n  have h_x : x = 21 := by\n    rw [h₀]\n    norm_num\n  have h_y : y = 25 := by\n    rw [h₁]\n    norm_num\n  rw [h_x, h_y] at h₂\n  rw [h₂]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 23
+            },
+            "endPos": {
+              "line": 14,
+              "column": 12
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (x + y)⁻¹\n⊢ 3⁻¹ = 21"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 23
+            },
+            "endPos": {
+              "line": 17,
+              "column": 12
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (x + y)⁻¹\nh_x : x = 21\n⊢ 5⁻¹ = 25"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 35
+            },
+            "endPos": {
+              "line": 20,
+              "column": 10
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (21 + 25)⁻¹\nh_x : x = 21\nh_y : y = 25\n⊢ 46⁻¹ = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.06590151786804199
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$, we follow these steps:\n1.  **Evaluate $x$**: Given $x = 3^{-1} \\pmod{31}$, we find the modular inverse of 3. Since $3 \\times 21 = 63 = 2 \\times 31 + 1$, we have $3^{-1} = 21 \\pmod{31}$.\n2.  **Evaluate $y$**: Given $y = 5^{-1} \\pmod{31}$, we find the modular inverse of 5. Since $5 \\times 25 = 125 = 4 \\times 31 + 1$, we have $5^{-1} = 25 \\pmod{31}$.\n3.  **Evaluate $x + y$**: $x + y = 21 + 25 = 46 \\equiv 15 \\pmod{31}$.\n4.  **Evaluate $z$**: Given $z = (x + y)^{-1}$, we find the modular inverse of $15 \\pmod{31}$. Since $15 \\times 2 = 30 \\equiv -1 \\pmod{31}$, then $15 \\times (-2) \\equiv 1 \\pmod{31}$. Thus $15^{-1} = -2 \\equiv 29 \\pmod{31}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Compute the specific values in ZMod 31\n  have hx : (3 : ZMod 31)⁻¹ = 21 := by norm_num\n  have hy : (5 : ZMod 31)⁻¹ = 25 := by norm_num\n  rw [hx, hy] at h₂\n  -- Add the values\n  have hsum : (21 + 25 : ZMod 31) = 15 := by norm_num\n  rw [hsum] at h₂\n  -- Compute the inverse of 15 in ZMod 31\n  have hz : (15 : ZMod 31)⁻¹ = 29 := by norm_num\n  rw [hz] at h₂\n  exact h₂\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Compute the specific values in ZMod 31\n  have hx : (3 : ZMod 31)⁻¹ = 21 := by norm_num\n  have hy : (5 : ZMod 31)⁻¹ = 25 := by norm_num\n  rw [hx, hy] at h₂\n  -- Add the values\n  have hsum : (21 + 25 : ZMod 31) = 15 := by norm_num\n  rw [hsum] at h₂\n  -- Compute the inverse of 15 in ZMod 31\n  have hz : (15 : ZMod 31)⁻¹ = 29 := by norm_num\n  rw [hz] at h₂\n  exact h₂",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 36
+            },
+            "endPos": {
+              "line": 13,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\n⊢ 3⁻¹ = 21"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 36
+            },
+            "endPos": {
+              "line": 14,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\nhx : 3⁻¹ = 21\n⊢ 5⁻¹ = 25"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 42
+            },
+            "endPos": {
+              "line": 17,
+              "column": 53
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (21 + 25)⁻¹\nhx : 3⁻¹ = 21\nhy : 5⁻¹ = 25\n⊢ 46 = 15"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 37
+            },
+            "endPos": {
+              "line": 20,
+              "column": 48
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = 15⁻¹\nhx : 3⁻¹ = 21\nhy : 5⁻¹ = 25\nhsum : 21 + 25 = 15\n⊢ 15⁻¹ = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.44721412658691406
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "To prove that $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x + y)^{-1}$, we perform the following steps:\n1.  **Evaluate $x$ and $y$**: In the field $\\mathbb{Z}_{31}$, we find the modular inverses. Since $3 \\cdot 21 = 63 = 2 \\cdot 31 + 1$, then $3^{-1} = 21$. Since $5 \\cdot 25 = 125 = 4 \\cdot 31 + 1$, then $5^{-1} = 25$.\n2.  **Sum $x$ and $y$**: $x + y = 21 + 25 = 46$. Reducing modulo 31, $46 \\equiv 15 \\pmod{31}$.\n3.  **Evaluate $z$**: $z = (x + y)^{-1} = 15^{-1}$. We look for $k$ such that $15k \\equiv 1 \\pmod{31}$. Since $15 \\cdot 2 = 30 \\equiv -1 \\pmod{31}$, then $15 \\cdot (-2) \\equiv 1 \\pmod{31}$.\n4.  **Final reduction**: $-2 \\equiv 29 \\pmod{31}$. Thus $z = 29$.\n\nIn Lean, we can automate these modular arithmetic calculations using `norm_num`.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute the values of x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Now z = (3⁻¹ + 5⁻¹)⁻¹ in ZMod 31\n  rw [h₂]\n  -- Use norm_num to evaluate the modular arithmetic expression\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute the values of x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Now z = (3⁻¹ + 5⁻¹)⁻¹ in ZMod 31\n  rw [h₂]\n  -- Use norm_num to evaluate the modular arithmetic expression\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 35
+            },
+            "endPos": {
+              "line": 15,
+              "column": 10
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\n⊢ (3⁻¹ + 5⁻¹)⁻¹ = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.04176449775695801
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "To prove that $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x + y)^{-1}$, we perform the following calculation:\n1.  Identify the field properties of $\\mathbb{Z}/31\\mathbb{Z}$ (since 31 is prime).\n2.  Substitute the values of $x$ and $y$: $z = (3^{-1} + 5^{-1})^{-1}$.\n3.  Combine the fractions: $3^{-1} + 5^{-1} = \\frac{5 + 3}{3 \\cdot 5} = \\frac{8}{15}$ in the field.\n4.  Invert the result: $z = (\\frac{8}{15})^{-1} = \\frac{15}{8} = 15 \\cdot 8^{-1}$.\n5.  Solve for $8^{-1} \\pmod{31}$: Since $8 \\cdot 4 = 32 \\equiv 1 \\pmod{31}$, we have $8^{-1} = 4$.\n6.  Calculate $z$: $z = 15 \\cdot 4 = 60$.\n7.  Reduce modulo 31: $60 = 1 \\cdot 31 + 29$, so $60 \\equiv 29 \\pmod{31}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Since 31 is prime, ZMod 31 is a field.\n  -- Substitute x and y into the equation for z.\n  rw [h₀, h₁] at h₂\n  -- We have z = (3⁻¹ + 5⁻¹)⁻¹.\n  -- 3⁻¹ + 5⁻¹ = (5 + 3) / (3 * 5) = 8 / 15.\n  have h_sum : (3⁻¹ + 5⁻¹ : ZMod 31) = 8 * (15⁻¹) := by\n    norm_num\n  rw [h_sum] at h₂\n  -- z = (8 * 15⁻¹)⁻¹ = 15 * 8⁻¹.\n  rw [mul_inv_rev, inv_inv] at h₂\n  -- Now calculate 15 * 8⁻¹ in ZMod 31.\n  -- We know 8 * 4 = 32 ≡ 1 (mod 31), so 8⁻¹ = 4.\n  have h_inv8 : (8⁻¹ : ZMod 31) = 4 := by\n    apply inv_eq_of_mul_eq_one\n    norm_num\n  rw [h₂]\n  rw [h_inv8]\n  -- z = 15 * 4 = 60.\n  -- 60 ≡ 29 (mod 31).\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Since 31 is prime, ZMod 31 is a field.\n  -- Substitute x and y into the equation for z.\n  rw [h₀, h₁] at h₂\n  -- We have z = (3⁻¹ + 5⁻¹)⁻¹.\n  -- 3⁻¹ + 5⁻¹ = (5 + 3) / (3 * 5) = 8 / 15.\n  have h_sum : (3⁻¹ + 5⁻¹ : ZMod 31) = 8 * (15⁻¹) := by\n    norm_num\n  rw [h_sum] at h₂\n  -- z = (8 * 15⁻¹)⁻¹ = 15 * 8⁻¹.\n  rw [mul_inv_rev, inv_inv] at h₂\n  -- Now calculate 15 * 8⁻¹ in ZMod 31.\n  -- We know 8 * 4 = 32 ≡ 1 (mod 31), so 8⁻¹ = 4.\n  have h_inv8 : (8⁻¹ : ZMod 31) = 4 := by\n    apply inv_eq_of_mul_eq_one\n    norm_num\n  rw [h₂]\n  rw [h_inv8]\n  -- z = 15 * 4 = 60.\n  -- 60 ≡ 29 (mod 31).\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 53
+            },
+            "endPos": {
+              "line": 16,
+              "column": 12
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\n⊢ 3⁻¹ + 5⁻¹ = 8 * 15⁻¹"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 6
+            },
+            "endPos": {
+              "line": 19,
+              "column": 17
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (?a * ?b)⁻¹\nin the target expression\n  z = (8 * 15⁻¹)⁻¹\n\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (8 * 15⁻¹)⁻¹\nh_sum : 3⁻¹ + 5⁻¹ = 8 * 15⁻¹\n⊢ z = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.07988858222961426
+      }
+    },
+    {
+      "index": 12,
+      "status": "SOLVED",
+      "raw_text": "To prove the theorem $z = 29$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x + y)^{-1}$ in $\\mathbb{Z}/31\\mathbb{Z}$:\n\n### Proof Sketch\n1.  **Evaluate $x$ and $y$**: Find the modular inverses of $3$ and $5$ modulo $31$.\n    *   Since $3 \\cdot 21 = 63 = 2 \\cdot 31 + 1$, we have $3^{-1} \\equiv 21 \\pmod{31}$. Thus $x = 21$.\n    *   Since $5 \\cdot 25 = 125 = 4 \\cdot 31 + 1$, we have $5^{-1} \\equiv 25 \\pmod{31}$. Thus $y = 25$.\n2.  **Calculate $x + y$**:\n    *   $x + y = 21 + 25 = 46 \\pmod{31}$.\n    *   $46 \\equiv 15 \\pmod{31}$.\n3.  **Calculate $z$**:\n    *   $z = (x + y)^{-1} = 15^{-1} \\pmod{31}$.\n    *   We seek $k$ such that $15k \\equiv 1 \\pmod{31}$.\n    *   $15 \\cdot 2 = 30 \\equiv -1 \\pmod{31}$.\n    *   Multiplying by $-1$, we get $15 \\cdot (-2) \\equiv 1 \\pmod{31}$.\n    *   $-2 \\equiv 29 \\pmod{31}$.\n4.  **Conclusion**: $z = 29$.\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Compute the value of x + y\n  -- 3⁻¹ in ZMod 31 is 21 because 3 * 21 = 63 = 2 * 31 + 1\n  have hx : (3 : ZMod 31)⁻¹ = 21 := rfl\n  -- 5⁻¹ in ZMod 31 is 25 because 5 * 25 = 125 = 4 * 31 + 1\n  have hy : (5 : ZMod 31)⁻¹ = 25 := rfl\n  rw [hx, hy] at h₂\n  -- Calculate 21 + 25 = 46. 46 % 31 = 15.\n  have hsum : (21 + 25 : ZMod 31) = 15 := rfl\n  rw [hsum] at h₂\n  -- Compute z = 15⁻¹ in ZMod 31\n  -- 15 * 2 = 30 = -1 mod 31, so 15 * (-2) = 1 mod 31.\n  -- -2 mod 31 is 29.\n  have hz : (15 : ZMod 31)⁻¹ = 29 := rfl\n  rw [h₂]\n  exact hz\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Compute the value of x + y\n  -- 3⁻¹ in ZMod 31 is 21 because 3 * 21 = 63 = 2 * 31 + 1\n  have hx : (3 : ZMod 31)⁻¹ = 21 := rfl\n  -- 5⁻¹ in ZMod 31 is 25 because 5 * 25 = 125 = 4 * 31 + 1\n  have hy : (5 : ZMod 31)⁻¹ = 25 := rfl\n  rw [hx, hy] at h₂\n  -- Calculate 21 + 25 = 46. 46 % 31 = 15.\n  have hsum : (21 + 25 : ZMod 31) = 15 := rfl\n  rw [hsum] at h₂\n  -- Compute z = 15⁻¹ in ZMod 31\n  -- 15 * 2 = 30 = -1 mod 31, so 15 * (-2) = 1 mod 31.\n  -- -2 mod 31 is 29.\n  have hz : (15 : ZMod 31)⁻¹ = 29 := rfl\n  rw [h₂]\n  exact hz",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.15047025680541992
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "To solve the theorem $z = (3^{-1} + 5^{-1})^{-1} \\pmod{31}$, we follow these steps:\n\n### Proof Sketch\n1.  **Identify the environment**: We are working in the field $\\mathbb{Z}/31\\mathbb{Z}$. Since 31 is prime, every non-zero element has a unique multiplicative inverse.\n2.  **Evaluate $x$ and $y$**:\n    *   $x = 3^{-1}$. Since $3 \\cdot 21 = 63 = 2 \\cdot 31 + 1 \\equiv 1 \\pmod{31}$, we have $x = 21$.\n    *   $y = 5^{-1}$. Since $5 \\cdot 25 = 125 = 4 \\cdot 31 + 1 \\equiv 1 \\pmod{31}$, we have $y = 25$.\n3.  **Evaluate $x + y$**:\n    *   $x + y = 21 + 25 = 46$.\n    *   $46 \\pmod{31} = 15$.\n4.  **Evaluate $z = (x + y)^{-1}$**:\n    *   We need the inverse of $15 \\pmod{31}$.\n    *   Since $15 \\cdot 2 = 30 \\equiv -1 \\pmod{31}$, multiplying by $-1$ gives $15 \\cdot (-2) \\equiv 1 \\pmod{31}$.\n    *   $-2 \\pmod{31} = 29$.\n    *   Thus, $z = 29$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We want to prove z = 29, so substitute z\n  rw [h₂]\n  -- Use norm_num to compute the modular inverses and arithmetic in ZMod 31\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We want to prove z = 29, so substitute z\n  rw [h₂]\n  -- Use norm_num to compute the modular inverses and arithmetic in ZMod 31\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 35
+            },
+            "endPos": {
+              "line": 15,
+              "column": 10
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\n⊢ (3⁻¹ + 5⁻¹)⁻¹ = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.04597663879394531
+      }
+    },
+    {
+      "index": 14,
+      "status": "FAILED",
+      "raw_text": "To prove that $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x + y)^{-1}$, we perform the following calculation in the field $\\mathbb{Z}_{31}$:\n\n1.  **Identify inverses**: Since $3 \\cdot 21 = 63 \\equiv 1 \\pmod{31}$, we have $x = 3^{-1} = 21$.\n2.  **Identify inverses**: Since $5 \\cdot 25 = 125 = 4 \\cdot 31 + 1 \\equiv 1 \\pmod{31}$, we have $y = 5^{-1} = 25$.\n3.  **Sum**: $x + y = 21 + 25 = 46$. Reducing modulo 31, $46 \\equiv 15 \\pmod{31}$.\n4.  **Inverse of sum**: We need $z = 15^{-1}$ in $\\mathbb{Z}_{31}$. We observe that $15 \\cdot 2 = 30 \\equiv -1 \\pmod{31}$. Thus $15 \\cdot (-2) \\equiv 1 \\pmod{31}$. \n5.  **Result**: $-2 \\equiv 29 \\pmod{31}$. Thus $z = 29$.\n\nIn Lean, since $31$ is prime, `ZMod 31` is a field, and we can use the `norm_num` tactic to automate modular arithmetic and inversion.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We now have z = (3⁻¹ + 5⁻¹)⁻¹ in ZMod 31\n  -- Since 31 is prime, ZMod 31 is a field, and we can compute directly\n  rw [h₂]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We now have z = (3⁻¹ + 5⁻¹)⁻¹ in ZMod 31\n  -- Since 31 is prime, ZMod 31 is a field, and we can compute directly\n  rw [h₂]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 35
+            },
+            "endPos": {
+              "line": 15,
+              "column": 10
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\n⊢ (3⁻¹ + 5⁻¹)⁻¹ = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.04028201103210449
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "To prove that $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x + y)^{-1}$, we perform direct arithmetic in the field $\\mathbb{Z}/31\\mathbb{Z}$.\n\n**Proof Sketch:**\n1.  **Identify $x$:** Since $3 \\cdot 21 = 63 = 2 \\cdot 31 + 1$, we have $3^{-1} \\equiv 21 \\pmod{31}$. Thus $x = 21$.\n2.  **Identify $y$:** Since $5 \\cdot 25 = 125 = 4 \\cdot 31 + 1$, we have $5^{-1} \\equiv 25 \\pmod{31}$. Thus $y = 25$.\n3.  **Calculate $x + y$:** $x + y = 21 + 25 = 46$. Reducing modulo 31, $46 \\equiv 15 \\pmod{31}$.\n4.  **Identify $z$:** We need $z = 15^{-1} \\pmod{31}$. Since $15 \\cdot 2 = 30 \\equiv -1 \\pmod{31}$, then $15 \\cdot (-2) \\equiv 1 \\pmod{31}$.\n5.  **Final Value:** $-2 \\equiv 29 \\pmod{31}$. Therefore, $z = 29$.\n\nThe Lean proof uses `norm_num` and `invertibility` tactics to handle modular arithmetic and inverses efficiently.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Evaluate x\n  have hx : x = 21 := by\n    rw [h₀]\n    norm_num\n  -- Evaluate y\n  have hy : y = 25 := by\n    rw [h₁]\n    norm_num\n  -- Evaluate z\n  rw [h₂, hx, hy]\n  -- x + y = 21 + 25 = 46, and 46 ≡ 15 (mod 31)\n  have hsum : (21 : ZMod 31) + 25 = 15 := by norm_num\n  rw [hsum]\n  -- 15⁻¹ in ZMod 31 is 29 because 15 * 29 = 435 = 14 * 31 + 1\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Evaluate x\n  have hx : x = 21 := by\n    rw [h₀]\n    norm_num\n  -- Evaluate y\n  have hy : y = 25 := by\n    rw [h₁]\n    norm_num\n  -- Evaluate z\n  rw [h₂, hx, hy]\n  -- x + y = 21 + 25 = 46, and 46 ≡ 15 (mod 31)\n  have hsum : (21 : ZMod 31) + 25 = 15 := by norm_num\n  rw [hsum]\n  -- 15⁻¹ in ZMod 31 is 29 because 15 * 29 = 435 = 14 * 31 + 1\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 22
+            },
+            "endPos": {
+              "line": 13,
+              "column": 12
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (x + y)⁻¹\n⊢ 3⁻¹ = 21"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 22
+            },
+            "endPos": {
+              "line": 17,
+              "column": 12
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (x + y)⁻¹\nhx : x = 21\n⊢ 5⁻¹ = 25"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 42
+            },
+            "endPos": {
+              "line": 21,
+              "column": 53
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (x + y)⁻¹\nhx : x = 21\nhy : y = 25\n⊢ 46 = 15"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 35
+            },
+            "endPos": {
+              "line": 24,
+              "column": 10
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (x + y)⁻¹\nhx : x = 21\nhy : y = 25\nhsum : 21 + 25 = 15\n⊢ 15⁻¹ = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4599781036376953
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "To prove that $z = 29$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x + y)^{-1}$ in $\\mathbb{Z}/31\\mathbb{Z}$, we perform the following steps:\n1.  **Inverse of $x$**: Since $3 \\cdot 21 = 63 \\equiv 1 \\pmod{31}$, $x = 3^{-1} = 21$.\n2.  **Inverse of $y$**: Since $5 \\cdot 25 = 125 = 4 \\cdot 31 + 1 \\equiv 1 \\pmod{31}$, $y = 5^{-1} = 25$.\n3.  **Sum of $x$ and $y$**: $x + y = 21 + 25 = 46$. Reducing modulo 31, $46 \\equiv 15 \\pmod{31}$.\n4.  **Inverse of $z$**: $z = (x + y)^{-1} = 15^{-1}$.\n5.  **Calculate $15^{-1} \\pmod{31}$**: We need $k$ such that $15k \\equiv 1 \\pmod{31}$.\n    Checking multiples: $15 \\cdot 2 = 30 \\equiv -1 \\pmod{31}$.\n    Therefore, $15 \\cdot (-2) \\equiv 1 \\pmod{31}$.\n    In $\\mathbb{Z}/31\\mathbb{Z}$, $-2 \\equiv 29 \\pmod{31}$.\n6.  **Conclusion**: $z = 29$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We evaluate the inverses in ZMod 31\n  -- 3⁻¹ = 21 because 3 * 21 = 63 = 2 * 31 + 1\n  have hx : (3 : ZMod 31)⁻¹ = 21 := by norm_num\n  -- 5⁻¹ = 25 because 5 * 25 = 125 = 4 * 31 + 1\n  have hy : (5 : ZMod 31)⁻¹ = 25 := by norm_num\n  rw [hx, hy] at h₂\n  -- Sum x + y = 21 + 25 = 46\n  -- 46 mod 31 = 15\n  have hsum : (21 + 25 : ZMod 31) = 15 := by norm_num\n  rw [hsum] at h₂\n  -- Now we need the inverse of 15 in ZMod 31\n  -- 15 * 2 = 30 = -1 mod 31, so 15 * (-2) = 1 mod 31\n  -- -2 mod 31 = 29\n  have hz : (15 : ZMod 31)⁻¹ = 29 := by norm_num\n  rw [hz] at h₂\n  exact h₂\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We evaluate the inverses in ZMod 31\n  -- 3⁻¹ = 21 because 3 * 21 = 63 = 2 * 31 + 1\n  have hx : (3 : ZMod 31)⁻¹ = 21 := by norm_num\n  -- 5⁻¹ = 25 because 5 * 25 = 125 = 4 * 31 + 1\n  have hy : (5 : ZMod 31)⁻¹ = 25 := by norm_num\n  rw [hx, hy] at h₂\n  -- Sum x + y = 21 + 25 = 46\n  -- 46 mod 31 = 15\n  have hsum : (21 + 25 : ZMod 31) = 15 := by norm_num\n  rw [hsum] at h₂\n  -- Now we need the inverse of 15 in ZMod 31\n  -- 15 * 2 = 30 = -1 mod 31, so 15 * (-2) = 1 mod 31\n  -- -2 mod 31 = 29\n  have hz : (15 : ZMod 31)⁻¹ = 29 := by norm_num\n  rw [hz] at h₂\n  exact h₂",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 36
+            },
+            "endPos": {
+              "line": 14,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\n⊢ 3⁻¹ = 21"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 36
+            },
+            "endPos": {
+              "line": 16,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\nhx : 3⁻¹ = 21\n⊢ 5⁻¹ = 25"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 42
+            },
+            "endPos": {
+              "line": 20,
+              "column": 53
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (21 + 25)⁻¹\nhx : 3⁻¹ = 21\nhy : 5⁻¹ = 25\n⊢ 46 = 15"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 37
+            },
+            "endPos": {
+              "line": 25,
+              "column": 48
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = 15⁻¹\nhx : 3⁻¹ = 21\nhy : 5⁻¹ = 25\nhsum : 21 + 25 = 15\n⊢ 15⁻¹ = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4595754146575928
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "To prove that $z = 29$ in $\\mathbb{Z}_{31}$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x + y)^{-1}$:\n\n### Proof Sketch\n1.  **Inverse Computation**: In the field $\\mathbb{Z}_{31}$, find the explicit values for $x$ and $y$.\n    *   Since $3 \\cdot 21 = 63 = 2 \\cdot 31 + 1$, we have $x = 3^{-1} = 21 \\pmod{31}$.\n    *   Since $5 \\cdot 25 = 125 = 4 \\cdot 31 + 1$, we have $y = 5^{-1} = 25 \\pmod{31}$.\n2.  **Addition**: Calculate $x + y = 21 + 25 = 46 \\pmod{31}$.\n    *   $46 \\equiv 15 \\pmod{31}$.\n3.  **Final Inverse**: Calculate $z = (x + y)^{-1} = 15^{-1} \\pmod{31}$.\n    *   We seek $z$ such that $15z \\equiv 1 \\pmod{31}$.\n    *   Since $15 \\cdot 2 = 30 \\equiv -1 \\pmod{31}$, then $15 \\cdot (-2) \\equiv 1 \\pmod{31}$.\n    *   $-2 \\equiv 29 \\pmod{31}$.\n4.  **Conclusion**: Thus, $z = 29$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We work in the field ZMod 31.\n  -- Since 31 is prime, we can use norm_num or dec_trivial for concrete values.\n  have hx : x = 21 := by\n    rw [h₀]\n    apply inv_eq_of_mul_eq_one\n    dec_trivial\n  have hy : y = 25 := by\n    rw [h₁]\n    apply inv_eq_of_mul_eq_one\n    dec_trivial\n  rw [hx, hy] at h₂\n  -- Calculate 21 + 25 in ZMod 31\n  have hsum : (21 + 25 : ZMod 31) = 15 := by dec_trivial\n  rw [hsum] at h₂\n  -- Calculate the inverse of 15 in ZMod 31\n  rw [h₂]\n  apply inv_eq_of_mul_eq_one\n  dec_trivial\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We work in the field ZMod 31.\n  -- Since 31 is prime, we can use norm_num or dec_trivial for concrete values.\n  have hx : x = 21 := by\n    rw [h₀]\n    apply inv_eq_of_mul_eq_one\n    dec_trivial\n  have hy : y = 25 := by\n    rw [h₁]\n    apply inv_eq_of_mul_eq_one\n    dec_trivial\n  rw [hx, hy] at h₂\n  -- Calculate 21 + 25 in ZMod 31\n  have hsum : (21 + 25 : ZMod 31) = 15 := by dec_trivial\n  rw [hsum] at h₂\n  -- Calculate the inverse of 15 in ZMod 31\n  rw [h₂]\n  apply inv_eq_of_mul_eq_one\n  dec_trivial",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 5
+            },
+            "endPos": null,
+            "data": "unknown tactic"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 10
+            },
+            "endPos": {
+              "line": 16,
+              "column": 30
+            },
+            "data": "Unknown identifier `inv_eq_of_mul_eq_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 35
+            },
+            "endPos": {
+              "line": 17,
+              "column": 15
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\nhx : x = 21\n⊢ z = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.11939668655395508
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem, we perform calculations within the finite field $\\mathbb{Z}/31\\mathbb{Z}$.\n\n**Proof Sketch:**\n1.  **Identify the field:** We are working in `ZMod 31`, which is a field since 31 is prime.\n2.  **Calculate $x$:** Since $3 \\cdot 21 = 63 \\equiv 1 \\pmod{31}$, we have $x = 3^{-1} = 21$.\n3.  **Calculate $y$:** Since $5 \\cdot 25 = 125 = 31 \\cdot 4 + 1$, we have $5 \\cdot 25 \\equiv 1 \\pmod{31}$, so $y = 5^{-1} = 25$.\n4.  **Calculate $x + y$:** $x + y = 21 + 25 = 46 \\equiv 15 \\pmod{31}$.\n5.  **Calculate $z$:** We need $z = 15^{-1}$ in `ZMod 31`. Since $15 \\cdot 2 = 30 \\equiv -1 \\pmod{31}$, then $15 \\cdot (-2) \\equiv 1 \\pmod{31}$. In `ZMod 31`, $-2 \\equiv 29$. Thus, $z = 29$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Since 31 is prime, ZMod 31 is a field.\n  -- We can evaluate the inverses directly.\n  have hx : x = 21 := by\n    rw [h₀]\n    apply inv_eq_of_mul_eq_one\n    native_decide\n  have hy : y = 25 := by\n    rw [h₁]\n    apply inv_eq_of_mul_eq_one\n    native_decide\n  rw [h₂, hx, hy]\n  -- x + y = 21 + 25 = 46. 46 % 31 = 15.\n  -- We need to show 15⁻¹ = 29 in ZMod 31.\n  apply inv_eq_of_mul_eq_one\n  native_decide\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Since 31 is prime, ZMod 31 is a field.\n  -- We can evaluate the inverses directly.\n  have hx : x = 21 := by\n    rw [h₀]\n    apply inv_eq_of_mul_eq_one\n    native_decide\n  have hy : y = 25 := by\n    rw [h₁]\n    apply inv_eq_of_mul_eq_one\n    native_decide\n  rw [h₂, hx, hy]\n  -- x + y = 21 + 25 = 46. 46 % 31 = 15.\n  -- We need to show 15⁻¹ = 29 in ZMod 31.\n  apply inv_eq_of_mul_eq_one\n  native_decide",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 10
+            },
+            "endPos": {
+              "line": 14,
+              "column": 30
+            },
+            "data": "Unknown identifier `inv_eq_of_mul_eq_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 17
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 10
+            },
+            "endPos": {
+              "line": 18,
+              "column": 30
+            },
+            "data": "Unknown identifier `inv_eq_of_mul_eq_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 4
+            },
+            "endPos": {
+              "line": 19,
+              "column": 17
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 28
+            },
+            "data": "Unknown identifier `inv_eq_of_mul_eq_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 2
+            },
+            "endPos": {
+              "line": 24,
+              "column": 15
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.0968623161315918
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "To prove that $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$ given the definitions of $x, y, z$, we follow these steps:\n\n### Proof Sketch\n1.  **Inverse Definitions**: In $\\mathbb{Z}/31\\mathbb{Z}$, the inverse $n^{-1}$ is the unique element $m$ such that $n \\cdot m \\equiv 1 \\pmod{31}$.\n2.  **Calculate $x$ and $y$**:\n    *   $3 \\cdot 21 = 63 = 2 \\cdot 31 + 1 \\equiv 1 \\pmod{31}$, so $x = 3^{-1} = 21$.\n    *   $5 \\cdot 25 = 125 = 4 \\cdot 31 + 1 \\equiv 1 \\pmod{31}$, so $y = 5^{-1} = 25$.\n3.  **Calculate $x + y$**:\n    *   $x + y = 21 + 25 = 46 \\equiv 15 \\pmod{31}$.\n4.  **Calculate $z = (x + y)^{-1}$**:\n    *   We need the inverse of $15 \\pmod{31}$.\n    *   $15 \\cdot 2 = 30 \\equiv -1 \\pmod{31}$.\n    *   Thus, $15 \\cdot (-2) \\equiv 1 \\pmod{31}$.\n    *   In $\\mathbb{Z}/31\\mathbb{Z}$, $-2 \\equiv 29 \\pmod{31}$.\n    *   Therefore, $z = 15^{-1} = 29$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the expression for z\n  rw [h₀, h₁] at h₂\n  -- We compute the values using norm_num or by direct multiplication checks\n  have hx : x = 21 := by\n    rw [h₀]\n    apply inv_eq_of_mul_eq_one\n    decide\n  have hy : y = 25 := by\n    rw [h₁]\n    apply inv_eq_of_mul_eq_one\n    decide\n  -- Calculate sum x + y\n  have hsum : x + y = 15 := by\n    rw [hx, hy]\n    decide\n  -- Calculate z as the inverse of the sum\n  rw [hsum] at h₂\n  rw [h₂]\n  apply inv_eq_of_mul_eq_one\n  decide\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the expression for z\n  rw [h₀, h₁] at h₂\n  -- We compute the values using norm_num or by direct multiplication checks\n  have hx : x = 21 := by\n    rw [h₀]\n    apply inv_eq_of_mul_eq_one\n    decide\n  have hy : y = 25 := by\n    rw [h₁]\n    apply inv_eq_of_mul_eq_one\n    decide\n  -- Calculate sum x + y\n  have hsum : x + y = 15 := by\n    rw [hx, hy]\n    decide\n  -- Calculate z as the inverse of the sum\n  rw [hsum] at h₂\n  rw [h₂]\n  apply inv_eq_of_mul_eq_one\n  decide",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 10
+            },
+            "endPos": {
+              "line": 15,
+              "column": 30
+            },
+            "data": "Unknown identifier `inv_eq_of_mul_eq_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 4
+            },
+            "endPos": {
+              "line": 16,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 10
+            },
+            "endPos": {
+              "line": 19,
+              "column": 30
+            },
+            "data": "Unknown identifier `inv_eq_of_mul_eq_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 4
+            },
+            "endPos": {
+              "line": 20,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 6
+            },
+            "endPos": {
+              "line": 26,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  x + y\nin the target expression\n  z = (3⁻¹ + 5⁻¹)⁻¹\n\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\nhx : x = 21\nhy : y = 25\nhsum : x + y = 15\n⊢ z = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.11224603652954102
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "To prove that $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x + y)^{-1}$, we perform direct calculations within the finite field $\\mathbb{Z}/31\\mathbb{Z}$.\n\n**Proof Sketch:**\n1.  **Calculate $x$:** Since $3 \\cdot 21 = 63 = 2 \\cdot 31 + 1$, we have $3^{-1} \\equiv 21 \\pmod{31}$. Thus $x = 21$.\n2.  **Calculate $y$:** Since $5 \\cdot 25 = 125 = 4 \\cdot 31 + 1$, we have $5^{-1} \\equiv 25 \\pmod{31}$. Thus $y = 25$.\n3.  **Calculate $x + y$:** $x + y = 21 + 25 = 46$. Reducing modulo 31, $46 \\equiv 15 \\pmod{31}$.\n4.  **Calculate $z$:** We need $z = 15^{-1} \\pmod{31}$. Since $15 \\cdot 2 = 30 \\equiv -1 \\pmod{31}$, multiplying both sides by $-1$ gives $15 \\cdot (-2) \\equiv 1 \\pmod{31}$.\n5.  **Final Result:** $z \\equiv -2 \\equiv 29 \\pmod{31}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We need to evaluate (3⁻¹ + 5⁻¹)⁻¹ in ZMod 31\n  -- Note that 31 is prime, so ZMod 31 is a field.\n  have h_sum : (3⁻¹ + 5⁻¹ : ZMod 31) = 15⁻¹ := by\n    -- Combine fractions: 3⁻¹ + 5⁻¹ = (5 + 3) / (3 * 5) = 8 / 15\n    have h3 : (3 : ZMod 31) ≠ 0 := by decide\n    have h5 : (5 : ZMod 31) ≠ 0 := by decide\n    rw [add_inv₀ h3 h5]\n    -- (3 + 5) * (3 * 5)⁻¹ = 8 * 15⁻¹\n    -- Since 8 * 2 = 16 and 15 * 2 = 30 = -1, we can compute specifically.\n    -- However, we can just let 'norm_num' or 'decide' handle specific ZMod values.\n    rfl\n  rw [h_sum] at h₂\n  -- z = (15⁻¹)⁻¹ = 15\n  rw [inv_inv] at h₂\n  -- Now we just need to check if 15 = 29 in ZMod 31 is false, \n  -- but wait, step 3 calculation was x+y = 8/15, so z = 15/8.\n  -- Let's re-evaluate using direct computation.\n  have hx : x = 21 := by\n    rw [h₀]\n    norm_num\n  have hy : y = 25 := by\n    rw [h₁]\n    norm_num\n  rw [hx, hy] at h₂\n  have hxy : (21 + 25 : ZMod 31) = 15 := by\n    norm_num\n  rw [hxy] at h₂\n  rw [h₂]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We need to evaluate (3⁻¹ + 5⁻¹)⁻¹ in ZMod 31\n  -- Note that 31 is prime, so ZMod 31 is a field.\n  have h_sum : (3⁻¹ + 5⁻¹ : ZMod 31) = 15⁻¹ := by\n    -- Combine fractions: 3⁻¹ + 5⁻¹ = (5 + 3) / (3 * 5) = 8 / 15\n    have h3 : (3 : ZMod 31) ≠ 0 := by decide\n    have h5 : (5 : ZMod 31) ≠ 0 := by decide\n    rw [add_inv₀ h3 h5]\n    -- (3 + 5) * (3 * 5)⁻¹ = 8 * 15⁻¹\n    -- Since 8 * 2 = 16 and 15 * 2 = 30 = -1, we can compute specifically.\n    -- However, we can just let 'norm_num' or 'decide' handle specific ZMod values.\n    rfl\n  rw [h_sum] at h₂\n  -- z = (15⁻¹)⁻¹ = 15\n  rw [inv_inv] at h₂\n  -- Now we just need to check if 15 = 29 in ZMod 31 is false, \n  -- but wait, step 3 calculation was x+y = 8/15, so z = 15/8.\n  -- Let's re-evaluate using direct computation.\n  have hx : x = 21 := by\n    rw [h₀]\n    norm_num\n  have hy : y = 25 := by\n    rw [h₁]\n    norm_num\n  rw [hx, hy] at h₂\n  have hxy : (21 + 25 : ZMod 31) = 15 := by\n    norm_num\n  rw [hxy] at h₂\n  rw [h₂]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 8
+            },
+            "endPos": {
+              "line": 18,
+              "column": 16
+            },
+            "data": "Unknown identifier `add_inv₀`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 6
+            },
+            "endPos": {
+              "line": 25,
+              "column": 13
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a⁻¹⁻¹\nin the target expression\n  z = 15⁻¹⁻¹\n\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = 15⁻¹⁻¹\nh_sum : 3⁻¹ + 5⁻¹ = 15⁻¹\n⊢ z = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.12279272079467773
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "To prove that $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$, we first interpret the modular inverses. Given $x = 3^{-1}$ and $y = 5^{-1}$, we compute $x + y = 3^{-1} + 5^{-1} = \\frac{5 + 3}{15} = \\frac{8}{15}$. Then $z = (x + y)^{-1} = (\\frac{8}{15})^{-1} = \\frac{15}{8}$. In the field $\\mathbb{Z}/31\\mathbb{Z}$, we solve the equation $8z = 15$. Since $8 \\times 4 = 32 \\equiv 1 \\pmod{31}$, we multiply both sides by 4 to get $z = 15 \\times 4 = 60$. Finally, $60 \\equiv 29 \\pmod{31}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We want to show (3⁻¹ + 5⁻¹)⁻¹ = 29\n  -- Calculate 3⁻¹ + 5⁻¹ = (5 + 3) / (3 * 5) = 8 / 15\n  have h_sum : (3⁻¹ + 5⁻¹ : ZMod 31) = 8 / 15 := by\n    apply (division_def 8 15).symm.trans\n    rw [add_inv_distrib_inv]\n    · ring\n    · norm_num\n    · norm_num\n  rw [h_sum] at h₂\n  -- z = (8 / 15)⁻¹ = 15 / 8\n  have h_inv : (8 / 15 : ZMod 31)⁻¹ = 15 / 8 := by\n    rw [inv_div]\n  rw [h_inv] at h₂\n  -- Check if 15 / 8 = 29, which is equivalent to 15 = 29 * 8\n  rw [h₂]\n  symm\n  apply (DivisionMonoid.div_eq_iff_mul_eq 15 8 29).mpr\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We want to show (3⁻¹ + 5⁻¹)⁻¹ = 29\n  -- Calculate 3⁻¹ + 5⁻¹ = (5 + 3) / (3 * 5) = 8 / 15\n  have h_sum : (3⁻¹ + 5⁻¹ : ZMod 31) = 8 / 15 := by\n    apply (division_def 8 15).symm.trans\n    rw [add_inv_distrib_inv]\n    · ring\n    · norm_num\n    · norm_num\n  rw [h_sum] at h₂\n  -- z = (8 / 15)⁻¹ = 15 / 8\n  have h_inv : (8 / 15 : ZMod 31)⁻¹ = 15 / 8 := by\n    rw [inv_div]\n  rw [h_inv] at h₂\n  -- Check if 15 / 8 = 29, which is equivalent to 15 = 29 * 8\n  rw [h₂]\n  symm\n  apply (DivisionMonoid.div_eq_iff_mul_eq 15 8 29).mpr\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 39
+            },
+            "endPos": {
+              "line": 14,
+              "column": 45
+            },
+            "data": "failed to synthesize instance of type class\n  HDiv ℕ ℕ (ZMod 31)\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 4
+            },
+            "endPos": {
+              "line": 15,
+              "column": 40
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `Eq.trans (Eq.symm (division_def 8 15))`\n  8 * 15⁻¹ = ?m.76\nwith the goal\n  3⁻¹ + 5⁻¹ = 8 / 15\n\nNote: The full type of `Eq.trans (Eq.symm (division_def 8 15))` is\n  8 / 15 = ?m.76 → 8 * 15⁻¹ = ?m.76\n\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\n⊢ 3⁻¹ + 5⁻¹ = 8 / 15"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 6
+            },
+            "endPos": {
+              "line": 20,
+              "column": 11
+            },
+            "data": "Unknown identifier `h_sum`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 35
+            },
+            "endPos": {
+              "line": 29,
+              "column": 10
+            },
+            "data": "unsolved goals\ncase refine_1\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\n⊢ HDiv ℕ ℕ (ZMod 31)\n\ncase refine_2\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\nh_sum : 3⁻¹ + 5⁻¹ = 8 / 15\n⊢ z = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.18263506889343262
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "To prove that $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x + y)^{-1}$:\n\n### Proof Sketch\n1.  **Identify the Field**: Since 31 is prime, $\\mathbb{Z}/31\\mathbb{Z}$ is a field. Division and inversion are well-defined for all non-zero elements.\n2.  **Substitute $x$ and $y$**: $z = (3^{-1} + 5^{-1})^{-1}$.\n3.  **Simplify the Expression**: Using the property $(a^{-1} + b^{-1})^{-1} = \\frac{ab}{a+b}$, we have $z = \\frac{3 \\cdot 5}{3 + 5} = \\frac{15}{8}$.\n4.  **Perform Division in Modular Arithmetic**: We need to find $z$ such that $8z \\equiv 15 \\pmod{31}$.\n5.  **Solve the Linear Congruence**: \n    $8 \\cdot 29 = 232$.\n    $232 \\div 31 = 7$ with a remainder of $15$ ($31 \\times 7 = 217$; $217 + 15 = 232$).\n    Thus, $8 \\cdot 29 \\equiv 15 \\pmod{31}$, which implies $z = 29$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We want to show (3⁻¹ + 5⁻¹)⁻¹ = 29\n  -- Multiplying both sides by (3⁻¹ + 5⁻¹)\n  have h_sum_nz : (3⁻¹ + 5⁻¹ : ZMod 31) ≠ 0 := by\n    decide\n  have h_inv := (eq_inv_iff_mul_eq_one₀ h_sum_nz).mp h₂\n  -- Now we show (3⁻¹ + 5⁻¹) * 29 = 1\n  -- Multiply by 3 * 5 = 15 to clear denominators\n  have h_clear : 15 * ((3⁻¹ + 5⁻¹) * 29) = 15 * 1 := by\n    calc\n      15 * ((3⁻¹ + 5⁻¹) * 29) = (15 * 3⁻¹ + 15 * 5⁻¹) * 29 := by ring\n      _ = (5 * (3 * 3⁻¹) + 3 * (5 * 5⁻¹)) * 29 := by ring\n      _ = (5 * 1 + 3 * 1) * 29 := by\n        rw [mul_inv_cancel₀]; rw [mul_inv_cancel₀] <;> decide\n      _ = 8 * 29 := by ring\n      _ = 232 := by rfl\n      _ = 15 := by rfl -- 232 = 31 * 7 + 15\n  -- Since 15 is invertible in ZMod 31, we can conclude\n  have h_15_nz : (15 : ZMod 31) ≠ 0 := by decide\n  exact mul_left_cancel₀ h_15_nz h_clear\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We want to show (3⁻¹ + 5⁻¹)⁻¹ = 29\n  -- Multiplying both sides by (3⁻¹ + 5⁻¹)\n  have h_sum_nz : (3⁻¹ + 5⁻¹ : ZMod 31) ≠ 0 := by\n    decide\n  have h_inv := (eq_inv_iff_mul_eq_one₀ h_sum_nz).mp h₂\n  -- Now we show (3⁻¹ + 5⁻¹) * 29 = 1\n  -- Multiply by 3 * 5 = 15 to clear denominators\n  have h_clear : 15 * ((3⁻¹ + 5⁻¹) * 29) = 15 * 1 := by\n    calc\n      15 * ((3⁻¹ + 5⁻¹) * 29) = (15 * 3⁻¹ + 15 * 5⁻¹) * 29 := by ring\n      _ = (5 * (3 * 3⁻¹) + 3 * (5 * 5⁻¹)) * 29 := by ring\n      _ = (5 * 1 + 3 * 1) * 29 := by\n        rw [mul_inv_cancel₀]; rw [mul_inv_cancel₀] <;> decide\n      _ = 8 * 29 := by ring\n      _ = 232 := by rfl\n      _ = 15 := by rfl -- 232 = 31 * 7 + 15\n  -- Since 15 is invertible in ZMod 31, we can conclude\n  have h_15_nz : (15 : ZMod 31) ≠ 0 := by decide\n  exact mul_left_cancel₀ h_15_nz h_clear",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 17
+            },
+            "endPos": {
+              "line": 16,
+              "column": 39
+            },
+            "data": "Unknown identifier `eq_inv_iff_mul_eq_one₀`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 35
+            },
+            "endPos": {
+              "line": 30,
+              "column": 40
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\nh_sum_nz : 3⁻¹ + 5⁻¹ ≠ 0\n⊢ z = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4670250415802002
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "To prove that $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x + y)^{-1}$, we perform direct calculations in the field $\\mathbb{Z}/31\\mathbb{Z}$.\n\n**Proof Sketch:**\n1.  **Calculate $x$:** Since $3 \\times 21 = 63 = 2 \\times 31 + 1$, we have $3 \\times 21 \\equiv 1 \\pmod{31}$, so $x = 3^{-1} = 21$.\n2.  **Calculate $y$:** Since $5 \\times 25 = 125 = 4 \\times 31 + 1$, we have $5 \\times 25 \\equiv 1 \\pmod{31}$, so $y = 5^{-1} = 25$.\n3.  **Calculate $x + y$:** $21 + 25 = 46$. In $\\mathbb{Z}/31\\mathbb{Z}$, $46 \\equiv 15 \\pmod{31}$.\n4.  **Calculate $z$:** We need the inverse of $15$ modulo $31$. Since $15 \\times 2 = 30 \\equiv -1 \\pmod{31}$, multiplying by $-1$ gives $15 \\times (-2) \\equiv 1 \\pmod{31}$. Thus $15^{-1} = -2 \\equiv 29 \\pmod{31}$.\n5.  **Conclusion:** $z = 29$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We evaluate the inverses and the sum within ZMod 31\n  -- Note: ZMod 31 is a field because 31 is prime.\n  have h3 : (3⁻¹ : ZMod 31) = 21 := by norm_num\n  have h5 : (5⁻¹ : ZMod 31) = 25 := by norm_num\n  rw [h3, h5] at h₂\n  -- Calculate 21 + 25 in ZMod 31\n  have h_sum : (21 + 25 : ZMod 31) = 15 := by norm_num\n  rw [h_sum] at h₂\n  -- Calculate the inverse of 15 in ZMod 31\n  have h_inv : (15⁻¹ : ZMod 31) = 29 := by norm_num\n  exact h₂.trans h_inv\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We evaluate the inverses and the sum within ZMod 31\n  -- Note: ZMod 31 is a field because 31 is prime.\n  have h3 : (3⁻¹ : ZMod 31) = 21 := by norm_num\n  have h5 : (5⁻¹ : ZMod 31) = 25 := by norm_num\n  rw [h3, h5] at h₂\n  -- Calculate 21 + 25 in ZMod 31\n  have h_sum : (21 + 25 : ZMod 31) = 15 := by norm_num\n  rw [h_sum] at h₂\n  -- Calculate the inverse of 15 in ZMod 31\n  have h_inv : (15⁻¹ : ZMod 31) = 29 := by norm_num\n  exact h₂.trans h_inv",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 36
+            },
+            "endPos": {
+              "line": 14,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\n⊢ 3⁻¹ = 21"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 36
+            },
+            "endPos": {
+              "line": 15,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\nh3 : 3⁻¹ = 21\n⊢ 5⁻¹ = 25"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 43
+            },
+            "endPos": {
+              "line": 18,
+              "column": 54
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (21 + 25)⁻¹\nh3 : 3⁻¹ = 21\nh5 : 5⁻¹ = 25\n⊢ 46 = 15"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 40
+            },
+            "endPos": {
+              "line": 21,
+              "column": 51
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = 15⁻¹\nh3 : 3⁻¹ = 21\nh5 : 5⁻¹ = 25\nh_sum : 21 + 25 = 15\n⊢ 15⁻¹ = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.40491485595703125
+      }
+    },
+    {
+      "index": 24,
+      "status": "FAILED",
+      "raw_text": "To prove that $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x + y)^{-1}$, we perform the following steps:\n1.  **Evaluate $x$ and $y$**: In the field $\\mathbb{Z}/31\\mathbb{Z}$, $x = 3^{-1}$ implies $3x = 1$. Since $3 \\times 21 = 63 = 2 \\times 31 + 1$, we have $x = 21$. Similarly, $y = 5^{-1}$ implies $5y = 1$. Since $5 \\times 25 = 125 = 4 \\times 31 + 1$, we have $y = 25$.\n2.  **Sum $x$ and $y$**: $x + y = 21 + 25 = 46$. Reducing modulo 31, $46 \\equiv 15 \\pmod{31}$.\n3.  **Evaluate $z$**: $z = (x + y)^{-1} = 15^{-1}$. We need to find $z$ such that $15z \\equiv 1 \\pmod{31}$. Since $15 \\times 2 = 30 \\equiv -1 \\pmod{31}$, multiplying by $-1$ gives $15 \\times (-2) \\equiv 1 \\pmod{31}$.\n4.  **Reduce to result**: $-2 \\equiv 29 \\pmod{31}$. Thus, $z = 29$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Since 31 is prime, ZMod 31 is a field, which simplifies inversion.\n  have hx : x = 21 := by\n    rw [h₀]\n    apply inv_eq_of_mul_eq_one\n    decide\n  have hy : y = 25 := by\n    rw [h₁]\n    apply inv_eq_of_mul_eq_one\n    decide\n  rw [hx, hy] at h₂\n  rw [h₂]\n  -- 21 + 25 = 46, and 46 % 31 = 15\n  have hsum : (21 : ZMod 31) + 25 = 15 := by decide\n  rw [hsum]\n  -- Now we show 15⁻¹ = 29 in ZMod 31\n  apply inv_eq_of_mul_eq_one\n  decide\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Since 31 is prime, ZMod 31 is a field, which simplifies inversion.\n  have hx : x = 21 := by\n    rw [h₀]\n    apply inv_eq_of_mul_eq_one\n    decide\n  have hy : y = 25 := by\n    rw [h₁]\n    apply inv_eq_of_mul_eq_one\n    decide\n  rw [hx, hy] at h₂\n  rw [h₂]\n  -- 21 + 25 = 46, and 46 % 31 = 15\n  have hsum : (21 : ZMod 31) + 25 = 15 := by decide\n  rw [hsum]\n  -- Now we show 15⁻¹ = 29 in ZMod 31\n  apply inv_eq_of_mul_eq_one\n  decide",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 10
+            },
+            "endPos": {
+              "line": 13,
+              "column": 30
+            },
+            "data": "Unknown identifier `inv_eq_of_mul_eq_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 4
+            },
+            "endPos": {
+              "line": 14,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 10
+            },
+            "endPos": {
+              "line": 17,
+              "column": 30
+            },
+            "data": "Unknown identifier `inv_eq_of_mul_eq_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 4
+            },
+            "endPos": {
+              "line": 18,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 8
+            },
+            "endPos": {
+              "line": 25,
+              "column": 28
+            },
+            "data": "Unknown identifier `inv_eq_of_mul_eq_one`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 2
+            },
+            "endPos": {
+              "line": 26,
+              "column": 8
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.14109134674072266
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "To prove $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$, we first calculate the explicit values of $x$ and $y$ using the modular inverse of $3$ and $5$ modulo $31$.\n1.  Since $3 \\cdot 21 = 63 = 2 \\cdot 31 + 1$, we have $3^{-1} \\equiv 21 \\pmod{31}$, so $x = 21$.\n2.  Since $5 \\cdot 25 = 125 = 4 \\cdot 31 + 1$, we have $5^{-1} \\equiv 25 \\pmod{31}$, so $y = 25$.\n3.  We calculate $x + y = 21 + 25 = 46 \\equiv 15 \\pmod{31}$.\n4.  We need to find $z = 15^{-1} \\pmod{31}$. Since $15 \\cdot 2 = 30 \\equiv -1 \\pmod{31}$, multiplying by $-1$ gives $15 \\cdot (-2) \\equiv 1 \\pmod{31}$.\n5.  Thus, $z = -2 \\equiv 29 \\pmod{31}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Compute inverses and addition in ZMod 31\n  have hx : (3 : ZMod 31)⁻¹ = 21 := by norm_num\n  have hy : (5 : ZMod 31)⁻¹ = 25 := by norm_num\n  rw [hx, hy] at h₂\n  -- 21 + 25 = 46. 46 % 31 = 15.\n  have hsum : (21 + 25 : ZMod 31) = 15 := by norm_num\n  rw [hsum] at h₂\n  -- Calculate 15⁻¹ in ZMod 31\n  have hz : (15 : ZMod 31)⁻¹ = 29 := by norm_num\n  rw [hz] at h₂\n  exact h₂\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Compute inverses and addition in ZMod 31\n  have hx : (3 : ZMod 31)⁻¹ = 21 := by norm_num\n  have hy : (5 : ZMod 31)⁻¹ = 25 := by norm_num\n  rw [hx, hy] at h₂\n  -- 21 + 25 = 46. 46 % 31 = 15.\n  have hsum : (21 + 25 : ZMod 31) = 15 := by norm_num\n  rw [hsum] at h₂\n  -- Calculate 15⁻¹ in ZMod 31\n  have hz : (15 : ZMod 31)⁻¹ = 29 := by norm_num\n  rw [hz] at h₂\n  exact h₂",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 36
+            },
+            "endPos": {
+              "line": 13,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\n⊢ 3⁻¹ = 21"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 36
+            },
+            "endPos": {
+              "line": 14,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\nhx : 3⁻¹ = 21\n⊢ 5⁻¹ = 25"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 42
+            },
+            "endPos": {
+              "line": 17,
+              "column": 53
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (21 + 25)⁻¹\nhx : 3⁻¹ = 21\nhy : 5⁻¹ = 25\n⊢ 46 = 15"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 37
+            },
+            "endPos": {
+              "line": 20,
+              "column": 48
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = 15⁻¹\nhx : 3⁻¹ = 21\nhy : 5⁻¹ = 25\nhsum : 21 + 25 = 15\n⊢ 15⁻¹ = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.42409467697143555
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we use the algebraic properties of the field $\\mathbb{Z}/31\\mathbb{Z}$. Since 31 is prime, $\\mathbb{Z}/31\\mathbb{Z}$ is a field where every non-zero element has a unique multiplicative inverse.\n\n**Proof Sketch:**\n1.  **Given values:** $x = 3^{-1} \\pmod{31}$ and $y = 5^{-1} \\pmod{31}$.\n2.  **Evaluate sum:** Calculate $x + y = 3^{-1} + 5^{-1} = \\frac{5 + 3}{15} = \\frac{8}{15} \\pmod{31}$.\n3.  **Find $z$:** Since $z = (x + y)^{-1}$, we have $z = \\left(\\frac{8}{15}\\right)^{-1} = \\frac{15}{8} \\pmod{31}$.\n4.  **Solve for $z$:** To find $z$ such that $8z \\equiv 15 \\pmod{31}$, we find $8^{-1} \\pmod{31}$. Since $8 \\times 4 = 32 \\equiv 1 \\pmod{31}$, $8^{-1} = 4$.\n5.  **Final Calculation:** $z = 15 \\times 4 = 60$.\n6.  **Reduce modulo 31:** $60 \\equiv 29 \\pmod{31}$. Thus, $z = 29$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Perform calculations in ZMod 31\n  have h_sum : (3⁻¹ : ZMod 31) + 5⁻¹ = 8 / 15 := by\n    apply (div_add_div_same (1 : ZMod 31) (1 : ZMod 31) (3 * 5 : ZMod 31)).symm\n    repeat' norm_num\n  rw [h_sum] at h₂\n  -- z = (8/15)⁻¹ = 15/8\n  have h_inv : (8 / 15 : ZMod 31)⁻¹ = 15 / 8 := by\n    apply inv_div\n  rw [h_inv] at h₂\n  -- Final evaluation: 15 / 8 in ZMod 31\n  rw [h₂]\n  -- We check if 8 * 29 = 15 in ZMod 31\n  -- 8 * 29 = 232. 232 = 31 * 7 + 15.\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Perform calculations in ZMod 31\n  have h_sum : (3⁻¹ : ZMod 31) + 5⁻¹ = 8 / 15 := by\n    apply (div_add_div_same (1 : ZMod 31) (1 : ZMod 31) (3 * 5 : ZMod 31)).symm\n    repeat' norm_num\n  rw [h_sum] at h₂\n  -- z = (8/15)⁻¹ = 15/8\n  have h_inv : (8 / 15 : ZMod 31)⁻¹ = 15 / 8 := by\n    apply inv_div\n  rw [h_inv] at h₂\n  -- Final evaluation: 15 / 8 in ZMod 31\n  rw [h₂]\n  -- We check if 8 * 29 = 15 in ZMod 31\n  -- 8 * 29 = 232. 232 = 31 * 7 + 15.\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 39
+            },
+            "endPos": {
+              "line": 13,
+              "column": 45
+            },
+            "data": "failed to synthesize instance of type class\n  HDiv ℕ ℕ (ZMod 31)\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 11
+            },
+            "endPos": {
+              "line": 14,
+              "column": 73
+            },
+            "data": "failed to synthesize instance of type class\n  DivisionSemiring (ZMod 31)\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 12
+            },
+            "endPos": {
+              "line": 15,
+              "column": 20
+            },
+            "data": "Tactic `simp` failed with a nested error:\n(deterministic) timeout at `simp`, maximum number of heartbeats (100000) has been reached\n\nNote: Use `set_option maxHeartbeats <num>` to set the limit.\n\nHint: Additional diagnostic information may be available using the `set_option diagnostics true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 2
+            },
+            "endPos": {
+              "line": 16,
+              "column": 18
+            },
+            "data": "(deterministic) timeout at `«tactic execution»`, maximum number of heartbeats (100000) has been reached\n\nNote: Use `set_option maxHeartbeats <num>` to set the limit.\n\nHint: Additional diagnostic information may be available using the `set_option diagnostics true` command."
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 14,
+              "column": 11
+            },
+            "endPos": {
+              "line": 14,
+              "column": 27
+            },
+            "data": "`div_add_div_same` has been deprecated: Use `add_div` instead\n\nNote: The updated constant has a different type:\n  ∀ {K : Type u_1} [inst : DivisionSemiring K] (a b c : K), (a + b) / c = a / c + b / c\ninstead of\n  ∀ {K : Type u_1} [inst : DivisionSemiring K] (a b c : K), a / c + b / c = (a + b) / c"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 7.853945732116699
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "To prove that $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$, we follow these steps:\n1.  Identify the values of $x$ and $y$ as modular inverses. Since $3 \\cdot 21 = 63 \\equiv 1 \\pmod{31}$, $x = 3^{-1} = 21$.\n2.  Since $5 \\cdot 25 = 125 = 31 \\cdot 4 + 1 \\equiv 1 \\pmod{31}$, $y = 5^{-1} = 25$.\n3.  Calculate the sum $x + y = 21 + 25 = 46$.\n4.  Reduce the sum modulo 31: $46 \\equiv 15 \\pmod{31}$.\n5.  Find the modular inverse of 15 modulo 31. Since $15 \\cdot 2 = 30 \\equiv -1 \\pmod{31}$, then $15 \\cdot (-2) \\equiv 1 \\pmod{31}$.\n6.  The value $-2$ in $\\mathbb{Z}/31\\mathbb{Z}$ is equivalent to $31 - 2 = 29$.\n7.  Thus, $z = (15)^{-1} = 29$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We evaluate the inverses in ZMod 31\n  -- 3⁻¹ = 21 because 3 * 21 = 63 = 2 * 31 + 1\n  have hx : (3 : ZMod 31)⁻¹ = 21 := by norm_num\n  -- 5⁻¹ = 25 because 5 * 25 = 125 = 4 * 31 + 1\n  have hy : (5 : ZMod 31)⁻¹ = 25 := by norm_num\n  rw [hx, hy] at h₂\n  -- Sum 21 + 25 = 46. 46 ≡ 15 (mod 31)\n  have hsum : (21 : ZMod 31) + 25 = 15 := by norm_num\n  rw [hsum] at h₂\n  -- z = 15⁻¹. 15 * 2 = 30 ≡ -1 (mod 31), so 15 * (-2) ≡ 1.\n  -- -2 ≡ 29 (mod 31)\n  rw [h₂]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We evaluate the inverses in ZMod 31\n  -- 3⁻¹ = 21 because 3 * 21 = 63 = 2 * 31 + 1\n  have hx : (3 : ZMod 31)⁻¹ = 21 := by norm_num\n  -- 5⁻¹ = 25 because 5 * 25 = 125 = 4 * 31 + 1\n  have hy : (5 : ZMod 31)⁻¹ = 25 := by norm_num\n  rw [hx, hy] at h₂\n  -- Sum 21 + 25 = 46. 46 ≡ 15 (mod 31)\n  have hsum : (21 : ZMod 31) + 25 = 15 := by norm_num\n  rw [hsum] at h₂\n  -- z = 15⁻¹. 15 * 2 = 30 ≡ -1 (mod 31), so 15 * (-2) ≡ 1.\n  -- -2 ≡ 29 (mod 31)\n  rw [h₂]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 36
+            },
+            "endPos": {
+              "line": 14,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\n⊢ 3⁻¹ = 21"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 36
+            },
+            "endPos": {
+              "line": 16,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\nhx : 3⁻¹ = 21\n⊢ 5⁻¹ = 25"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 42
+            },
+            "endPos": {
+              "line": 19,
+              "column": 53
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (21 + 25)⁻¹\nhx : 3⁻¹ = 21\nhy : 5⁻¹ = 25\n⊢ 46 = 15"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 35
+            },
+            "endPos": {
+              "line": 24,
+              "column": 10
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = 15⁻¹\nhx : 3⁻¹ = 21\nhy : 5⁻¹ = 25\nhsum : 21 + 25 = 15\n⊢ 15⁻¹ = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4473307132720947
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "To solve for $z$ in $\\mathbb{Z}_{31}$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x+y)^{-1}$, we follow these steps:\n\n1.  **Calculate $x$ and $y$**: Find integers $a, b$ such that $3a \\equiv 1 \\pmod{31}$ and $5b \\equiv 1 \\pmod{31}$.\n    *   $3 \\cdot 21 = 63 = 2 \\cdot 31 + 1$, so $x = 21$.\n    *   $5 \\cdot 25 = 125 = 4 \\cdot 31 + 1$, so $y = 25$.\n2.  **Calculate $x + y$**:\n    *   $x + y = 21 + 25 = 46$.\n    *   $46 \\pmod{31} = 15$.\n3.  **Calculate $z = (x + y)^{-1}$**: Find $c$ such that $15c \\equiv 1 \\pmod{31}$.\n    *   $15 \\cdot 2 = 30 \\equiv -1 \\pmod{31}$.\n    *   Therefore, $15 \\cdot (-2) \\equiv 1 \\pmod{31}$.\n    *   $-2 \\pmod{31} = 29$.\n    *   Thus, $z = 29$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We evaluate the inverses in ZMod 31\n  -- Since 31 is prime, we can use norm_num or manual evaluation\n  have hx : (3 : ZMod 31)⁻¹ = 21 := by norm_num\n  have hy : (5 : ZMod 31)⁻¹ = 25 := by norm_num\n  rw [hx, hy] at h₂\n  -- Calculate 21 + 25 in ZMod 31\n  have hsum : (21 : ZMod 31) + 25 = 15 := by norm_num\n  rw [hsum] at h₂\n  -- Finally, evaluate the inverse of 15 in ZMod 31\n  rw [h₂]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We evaluate the inverses in ZMod 31\n  -- Since 31 is prime, we can use norm_num or manual evaluation\n  have hx : (3 : ZMod 31)⁻¹ = 21 := by norm_num\n  have hy : (5 : ZMod 31)⁻¹ = 25 := by norm_num\n  rw [hx, hy] at h₂\n  -- Calculate 21 + 25 in ZMod 31\n  have hsum : (21 : ZMod 31) + 25 = 15 := by norm_num\n  rw [hsum] at h₂\n  -- Finally, evaluate the inverse of 15 in ZMod 31\n  rw [h₂]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 36
+            },
+            "endPos": {
+              "line": 14,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\n⊢ 3⁻¹ = 21"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 36
+            },
+            "endPos": {
+              "line": 15,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\nhx : 3⁻¹ = 21\n⊢ 5⁻¹ = 25"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 42
+            },
+            "endPos": {
+              "line": 18,
+              "column": 53
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (21 + 25)⁻¹\nhx : 3⁻¹ = 21\nhy : 5⁻¹ = 25\n⊢ 46 = 15"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 35
+            },
+            "endPos": {
+              "line": 22,
+              "column": 10
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = 15⁻¹\nhx : 3⁻¹ = 21\nhy : 5⁻¹ = 25\nhsum : 21 + 25 = 15\n⊢ 15⁻¹ = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.45080089569091797
+      }
+    },
+    {
+      "index": 29,
+      "status": "SOLVED",
+      "raw_text": "To prove that $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$, we follow these steps:\n1.  Identify the values of $x$ and $y$ as the modular inverses of 3 and 5 modulo 31.\n2.  Calculate $x = 3^{-1} \\equiv 21 \\pmod{31}$ since $3 \\times 21 = 63 = 2 \\times 31 + 1$.\n3.  Calculate $y = 5^{-1} \\equiv 25 \\pmod{31}$ since $5 \\times 25 = 125 = 4 \\times 31 + 1$.\n4.  Compute the sum $x + y = 21 + 25 = 46 \\equiv 15 \\pmod{31}$.\n5.  Find $z = (x + y)^{-1} = 15^{-1} \\pmod{31}$.\n6.  Since $15 \\times 2 = 30 \\equiv -1 \\pmod{31}$, then $15 \\times (-2) \\equiv 1 \\pmod{31}$.\n7.  $-2 \\equiv 29 \\pmod{31}$, so $z = 29$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Calculate 3⁻¹ and 5⁻¹ in ZMod 31\n  have h3 : (3 : ZMod 31)⁻¹ = 21 := by revert x; decide\n  have h5 : (5 : ZMod 31)⁻¹ = 25 := by revert y; decide\n  -- Substitute these specific values back into h₂\n  rw [h3, h5] at h₂\n  -- Calculate the sum 21 + 25 in ZMod 31\n  have hsum : (21 : ZMod 31) + 25 = 15 := by revert z; decide\n  rw [hsum] at h₂\n  -- Calculate 15⁻¹ in ZMod 31\n  have hinv : (15 : ZMod 31)⁻¹ = 29 := by revert z; decide\n  rw [hinv] at h₂\n  exact h₂\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Calculate 3⁻¹ and 5⁻¹ in ZMod 31\n  have h3 : (3 : ZMod 31)⁻¹ = 21 := by revert x; decide\n  have h5 : (5 : ZMod 31)⁻¹ = 25 := by revert y; decide\n  -- Substitute these specific values back into h₂\n  rw [h3, h5] at h₂\n  -- Calculate the sum 21 + 25 in ZMod 31\n  have hsum : (21 : ZMod 31) + 25 = 15 := by revert z; decide\n  rw [hsum] at h₂\n  -- Calculate 15⁻¹ in ZMod 31\n  have hinv : (15 : ZMod 31)⁻¹ = 29 := by revert z; decide\n  rw [hinv] at h₂\n  exact h₂",
+      "verification": {
+        "pass": true,
+        "complete": true,
+        "errors": [],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3023993968963623
+      }
+    },
+    {
+      "index": 30,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x + y)^{-1}$, we follow these steps:\n\n1.  **Inverse Computation**: Since $31$ is prime, $\\mathbb{Z}/31\\mathbb{Z}$ is a field. We can calculate the modular inverses directly.\n2.  **Evaluate $x$ and $y$**: Find values $a, b$ such that $3a \\equiv 1 \\pmod{31}$ and $5b \\equiv 1 \\pmod{31}$. Specifically, $3 \\cdot 21 = 63 = 2 \\cdot 31 + 1$, so $x = 21$. Similarly, $5 \\cdot 25 = 125 = 4 \\cdot 31 + 1$, so $y = 25$.\n3.  **Evaluate $x + y$**: Calculate $x + y = 21 + 25 = 46$. In $\\mathbb{Z}/31\\mathbb{Z}$, $46 \\equiv 15 \\pmod{31}$.\n4.  **Evaluate $z$**: Calculate $z = 15^{-1} \\pmod{31}$. Since $15 \\cdot 2 = 30 \\equiv -1 \\pmod{31}$, we have $15 \\cdot (-2) \\equiv 1 \\pmod{31}$. Thus $z = -2 \\equiv 29 \\pmod{31}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Evaluate x and y by multiplying by their inverses' denominators\n  have h3 : 3 * x = 1 := by rw [h₀]; apply mul_inv_cancel; intro h; norm_num at h\n  have h5 : 5 * y = 1 := by rw [h₁]; apply mul_inv_cancel; intro h; norm_num at h\n  \n  -- Use the finite field structure to solve for x and y\n  have hx : x = 21 := by\n    apply (mul_right_inj' (show (3 : ZMod 31) ≠ 0 from by norm_num)).mp\n    rw [h3]\n    norm_num\n    \n  have hy : y = 25 := by\n    apply (mul_right_inj' (show (5 : ZMod 31) ≠ 0 from by norm_num)).mp\n    rw [h5]\n    norm_num\n\n  -- Substitute x and y into the equation for z\n  rw [hx, hy] at h₂\n  have hsum : (21 : ZMod 31) + 25 = 15 := by norm_num\n  rw [hsum] at h₂\n  \n  -- Solve for z by multiplying by 15\n  have h15z : 15 * z = 1 := by\n    rw [h₂]\n    apply mul_inv_cancel\n    intro h; norm_num at h\n\n  -- Verify z = 29 satisfies the equation 15 * z = 1\n  apply (mul_right_inj' (show (15 : ZMod 31) ≠ 0 from by norm_num)).mp\n  rw [h15z]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Evaluate x and y by multiplying by their inverses' denominators\n  have h3 : 3 * x = 1 := by rw [h₀]; apply mul_inv_cancel; intro h; norm_num at h\n  have h5 : 5 * y = 1 := by rw [h₁]; apply mul_inv_cancel; intro h; norm_num at h\n  \n  -- Use the finite field structure to solve for x and y\n  have hx : x = 21 := by\n    apply (mul_right_inj' (show (3 : ZMod 31) ≠ 0 from by norm_num)).mp\n    rw [h3]\n    norm_num\n    \n  have hy : y = 25 := by\n    apply (mul_right_inj' (show (5 : ZMod 31) ≠ 0 from by norm_num)).mp\n    rw [h5]\n    norm_num\n\n  -- Substitute x and y into the equation for z\n  rw [hx, hy] at h₂\n  have hsum : (21 : ZMod 31) + 25 = 15 := by norm_num\n  rw [hsum] at h₂\n  \n  -- Solve for z by multiplying by 15\n  have h15z : 15 * z = 1 := by\n    rw [h₂]\n    apply mul_inv_cancel\n    intro h; norm_num at h\n\n  -- Verify z = 29 satisfies the equation 15 * z = 1\n  apply (mul_right_inj' (show (15 : ZMod 31) ≠ 0 from by norm_num)).mp\n  rw [h15z]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 11,
+              "column": 37
+            },
+            "endPos": {
+              "line": 11,
+              "column": 57
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@mul_inv_cancel`\n  ?a * @Inv.inv ?G Group.toDivInvMonoid.toInv ?a = 1\nwith the goal\n  3 * @Inv.inv (ZMod 31) (ZMod.instInv 31) 3 = 1\n\nNote: The full type of `@mul_inv_cancel` is\n  ∀ {G : Type ?u.3257} [inst : Group G] (a : G), a * a⁻¹ = 1\n\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (x + y)⁻¹\n⊢ 3 * 3⁻¹ = 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 12,
+              "column": 37
+            },
+            "endPos": {
+              "line": 12,
+              "column": 57
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@mul_inv_cancel`\n  ?a * @Inv.inv ?G Group.toDivInvMonoid.toInv ?a = 1\nwith the goal\n  5 * @Inv.inv (ZMod 31) (ZMod.instInv 31) 5 = 1\n\nNote: The full type of `@mul_inv_cancel` is\n  ∀ {G : Type ?u.5238} [inst : Group G] (a : G), a * a⁻¹ = 1\n\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (x + y)⁻¹\nh3 : 3 * x = 1\n⊢ 5 * 5⁻¹ = 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 11
+            },
+            "endPos": {
+              "line": 16,
+              "column": 67
+            },
+            "data": "failed to synthesize instance of type class\n  IsLeftCancelMulZero (ZMod 31)\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 55
+            },
+            "endPos": {
+              "line": 16,
+              "column": 66
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (x + y)⁻¹\nh3 : 3 * x = 1\nh5 : 5 * y = 1\n⊢ ¬3 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 8
+            },
+            "endPos": {
+              "line": 17,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 11
+            },
+            "endPos": {
+              "line": 21,
+              "column": 67
+            },
+            "data": "failed to synthesize instance of type class\n  IsLeftCancelMulZero (ZMod 31)\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 55
+            },
+            "endPos": {
+              "line": 21,
+              "column": 66
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (x + y)⁻¹\nh3 : 3 * x = 1\nh5 : 5 * y = 1\nhx : x = 21\n⊢ ¬5 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 8
+            },
+            "endPos": {
+              "line": 22,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 42
+            },
+            "endPos": {
+              "line": 27,
+              "column": 53
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (21 + 25)⁻¹\nh3 : 3 * x = 1\nh5 : 5 * y = 1\nhx : x = 21\nhy : y = 25\n⊢ 46 = 15"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 4
+            },
+            "endPos": {
+              "line": 33,
+              "column": 24
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@mul_inv_cancel`\n  ?a * @Inv.inv ?G Group.toDivInvMonoid.toInv ?a = 1\nwith the goal\n  15 * @Inv.inv (ZMod 31) (ZMod.instInv 31) 15 = 1\n\nNote: The full type of `@mul_inv_cancel` is\n  ∀ {G : Type ?u.26305} [inst : Group G] (a : G), a * a⁻¹ = 1\n\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = 15⁻¹\nh3 : 3 * x = 1\nh5 : 5 * y = 1\nhx : x = 21\nhy : y = 25\nhsum : 21 + 25 = 15\n⊢ 15 * 15⁻¹ = 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 9
+            },
+            "endPos": {
+              "line": 37,
+              "column": 66
+            },
+            "data": "failed to synthesize instance of type class\n  IsLeftCancelMulZero (ZMod 31)\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 54
+            },
+            "endPos": {
+              "line": 37,
+              "column": 65
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = 15⁻¹\nh3 : 3 * x = 1\nh5 : 5 * y = 1\nhx : x = 21\nhy : y = 25\nhsum : 21 + 25 = 15\nh15z : 15 * z = 1\n⊢ ¬15 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 38,
+              "column": 6
+            },
+            "endPos": {
+              "line": 38,
+              "column": 10
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 1.500321865081787
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "To prove $z = 29$ in $\\mathbb{Z}_{31}$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x + y)^{-1}$, we follow these steps:\n\n1.  **Interpret Inverses**: In the field $\\mathbb{Z}_{31}$, $x = 3^{-1}$ implies $3x = 1$. Since $3 \\times 21 = 63 = 2 \\times 31 + 1$, we have $x = 21$.\n2.  **Evaluate $y$**: Similarly, $y = 5^{-1}$. Since $5 \\times 25 = 125 = 4 \\times 31 + 1$, we have $y = 25$.\n3.  **Sum $x$ and $y$**: $x + y = 21 + 25 = 46$. In $\\mathbb{Z}_{31}$, $46 \\equiv 15 \\pmod{31}$.\n4.  **Find the Inverse of the Sum**: We need $z = 15^{-1}$. We look for $z$ such that $15z \\equiv 1 \\pmod{31}$.\n5.  **Calculate $z$**: Testing $z = 29$: $15 \\times 29 = 435$. Dividing 435 by 31: $435 = 31 \\times 14 + 1$. Thus, $15 \\times 29 \\equiv 1 \\pmod{31}$, confirming $z = 29$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute the values of x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We need to evaluate 3⁻¹ and 5⁻¹ in ZMod 31\n  have hx : (3 : ZMod 31)⁻¹ = 21 := by norm_num\n  have hy : (5 : ZMod 31)⁻¹ = 25 := by norm_num\n  rw [hx, hy] at h₂\n  -- Sum them up: 21 + 25 = 46. 46 mod 31 = 15.\n  have hsum : (21 : ZMod 31) + 25 = 15 := by norm_num\n  rw [hsum] at h₂\n  -- Finally, evaluate 15⁻¹ in ZMod 31\n  have hz : (15 : ZMod 31)⁻¹ = 29 := by norm_num\n  rw [h₂]\n  exact hz\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute the values of x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- We need to evaluate 3⁻¹ and 5⁻¹ in ZMod 31\n  have hx : (3 : ZMod 31)⁻¹ = 21 := by norm_num\n  have hy : (5 : ZMod 31)⁻¹ = 25 := by norm_num\n  rw [hx, hy] at h₂\n  -- Sum them up: 21 + 25 = 46. 46 mod 31 = 15.\n  have hsum : (21 : ZMod 31) + 25 = 15 := by norm_num\n  rw [hsum] at h₂\n  -- Finally, evaluate 15⁻¹ in ZMod 31\n  have hz : (15 : ZMod 31)⁻¹ = 29 := by norm_num\n  rw [h₂]\n  exact hz",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 36
+            },
+            "endPos": {
+              "line": 13,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\n⊢ 3⁻¹ = 21"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 36
+            },
+            "endPos": {
+              "line": 14,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\nhx : 3⁻¹ = 21\n⊢ 5⁻¹ = 25"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 42
+            },
+            "endPos": {
+              "line": 17,
+              "column": 53
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (21 + 25)⁻¹\nhx : 3⁻¹ = 21\nhy : 5⁻¹ = 25\n⊢ 46 = 15"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 37
+            },
+            "endPos": {
+              "line": 20,
+              "column": 48
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = 15⁻¹\nhx : 3⁻¹ = 21\nhy : 5⁻¹ = 25\nhsum : 21 + 25 = 15\n⊢ 15⁻¹ = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.36350107192993164
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "To prove that $z = 29$ in $\\mathbb{Z}/31\\mathbb{Z}$ given $x = 3^{-1}$, $y = 5^{-1}$, and $z = (x + y)^{-1}$, we perform direct arithmetic in the finite field $\\mathbb{Z}/31\\mathbb{Z}$.\n\n**Proof Sketch:**\n1.  Since $3 \\cdot 21 = 63 \\equiv 1 \\pmod{31}$, we have $x = 3^{-1} = 21$.\n2.  Since $5 \\cdot 25 = 125 = 4 \\cdot 31 + 1 \\equiv 1 \\pmod{31}$, we have $y = 5^{-1} = 25$.\n3.  Calculate the sum: $x + y = 21 + 25 = 46$.\n4.  Reduce the sum modulo 31: $46 \\equiv 15 \\pmod{31}$.\n5.  Find the inverse of 15 modulo 31: Since $15 \\cdot 2 = 30 \\equiv -1 \\pmod{31}$, then $15 \\cdot (-2) \\equiv 1 \\pmod{31}$.\n6.  In $\\mathbb{Z}/31\\mathbb{Z}$, $-2 \\equiv 29$. Thus $z = 15^{-1} = 29$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Perform calculations in ZMod 31\n  have hx : (3 : ZMod 31)⁻¹ = 21 := by norm_num\n  have hy : (5 : ZMod 31)⁻¹ = 25 := by norm_num\n  rw [hx, hy] at h₂\n  have hsum : (21 + 25 : ZMod 31) = 15 := by norm_num\n  rw [hsum] at h₂\n  rw [h₂]\n  norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_numbertheory_232 (x y z : ZMod 31) (h₀ : x = 3⁻¹) (h₁ : y = 5⁻¹)\n  (h₂ : z = (x + y)⁻¹) : z = 29 := by\n  -- Substitute x and y into the equation for z\n  rw [h₀, h₁] at h₂\n  -- Perform calculations in ZMod 31\n  have hx : (3 : ZMod 31)⁻¹ = 21 := by norm_num\n  have hy : (5 : ZMod 31)⁻¹ = 25 := by norm_num\n  rw [hx, hy] at h₂\n  have hsum : (21 + 25 : ZMod 31) = 15 := by norm_num\n  rw [hsum] at h₂\n  rw [h₂]\n  norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 13,
+              "column": 36
+            },
+            "endPos": {
+              "line": 13,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\n⊢ 3⁻¹ = 21"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 36
+            },
+            "endPos": {
+              "line": 14,
+              "column": 47
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (3⁻¹ + 5⁻¹)⁻¹\nhx : 3⁻¹ = 21\n⊢ 5⁻¹ = 25"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 42
+            },
+            "endPos": {
+              "line": 16,
+              "column": 53
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = (21 + 25)⁻¹\nhx : 3⁻¹ = 21\nhy : 5⁻¹ = 25\n⊢ 46 = 15"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 9,
+              "column": 35
+            },
+            "endPos": {
+              "line": 19,
+              "column": 10
+            },
+            "data": "unsolved goals\nx y z : ZMod 31\nh₀ : x = 3⁻¹\nh₁ : y = 5⁻¹\nh₂ : z = 15⁻¹\nhx : 3⁻¹ = 21\nhy : 5⁻¹ = 25\nhsum : 21 + 25 = 15\n⊢ 15⁻¹ = 29"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.19763898849487305
+      }
+    }
+  ]
+}

@@ -1,0 +1,1482 @@
+{
+  "problem": "problems/miniF2F-test/induction_seq_mul2pnp1.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 15:37:48",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 0,
+    "completed_count": 0,
+    "solved": false
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem $u_n = 2^{n+1} - (n+2)$ for the sequence defined by $u_0 = 0$ and $u_{n+1} = 2u_n + (n+1)$, we use induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=0$):** $u_0 = 0$. The formula gives $2^{0+1} - (0+2) = 2 - 2 = 0$. Thus, it holds.\n2.  **Inductive Step:** Assume $u_n = 2^{n+1} - (n+2)$. We want to show $u_{n+1} = 2^{n+2} - (n+3)$.\n    Using the recurrence relation:\n    $u_{n+1} = 2u_n + (n+1)$\n    Substitute the inductive hypothesis:\n    $u_{n+1} = 2(2^{n+1} - (n+2)) + (n+1)$\n    $u_{n+1} = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$\n    $u_{n+1} = 2^{n+2} - 2n - 4 + n + 1$\n    $u_{n+1} = 2^{n+2} - n - 3$\n    $u_{n+1} = 2^{n+2} - ((n+1) + 2)$\n    This matches the formula for $n+1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n -> n + 1\n    rw [h₁, ih]\n    -- u (n + 1) = 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- We need to handle subtraction carefully in ℕ.\n    -- Since 2^(n+1) ≥ n + 2 for all n, we can use properties of nat subtraction or convert to ℤ.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_k\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    simp only [← pow_succ']\n    -- 2^{n+2} - 2(n+2) + (n+1)\n    -- = 2^{n+2} - (2n + 4) + (n + 1)\n    -- = 2^{n+2} - (n + 3)\n    have h_final : 2 ^ (n + 2) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 2) - (n + 3) := by\n      have h_ge2 : 2 ^ (n + 2) ≥ 2 * (n + 2) := by\n        induction' n with j ih_j\n        · simp\n        · rw [pow_succ, mul_add]\n          linarith\n      zify [h_ge2]\n      ring\n    exact h_final\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n -> n + 1\n    rw [h₁, ih]\n    -- u (n + 1) = 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- We need to handle subtraction carefully in ℕ.\n    -- Since 2^(n+1) ≥ n + 2 for all n, we can use properties of nat subtraction or convert to ℤ.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_k\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    simp only [← pow_succ']\n    -- 2^{n+2} - 2(n+2) + (n+1)\n    -- = 2^{n+2} - (2n + 4) + (n + 1)\n    -- = 2^{n+2} - (n + 3)\n    have h_final : 2 ^ (n + 2) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 2) - (n + 3) := by\n      have h_ge2 : 2 ^ (n + 2) ≥ 2 * (n + 2) := by\n        induction' n with j ih_j\n        · simp\n        · rw [pow_succ, mul_add]\n          linarith\n      zify [h_ge2]\n      ring\n    exact h_final",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih_k : u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 17
+            },
+            "endPos": {
+              "line": 25,
+              "column": 26
+            },
+            "data": "Ambiguous term\n  pow_succ'\nPossible interpretations:\n  _root_.pow_succ' : ∀ (a : ?m.115) (n : ℕ), a ^ (n + 1) = a * a ^ n\n  \n  Nat.pow_succ' : ?m.115 ^ succ ?m.116 = ?m.115 * ?m.115 ^ ?m.116"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 4
+            },
+            "endPos": {
+              "line": 25,
+              "column": 27
+            },
+            "data": "`simp` made no progress"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3124701976776123
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=0$):**\n    The formula gives $u(0) = 2^{0+1} - (0+2) = 2 - 2 = 0$. This matches the given condition $u(0) = 0$.\n2.  **Inductive Step:**\n    Assume the formula holds for $n$, i.e., $u(n) = 2^{n+1} - (n+2)$.\n    We want to show it holds for $n+1$, i.e., $u(n+1) = 2^{n+2} - (n+3)$.\n    Using the recurrence relation:\n    $u(n+1) = 2 \\cdot u(n) + (n+1)$\n    Substitute the inductive hypothesis:\n    $u(n+1) = 2 \\cdot (2^{n+1} - (n+2)) + (n+1)$\n    $u(n+1) = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$\n    $u(n+1) = 2^{n+2} - 2n - 4 + n + 1$\n    $u(n+1) = 2^{n+2} - n - 3$\n    $u(n+1) = 2^{n+2} - ((n+1) + 2)$\n    Thus, the formula holds for all $n \\in \\mathbb{N}$ by induction.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- Since u n = 2^(n+1) - (n+2), we need to handle the natural number subtraction carefully.\n    -- We know 2^(n+1) >= n+2 for all n by induction or simple observation.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_le\n      · norm_num\n      · rw [pow_succ]\n        linarith\n    -- Perform the arithmetic\n    rw [Nat.mul_sub_left_distrib]\n    rw [← pow_succ]\n    -- Simplify 2 * (n + 2)\n    have h_mul : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [h_mul]\n    -- We have 2^(n+2) - (2n + 4) + (n + 1)\n    -- This is 2^(n+2) - (n + 1 + n + 3) + (n + 1)\n    -- Which simplifies to 2^(n+2) - (n + 3)\n    have h_ge2 : 2 ^ (n + 2) ≥ 2 * n + 4 := by\n      rw [pow_succ]\n      linarith\n    rw [Nat.sub_add_comm h_ge2]\n    congr 1\n    simp\n    omega\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- Since u n = 2^(n+1) - (n+2), we need to handle the natural number subtraction carefully.\n    -- We know 2^(n+1) >= n+2 for all n by induction or simple observation.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_le\n      · norm_num\n      · rw [pow_succ]\n        linarith\n    -- Perform the arithmetic\n    rw [Nat.mul_sub_left_distrib]\n    rw [← pow_succ]\n    -- Simplify 2 * (n + 2)\n    have h_mul : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [h_mul]\n    -- We have 2^(n+2) - (2n + 4) + (n + 1)\n    -- This is 2^(n+2) - (n + 1 + n + 3) + (n + 1)\n    -- Which simplifies to 2^(n+2) - (n + 3)\n    have h_ge2 : 2 ^ (n + 2) ≥ 2 * n + 4 := by\n      rw [pow_succ]\n      linarith\n    rw [Nat.sub_add_comm h_ge2]\n    congr 1\n    simp\n    omega",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 8
+            },
+            "endPos": {
+              "line": 22,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih_le : u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 8
+            },
+            "endPos": {
+              "line": 25,
+              "column": 18
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a ^ ?n * ?a\nin the target expression\n  2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_ge : 2 ^ (n + 1) ≥ n + 2\n⊢ 2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3133854866027832
+      }
+    },
+    {
+      "index": 3,
+      "status": "FAILED",
+      "raw_text": "To prove that the sequence defined by $u_0 = 0$ and $u_{n+1} = 2u_n + (n+1)$ satisfies $u_n = 2^{n+1} - (n+2)$, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=0$):**\n    $u_0 = 0$ is given.\n    Formula: $2^{0+1} - (0+2) = 2^1 - 2 = 0$.\n    Matches.\n2.  **Inductive Step:**\n    Assume $u_n = 2^{n+1} - (n+2)$. We want to show $u_{n+1} = 2^{(n+1)+1} - ((n+1)+2)$.\n    Using the recurrence relation: $u_{n+1} = 2u_n + (n+1)$.\n    Substitute the inductive hypothesis: $u_{n+1} = 2(2^{n+1} - (n+2)) + (n+1)$.\n    Distribute the 2: $u_{n+1} = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$.\n    Simplify exponents and linear terms: $u_{n+1} = 2^{n+2} - 2n - 4 + n + 1 = 2^{n+2} - n - 3$.\n    Rearrange the formula for $n+1$: $2^{(n+1)+1} - ((n+1)+2) = 2^{n+2} - (n+3) = 2^{n+2} - n - 3$.\n    The expressions match, completing the induction.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    simp [h₀]\n  · -- Inductive step: n -> n + 1\n    rw [h₁, ih]\n    -- u (n + 1) = 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- We need to handle subtraction carefully in ℕ.\n    -- Since 2^(n+1) >= n + 2 for all n : ℕ, we can use properties of Nat subtraction.\n    have h_ge : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ih_k\n      · simp\n      · rw [Nat.pow_succ, mul_two]\n        linarith\n    rw [Nat.mul_sub_left_distrib, Nat.mul_add]\n    simp only [← Nat.pow_succ']\n    -- Now we have 2^(n+2) - (2n + 4) + n + 1\n    -- We want 2^(n+2) - (n + 3)\n    -- Note that 2n + 4 = (n + 3) + (n + 1)\n    have h_split : 2 * n + 4 = (n + 3) + (n + 1) := by linarith\n    rw [h_split, Nat.sub_add_eq_add_sub]\n    · rw [Nat.add_sub_cancel]\n    · -- Prove 2^(n+2) >= (n+3) + (n+1)\n      calc\n        (n + 3) + (n + 1) = 2 * n + 4 := by linarith\n        _ ≤ 2 * (n + 2) := by linarith\n        _ ≤ 2 * 2 ^ (n + 1) := by\n          apply Nat.mul_le_mul_left\n          exact h_ge\n        _ = 2 ^ (n + 2) := by rw [← Nat.pow_succ']\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    simp [h₀]\n  · -- Inductive step: n -> n + 1\n    rw [h₁, ih]\n    -- u (n + 1) = 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- We need to handle subtraction carefully in ℕ.\n    -- Since 2^(n+1) >= n + 2 for all n : ℕ, we can use properties of Nat subtraction.\n    have h_ge : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ih_k\n      · simp\n      · rw [Nat.pow_succ, mul_two]\n        linarith\n    rw [Nat.mul_sub_left_distrib, Nat.mul_add]\n    simp only [← Nat.pow_succ']\n    -- Now we have 2^(n+2) - (2n + 4) + n + 1\n    -- We want 2^(n+2) - (n + 3)\n    -- Note that 2n + 4 = (n + 3) + (n + 1)\n    have h_split : 2 * n + 4 = (n + 3) + (n + 1) := by linarith\n    rw [h_split, Nat.sub_add_eq_add_sub]\n    · rw [Nat.add_sub_cancel]\n    · -- Prove 2^(n+2) >= (n+3) + (n+1)\n      calc\n        (n + 3) + (n + 1) = 2 * n + 4 := by linarith\n        _ ≤ 2 * (n + 2) := by linarith\n        _ ≤ 2 * 2 ^ (n + 1) := by\n          apply Nat.mul_le_mul_left\n          exact h_ge\n        _ = 2 ^ (n + 2) := by rw [← Nat.pow_succ']",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 26
+            },
+            "endPos": {
+              "line": 21,
+              "column": 33
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?n * 2\nin the target expression\n  k + 1 + 2 ≤ 2 ^ (k + 1) * 2\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih_k : u k = 2 ^ (k + 1) - (k + 2) → k + 2 ≤ 2 ^ (k + 1)\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\n⊢ k + 1 + 2 ≤ 2 ^ (k + 1) * 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 17
+            },
+            "endPos": {
+              "line": 29,
+              "column": 39
+            },
+            "data": "Unknown constant `Nat.sub_add_eq_add_sub`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5219385623931885
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\n1.  **Base Case**: For $n = 0$, we have $u(0) = 0$. Using the formula, $2^{0+1} - (0+2) = 2^1 - 2 = 0$. The base case holds.\n2.  **Inductive Step**: Assume the property holds for $n$, i.e., $u(n) = 2^{n+1} - (n+2)$.\n3.  **Recursive Step**: We need to show $u(n+1) = 2^{(n+1)+1} - ((n+1)+2)$.\n4.  By the recurrence relation: $u(n+1) = 2 \\cdot u(n) + (n+1)$.\n5.  Substitute the induction hypothesis: $u(n+1) = 2 \\cdot (2^{n+1} - (n+2)) + (n+1)$.\n6.  Distribute the 2: $u(n+1) = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$.\n7.  Simplify: $u(n+1) = 2^{n+2} - (2n + 4) + n + 1 = 2^{n+2} - 2n - 4 + n + 1$.\n8.  Further simplification: $u(n+1) = 2^{n+2} - n - 3$.\n9.  This matches $2^{(n+1)+1} - ((n+1)+2) = 2^{n+2} - (n+3)$.\n10. The result follows by induction.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- We need to handle subtraction carefully in ℕ.\n    -- Since 2^(n+1) ≥ n + 2 for all n, the subtraction is standard.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_le\n      · norm_num\n      · rw [pow_succ, Nat.mul_succ]\n        apply Nat.add_le_add\n        · exact ih_le\n        · exact Nat.one_le_pow _ _ (by norm_num)\n    rw [Nat.mul_sub_left_distrib, Nat.add_comm (2 * (n + 2))]\n    -- Simplify 2 * 2^(n+1) to 2^(n+2)\n    have h_pow : 2 * 2 ^ (n + 1) = 2 ^ (n + 2) := by\n      rw [← pow_succ, Nat.add_comm]\n    rw [h_pow]\n    -- Simplify the linear terms\n    have h_term : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [h_term]\n    -- Now we have: 2^(n+2) - (2n + 4) + (n + 1)\n    -- We want: 2^(n+2) - (n + 3)\n    -- Since 2n + 4 = (n + 3) + (n + 1)\n    have h_split : 2 * n + 4 = (n + 3) + (n + 1) := by ring\n    rw [h_split, Nat.sub_add_eq_sub_sub]\n    rw [Nat.add_sub_cancel]\n    rfl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- We need to handle subtraction carefully in ℕ.\n    -- Since 2^(n+1) ≥ n + 2 for all n, the subtraction is standard.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_le\n      · norm_num\n      · rw [pow_succ, Nat.mul_succ]\n        apply Nat.add_le_add\n        · exact ih_le\n        · exact Nat.one_le_pow _ _ (by norm_num)\n    rw [Nat.mul_sub_left_distrib, Nat.add_comm (2 * (n + 2))]\n    -- Simplify 2 * 2^(n+1) to 2^(n+2)\n    have h_pow : 2 * 2 ^ (n + 1) = 2 ^ (n + 2) := by\n      rw [← pow_succ, Nat.add_comm]\n    rw [h_pow]\n    -- Simplify the linear terms\n    have h_term : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [h_term]\n    -- Now we have: 2^(n+2) - (2n + 4) + (n + 1)\n    -- We want: 2^(n+2) - (n + 3)\n    -- Since 2n + 4 = (n + 3) + (n + 1)\n    have h_split : 2 * n + 4 = (n + 3) + (n + 1) := by ring\n    rw [h_split, Nat.sub_add_eq_sub_sub]\n    rw [Nat.add_sub_cancel]\n    rfl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 10
+            },
+            "endPos": {
+              "line": 23,
+              "column": 21
+            },
+            "data": "Type mismatch\n  ih_le\nhas type\n  u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nbut is expected to have type\n  k + 1 ≤ 2 ^ (k + 1) * 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 36
+            },
+            "endPos": {
+              "line": 24,
+              "column": 47
+            },
+            "data": "unsolved goals\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih_le : u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\n⊢ 0 < ?m.121"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 34
+            },
+            "endPos": {
+              "line": 25,
+              "column": 60
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  2 * (n + 2) + ?m\nin the target expression\n  2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_ge : 2 ^ (n + 1) ≥ n + 2\n⊢ 2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.12855029106140137
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=0$):**\n    The formula gives $u(0) = 2^{0+1} - (0+2) = 2 - 2 = 0$. This matches the given $h_0$.\n2.  **Inductive Step:**\n    Assume the formula holds for $n = k$, i.e., $u(k) = 2^{k+1} - (k+2)$.\n    We want to show it holds for $n = k+1$.\n    Using the recurrence relation $h_1$:\n    $u(k+1) = 2 \\cdot u(k) + (k+1)$.\n    Substitute the inductive hypothesis:\n    $u(k+1) = 2 \\cdot (2^{k+1} - (k+2)) + (k+1)$.\n    Distribute the 2:\n    $u(k+1) = 2 \\cdot 2^{k+1} - 2(k+2) + k + 1$\n    $u(k+1) = 2^{k+2} - (2k + 4) + k + 1$\n    $u(k+1) = 2^{k+2} - 2k - 4 + k + 1$\n    $u(k+1) = 2^{k+2} - k - 3$.\n    The target formula for $n=k+1$ is $2^{(k+1)+1} - ((k+1)+2) = 2^{k+2} - (k+3)$.\n    The two expressions are equal, completing the induction.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n + 1\n    rw [h₁ n, ih]\n    -- u (n + 1) = 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- We work in Nat, so we must be careful with subtractions.\n    -- Since 2^(n+1) ≥ n+2 for all n ≥ 0, we can use Nat.mul_sub_left_distrib\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_le\n      · norm_num\n      · rw [pow_succ, mul_two]\n        apply Nat.add_le_add ih_le\n        apply Nat.one_le_pow\n        norm_num\n    rw [Nat.mul_sub_left_distrib]\n    -- Expression: (2 * 2 ^ (n + 1) - 2 * (n + 2)) + (n + 1)\n    rw [← pow_succ]\n    -- Expression: (2 ^ (n + 2) - (2 * n + 4)) + (n + 1)\n    have h_ge2 : 2 ^ (n + 2) ≥ 2 * n + 4 := by\n      rw [pow_succ, mul_two]\n      exact Nat.add_le_add h_ge h_ge2\n    -- To rearrange (A - B) + C = A - (B - C), we need B ≥ C.\n    -- Here B = 2*n + 4 and C = n + 1.\n    have h_bc : 2 * n + 4 ≥ n + 1 := by omega\n    rw [Nat.sub_add_comm (by omega)]\n    -- Now simplify 2*n + 4 - (n + 1) to n + 3\n    congr\n    omega\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n + 1\n    rw [h₁ n, ih]\n    -- u (n + 1) = 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- We work in Nat, so we must be careful with subtractions.\n    -- Since 2^(n+1) ≥ n+2 for all n ≥ 0, we can use Nat.mul_sub_left_distrib\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_le\n      · norm_num\n      · rw [pow_succ, mul_two]\n        apply Nat.add_le_add ih_le\n        apply Nat.one_le_pow\n        norm_num\n    rw [Nat.mul_sub_left_distrib]\n    -- Expression: (2 * 2 ^ (n + 1) - 2 * (n + 2)) + (n + 1)\n    rw [← pow_succ]\n    -- Expression: (2 ^ (n + 2) - (2 * n + 4)) + (n + 1)\n    have h_ge2 : 2 ^ (n + 2) ≥ 2 * n + 4 := by\n      rw [pow_succ, mul_two]\n      exact Nat.add_le_add h_ge h_ge2\n    -- To rearrange (A - B) + C = A - (B - C), we need B ≥ C.\n    -- Here B = 2*n + 4 and C = n + 1.\n    have h_bc : 2 * n + 4 ≥ n + 1 := by omega\n    rw [Nat.sub_add_comm (by omega)]\n    -- Now simplify 2*n + 4 - (n + 1) to n + 3\n    congr\n    omega",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 22
+            },
+            "endPos": {
+              "line": 22,
+              "column": 29
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?n * 2\nin the target expression\n  2 ^ (k + 1) * 2 ≥ k + 1 + 2\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih_le : u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\n⊢ 2 ^ (k + 1) * 2 ≥ k + 1 + 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 8
+            },
+            "endPos": {
+              "line": 28,
+              "column": 18
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a ^ ?n * ?a\nin the target expression\n  2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_ge : 2 ^ (n + 1) ≥ n + 2\n⊢ 2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.11927318572998047
+      }
+    },
+    {
+      "index": 6,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\nWe proceed by induction on $n$:\n1.  **Base Case ($n = 0$):**\n    $u(0) = 0$ (given).\n    The formula gives $2^{0+1} - (0+2) = 2 - 2 = 0$.\n    The base case holds.\n2.  **Inductive Step:**\n    Assume the hypothesis for $n$, i.e., $u(n) = 2^{n+1} - (n+2)$.\n    We want to show $u(n+1) = 2^{(n+1)+1} - ((n+1)+2) = 2^{n+2} - (n+3)$.\n    Using the recurrence relation:\n    $u(n+1) = 2 \\cdot u(n) + (n+1)$\n    Substitute the inductive hypothesis:\n    $u(n+1) = 2 \\cdot (2^{n+1} - (n+2)) + (n+1)$\n    $u(n+1) = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$\n    $u(n+1) = 2^{n+2} - 2n - 4 + n + 1$\n    $u(n+1) = 2^{n+2} - n - 3$\n    $u(n+1) = 2^{n+2} - (n+3)$.\n    The induction is complete.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n -> n + 1\n    rw [h₁, ih]\n    -- Since we are working with naturals, we handle subtraction carefully.\n    -- However, 2^(n+1) is clearly >= n+2 for all n : Nat.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_k\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    simp only [Nat.mul_add, mul_one, ← pow_succ]\n    -- Rearrange: 2^(n+2) - (2n + 4) + n + 1 = 2^(n+2) - (n+3)\n    let term1 := 2 ^ (n + 2)\n    let term2 := 2 * n + 4\n    let term3 := n + 1\n    have h_sub : term2 ≥ term3 := by linarith\n    rw [Nat.sub_add_comm h_sub]\n    congr\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n -> n + 1\n    rw [h₁, ih]\n    -- Since we are working with naturals, we handle subtraction carefully.\n    -- However, 2^(n+1) is clearly >= n+2 for all n : Nat.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_k\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    simp only [Nat.mul_add, mul_one, ← pow_succ]\n    -- Rearrange: 2^(n+2) - (2n + 4) + n + 1 = 2^(n+2) - (n+3)\n    let term1 := 2 ^ (n + 2)\n    let term2 := 2 * n + 4\n    let term3 := n + 1\n    have h_sub : term2 ≥ term3 := by linarith\n    rw [Nat.sub_add_comm h_sub]\n    congr\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 8
+            },
+            "endPos": {
+              "line": 22,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih_k : u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 37
+            },
+            "endPos": {
+              "line": 29,
+              "column": 45
+            },
+            "data": "linarith failed to find a contradiction\ncase h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_ge : 2 ^ (n + 1) ≥ n + 2\nterm1 : ℕ := 2 ^ (n + 2)\nterm2 : ℕ := 2 * n + 4\nterm3 : ℕ := n + 1\na✝ : term2 < term3\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 8
+            },
+            "endPos": {
+              "line": 30,
+              "column": 30
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  term2 + ?m.162 - term3\nin the target expression\n  2 * 2 ^ (n + 1) - (2 * n + 2 * 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_ge : 2 ^ (n + 1) ≥ n + 2\nterm1 : ℕ := 2 ^ (n + 2)\nterm2 : ℕ := 2 * n + 4\nterm3 : ℕ := n + 1\nh_sub : term2 ≥ term3\n⊢ 2 * 2 ^ (n + 1) - (2 * n + 2 * 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 24,
+              "column": 28
+            },
+            "endPos": {
+              "line": 24,
+              "column": 35
+            },
+            "data": "This simp argument is unused:\n  mul_one\n\nHint: Omit it from the simp argument list.\n  simp only [Nat.mul_add, m̵u̵l̵_̵o̵n̵e̵,̵ ̵← pow_succ]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 24,
+              "column": 37
+            },
+            "endPos": {
+              "line": 24,
+              "column": 47
+            },
+            "data": "This simp argument is unused:\n  ← pow_succ\n\nHint: Omit it from the simp argument list.\n  simp only [Nat.mul_add, mul_one,̵ ̵←̵ ̵p̵o̵w̵_̵s̵u̵c̵c̵]\n\nNote: Simp arguments with `←` have the additional effect of removing the other direction from the simp set, even if the simp argument itself is unused. If the hint above does not work, try replacing `←` with `-` to only get that effect and silence this warning.\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.5441861152648926
+      }
+    },
+    {
+      "index": 7,
+      "status": "FAILED",
+      "raw_text": "To prove the statement $u_n = 2^{n+1} - (n+2)$ for the sequence defined by $u_0 = 0$ and $u_{n+1} = 2u_n + (n+1)$, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=0$):**\n    $u_0 = 0$. Using the formula: $2^{0+1} - (0+2) = 2 - 2 = 0$. The base case holds.\n2.  **Inductive Step:**\n    Assume $u_k = 2^{k+1} - (k+2)$ for some $k \\in \\mathbb{N}$. We need to show $u_{k+1} = 2^{(k+1)+1} - ((k+1)+2)$.\n    Using the recurrence relation:\n    $u_{k+1} = 2u_k + (k+1)$\n    Substitute the inductive hypothesis:\n    $u_{k+1} = 2(2^{k+1} - (k+2)) + (k+1)$\n    $u_{k+1} = 2 \\cdot 2^{k+1} - 2(k+2) + k + 1$\n    $u_{k+1} = 2^{k+2} - 2k - 4 + k + 1$\n    $u_{k+1} = 2^{k+2} - k - 3$\n    $u_{k+1} = 2^{(k+1)+1} - ((k+1)+2)$.\n    The inductive step holds.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Case n = 0\n    rw [h₀]\n    simp\n  · -- Case n + 1\n    rw [h₁, ih]\n    -- We need to carefully handle subtraction in ℕ. \n    -- Since 2^(n+1) ≥ n + 2 for all n, we can use Nat.mul_sub_left_distrib\n    have h_ge : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ihk\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    simp only [Nat.mul_add, mul_one, ← pow_succ']\n    -- 2^(n+2) - (2n + 4) + (n + 1)\n    -- = 2^(n+2) - (n + 3)\n    zify\n    simp [add_comm, add_assoc]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Case n = 0\n    rw [h₀]\n    simp\n  · -- Case n + 1\n    rw [h₁, ih]\n    -- We need to carefully handle subtraction in ℕ. \n    -- Since 2^(n+1) ≥ n + 2 for all n, we can use Nat.mul_sub_left_distrib\n    have h_ge : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ihk\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    simp only [Nat.mul_add, mul_one, ← pow_succ']\n    -- 2^(n+2) - (2n + 4) + (n + 1)\n    -- = 2^(n+2) - (n + 3)\n    zify\n    simp [add_comm, add_assoc]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 8
+            },
+            "endPos": {
+              "line": 22,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nihk : u k = 2 ^ (k + 1) - (k + 2) → k + 2 ≤ 2 ^ (k + 1)\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 39
+            },
+            "endPos": {
+              "line": 24,
+              "column": 48
+            },
+            "data": "Ambiguous term\n  pow_succ'\nPossible interpretations:\n  _root_.pow_succ' : ∀ (a : ?m.115) (n : ℕ), a ^ (n + 1) = a * a ^ n\n  \n  Nat.pow_succ' : ?m.115 ^ succ ?m.116 = ?m.115 * ?m.115 ^ ?m.116"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 2
+            },
+            "endPos": {
+              "line": 29,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_ge : n + 2 ≤ 2 ^ (n + 1)\n⊢ 1 + ↑n + ↑(2 ^ n * 4 - (4 + n * 2)) = ↑(2 ^ n * 4 - (3 + n))"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 24,
+              "column": 28
+            },
+            "endPos": {
+              "line": 24,
+              "column": 35
+            },
+            "data": "This simp argument is unused:\n  mul_one\n\nHint: Omit it from the simp argument list.\n  simp only [Nat.mul_add, m̵u̵l̵_̵o̵n̵e̵,̵ ̵← pow_succ']\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.7824113368988037
+      }
+    },
+    {
+      "index": 8,
+      "status": "FAILED",
+      "raw_text": "**Proof Sketch:**\n\n1.  **Base Case ($n=0$):** \n    We are given $u_0 = 0$. \n    The formula gives $2^{0+1} - (0+2) = 2 - 2 = 0$. \n    The base case holds.\n\n2.  **Inductive Step:** \n    Assume the hypothesis for $n$, i.e., $u_n = 2^{n+1} - (n+2)$.\n    We want to show $u_{n+1} = 2^{n+2} - (n+3)$.\n    Using the recurrence relation: $u_{n+1} = 2 \\cdot u_n + (n+1)$.\n    Substitute the inductive hypothesis:\n    $u_{n+1} = 2 \\cdot (2^{n+1} - (n+2)) + (n+1)$\n    $u_{n+1} = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$\n    $u_{n+1} = 2^{n+2} - 2n - 4 + n + 1$\n    $u_{n+1} = 2^{n+2} - n - 3$\n    $u_{n+1} = 2^{(n+1)+1} - ((n+1)+2)$.\n    The induction step is complete.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- Since we are working with natural numbers, we must ensure subtraction is handled correctly.\n    -- We know 2^(n+1) ≥ n+2 for all n.\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ik\n      · simp\n      · rw [pow_succ]\n        linarith\n    -- Use nat subtraction properties: 2 * (a - b) = 2*a - 2*b if b ≤ a\n    rw [Nat.mul_sub_left_distrib]\n    simp only [← pow_succ]\n    -- Now u (n + 1) = 2^(n+2) - (2n + 4) + n + 1\n    -- We need to show this equals 2^(n+2) - (n + 3)\n    -- Using (a - b) + c = a - (b - c) if c ≤ b\n    have h_le2 : n + 1 ≤ 2 * n + 4 := by linarith\n    rw [Nat.sub_add_comm h_le2]\n    congr\n    simp\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- Since we are working with natural numbers, we must ensure subtraction is handled correctly.\n    -- We know 2^(n+1) ≥ n+2 for all n.\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ik\n      · simp\n      · rw [pow_succ]\n        linarith\n    -- Use nat subtraction properties: 2 * (a - b) = 2*a - 2*b if b ≤ a\n    rw [Nat.mul_sub_left_distrib]\n    simp only [← pow_succ]\n    -- Now u (n + 1) = 2^(n+2) - (2n + 4) + n + 1\n    -- We need to show this equals 2^(n+2) - (n + 3)\n    -- Using (a - b) + c = a - (b - c) if c ≤ b\n    have h_le2 : n + 1 ≤ 2 * n + 4 := by linarith\n    rw [Nat.sub_add_comm h_le2]\n    congr\n    simp\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 8
+            },
+            "endPos": {
+              "line": 22,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nik : u k = 2 ^ (k + 1) - (k + 2) → k + 2 ≤ 2 ^ (k + 1)\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 4
+            },
+            "endPos": {
+              "line": 25,
+              "column": 26
+            },
+            "data": "`simp` made no progress"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.30302882194519043
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem \\( u_n = 2^{n+1} - (n+2) \\) for the sequence defined by \\( u_0 = 0 \\) and \\( u_{n+1} = 2u_n + (n+1) \\), we proceed by induction on \\( n \\).\n\n**Proof Sketch:**\n1.  **Base Case (\\( n = 0 \\)):**\n    Substituting \\( n = 0 \\) into the formula gives \\( 2^{0+1} - (0+2) = 2 - 2 = 0 \\). Since \\( u_0 = 0 \\), the base case holds.\n2.  **Inductive Step:**\n    Assume the hypothesis holds for \\( n \\), i.e., \\( u_n = 2^{n+1} - (n+2) \\).\n    We want to show \\( u_{n+1} = 2^{n+2} - (n+3) \\).\n    Using the recurrence relation:\n    \\( u_{n+1} = 2u_n + (n+1) \\)\n    Substitute the inductive hypothesis:\n    \\( u_{n+1} = 2(2^{n+1} - (n+2)) + (n+1) \\)\n    \\( u_{n+1} = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1 \\)\n    \\( u_{n+1} = 2^{n+2} - 2n - 4 + n + 1 \\)\n    \\( u_{n+1} = 2^{n+2} - n - 3 \\)\n    \\( u_{n+1} = 2^{n+2} - (n+3) \\)\n    The induction is complete.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    simp [h₀]\n  · -- Inductive step: u (n + 1) = 2^(n + 2) - (n + 3)\n    rw [h₁, ih]\n    -- Since we are working with naturals, we must be careful with subtraction.\n    -- However, 2^(n+1) ≥ n+2 for all n ≥ 0.\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ih_k\n      · simp\n      · rw [Nat.pow_succ, mul_2]\n        linarith [ih_k]\n    rw [Nat.mul_sub_left_distrib, Nat.pow_succ]\n    -- 2 * (n + 2) = 2n + 4\n    have h_eq : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [h_eq]\n    -- Now we rearrange 2^(n+2) - (2n + 4) + (n + 1)\n    -- Using Nat.sub_add_comm or similar, noting 2n + 4 > n + 1\n    have h_le2 : n + 1 ≤ 2 ^ (n + 2) - (2 * n + 4) := by\n      rw [← Nat.mul_sub_left_distrib, ← h_eq]\n      apply Nat.le_sub_of_add_le\n      calc (n + 1) + 2 * (n + 2) = 3 * n + 5 := by ring\n           _ ≤ 2 ^ (n + 2) := by\n             induction' n with j ih_j\n             · simp\n             · rw [Nat.pow_succ, mul_2]\n               linarith\n    rw [Nat.sub_add_comm]\n    · congr\n      simp only [Nat.succ_eq_add_one]\n      linarith\n    · exact Nat.le_mul_of_pos_left (by norm_num) h_le\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    simp [h₀]\n  · -- Inductive step: u (n + 1) = 2^(n + 2) - (n + 3)\n    rw [h₁, ih]\n    -- Since we are working with naturals, we must be careful with subtraction.\n    -- However, 2^(n+1) ≥ n+2 for all n ≥ 0.\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ih_k\n      · simp\n      · rw [Nat.pow_succ, mul_2]\n        linarith [ih_k]\n    rw [Nat.mul_sub_left_distrib, Nat.pow_succ]\n    -- 2 * (n + 2) = 2n + 4\n    have h_eq : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [h_eq]\n    -- Now we rearrange 2^(n+2) - (2n + 4) + (n + 1)\n    -- Using Nat.sub_add_comm or similar, noting 2n + 4 > n + 1\n    have h_le2 : n + 1 ≤ 2 ^ (n + 2) - (2 * n + 4) := by\n      rw [← Nat.mul_sub_left_distrib, ← h_eq]\n      apply Nat.le_sub_of_add_le\n      calc (n + 1) + 2 * (n + 2) = 3 * n + 5 := by ring\n           _ ≤ 2 ^ (n + 2) := by\n             induction' n with j ih_j\n             · simp\n             · rw [Nat.pow_succ, mul_2]\n               linarith\n    rw [Nat.sub_add_comm]\n    · congr\n      simp only [Nat.succ_eq_add_one]\n      linarith\n    · exact Nat.le_mul_of_pos_left (by norm_num) h_le",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 26
+            },
+            "endPos": {
+              "line": 20,
+              "column": 31
+            },
+            "data": "Unknown identifier `mul_2`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 10
+            },
+            "endPos": {
+              "line": 29,
+              "column": 36
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?n * ?m - ?n * ?k\nin the target expression\n  n + 1 ≤ 2 ^ (n + 2) - (2 * n + 4)\n\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_le : n + 2 ≤ 2 ^ (n + 1)\nh_eq : 2 * (n + 2) = 2 * n + 4\n⊢ n + 1 ≤ 2 ^ (n + 2) - (2 * n + 4)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 37,
+              "column": 8
+            },
+            "endPos": {
+              "line": 37,
+              "column": 24
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?m.187 + ?m.188 - ?m.189\nin the target expression\n  2 * (2 ^ n * 2) - (2 * n + 4) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_le : n + 2 ≤ 2 ^ (n + 1)\nh_eq : 2 * (n + 2) = 2 * n + 4\nh_le2 : n + 1 ≤ 2 ^ (n + 2) - (2 * n + 4)\n⊢ 2 * (2 ^ n * 2) - (2 * n + 4) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.14079761505126953
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem \\( u_n = 2^{n+1} - (n+2) \\) for the sequence defined by \\( u_0 = 0 \\) and \\( u_{n+1} = 2u_n + (n+1) \\), we use mathematical induction on \\( n \\).\n\n**Proof Sketch:**\n1.  **Base Case (\\( n = 0 \\)):**\n    Substituting \\( n = 0 \\) into the formula gives \\( 2^{0+1} - (0+2) = 2 - 2 = 0 \\). Since \\( u_0 = 0 \\), the base case holds.\n2.  **Inductive Step:**\n    Assume the hypothesis holds for \\( n \\), i.e., \\( u_n = 2^{n+1} - (n+2) \\).\n    We want to show \\( u_{n+1} = 2^{n+2} - (n+3) \\).\n    Using the recurrence relation:\n    \\( u_{n+1} = 2 \\cdot u_n + (n+1) \\)\n    Substitute the inductive hypothesis:\n    \\( u_{n+1} = 2(2^{n+1} - (n+2)) + (n+1) \\)\n    \\( u_{n+1} = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1 \\)\n    \\( u_{n+1} = 2^{n+2} - 2n - 4 + n + 1 \\)\n    \\( u_{n+1} = 2^{n+2} - n - 3 \\)\n    \\( u_{n+1} = 2^{n+2} - (n+3) \\).\n    This completes the induction.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁ n, ih]\n    -- Since we are working in ℕ, we must be careful with subtraction.\n    -- However, 2^(n+1) >= n+2 for all n >= 0.\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ih_le\n      · norm_num\n      · rw [Nat.pow_succ, mul_2]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    -- Simplify the expression 2 * 2^(n+1) - 2 * (n + 2) + (n + 1)\n    have : 2 * 2 ^ (n + 1) = 2 ^ (n + 2) := by rw [← pow_succ]\n    rw [this]\n    -- To handle (2^(n+2) - (2n+4)) + (n+1) = 2^(n+2) - (n+3)\n    -- We use Nat.sub_add_comm or similar, but direct arithmetic is easier with zify or linarith\n    -- Check that 2n + 4 <= 2^(n+2)\n    have h_le2 : 2 * (n + 2) ≤ 2 ^ (n + 2) := by\n      have := h_le (n := n + 1)\n      exact this\n    zify [h_le, h_le2]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁ n, ih]\n    -- Since we are working in ℕ, we must be careful with subtraction.\n    -- However, 2^(n+1) >= n+2 for all n >= 0.\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ih_le\n      · norm_num\n      · rw [Nat.pow_succ, mul_2]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    -- Simplify the expression 2 * 2^(n+1) - 2 * (n + 2) + (n + 1)\n    have : 2 * 2 ^ (n + 1) = 2 ^ (n + 2) := by rw [← pow_succ]\n    rw [this]\n    -- To handle (2^(n+2) - (2n+4)) + (n+1) = 2^(n+2) - (n+3)\n    -- We use Nat.sub_add_comm or similar, but direct arithmetic is easier with zify or linarith\n    -- Check that 2n + 4 <= 2^(n+2)\n    have h_le2 : 2 * (n + 2) ≤ 2 ^ (n + 2) := by\n      have := h_le (n := n + 1)\n      exact this\n    zify [h_le, h_le2]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 26
+            },
+            "endPos": {
+              "line": 21,
+              "column": 31
+            },
+            "data": "Unknown identifier `mul_2`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 51
+            },
+            "endPos": {
+              "line": 25,
+              "column": 61
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a ^ ?n * ?a\nin the target expression\n  2 * 2 ^ (n + 1) = 2 ^ (n + 2)\n\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_le : n + 2 ≤ 2 ^ (n + 1)\n⊢ 2 * 2 ^ (n + 1) = 2 ^ (n + 2)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 19
+            },
+            "endPos": {
+              "line": 31,
+              "column": 31
+            },
+            "data": "Invalid argument name `n` for function"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 14,
+              "column": 2
+            },
+            "endPos": {
+              "line": 34,
+              "column": 8
+            },
+            "data": "unsolved goals\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_le : n + 2 ≤ 2 ^ (n + 1)\nthis : 2 * 2 ^ (n + 1) = 2 ^ (n + 2)\nh_le2 : 2 * (n + 2) ≤ 2 ^ (n + 2)\n⊢ -3 - ↑n + 2 ^ n * 4 = ↑(2 ^ n * 4 - (3 + n))"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.40386080741882324
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case**: For $n=0$, we verify $u(0) = 0$. From the formula $2^{0+1} - (0+2) = 2^1 - 2 = 0$. The base case holds.\n2.  **Inductive Step**: Assume the property holds for $n$, i.e., $u(n) = 2^{n+1} - (n+2)$.\n3.  **Calculation for $n+1$**:\n    *   Using the recurrence: $u(n+1) = 2 \\cdot u(n) + (n+1)$.\n    *   Substitute the inductive hypothesis: $u(n+1) = 2(2^{n+1} - (n+2)) + (n+1)$.\n    *   Distribute the 2: $u(n+1) = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$.\n    *   Simplify powers: $u(n+1) = 2^{n+2} - (2n + 4) + n + 1$.\n    *   Combine terms: $u(n+1) = 2^{n+2} - n - 3$.\n    *   Rewrite to match the target form: $u(n+1) = 2^{(n+1)+1} - ((n+1) + 2) = 2^{n+2} - (n+3)$.\n4.  Conclusion: The formula holds for all $n$ by induction.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n -> n + 1\n    rw [h₁ n, ih]\n    -- Since u n = 2^(n+1) - (n+2), we must ensure 2^(n+1) ≥ n+2 for subtraction in ℕ\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_ge\n      · norm_num\n      · rw [pow_succ]\n        linarith\n    -- Perform algebraic simplification\n    rw [Nat.mul_sub_left_distrib]\n    simp only [Nat.succ_eq_add_one]\n    rw [← pow_succ]\n    -- 2 * (n + 2) = 2n + 4\n    have h_mul : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [h_mul]\n    -- Rearrange: 2^(n+2) - (2n+4) + (n+1) = 2^(n+2) - (n+3)\n    -- We use the property (a - b) + c = a - (b - c) when a >= b and b >= c\n    have h_sub : 2 * n + 4 ≥ n + 1 := by linarith\n    rw [Nat.sub_add_comm h_ge]\n    apply Nat.sub_eq_of_eq_add\n    rw [add_assoc]\n    apply Nat.add_left_cancel (n := n + 1)\n    rw [Nat.sub_add_cancel h_sub]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n -> n + 1\n    rw [h₁ n, ih]\n    -- Since u n = 2^(n+1) - (n+2), we must ensure 2^(n+1) ≥ n+2 for subtraction in ℕ\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_ge\n      · norm_num\n      · rw [pow_succ]\n        linarith\n    -- Perform algebraic simplification\n    rw [Nat.mul_sub_left_distrib]\n    simp only [Nat.succ_eq_add_one]\n    rw [← pow_succ]\n    -- 2 * (n + 2) = 2n + 4\n    have h_mul : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [h_mul]\n    -- Rearrange: 2^(n+2) - (2n+4) + (n+1) = 2^(n+2) - (n+3)\n    -- We use the property (a - b) + c = a - (b - c) when a >= b and b >= c\n    have h_sub : 2 * n + 4 ≥ n + 1 := by linarith\n    rw [Nat.sub_add_comm h_ge]\n    apply Nat.sub_eq_of_eq_add\n    rw [add_assoc]\n    apply Nat.add_left_cancel (n := n + 1)\n    rw [Nat.sub_add_cancel h_sub]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 8
+            },
+            "endPos": {
+              "line": 21,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih_ge : u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 4
+            },
+            "endPos": {
+              "line": 24,
+              "column": 35
+            },
+            "data": "`simp` made no progress"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.42469239234924316
+      }
+    },
+    {
+      "index": 12,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=0$):**\n    We need to show $u(0) = 2^{0+1} - (0+2)$.\n    Calculating the right side: $2^1 - 2 = 0$.\n    Since the hypothesis $h_0$ states $u(0) = 0$, the base case holds.\n2.  **Inductive Step:**\n    Assume the statement holds for $n$, i.e., $u(n) = 2^{n+1} - (n+2)$.\n    We want to show $u(n+1) = 2^{(n+1)+1} - ((n+1)+2) = 2^{n+2} - (n+3)$.\n    Using the recurrence relation $h_1$:\n    $u(n+1) = 2 \\cdot u(n) + (n+1)$.\n    Substitute the inductive hypothesis:\n    $u(n+1) = 2(2^{n+1} - (n+2)) + (n+1)$.\n    Distribute the 2:\n    $u(n+1) = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$.\n    $u(n+1) = 2^{n+2} - 2n - 4 + n + 1$.\n    Simplify:\n    $u(n+1) = 2^{n+2} - n - 3$.\n    $u(n+1) = 2^{n+2} - (n+3)$.\n    This matches the target expression for $n+1$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁ n, ih]\n    -- Since we are working with natural numbers, we must ensure subtraction is valid\n    -- 2^(n+1) ≥ n+2 for all n\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ih_k\n      · norm_num\n      · rw [pow_succ]\n        linarith\n    -- Use nat arithmetic properties to expand the subtraction\n    rw [Nat.mul_sub_left_distrib]\n    rw [← pow_succ]\n    -- Rearrange: 2^(n+2) - 2(n+2) + (n+1)\n    -- 2(n+2) = 2n + 4\n    have h_sub : 2 * (n + 2) = (n + 3) + (n + 1) := by linarith\n    rw [h_sub]\n    rw [Nat.sub_add_eq_sub_sub]\n    rw [Nat.add_sub_cancel]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁ n, ih]\n    -- Since we are working with natural numbers, we must ensure subtraction is valid\n    -- 2^(n+1) ≥ n+2 for all n\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ih_k\n      · norm_num\n      · rw [pow_succ]\n        linarith\n    -- Use nat arithmetic properties to expand the subtraction\n    rw [Nat.mul_sub_left_distrib]\n    rw [← pow_succ]\n    -- Rearrange: 2^(n+2) - 2(n+2) + (n+1)\n    -- 2(n+2) = 2n + 4\n    have h_sub : 2 * (n + 2) = (n + 3) + (n + 1) := by linarith\n    rw [h_sub]\n    rw [Nat.sub_add_eq_sub_sub]\n    rw [Nat.add_sub_cancel]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 8
+            },
+            "endPos": {
+              "line": 22,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih_k : u k = 2 ^ (k + 1) - (k + 2) → k + 2 ≤ 2 ^ (k + 1)\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 8
+            },
+            "endPos": {
+              "line": 25,
+              "column": 18
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a ^ ?n * ?a\nin the target expression\n  2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_le : n + 2 ≤ 2 ^ (n + 1)\n⊢ 2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.299835205078125
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem $u_n = 2^{n+1} - (n+2)$ for the sequence defined by $u_0 = 0$ and $u_{n+1} = 2u_n + (n+1)$, we proceed by induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=0$):** $u_0 = 2^{0+1} - (0+2) = 2 - 2 = 0$. This matches the given $h_0$.\n2.  **Inductive Step:** Assume $u_n = 2^{n+1} - (n+2)$. We want to show $u_{n+1} = 2^{n+2} - (n+3)$.\n    Using the recurrence relation $h_1$:\n    $u_{n+1} = 2 u_n + (n + 1)$\n    $u_{n+1} = 2(2^{n+1} - (n+2)) + (n+1)$ (by Inductive Hypothesis)\n    $u_{n+1} = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$\n    $u_{n+1} = 2^{n+2} - 2n - 4 + n + 1$\n    $u_{n+1} = 2^{n+2} - n - 3$\n    $u_{n+1} = 2^{n+2} - (n+3)$\n    This completes the induction.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n -> n + 1\n    rw [h₁ n, ih]\n    -- We are working in ℕ, so we must be careful with subtraction.\n    -- However, 2^(n+1) ≥ n + 2 for all n ≥ 0.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ik\n      · norm_num\n      · rw [pow_succ]\n        apply (Nat.add_le_add ik ik).trans\n        apply Nat.succ_le_succ\n        apply Nat.le_add_left\n    rw [Nat.mul_sub_left_distrib]\n    simp only [Nat.succ_eq_add_one, pow_succ]\n    -- Simplify 2 * (n + 2)\n    have h_mul : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [h_mul]\n    -- Goal: 2 * 2 ^ (n + 1) - (2 * n + 4) + (n + 1) = 2 * 2 ^ (n + 1) - (n + 3)\n    -- Since 2 * 2^(n+1) is large enough, we can rearrange.\n    have h_large : 2 * 2 ^ (n + 1) ≥ 2 * n + 4 := by\n      linarith [h_ge]\n    rw [Nat.sub_add_comm h_large]\n    congr 1\n    -- Prove (2n + 4) - (n + 1) = n + 3\n    apply Nat.sub_eq_of_eq_add\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n -> n + 1\n    rw [h₁ n, ih]\n    -- We are working in ℕ, so we must be careful with subtraction.\n    -- However, 2^(n+1) ≥ n + 2 for all n ≥ 0.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ik\n      · norm_num\n      · rw [pow_succ]\n        apply (Nat.add_le_add ik ik).trans\n        apply Nat.succ_le_succ\n        apply Nat.le_add_left\n    rw [Nat.mul_sub_left_distrib]\n    simp only [Nat.succ_eq_add_one, pow_succ]\n    -- Simplify 2 * (n + 2)\n    have h_mul : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [h_mul]\n    -- Goal: 2 * 2 ^ (n + 1) - (2 * n + 4) + (n + 1) = 2 * 2 ^ (n + 1) - (n + 3)\n    -- Since 2 * 2^(n+1) is large enough, we can rearrange.\n    have h_large : 2 * 2 ^ (n + 1) ≥ 2 * n + 4 := by\n      linarith [h_ge]\n    rw [Nat.sub_add_comm h_large]\n    congr 1\n    -- Prove (2n + 4) - (n + 1) = n + 3\n    apply Nat.sub_eq_of_eq_add\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 30
+            },
+            "endPos": {
+              "line": 22,
+              "column": 32
+            },
+            "data": "Application type mismatch: The argument\n  ik\nhas type\n  u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nbut is expected to have type\n  ?m.110 ≤ ?m.111\nin the application\n  Nat.add_le_add ik"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 30
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@succ_le_succ`\n  succ ?n ≤ succ ?m\nwith the goal\n  ?m.111 + ?m.113 ≤ 2 ^ (k + 1) * 2\n\nNote: The full type of `@succ_le_succ` is\n  ∀ {n m : ℕ}, n ≤ m → n.succ ≤ m.succ\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nik : u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\n⊢ ?m.111 + ?m.113 ≤ 2 ^ (k + 1) * 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 8
+            },
+            "endPos": {
+              "line": 34,
+              "column": 32
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  2 * 2 ^ (n + 1) + ?m.202 - (2 * n + 4)\nin the target expression\n  2 * (2 ^ n * 2) - (2 * n + 4) + (n + 1) = 2 ^ n * 2 * 2 - (n + 1 + 2)\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_ge : 2 ^ (n + 1) ≥ n + 2\nh_mul : 2 * (n + 2) = 2 * n + 4\nh_large : 2 * 2 ^ (n + 1) ≥ 2 * n + 4\n⊢ 2 * (2 ^ n * 2) - (2 * n + 4) + (n + 1) = 2 ^ n * 2 * 2 - (n + 1 + 2)"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 26,
+              "column": 15
+            },
+            "endPos": {
+              "line": 26,
+              "column": 34
+            },
+            "data": "This simp argument is unused:\n  Nat.succ_eq_add_one\n\nHint: Omit it from the simp argument list.\n  simp only [N̵a̵t̵.̵s̵u̵c̵c̵_̵e̵q̵_̵a̵d̵d̵_̵o̵n̵e̵,̵ ̵pow_succ]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.39037227630615234
+      }
+    },
+    {
+      "index": 14,
+      "status": "FAILED",
+      "raw_text": "To prove the identity $u_n = 2^{n+1} - (n+2)$ for the sequence defined by $u_0 = 0$ and $u_{n+1} = 2u_n + (n+1)$, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=0$):**\n    $u_0 = 0$. Using the formula: $2^{0+1} - (0+2) = 2 - 2 = 0$.\n    The base case holds.\n2.  **Inductive Step:**\n    Assume $u_k = 2^{k+1} - (k+2)$ for some $k \\in \\mathbb{N}$.\n    We want to show $u_{k+1} = 2^{(k+1)+1} - ((k+1)+2) = 2^{k+2} - (k+3)$.\n    Using the recurrence relation:\n    $u_{k+1} = 2 u_k + (k+1)$\n    Substitute the inductive hypothesis:\n    $u_{k+1} = 2 (2^{k+1} - (k+2)) + (k+1)$\n    $u_{k+1} = 2 \\cdot 2^{k+1} - 2(k+2) + k + 1$\n    $u_{k+1} = 2^{k+2} - 2k - 4 + k + 1$\n    $u_{k+1} = 2^{k+2} - k - 3$\n    $u_{k+1} = 2^{k+2} - (k+3)$.\n    The step holds.\n\nBy induction, the formula holds for all $n \\in \\mathbb{N}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- u (k + 1) = 2 * (2 ^ (k + 1) - (k + 2)) + (k + 1)\n    -- Since we are in ℕ, we must be careful with subtraction.\n    -- We know 2 ^ (k + 1) ≥ (k + 2) for all k ≥ 0.\n    have h_ge : 2 ^ (k + 1) ≥ k + 2 := by\n      induction' k with j j_ih\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    rw [← pow_succ']\n    -- Current goal: 2 ^ (k + 2) - 2 * (k + 2) + (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\n    have h_trans : 2 * (k + 2) = (k + 1) + (k + 3) := by ring\n    rw [h_trans]\n    rw [Nat.sub_add_eq_sub_sub]\n    rw [Nat.add_sub_cancel_left]\n    rfl\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- u (k + 1) = 2 * (2 ^ (k + 1) - (k + 2)) + (k + 1)\n    -- Since we are in ℕ, we must be careful with subtraction.\n    -- We know 2 ^ (k + 1) ≥ (k + 2) for all k ≥ 0.\n    have h_ge : 2 ^ (k + 1) ≥ k + 2 := by\n      induction' k with j j_ih\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    rw [← pow_succ']\n    -- Current goal: 2 ^ (k + 2) - 2 * (k + 2) + (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\n    have h_trans : 2 * (k + 2) = (k + 1) + (k + 3) := by ring\n    rw [h_trans]\n    rw [Nat.sub_add_eq_sub_sub]\n    rw [Nat.add_sub_cancel_left]\n    rfl",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nj : ℕ\nj_ih : u j = 2 ^ (j + 1) - (j + 2) → 2 ^ (j + 1) ≥ j + 2\nih : u (j + 1) = 2 ^ (j + 1 + 1) - (j + 1 + 2)\na✝ : 2 ^ (j + 1) * 2 < j + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 10
+            },
+            "endPos": {
+              "line": 25,
+              "column": 19
+            },
+            "data": "Ambiguous term\n  pow_succ'\nPossible interpretations:\n  _root_.pow_succ' : ∀ (a : ?m.115) (n : ℕ), a ^ (n + 1) = a * a ^ n\n  \n  Nat.pow_succ' : ?m.115 ^ succ ?m.116 = ?m.115 * ?m.115 ^ ?m.116"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.30623674392700195
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem \\(u_n = 2^{n+1} - (n+2)\\) by induction on \\(n\\):\n\n1.  **Base Case (\\(n=0\\)):**\n    Substituting \\(n=0\\) into the formula gives \\(u_0 = 2^1 - (0+2) = 2 - 2 = 0\\). This matches the given \\(h_0\\).\n2.  **Inductive Step:**\n    Assume \\(u_k = 2^{k+1} - (k+2)\\) for some \\(k \\in \\mathbb{N}\\). We want to show \\(u_{k+1} = 2^{k+2} - (k+3)\\).\n    Using the recurrence relation \\(h_1\\):\n    \\(u_{k+1} = 2 \\cdot u_k + (k+1)\\)\n    Substitute the inductive hypothesis:\n    \\(u_{k+1} = 2 \\cdot (2^{k+1} - (k+2)) + (k+1)\\)\n    \\(u_{k+1} = 2 \\cdot 2^{k+1} - 2(k+2) + k + 1\\)\n    \\(u_{k+1} = 2^{k+2} - 2k - 4 + k + 1\\)\n    \\(u_{k+1} = 2^{k+2} - k - 3 = 2^{k+2} - ((k+1) + 2)\\).\n    This completes the induction.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- u (n + 1) = 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- We need to handle subtraction in ℕ carefully, or use algebraic identities.\n    -- Since 2^(n+1) ≥ n+2 for all n, we can work with it.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_le\n      · norm_num\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    rw [← pow_succ']\n    -- 2^(n+2) - 2*(n+2) + (n+1)\n    have : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [this]\n    -- We need to show 2^(n+2) - (2n + 4) + (n + 1) = 2^(n+2) - (n + 3)\n    -- Use Nat.sub_add_comm or similar, knowing 2^(n+2) is large enough\n    have h_ge2 : 2 ^ (n + 2) ≥ 2 * n + 4 := by\n      calc 2 ^ (n + 2) = 2 * 2 ^ (n + 1) := by rw [pow_succ]\n        _ ≥ 2 * (n + 2) := by rel [h_ge]\n        _ = 2 * n + 4 := by ring\n    rw [Nat.sub_add_eq_add_sub h_ge2]\n    congr\n    simp only [Nat.succ_eq_add_one]\n    omega\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- u (n + 1) = 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- We need to handle subtraction in ℕ carefully, or use algebraic identities.\n    -- Since 2^(n+1) ≥ n+2 for all n, we can work with it.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_le\n      · norm_num\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    rw [← pow_succ']\n    -- 2^(n+2) - 2*(n+2) + (n+1)\n    have : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [this]\n    -- We need to show 2^(n+2) - (2n + 4) + (n + 1) = 2^(n+2) - (n + 3)\n    -- Use Nat.sub_add_comm or similar, knowing 2^(n+2) is large enough\n    have h_ge2 : 2 ^ (n + 2) ≥ 2 * n + 4 := by\n      calc 2 ^ (n + 2) = 2 * 2 ^ (n + 1) := by rw [pow_succ]\n        _ ≥ 2 * (n + 2) := by rel [h_ge]\n        _ = 2 * n + 4 := by ring\n    rw [Nat.sub_add_eq_add_sub h_ge2]\n    congr\n    simp only [Nat.succ_eq_add_one]\n    omega",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih_le : u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 10
+            },
+            "endPos": {
+              "line": 25,
+              "column": 19
+            },
+            "data": "Ambiguous term\n  pow_succ'\nPossible interpretations:\n  _root_.pow_succ' : ∀ (a : ?m.115) (n : ℕ), a ^ (n + 1) = a * a ^ n\n  \n  Nat.pow_succ' : ?m.115 ^ succ ?m.116 = ?m.115 * ?m.115 ^ ?m.116"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3013648986816406
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "To prove that the sequence defined by $u_0 = 0$ and $u_{n+1} = 2u_n + (n+1)$ follows the closed-form expression $u_n = 2^{n+1} - (n+2)$, we proceed by induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=0$):** $u_0 = 0$ by definition. The formula gives $2^{0+1} - (0+2) = 2 - 2 = 0$. Thus, the base case holds.\n2.  **Inductive Step:** Assume $u_n = 2^{n+1} - (n+2)$. We want to show $u_{n+1} = 2^{(n+1)+1} - ((n+1)+2)$.\n3.  Using the recurrence relation: $u_{n+1} = 2u_n + (n+1)$.\n4.  Substitute the inductive hypothesis: $u_{n+1} = 2(2^{n+1} - (n+2)) + (n+1)$.\n5.  Simplify the expression:\n    $u_{n+1} = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$\n    $u_{n+1} = 2^{n+2} - 2n - 4 + n + 1$\n    $u_{n+1} = 2^{n+2} - n - 3$.\n6.  Observe that $2^{(n+1)+1} - ((n+1)+2) = 2^{n+2} - (n+3) = 2^{n+2} - n - 3$.\n7.  The expressions match, completing the induction.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁ n, ih]\n    -- We are working in ℕ, so we need to be careful with subtraction.\n    -- However, 2^(n+1) ≥ n+2 for all n ≥ 0.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_ge\n      · simp\n      · rw [pow_succ]\n        linarith\n    -- Using the properties of natural number subtraction and multiplication\n    rw [Nat.mul_sub_left_distrib]\n    simp only [← pow_succ]\n    -- 2 * (n + 2) = 2n + 4\n    have h_mul : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [h_mul]\n    -- We want to show 2^(n+2) - (2n + 4) + (n + 1) = 2^(n+2) - (n + 3)\n    -- Rearrange: 2^(n+2) + (n + 1) - (2n + 4) = 2^(n+2) - (n + 3)\n    -- Since 2^(n+2) is large, we can use omega or basic Nat lemmas\n    omega\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁ n, ih]\n    -- We are working in ℕ, so we need to be careful with subtraction.\n    -- However, 2^(n+1) ≥ n+2 for all n ≥ 0.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_ge\n      · simp\n      · rw [pow_succ]\n        linarith\n    -- Using the properties of natural number subtraction and multiplication\n    rw [Nat.mul_sub_left_distrib]\n    simp only [← pow_succ]\n    -- 2 * (n + 2) = 2n + 4\n    have h_mul : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [h_mul]\n    -- We want to show 2^(n+2) - (2n + 4) + (n + 1) = 2^(n+2) - (n + 3)\n    -- Rearrange: 2^(n+2) + (n + 1) - (2n + 4) = 2^(n+2) - (n + 3)\n    -- Since 2^(n+2) is large, we can use omega or basic Nat lemmas\n    omega",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 8
+            },
+            "endPos": {
+              "line": 22,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih_ge : u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 4
+            },
+            "endPos": {
+              "line": 25,
+              "column": 26
+            },
+            "data": "`simp` made no progress"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4147629737854004
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=0$):**\n    The left side is $u(0) = 0$. The right side is $2^{0+1} - (0+2) = 2^1 - 2 = 0$. Both sides match.\n2.  **Inductive Step:**\n    Assume the induction hypothesis (IH): $u(n) = 2^{n+1} - (n+2)$.\n    We want to show $u(n+1) = 2^{(n+1)+1} - ((n+1)+2)$.\n    From the recurrence relation: $u(n+1) = 2 \\cdot u(n) + (n+1)$.\n    Substitute the IH: $u(n+1) = 2 \\cdot (2^{n+1} - (n+2)) + (n+1)$.\n    Distribute the $2$: $u(n+1) = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$.\n    Simplify exponents and linear terms:\n    $u(n+1) = 2^{n+2} - (2n + 4) + n + 1$\n    $u(n+1) = 2^{n+2} - 2n - 4 + n + 1$\n    $u(n+1) = 2^{n+2} - n - 3$.\n    Note that $2^{(n+1)+1} - ((n+1)+2) = 2^{n+2} - (n+3)$, which matches.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n -> n + 1\n    rw [h₁ n, ih]\n    -- u (n + 1) = 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- We need to handle the subtraction in ℕ carefully, \n    -- but since 2^(n+1) ≥ n+2 for all n, we can work in ℤ or use Nat properties.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_le\n      · norm_num\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    -- 2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1)\n    rw [← pow_succ]\n    have h_lin : 2 * (n + 2) = 2 * n + 4 := by linarith\n    rw [h_lin]\n    -- 2 ^ (n + 2) - (2n + 4) + (n + 1)\n    -- Goal is 2 ^ (n + 2) - (n + 3)\n    -- Using Nat.sub_add_comm and other lemmas:\n    have h_le2 : 2 * n + 4 ≥ n + 1 := by linarith\n    rw [Nat.sub_add_eq_sub_sub]\n    congr 1\n    simp [Nat.succ_eq_add_one]\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n -> n + 1\n    rw [h₁ n, ih]\n    -- u (n + 1) = 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- We need to handle the subtraction in ℕ carefully, \n    -- but since 2^(n+1) ≥ n+2 for all n, we can work in ℤ or use Nat properties.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_le\n      · norm_num\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    -- 2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1)\n    rw [← pow_succ]\n    have h_lin : 2 * (n + 2) = 2 * n + 4 := by linarith\n    rw [h_lin]\n    -- 2 ^ (n + 2) - (2n + 4) + (n + 1)\n    -- Goal is 2 ^ (n + 2) - (n + 3)\n    -- Using Nat.sub_add_comm and other lemmas:\n    have h_le2 : 2 * n + 4 ≥ n + 1 := by linarith\n    rw [Nat.sub_add_eq_sub_sub]\n    congr 1\n    simp [Nat.succ_eq_add_one]\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih_le : u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 8
+            },
+            "endPos": {
+              "line": 26,
+              "column": 18
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a ^ ?n * ?a\nin the target expression\n  2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_ge : 2 ^ (n + 1) ≥ n + 2\n⊢ 2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.37915539741516113
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=0$):**\n    We need to show $u(0) = 2^{0+1} - (0+2)$.\n    $u(0) = 0$ (given by $h_0$).\n    $2^1 - 2 = 0$.\n    Thus, $0 = 0$.\n2.  **Inductive Step:**\n    Assume $u(n) = 2^{n+1} - (n+2)$ for some $n \\in \\mathbb{N}$.\n    We want to show $u(n+1) = 2^{(n+1)+1} - ((n+1)+2)$, which simplifies to $u(n+1) = 2^{n+2} - (n+3)$.\n    Using the recurrence relation $h_1$:\n    $u(n+1) = 2 \\cdot u(n) + (n+1)$\n    Substitute the inductive hypothesis:\n    $u(n+1) = 2 \\cdot (2^{n+1} - (n+2)) + (n+1)$\n    $u(n+1) = 2 \\cdot 2^{n+1} - 2(n+2) + n+1$\n    $u(n+1) = 2^{n+2} - 2n - 4 + n + 1$\n    $u(n+1) = 2^{n+2} - n - 3$\n    $u(n+1) = 2^{n+2} - (n+3)$.\n    The step is complete.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- u (n + 1) = 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- We need to handle the subtraction carefully in ℕ\n    have h_pow : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ik\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    rw [← pow_succ]\n    -- At this point we have: 2 ^ (n + 2) - 2 * (n + 2) + (n + 1)\n    -- Which is 2 ^ (n + 2) - (2n + 4) + (n + 1)\n    have h_sub : 2 * (n + 2) = (n + 3) + (n + 1) := by linarith\n    rw [h_sub]\n    rw [Nat.sub_add_eq_sub_sub]\n    rw [Nat.sub_add_cancel]\n    · rfl\n    · apply Nat.le_sub_of_add_le\n      rw [add_comm]\n      exact h_pow.trans (by linarith)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- u (n + 1) = 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- We need to handle the subtraction carefully in ℕ\n    have h_pow : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ik\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    rw [← pow_succ]\n    -- At this point we have: 2 ^ (n + 2) - 2 * (n + 2) + (n + 1)\n    -- Which is 2 ^ (n + 2) - (2n + 4) + (n + 1)\n    have h_sub : 2 * (n + 2) = (n + 3) + (n + 1) := by linarith\n    rw [h_sub]\n    rw [Nat.sub_add_eq_sub_sub]\n    rw [Nat.sub_add_cancel]\n    · rfl\n    · apply Nat.le_sub_of_add_le\n      rw [add_comm]\n      exact h_pow.trans (by linarith)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 8
+            },
+            "endPos": {
+              "line": 22,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nik : u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 8
+            },
+            "endPos": {
+              "line": 24,
+              "column": 18
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a ^ ?n * ?a\nin the target expression\n  2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_pow : 2 ^ (n + 1) ≥ n + 2\n⊢ 2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.31084394454956055
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "To prove that the sequence defined by $u_0 = 0$ and $u_{n+1} = 2u_n + (n+1)$ satisfies $u_n = 2^{n+1} - (n+2)$, we proceed by induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=0$):**\n    The formula gives $2^{0+1} - (0+2) = 2 - 2 = 0$.\n    The hypothesis $h_0$ states $u_0 = 0$. Thus, the base case holds.\n2.  **Inductive Step:**\n    Assume the formula holds for $n$: $u_n = 2^{n+1} - (n+2)$.\n    We want to show $u_{n+1} = 2^{(n+1)+1} - ((n+1)+2) = 2^{n+2} - (n+3)$.\n    Using the recurrence relation $h_1$:\n    $u_{n+1} = 2 \\cdot u_n + (n+1)$\n    Substitute the inductive hypothesis:\n    $u_{n+1} = 2 \\cdot (2^{n+1} - (n+2)) + (n+1)$\n    $u_{n+1} = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$\n    $u_{n+1} = 2^{n+2} - 2n - 4 + n + 1$\n    $u_{n+1} = 2^{n+2} - n - 3$\n    $u_{n+1} = 2^{n+2} - (n+3)$\n    This completes the induction.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- We need to manipulate terms carefully in Nat to avoid negative results\n    -- But since 2^(n+1) >= n+2 for all n, we can use Nat.sub_add_comm or similar,\n    -- or simply work with the identity in Nat.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ik\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    simp only [← pow_succ, mul_add, mul_one]\n    rw [Nat.add_comm (2 ^ (n + 2)) (n + 1)]\n    rw [Nat.add_sub_assoc (by linarith)]\n    rw [Nat.add_comm (n + 1) (2 ^ (n + 2))]\n    rw [Nat.sub_add_eq_sub_sub]\n    congr\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- We need to manipulate terms carefully in Nat to avoid negative results\n    -- But since 2^(n+1) >= n+2 for all n, we can use Nat.sub_add_comm or similar,\n    -- or simply work with the identity in Nat.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ik\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    simp only [← pow_succ, mul_add, mul_one]\n    rw [Nat.add_comm (2 ^ (n + 2)) (n + 1)]\n    rw [Nat.add_sub_assoc (by linarith)]\n    rw [Nat.add_comm (n + 1) (2 ^ (n + 2))]\n    rw [Nat.sub_add_eq_sub_sub]\n    congr\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nik : u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 8
+            },
+            "endPos": {
+              "line": 26,
+              "column": 42
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  2 ^ (n + 2) + (n + 1)\nin the target expression\n  2 * 2 ^ (n + 1) - (2 * n + 2 * 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_ge : 2 ^ (n + 1) ≥ n + 2\n⊢ 2 * 2 ^ (n + 1) - (2 * n + 2 * 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 25,
+              "column": 15
+            },
+            "endPos": {
+              "line": 25,
+              "column": 25
+            },
+            "data": "This simp argument is unused:\n  ← pow_succ\n\nHint: Omit it from the simp argument list.\n  simp only [←̵ ̵p̵o̵w̵_̵s̵u̵c̵c̵,̵ ̵mul_add, mul_one]\n\nNote: Simp arguments with `←` have the additional effect of removing the other direction from the simp set, even if the simp argument itself is unused. If the hint above does not work, try replacing `←` with `-` to only get that effect and silence this warning.\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 25,
+              "column": 36
+            },
+            "endPos": {
+              "line": 25,
+              "column": 43
+            },
+            "data": "This simp argument is unused:\n  mul_one\n\nHint: Omit it from the simp argument list.\n  simp only [← pow_succ, mul_add,̵ ̵m̵u̵l̵_̵o̵n̵e̵]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.38505029678344727
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem \\( u_n = 2^{n+1} - (n+2) \\) for the sequence defined by \\( u_0 = 0 \\) and \\( u_{n+1} = 2u_n + (n+1) \\), we use mathematical induction on \\( n \\).\n\n**Proof Sketch:**\n1.  **Base Case (\\( n = 0 \\)):**\n    Substituting into the closed-form formula: \\( 2^{0+1} - (0+2) = 2 - 2 = 0 \\).\n    Given \\( u_0 = 0 \\), the base case holds.\n2.  **Inductive Step:**\n    Assume \\( u_k = 2^{k+1} - (k+2) \\) for some \\( k \\in \\mathbb{N} \\).\n    We want to show \\( u_{k+1} = 2^{(k+1)+1} - ((k+1)+2) = 2^{k+2} - (k+3) \\).\n    Using the recurrence relation:\n    \\( u_{k+1} = 2 u_k + (k+1) \\).\n    Substitute the inductive hypothesis:\n    \\( u_{k+1} = 2(2^{k+1} - (k+2)) + (k+1) \\)\n    \\( u_{k+1} = 2 \\cdot 2^{k+1} - 2(k+2) + k + 1 \\)\n    \\( u_{k+1} = 2^{k+2} - 2k - 4 + k + 1 \\)\n    \\( u_{k+1} = 2^{k+2} - k - 3 \\)\n    \\( u_{k+1} = 2^{k+2} - (k+3) \\).\n    This matches the target expression.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction n with\n  | zero =>\n    simp [h₀]\n  | succ k ih =>\n    rw [h₁, ih]\n    -- Calculate: 2 * (2^(k+1) - (k+2)) + (k+1)\n    -- Since we are in ℕ, we must be careful with subtraction. \n    -- However, 2^(k+1) ≥ k+2 for all k ≥ 0.\n    have h_ge : 2 ^ (k + 1) ≥ k + 2 := by\n      induction k with\n      | zero => norm_num\n      | succ j hj =>\n        calc\n          2 ^ (j + 2) = 2 * 2 ^ (j + 1) := by rw [pow_succ]\n          _ ≥ 2 * (j + 2) := by rel [hj]\n          _ = 2 * j + 4 := by ring\n          _ ≥ j + 3 := by omega\n    \n    rw [Nat.mul_sub_left_distrib]\n    simp only [← pow_succ']\n    -- 2^{k+2} - 2(k+2) + (k+1) = 2^{k+2} - (2k+4) + (k+1)\n    -- Note: 2k + 4 = k + 3 + k + 1\n    have h_sub : 2 * (k + 2) = (k + 3) + (k + 1) := by ring\n    rw [h_sub]\n    rw [Nat.sub_add_eq_sub_sub]\n    rw [Nat.add_sub_cancel]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction n with\n  | zero =>\n    simp [h₀]\n  | succ k ih =>\n    rw [h₁, ih]\n    -- Calculate: 2 * (2^(k+1) - (k+2)) + (k+1)\n    -- Since we are in ℕ, we must be careful with subtraction. \n    -- However, 2^(k+1) ≥ k+2 for all k ≥ 0.\n    have h_ge : 2 ^ (k + 1) ≥ k + 2 := by\n      induction k with\n      | zero => norm_num\n      | succ j hj =>\n        calc\n          2 ^ (j + 2) = 2 * 2 ^ (j + 1) := by rw [pow_succ]\n          _ ≥ 2 * (j + 2) := by rel [hj]\n          _ = 2 * j + 4 := by ring\n          _ ≥ j + 3 := by omega\n    \n    rw [Nat.mul_sub_left_distrib]\n    simp only [← pow_succ']\n    -- 2^{k+2} - 2(k+2) + (k+1) = 2^{k+2} - (2k+4) + (k+1)\n    -- Note: 2k + 4 = k + 3 + k + 1\n    have h_sub : 2 * (k + 2) = (k + 3) + (k + 1) := by ring\n    rw [h_sub]\n    rw [Nat.sub_add_eq_sub_sub]\n    rw [Nat.add_sub_cancel]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 43
+            },
+            "endPos": {
+              "line": 23,
+              "column": 59
+            },
+            "data": "unsolved goals\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nj : ℕ\nhj : u j = 2 ^ (j + 1) - (j + 2) → 2 ^ (j + 1) ≥ j + 2\nih : u (j + 1) = 2 ^ (j + 1 + 1) - (j + 1 + 2)\n⊢ 2 ^ (j + 1) * 2 = 2 * 2 ^ (j + 1)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 32
+            },
+            "endPos": {
+              "line": 24,
+              "column": 40
+            },
+            "data": "rel failed, cannot prove goal by 'substituting' the listed relationships. The steps which could not be automatically justified were:\nj + 2 ≤ 2 ^ (j + 1)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 17
+            },
+            "endPos": {
+              "line": 29,
+              "column": 26
+            },
+            "data": "Ambiguous term\n  pow_succ'\nPossible interpretations:\n  _root_.pow_succ' : ∀ (a : ?m.215) (n : ℕ), a ^ (n + 1) = a * a ^ n\n  \n  Nat.pow_succ' : ?m.215 ^ succ ?m.216 = ?m.215 * ?m.215 ^ ?m.216"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 4
+            },
+            "endPos": {
+              "line": 29,
+              "column": 27
+            },
+            "data": "`simp` made no progress"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.23663806915283203
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "To prove that $u_n = 2^{n+1} - (n+2)$ for the sequence defined by $u_0 = 0$ and $u_{n+1} = 2u_n + (n+1)$, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=0$):** $u_0 = 0$. Using the formula: $2^{0+1} - (0+2) = 2 - 2 = 0$. The base case holds.\n2.  **Inductive Step:** Assume the formula holds for $k$, i.e., $u_k = 2^{k+1} - (k+2)$.\n3.  We want to show $u_{k+1} = 2^{(k+1)+1} - ((k+1)+2) = 2^{k+2} - (k+3)$.\n4.  From the recurrence: $u_{k+1} = 2u_k + (k+1)$.\n5.  Substitute the inductive hypothesis: $u_{k+1} = 2(2^{k+1} - (k+2)) + (k+1)$.\n6.  Distribute: $u_{k+1} = 2 \\cdot 2^{k+1} - 2(k+2) + k + 1$.\n7.  Simplify: $u_{k+1} = 2^{k+2} - 2k - 4 + k + 1$.\n8.  Combine terms: $u_{k+1} = 2^{k+2} - k - 3 = 2^{k+2} - (k+3)$.\n9.  By induction, the formula holds for all $n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n = k + 1\n    rw [h₁, ih]\n    -- We are working with natural numbers, so we need to ensure the subtraction\n    -- is well-defined or handle the algebra carefully.\n    -- Since 2^(k+1) ≥ k+2 for all k, we can use Nat.mul_sub_left_distrib\n    have h_le : k + 2 ≤ 2 ^ (k + 1) := by\n      induction' k with j hj\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    -- Simplify 2 * 2^(k+1) to 2^(k+2)\n    have rpow : 2 * 2 ^ (k + 1) = 2 ^ (k + 2) := by\n      rw [← pow_succ, Nat.add_comm]\n      rfl\n    rw [rpow]\n    -- Simplify the remaining arithmetic: 2^(k+2) - 2(k+2) + (k+1)\n    -- 2(k+2) = 2k + 4\n    have rmul : 2 * (k + 2) = 2 * k + 4 := by ring\n    rw [rmul]\n    -- u(k+1) = 2^(k+2) - (2k + 4) + k + 1\n    -- We want 2^(k+2) - (k + 3)\n    -- Since 2^(k+2) - (2k + 4) + k + 1 = 2^(k+2) - (k + 3)\n    -- We use Nat.sub_add_eq_add_sub and basic identities\n    have h_le2 : 2 * k + 4 ≤ 2 ^ (k + 2) := by\n      linarith [h_le]\n    rw [Nat.sub_add_comm]\n    · apply Nat.eq_add_of_sub_eq\n      · linarith\n      · simp only [Nat.add_assoc]\n        rw [Nat.add_comm (2 * k) 4, ← Nat.add_assoc, Nat.add_comm 3]\n        simp only [Nat.succ_add, Nat.add_succ]\n        ring\n    · linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n = k + 1\n    rw [h₁, ih]\n    -- We are working with natural numbers, so we need to ensure the subtraction\n    -- is well-defined or handle the algebra carefully.\n    -- Since 2^(k+1) ≥ k+2 for all k, we can use Nat.mul_sub_left_distrib\n    have h_le : k + 2 ≤ 2 ^ (k + 1) := by\n      induction' k with j hj\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    -- Simplify 2 * 2^(k+1) to 2^(k+2)\n    have rpow : 2 * 2 ^ (k + 1) = 2 ^ (k + 2) := by\n      rw [← pow_succ, Nat.add_comm]\n      rfl\n    rw [rpow]\n    -- Simplify the remaining arithmetic: 2^(k+2) - 2(k+2) + (k+1)\n    -- 2(k+2) = 2k + 4\n    have rmul : 2 * (k + 2) = 2 * k + 4 := by ring\n    rw [rmul]\n    -- u(k+1) = 2^(k+2) - (2k + 4) + k + 1\n    -- We want 2^(k+2) - (k + 3)\n    -- Since 2^(k+2) - (2k + 4) + k + 1 = 2^(k+2) - (k + 3)\n    -- We use Nat.sub_add_eq_add_sub and basic identities\n    have h_le2 : 2 * k + 4 ≤ 2 ^ (k + 2) := by\n      linarith [h_le]\n    rw [Nat.sub_add_comm]\n    · apply Nat.eq_add_of_sub_eq\n      · linarith\n      · simp only [Nat.add_assoc]\n        rw [Nat.add_comm (2 * k) 4, ← Nat.add_assoc, Nat.add_comm 3]\n        simp only [Nat.succ_add, Nat.add_succ]\n        ring\n    · linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nj : ℕ\nhj : u j = 2 ^ (j + 1) - (j + 2) → j + 2 ≤ 2 ^ (j + 1)\nih : u (j + 1) = 2 ^ (j + 1 + 1) - (j + 1 + 2)\na✝ : 2 ^ (j + 1) * 2 < j + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 10
+            },
+            "endPos": {
+              "line": 27,
+              "column": 20
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a ^ ?n * ?a\nin the target expression\n  2 * 2 ^ (k + 1) = 2 ^ (k + 2)\n\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih : u k = 2 ^ (k + 1) - (k + 2)\nh_le : k + 2 ≤ 2 ^ (k + 1)\n⊢ 2 * 2 ^ (k + 1) = 2 ^ (k + 2)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 40,
+              "column": 8
+            },
+            "endPos": {
+              "line": 40,
+              "column": 24
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?m.230 + ?m.231 - ?m.232\nin the target expression\n  2 ^ (k + 2) - (2 * k + 4) + (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih : u k = 2 ^ (k + 1) - (k + 2)\nh_le : k + 2 ≤ 2 ^ (k + 1)\nrpow : 2 * 2 ^ (k + 1) = 2 ^ (k + 2)\nrmul : 2 * (k + 2) = 2 * k + 4\nh_le2 : 2 * k + 4 ≤ 2 ^ (k + 2)\n⊢ 2 ^ (k + 2) - (2 * k + 4) + (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4643971920013428
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\nWe proceed by induction on $n$:\n\n1.  **Base Case ($n=0$):**\n    From the definition, $u_0 = 0$.\n    Calculating the formula: $2^{0+1} - (0+2) = 2^1 - 2 = 0$.\n    The base case holds.\n\n2.  **Inductive Step:**\n    Assume the hypothesis holds for $n$, i.e., $u_n = 2^{n+1} - (n+2)$.\n    We want to show $u_{n+1} = 2^{(n+1)+1} - ((n+1)+2) = 2^{n+2} - (n+3)$.\n    Using the recurrence relation:\n    $u_{n+1} = 2 \\cdot u_n + (n+1)$\n    Substitute the induction hypothesis:\n    $u_{n+1} = 2 \\cdot (2^{n+1} - (n+2)) + (n+1)$\n    $u_{n+1} = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$\n    $u_{n+1} = 2^{n+2} - 2n - 4 + n + 1$\n    $u_{n+1} = 2^{n+2} - n - 3$\n    $u_{n+1} = 2^{n+2} - (n+3)$\n    This matches the target formula for $n+1$.\n\nThe theorem is proved for all $n \\in \\mathbb{N}$ by induction.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- Since we are working with natural numbers, we need to handle the subtraction carefully.\n    -- However, 2^(n+1) is clearly >= n+2 for all n >= 0.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_le\n      · simp\n      · rw [pow_succ, mul_two]\n        apply Nat.le_trans\n        · exact Nat.add_le_add ih_le (Nat.le_refl _)\n        · simp [Nat.succ_add, Nat.add_succ]\n    \n    rw [Nat.mul_sub_left_distrib]\n    rw [← pow_succ']\n    -- 2 * (n + 2) = 2n + 4\n    have : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [this]\n    -- Target is 2^(n+2) - (n + 3).\n    -- Current is 2^(n+2) - (2n + 4) + (n + 1)\n    -- We need to show (2^(n+2) - (2n + 4)) + (n + 1) = 2^(n+2) - (n + 3)\n    -- Since 2n + 4 = (n + 3) + (n + 1)\n    have h_split : 2 * n + 4 = (n + 3) + (n + 1) := by ring\n    rw [h_split]\n    rw [Nat.sub_add_eq_sub_sub]\n    rw [Nat.add_sub_cancel]\n    -- Proof that 2^(n+2) >= (n+3) + (n+1) to ensure Nat subtraction properties\n    apply Nat.le_trans (m := 2 * (n + 2))\n    · ring_nf; linarith\n    · exact Nat.mul_le_mul_left 2 h_ge\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- Since we are working with natural numbers, we need to handle the subtraction carefully.\n    -- However, 2^(n+1) is clearly >= n+2 for all n >= 0.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_le\n      · simp\n      · rw [pow_succ, mul_two]\n        apply Nat.le_trans\n        · exact Nat.add_le_add ih_le (Nat.le_refl _)\n        · simp [Nat.succ_add, Nat.add_succ]\n    \n    rw [Nat.mul_sub_left_distrib]\n    rw [← pow_succ']\n    -- 2 * (n + 2) = 2n + 4\n    have : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [this]\n    -- Target is 2^(n+2) - (n + 3).\n    -- Current is 2^(n+2) - (2n + 4) + (n + 1)\n    -- We need to show (2^(n+2) - (2n + 4)) + (n + 1) = 2^(n+2) - (n + 3)\n    -- Since 2n + 4 = (n + 3) + (n + 1)\n    have h_split : 2 * n + 4 = (n + 3) + (n + 1) := by ring\n    rw [h_split]\n    rw [Nat.sub_add_eq_sub_sub]\n    rw [Nat.add_sub_cancel]\n    -- Proof that 2^(n+2) >= (n+3) + (n+1) to ensure Nat subtraction properties\n    apply Nat.le_trans (m := 2 * (n + 2))\n    · ring_nf; linarith\n    · exact Nat.mul_le_mul_left 2 h_ge",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 22
+            },
+            "endPos": {
+              "line": 21,
+              "column": 29
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?n * 2\nin the target expression\n  2 ^ (k + 1) * 2 ≥ k + 1 + 2\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih_le : u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\n⊢ 2 ^ (k + 1) * 2 ≥ k + 1 + 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 10
+            },
+            "endPos": {
+              "line": 27,
+              "column": 19
+            },
+            "data": "Ambiguous term\n  pow_succ'\nPossible interpretations:\n  _root_.pow_succ' : ∀ (a : ?m.118) (n : ℕ), a ^ (n + 1) = a * a ^ n\n  \n  Nat.pow_succ' : ?m.118 ^ succ ?m.119 = ?m.118 * ?m.118 ^ ?m.119"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.11996841430664062
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "To prove the given recurrence relation $u_{n+1} = 2u_n + (n+1)$ with $u_0 = 0$, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=0$):**\n    The formula gives $u_0 = 2^{0+1} - (0+2) = 2 - 2 = 0$. This matches the given $h_0$.\n2.  **Inductive Step:**\n    Assume the formula holds for $n$, i.e., $u_n = 2^{n+1} - (n+2)$.\n    We want to show $u_{n+1} = 2^{(n+1)+1} - ((n+1)+2) = 2^{n+2} - (n+3)$.\n    Using the recurrence relation:\n    $u_{n+1} = 2 u_n + (n+1)$\n    $u_{n+1} = 2 (2^{n+1} - (n+2)) + (n+1)$ (by Inductive Hypothesis)\n    $u_{n+1} = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$\n    $u_{n+1} = 2^{n+2} - 2n - 4 + n + 1$\n    $u_{n+1} = 2^{n+2} - n - 3$\n    $u_{n+1} = 2^{n+2} - (n+3)$.\n    The induction is complete.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n -> n + 1\n    rw [h₁, ih]\n    -- Calculate: 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- We must handle the subtraction in ℕ carefully. \n    -- Since 2^(n+1) ≥ n + 2 for all n, we can use omega or explicit manipulation.\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ik\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    rw [← pow_succ']\n    -- 2 * (n + 2) = 2n + 4\n    have : 2 * (n + 2) = 2 * n + 4 := by linarith\n    rw [this]\n    -- Expression: 2^(n+2) - (2n + 4) + (n + 1)\n    -- Goal: 2^(n+2) - (n + 3)\n    -- Since 2^(n+2) is large, we rearrange:\n    have h_le2 : n + 3 ≤ 2 ^ (n + 2) := by\n      have := h_le (n := n + 1)\n      exact this\n    zify [h_le, h_le2]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n -> n + 1\n    rw [h₁, ih]\n    -- Calculate: 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- We must handle the subtraction in ℕ carefully. \n    -- Since 2^(n+1) ≥ n + 2 for all n, we can use omega or explicit manipulation.\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ik\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    rw [← pow_succ']\n    -- 2 * (n + 2) = 2n + 4\n    have : 2 * (n + 2) = 2 * n + 4 := by linarith\n    rw [this]\n    -- Expression: 2^(n+2) - (2n + 4) + (n + 1)\n    -- Goal: 2^(n+2) - (n + 3)\n    -- Since 2^(n+2) is large, we rearrange:\n    have h_le2 : n + 3 ≤ 2 ^ (n + 2) := by\n      have := h_le (n := n + 1)\n      exact this\n    zify [h_le, h_le2]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nik : u k = 2 ^ (k + 1) - (k + 2) → k + 2 ≤ 2 ^ (k + 1)\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 10
+            },
+            "endPos": {
+              "line": 25,
+              "column": 19
+            },
+            "data": "Ambiguous term\n  pow_succ'\nPossible interpretations:\n  _root_.pow_succ' : ∀ (a : ?m.115) (n : ℕ), a ^ (n + 1) = a * a ^ n\n  \n  Nat.pow_succ' : ?m.115 ^ succ ?m.116 = ?m.115 * ?m.115 ^ ?m.116"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3080565929412842
+      }
+    },
+    {
+      "index": 24,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=0$):**\n    The formula gives $u(0) = 2^{0+1} - (0+2) = 2 - 2 = 0$.\n    The hypothesis states $u(0) = 0$. Both match.\n2.  **Inductive Step:**\n    Assume $u(n) = 2^{n+1} - (n+2)$.\n    Using the recurrence relation: $u(n+1) = 2 \\cdot u(n) + (n+1)$.\n    Substitute the induction hypothesis:\n    $u(n+1) = 2 \\cdot (2^{n+1} - (n+2)) + (n+1)$\n    $u(n+1) = 2 \\cdot 2^{n+1} - 2(n+2) + n+1$\n    $u(n+1) = 2^{n+2} - 2n - 4 + n + 1$\n    $u(n+1) = 2^{n+2} - n - 3$\n    $u(n+1) = 2^{(n+1)+1} - ((n+1)+2)$.\n3.  **Conclusion:** By induction, the identity holds for all $n \\in \\mathbb{N}$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- We are working in ℕ, so we must be careful with subtraction.\n    -- However, 2^(n+1) ≥ n + 2 for all n ≥ 0.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ik\n      · simp\n      · rw [pow_succ]\n        linarith\n    -- Use the lemma: a * (b - c) = a * b - a * c if b ≥ c\n    rw [Nat.mul_sub_left_distrib]\n    -- Rearrange and simplify\n    rw [Nat.pow_succ, ← mul_assoc, mul_comm 2 (2^n), mul_assoc]\n    -- Now simplify 2^(n+2) - 2(n+2) + (n+1)\n    -- 2(n+2) = 2n + 4.\n    -- We want to show 2^(n+2) - (2n + 4) + (n+1) = 2^(n+2) - (n+3)\n    have : 2 * (n + 2) = (n + 3) + (n + 1) := by ring\n    rw [this]\n    -- (A - (B + C)) + C = A - B\n    apply Nat.sub_add_cancel\n    -- Proof that 2^(n+2) ≥ n+3\n    apply Nat.one_le_pow\n    norm_num\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- We are working in ℕ, so we must be careful with subtraction.\n    -- However, 2^(n+1) ≥ n + 2 for all n ≥ 0.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ik\n      · simp\n      · rw [pow_succ]\n        linarith\n    -- Use the lemma: a * (b - c) = a * b - a * c if b ≥ c\n    rw [Nat.mul_sub_left_distrib]\n    -- Rearrange and simplify\n    rw [Nat.pow_succ, ← mul_assoc, mul_comm 2 (2^n), mul_assoc]\n    -- Now simplify 2^(n+2) - 2(n+2) + (n+1)\n    -- 2(n+2) = 2n + 4.\n    -- We want to show 2^(n+2) - (2n + 4) + (n+1) = 2^(n+2) - (n+3)\n    have : 2 * (n + 2) = (n + 3) + (n + 1) := by ring\n    rw [this]\n    -- (A - (B + C)) + C = A - B\n    apply Nat.sub_add_cancel\n    -- Proof that 2^(n+2) ≥ n+3\n    apply Nat.one_le_pow\n    norm_num",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 8
+            },
+            "endPos": {
+              "line": 22,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nik : u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 33,
+              "column": 4
+            },
+            "endPos": {
+              "line": 33,
+              "column": 28
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@Nat.sub_add_cancel`\n  ?n - ?m + ?m = ?n\nwith the goal\n  2 ^ n * (2 * 2) - (n + 3 + (n + 1)) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)\n\nNote: The full type of `@Nat.sub_add_cancel` is\n  ∀ {n m : ℕ}, m ≤ n → n - m + m = n\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_ge : 2 ^ (n + 1) ≥ n + 2\nthis : 2 * (n + 2) = n + 3 + (n + 1)\n⊢ 2 ^ n * (2 * 2) - (n + 3 + (n + 1)) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3561441898345947
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "To prove the identity $u_n = 2^{n+1} - (n+2)$ for the sequence defined by $u_0 = 0$ and $u_{n+1} = 2u_n + (n+1)$, we proceed by induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=0$):** $u_0 = 0$. Plugging $n=0$ into the formula gives $2^{0+1} - (0+2) = 2 - 2 = 0$. The base case holds.\n2.  **Inductive Step:** Assume the hypothesis $u_k = 2^{k+1} - (k+2)$ for some $k \\in \\mathbb{N}$.\n3.  Calculate $u_{k+1}$ using the recurrence relation: $u_{k+1} = 2u_k + (k+1)$.\n4.  Substitute the inductive hypothesis: $u_{k+1} = 2(2^{k+1} - (k+2)) + (k+1)$.\n5.  Simplify the expression:\n    $u_{k+1} = 2 \\cdot 2^{k+1} - 2(k+2) + k + 1$\n    $u_{k+1} = 2^{k+2} - 2k - 4 + k + 1$\n    $u_{k+1} = 2^{k+2} - k - 3$\n    $u_{k+1} = 2^{(k+1)+1} - ((k+1) + 2)$.\n6.  The formula holds for $k+1$, completing the induction.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n = k + 1\n    rw [h₁, ih]\n    -- Distribute and simplify the expression\n    -- 2 * (2 ^ (k + 1) - (k + 2)) + (k + 1)\n    -- We use Nat.mul_sub_left_distrib but must ensure 2^(k+1) >= k+2\n    have h_ge : 2 ^ (k + 1) ≥ k + 2 := by\n      induction' k with j hj\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib, Nat.mul_add]\n    -- u (k+1) = 2^(k+2) - (2k + 4) + k + 1\n    -- u (k+1) = 2^(k+2) - (k + 3)\n    -- Since subtraction in Nat is truncated, we reorganize to avoid issues\n    nth_rewrite 1 [pow_succ]\n    rw [Nat.sub_add_comm]\n    · simp [mul_add]\n      omega\n    · exact Nat.mul_le_mul_left 2 h_ge\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with k ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n = k + 1\n    rw [h₁, ih]\n    -- Distribute and simplify the expression\n    -- 2 * (2 ^ (k + 1) - (k + 2)) + (k + 1)\n    -- We use Nat.mul_sub_left_distrib but must ensure 2^(k+1) >= k+2\n    have h_ge : 2 ^ (k + 1) ≥ k + 2 := by\n      induction' k with j hj\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib, Nat.mul_add]\n    -- u (k+1) = 2^(k+2) - (2k + 4) + k + 1\n    -- u (k+1) = 2^(k+2) - (k + 3)\n    -- Since subtraction in Nat is truncated, we reorganize to avoid issues\n    nth_rewrite 1 [pow_succ]\n    rw [Nat.sub_add_comm]\n    · simp [mul_add]\n      omega\n    · exact Nat.mul_le_mul_left 2 h_ge",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nj : ℕ\nhj : u j = 2 ^ (j + 1) - (j + 2) → 2 ^ (j + 1) ≥ j + 2\nih : u (j + 1) = 2 ^ (j + 1 + 1) - (j + 1 + 2)\na✝ : 2 ^ (j + 1) * 2 < j + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 8
+            },
+            "endPos": {
+              "line": 29,
+              "column": 24
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?m.124 + ?m.125 - ?m.126\nin the target expression\n  2 * (2 ^ k * 2) - (2 * k + 2 * 2) + (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih : u k = 2 ^ (k + 1) - (k + 2)\nh_ge : 2 ^ (k + 1) ≥ k + 2\n⊢ 2 * (2 ^ k * 2) - (2 * k + 2 * 2) + (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2954676151275635
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\nWe proceed by induction on $n$:\n1.  **Base Case ($n = 0$):**\n    From the given definition, $u(0) = 0$. \n    The formula gives $2^{0+1} - (0+2) = 2^1 - 2 = 0$.\n    Thus, the base case holds.\n\n2.  **Inductive Step:**\n    Assume $u(n) = 2^{n+1} - (n+2)$ for some $n \\in \\mathbb{N}$.\n    We want to show $u(n+1) = 2^{(n+1)+1} - ((n+1)+2) = 2^{n+2} - (n+3)$.\n    Using the recurrence relation:\n    $u(n+1) = 2 \\cdot u(n) + (n+1)$\n    Substitute the inductive hypothesis:\n    $u(n+1) = 2 \\cdot (2^{n+1} - (n+2)) + (n+1)$\n    $u(n+1) = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$\n    $u(n+1) = 2^{n+2} - 2n - 4 + n + 1$\n    $u(n+1) = 2^{n+2} - n - 3$\n    $u(n+1) = 2^{n+2} - (n+3)$\n    This completes the induction.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base Case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive Step\n    rw [h₁ n, ih]\n    -- Since we are working with naturals, we need to ensure the subtraction\n    -- is well-defined, though for this specific algebraic identity, \n    -- we can use Nat.sub_add_comm or work with integers/linear arithmetic.\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ih_le\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib, mul_comm 2 (n + 2)]\n    simp only [← pow_succ]\n    rw [Nat.add_comm (2 ^ (n + 1 + 1)) (n + 1)]\n    rw [Nat.add_sub_assoc (show 2 * (n + 2) ≥ n + 1 by linarith)]\n    rw [Nat.add_comm (n + 1)]\n    congr\n    simp [mul_add]\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base Case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive Step\n    rw [h₁ n, ih]\n    -- Since we are working with naturals, we need to ensure the subtraction\n    -- is well-defined, though for this specific algebraic identity, \n    -- we can use Nat.sub_add_comm or work with integers/linear arithmetic.\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ih_le\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib, mul_comm 2 (n + 2)]\n    simp only [← pow_succ]\n    rw [Nat.add_comm (2 ^ (n + 1 + 1)) (n + 1)]\n    rw [Nat.add_sub_assoc (show 2 * (n + 2) ≥ n + 1 by linarith)]\n    rw [Nat.add_comm (n + 1)]\n    congr\n    simp [mul_add]\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih_le : u k = 2 ^ (k + 1) - (k + 2) → k + 2 ≤ 2 ^ (k + 1)\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 4
+            },
+            "endPos": {
+              "line": 25,
+              "column": 26
+            },
+            "data": "`simp` made no progress"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.26625680923461914
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n1.  **Base Case ($n=0$):**\n    Evaluate the closed-form expression at 0: $2^{0+1} - (0+2) = 2 - 2 = 0$. Since $u(0) = 0$ is given, the base case holds.\n2.  **Inductive Step:**\n    Assume the hypothesis holds for $n$, i.e., $u(n) = 2^{n+1} - (n+2)$.\n    We want to show $u(n+1) = 2^{(n+1)+1} - ((n+1)+2) = 2^{n+2} - (n+3)$.\n3.  **Calculation:**\n    Using the recurrence relation: $u(n+1) = 2 \\cdot u(n) + (n+1)$.\n    Substitute the inductive hypothesis: $u(n+1) = 2 \\cdot (2^{n+1} - (n+2)) + (n+1)$.\n    Distribute the 2: $u(n+1) = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$.\n    Simplify exponents and linear terms: $u(n+1) = 2^{n+2} - 2n - 4 + n + 1$.\n    Combine like terms: $u(n+1) = 2^{n+2} - n - 3 = 2^{n+2} - (n+3)$.\n    The induction is complete.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- We need to handle the subtraction carefully in ℕ\n    -- Note that 2^(n+1) ≥ n+2 for all n\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_ge\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    simp only [Nat.mul_add, mul_one]\n    rw [← pow_succ']\n    -- 2^(n+2) - 2*(n+2) + (n+1)\n    -- = 2^(n+2) - (2n + 4) + n + 1\n    -- = 2^(n+2) - (n + 3)\n    have : 2 * (n + 2) = (n + 3) + (n + 1) := by linarith\n    rw [this]\n    rw [Nat.sub_add_eq_sub_sub]\n    rw [Nat.add_sub_cancel]\n    -- Proof that 2^(n+2) ≥ n + 3 to ensure subtraction is valid\n    apply Nat.one_le_pow (n := n + 2) (m := 2) (by linarith)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁, ih]\n    -- We need to handle the subtraction carefully in ℕ\n    -- Note that 2^(n+1) ≥ n+2 for all n\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ih_ge\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib]\n    simp only [Nat.mul_add, mul_one]\n    rw [← pow_succ']\n    -- 2^(n+2) - 2*(n+2) + (n+1)\n    -- = 2^(n+2) - (2n + 4) + n + 1\n    -- = 2^(n+2) - (n + 3)\n    have : 2 * (n + 2) = (n + 3) + (n + 1) := by linarith\n    rw [this]\n    rw [Nat.sub_add_eq_sub_sub]\n    rw [Nat.add_sub_cancel]\n    -- Proof that 2^(n+2) ≥ n + 3 to ensure subtraction is valid\n    apply Nat.one_le_pow (n := n + 2) (m := 2) (by linarith)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 8
+            },
+            "endPos": {
+              "line": 22,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih_ge : u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 10
+            },
+            "endPos": {
+              "line": 25,
+              "column": 19
+            },
+            "data": "Ambiguous term\n  pow_succ'\nPossible interpretations:\n  _root_.pow_succ' : ∀ (a : ?m.116) (n : ℕ), a ^ (n + 1) = a * a ^ n\n  \n  Nat.pow_succ' : ?m.116 ^ succ ?m.117 = ?m.116 * ?m.116 ^ ?m.117"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 24,
+              "column": 28
+            },
+            "endPos": {
+              "line": 24,
+              "column": 35
+            },
+            "data": "This simp argument is unused:\n  mul_one\n\nHint: Omit it from the simp argument list.\n  simp only [Nat.mul_add,̵ ̵m̵u̵l̵_̵o̵n̵e̵]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.23940205574035645
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "To prove the formula $u_n = 2^{n+1} - (n+2)$ for the sequence defined by $u_0 = 0$ and $u_{n+1} = 2u_n + (n+1)$, we proceed by induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=0$):** $u_0 = 0$. Using the formula: $2^{0+1} - (0+2) = 2 - 2 = 0$. The base case holds.\n2.  **Inductive Step:** Assume $u_n = 2^{n+1} - (n+2)$. We want to show $u_{n+1} = 2^{n+2} - (n+3)$.\n    *   By the recurrence relation: $u_{n+1} = 2u_n + (n+1)$.\n    *   Substitute the inductive hypothesis: $u_{n+1} = 2(2^{n+1} - (n+2)) + (n+1)$.\n    *   Simplify: $u_{n+1} = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$.\n    *   $u_{n+1} = 2^{n+2} - 2n - 4 + n + 1 = 2^{n+2} - n - 3$.\n    *   This matches the target expression: $2^{(n+1)+1} - ((n+1)+2) = 2^{n+2} - (n+3)$.\n\nThe proof is completed.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    simp [h₀]\n  · -- Inductive step: n -> n + 1\n    rw [h₁, ih]\n    -- u (n + 1) = 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- We need to handle subtraction carefully in ℕ. \n    -- Since 2^(n+1) ≥ n+2 for all n, we can work with the properties of subtraction.\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ih_le\n      · simp\n      · rw [pow_succ, mul_two]\n        omega\n    \n    rw [Nat.mul_sub_left_distrib]\n    -- Result: 2 * 2^(n+1) - 2*(n+2) + (n+1)\n    rw [← pow_succ]\n    have h_sub : 2 * (n + 2) = 2 * n + 4 := by omega\n    rw [h_sub]\n    -- Target is 2^(n+2) - (n+3).\n    -- Current: 2^(n+2) - (2n + 4) + (n + 1)\n    -- Since 2^(n+2) is large, we can rearrange terms.\n    have h_large : 2 * n + 4 ≤ 2 ^ (n + 2) := by\n      have := h_le (n := n + 1)\n      omega\n    \n    -- Using omega to handle the final natural number arithmetic\n    omega\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    simp [h₀]\n  · -- Inductive step: n -> n + 1\n    rw [h₁, ih]\n    -- u (n + 1) = 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- We need to handle subtraction carefully in ℕ. \n    -- Since 2^(n+1) ≥ n+2 for all n, we can work with the properties of subtraction.\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ih_le\n      · simp\n      · rw [pow_succ, mul_two]\n        omega\n    \n    rw [Nat.mul_sub_left_distrib]\n    -- Result: 2 * 2^(n+1) - 2*(n+2) + (n+1)\n    rw [← pow_succ]\n    have h_sub : 2 * (n + 2) = 2 * n + 4 := by omega\n    rw [h_sub]\n    -- Target is 2^(n+2) - (n+3).\n    -- Current: 2^(n+2) - (2n + 4) + (n + 1)\n    -- Since 2^(n+2) is large, we can rearrange terms.\n    have h_large : 2 * n + 4 ≤ 2 ^ (n + 2) := by\n      have := h_le (n := n + 1)\n      omega\n    \n    -- Using omega to handle the final natural number arithmetic\n    omega",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 22
+            },
+            "endPos": {
+              "line": 21,
+              "column": 29
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?n * 2\nin the target expression\n  k + 1 + 2 ≤ 2 ^ (k + 1) * 2\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih_le : u k = 2 ^ (k + 1) - (k + 2) → k + 2 ≤ 2 ^ (k + 1)\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\n⊢ k + 1 + 2 ≤ 2 ^ (k + 1) * 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 8
+            },
+            "endPos": {
+              "line": 26,
+              "column": 18
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a ^ ?n * ?a\nin the target expression\n  2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_le : n + 2 ≤ 2 ^ (n + 1)\n⊢ 2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.11863017082214355
+      }
+    },
+    {
+      "index": 29,
+      "status": "FAILED",
+      "raw_text": "To prove the theorem $u_n = 2^{n+1} - (n+2)$, we proceed by induction on $n$:\n\n1.  **Base case ($n=0$):** $u_0 = 0$ by hypothesis. The formula gives $2^{0+1} - (0+2) = 2 - 2 = 0$. The base case holds.\n2.  **Inductive step:** Assume $u_n = 2^{n+1} - (n+2)$. We want to show $u_{n+1} = 2^{n+2} - ((n+1)+2)$.\n    Using the recurrence relation:\n    $u_{n+1} = 2 \\cdot u_n + (n+1)$\n    Substitute the inductive hypothesis:\n    $u_{n+1} = 2 \\cdot (2^{n+1} - (n+2)) + (n+1)$\n    $u_{n+1} = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$\n    $u_{n+1} = 2^{n+2} - 2n - 4 + n + 1$\n    $u_{n+1} = 2^{n+2} - n - 3$\n    Observe that $2^{n+2} - ((n+1)+2) = 2^{n+2} - n - 3$.\n    Thus, the induction holds.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁ n, ih]\n    -- We are working with natural numbers, so we must be careful with subtraction.\n    -- Since 2^(n+1) ≥ n+2 for all n, the subtraction is well-defined.\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ihk\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib, pow_succ]\n    -- Simplify the expression: 2 * 2^(n+1) - 2*(n+2) + (n+1)\n    -- = 2^(n+2) - (2n + 4) + n + 1\n    -- = 2^(n+2) - (2n + 4 - n - 1)\n    -- = 2^(n+2) - (n + 3)\n    have h_arith : 2 * (n + 2) = 2 * n + 4 := by linarith\n    rw [h_arith]\n    have h_sub : 2 * n + 4 ≥ n + 1 := by linarith\n    rw [Nat.sub_add_comm h_sub]\n    congr\n    simp [Nat.add_assoc]\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁ n, ih]\n    -- We are working with natural numbers, so we must be careful with subtraction.\n    -- Since 2^(n+1) ≥ n+2 for all n, the subtraction is well-defined.\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ihk\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib, pow_succ]\n    -- Simplify the expression: 2 * 2^(n+1) - 2*(n+2) + (n+1)\n    -- = 2^(n+2) - (2n + 4) + n + 1\n    -- = 2^(n+2) - (2n + 4 - n - 1)\n    -- = 2^(n+2) - (n + 3)\n    have h_arith : 2 * (n + 2) = 2 * n + 4 := by linarith\n    rw [h_arith]\n    have h_sub : 2 * n + 4 ≥ n + 1 := by linarith\n    rw [Nat.sub_add_comm h_sub]\n    congr\n    simp [Nat.add_assoc]\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 8
+            },
+            "endPos": {
+              "line": 22,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nihk : u k = 2 ^ (k + 1) - (k + 2) → k + 2 ≤ 2 ^ (k + 1)\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 31,
+              "column": 8
+            },
+            "endPos": {
+              "line": 31,
+              "column": 30
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  2 * n + 4 + ?m.197 - (n + 1)\nin the target expression\n  2 * (2 ^ n * 2) - (2 * n + 4) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_le : n + 2 ≤ 2 ^ (n + 1)\nh_arith : 2 * (n + 2) = 2 * n + 4\nh_sub : 2 * n + 4 ≥ n + 1\n⊢ 2 * (2 ^ n * 2) - (2 * n + 4) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.482952356338501
+      }
+    },
+    {
+      "index": 30,
+      "status": "FAILED",
+      "raw_text": "To prove that $u_n = 2^{n+1} - (n+2)$ for the sequence defined by $u_0 = 0$ and $u_{n+1} = 2u_n + (n+1)$, we use mathematical induction on $n$.\n\n**Proof Sketch:**\n1.  **Base Case ($n=0$):**\n    $u_0 = 0$. Using the formula: $2^{0+1} - (0+2) = 2^1 - 2 = 0$. The base case holds.\n2.  **Inductive Step:**\n    Assume $u_n = 2^{n+1} - (n+2)$. We want to show $u_{n+1} = 2^{n+2} - (n+3)$.\n    From the recurrence relation: $u_{n+1} = 2 u_n + (n+1)$.\n    Substitute the inductive hypothesis:\n    $u_{n+1} = 2(2^{n+1} - (n+2)) + (n+1)$\n    $u_{n+1} = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$\n    $u_{n+1} = 2^{n+2} - 2n - 4 + n + 1$\n    $u_{n+1} = 2^{n+2} - n - 3$\n    $u_{n+1} = 2^{n+2} - ((n+1) + 2)$.\n    This matches the formula for $n+1$. The induction is complete.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n -> n + 1\n    rw [h₁ n, ih]\n    -- We need to work with the expression 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- Since we are in ℕ, we must be careful with subtraction.\n    -- However, 2^(n+1) is clearly ≥ n+2 for all n ≥ 0.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ik\n      · simp\n      · rw [pow_succ, mul_two]\n        apply Nat.add_le_add ik\n        apply Nat.one_le_pow\n    rw [Nat.mul_sub_left_distrib, pow_succ]\n    -- Simplify 2 * (n + 2)\n    have h_mul : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [h_mul]\n    -- Now we have: 2^(n+2) - (2n + 4) + (n + 1)\n    -- We want: 2^(n+2) - (n + 3)\n    -- Since (2n + 4) = (n + 3) + (n + 1), we use (A - (B + C)) + C = A - B\n    have h_split : 2 * n + 4 = (n + 3) + (n + 1) := by ring\n    rw [h_split, ← Nat.sub_sub]\n    apply Nat.sub_add_cancel\n    -- Final check that 2^(n+2) ≥ n+3\n    apply Nat.le_trans _ (Nat.le_sub_left_of_add_le (Nat.le_refl _))\n    rw [pow_succ, mul_two]\n    exact Nat.add_le_add h_ge (Nat.one_le_pow _ _)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step: n -> n + 1\n    rw [h₁ n, ih]\n    -- We need to work with the expression 2 * (2 ^ (n + 1) - (n + 2)) + (n + 1)\n    -- Since we are in ℕ, we must be careful with subtraction.\n    -- However, 2^(n+1) is clearly ≥ n+2 for all n ≥ 0.\n    have h_ge : 2 ^ (n + 1) ≥ n + 2 := by\n      induction' n with k ik\n      · simp\n      · rw [pow_succ, mul_two]\n        apply Nat.add_le_add ik\n        apply Nat.one_le_pow\n    rw [Nat.mul_sub_left_distrib, pow_succ]\n    -- Simplify 2 * (n + 2)\n    have h_mul : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [h_mul]\n    -- Now we have: 2^(n+2) - (2n + 4) + (n + 1)\n    -- We want: 2^(n+2) - (n + 3)\n    -- Since (2n + 4) = (n + 3) + (n + 1), we use (A - (B + C)) + C = A - B\n    have h_split : 2 * n + 4 = (n + 3) + (n + 1) := by ring\n    rw [h_split, ← Nat.sub_sub]\n    apply Nat.sub_add_cancel\n    -- Final check that 2^(n+2) ≥ n+3\n    apply Nat.le_trans _ (Nat.le_sub_left_of_add_le (Nat.le_refl _))\n    rw [pow_succ, mul_two]\n    exact Nat.add_le_add h_ge (Nat.one_le_pow _ _)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 22
+            },
+            "endPos": {
+              "line": 22,
+              "column": 29
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?n * 2\nin the target expression\n  2 ^ (k + 1) * 2 ≥ k + 1 + 2\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nik : u k = 2 ^ (k + 1) - (k + 2) → 2 ^ (k + 1) ≥ k + 2\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\n⊢ 2 ^ (k + 1) * 2 ≥ k + 1 + 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 4
+            },
+            "endPos": {
+              "line": 34,
+              "column": 28
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@Nat.sub_add_cancel`\n  ?n - ?m + ?m = ?n\nwith the goal\n  2 * (2 ^ n * 2) - (n + 3) - (n + 1) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)\n\nNote: The full type of `@Nat.sub_add_cancel` is\n  ∀ {n m : ℕ}, m ≤ n → n - m + m = n\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_ge : 2 ^ (n + 1) ≥ n + 2\nh_mul : 2 * (n + 2) = 2 * n + 4\nh_split : 2 * n + 4 = n + 3 + (n + 1)\n⊢ 2 * (2 ^ n * 2) - (n + 3) - (n + 1) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2087411880493164
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\nWe use induction on $n$.\n1.  **Base Case ($n = 0$):**\n    $u(0) = 0$ is given. The formula gives $2^{0+1} - (0+2) = 2 - 2 = 0$. The base case holds.\n2.  **Inductive Step:**\n    Assume the formula holds for $n$, i.e., $u(n) = 2^{n+1} - (n+2)$.\n    We want to prove it for $n+1$: $u(n+1) = 2^{(n+1)+1} - ((n+1)+2) = 2^{n+2} - (n+3)$.\n    Using the recurrence relation $u(n+1) = 2 \\cdot u(n) + (n+1)$ and substituting the inductive hypothesis:\n    $u(n+1) = 2(2^{n+1} - (n+2)) + (n+1)$\n    $u(n+1) = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$\n    $u(n+1) = 2^{n+2} - 2n - 4 + n + 1$\n    $u(n+1) = 2^{n+2} - n - 3$\n    $u(n+1) = 2^{n+2} - (n+3)$.\n    The induction is complete.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁ n, ih]\n    -- Since we are working with natural number subtraction, \n    -- we must ensure the terms being subtracted are smaller than the terms they are subtracted from.\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ih_k\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib, mul_comm 2 (n + 2)]\n    simp only [← pow_succ]\n    -- Rearrange to handle subtractions safely\n    have : 2 * (n + 2) = 2 * n + 4 := by linarith\n    rw [this]\n    rw [Nat.sub_add_comm (by linarith)]\n    rw [Nat.add_succ, Nat.add_succ]\n    apply Nat.sub_eq_of_eq_add\n    rw [add_assoc]\n    apply Nat.add_left_cancel (m := n + 1)\n    rw [add_comm (n + 1), ← add_assoc]\n    simp only [Nat.sub_add_cancel h_le]\n    linarith\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    rw [h₀]\n    simp\n  · -- Inductive step\n    rw [h₁ n, ih]\n    -- Since we are working with natural number subtraction, \n    -- we must ensure the terms being subtracted are smaller than the terms they are subtracted from.\n    have h_le : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ih_k\n      · simp\n      · rw [pow_succ]\n        linarith\n    rw [Nat.mul_sub_left_distrib, mul_comm 2 (n + 2)]\n    simp only [← pow_succ]\n    -- Rearrange to handle subtractions safely\n    have : 2 * (n + 2) = 2 * n + 4 := by linarith\n    rw [this]\n    rw [Nat.sub_add_comm (by linarith)]\n    rw [Nat.add_succ, Nat.add_succ]\n    apply Nat.sub_eq_of_eq_add\n    rw [add_assoc]\n    apply Nat.add_left_cancel (m := n + 1)\n    rw [add_comm (n + 1), ← add_assoc]\n    simp only [Nat.sub_add_cancel h_le]\n    linarith",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 8
+            },
+            "endPos": {
+              "line": 22,
+              "column": 16
+            },
+            "data": "linarith failed to find a contradiction\ncase succ.h\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih_k : u k = 2 ^ (k + 1) - (k + 2) → k + 2 ≤ 2 ^ (k + 1)\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\na✝ : 2 ^ (k + 1) * 2 < k + 1 + 2\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 4
+            },
+            "endPos": {
+              "line": 24,
+              "column": 26
+            },
+            "data": "`simp` made no progress"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2391979694366455
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "### Proof Sketch\n\nWe proceed by induction on $n$:\n\n1.  **Base Case ($n = 0$):**\n    We are given $u(0) = 0$. Using the formula, $u(0) = 2^{0+1} - (0+2) = 2 - 2 = 0$. The base case holds.\n\n2.  **Inductive Step:**\n    Assume the hypothesis holds for $n$, i.e., $u(n) = 2^{n+1} - (n+2)$.\n    We want to show $u(n+1) = 2^{(n+1)+1} - ((n+1)+2)$.\n    Using the recurrence relation $u(n+1) = 2u(n) + (n+1)$:\n    $u(n+1) = 2(2^{n+1} - (n+2)) + (n+1)$\n    $u(n+1) = 2 \\cdot 2^{n+1} - 2(n+2) + n + 1$\n    $u(n+1) = 2^{n+2} - 2n - 4 + n + 1$\n    $u(n+1) = 2^{n+2} - n - 3$\n    $u(n+1) = 2^{(n+1)+1} - ((n+1)+2)$.\n    The inductive step holds.\n\nBy the principle of mathematical induction, the formula holds for all $n \\in \\mathbb{N}$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    simp [h₀]\n  · -- Inductive step: n -> n + 1\n    rw [h₁, ih]\n    -- Since we are working with natural numbers, we must ensure 2^(n+1) ≥ n+2\n    -- to use standard subtraction rules or handle the algebra carefully.\n    have h_ge : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ih_k\n      · simp\n      · rw [pow_succ, mul_two]\n        apply add_le_add ih_k\n        exact Nat.one_le_pow _ 2 (by simp)\n    \n    -- Using the lemma Nat.mul_sub_left_distrib\n    rw [Nat.mul_sub_left_distrib]\n    -- u (n + 1) = 2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1)\n    rw [← pow_succ]\n    -- Rearrange and simplify\n    have h_sub : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [h_sub]\n    have h_rewr : 2 ^ (n + 2) - (2 * n + 4) + (n + 1) = 2 ^ (n + 2) - ((2 * n + 4) - (n + 1)) := by\n      apply Nat.sub_add_comm\n      exact le_trans (by simp) h_ge -- Not quite, need 2n + 4 <= 2^(n+2)\n      calc 2 * n + 4 = 2 * (n + 2) := by ring\n           _ ≤ 2 * 2 ^ (n + 1) := Nat.mul_le_mul_left 2 h_ge\n           _ = 2 ^ (n + 2) := by rw [← pow_succ]\n    rw [h_rewr]\n    congr 1\n    -- Simplify (2n + 4) - (n + 1) to n + 3\n    have h_final : (2 * n + 4) - (n + 1) = n + 3 := by\n      rw [Nat.add_comm (2*n) 4, Nat.add_comm n 1, Nat.add_sub_add_left]\n      omega\n    rw [h_final]\n    ring\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem induction_seq_mul2pnp1 (n : ℕ) (u : ℕ → ℕ) (h₀ : u 0 = 0)\n  (h₁ : ∀ n, u (n + 1) = 2 * u n + (n + 1)) : u n = 2 ^ (n + 1) - (n + 2) := by\n  induction' n with n ih\n  · -- Base case: n = 0\n    simp [h₀]\n  · -- Inductive step: n -> n + 1\n    rw [h₁, ih]\n    -- Since we are working with natural numbers, we must ensure 2^(n+1) ≥ n+2\n    -- to use standard subtraction rules or handle the algebra carefully.\n    have h_ge : n + 2 ≤ 2 ^ (n + 1) := by\n      induction' n with k ih_k\n      · simp\n      · rw [pow_succ, mul_two]\n        apply add_le_add ih_k\n        exact Nat.one_le_pow _ 2 (by simp)\n    \n    -- Using the lemma Nat.mul_sub_left_distrib\n    rw [Nat.mul_sub_left_distrib]\n    -- u (n + 1) = 2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1)\n    rw [← pow_succ]\n    -- Rearrange and simplify\n    have h_sub : 2 * (n + 2) = 2 * n + 4 := by ring\n    rw [h_sub]\n    have h_rewr : 2 ^ (n + 2) - (2 * n + 4) + (n + 1) = 2 ^ (n + 2) - ((2 * n + 4) - (n + 1)) := by\n      apply Nat.sub_add_comm\n      exact le_trans (by simp) h_ge -- Not quite, need 2n + 4 <= 2^(n+2)\n      calc 2 * n + 4 = 2 * (n + 2) := by ring\n           _ ≤ 2 * 2 ^ (n + 1) := Nat.mul_le_mul_left 2 h_ge\n           _ = 2 ^ (n + 2) := by rw [← pow_succ]\n    rw [h_rewr]\n    congr 1\n    -- Simplify (2n + 4) - (n + 1) to n + 3\n    have h_final : (2 * n + 4) - (n + 1) = n + 3 := by\n      rw [Nat.add_comm (2*n) 4, Nat.add_comm n 1, Nat.add_sub_add_left]\n      omega\n    rw [h_final]\n    ring",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 22
+            },
+            "endPos": {
+              "line": 20,
+              "column": 29
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?n * 2\nin the target expression\n  k + 1 + 2 ≤ 2 ^ (k + 1) * 2\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nk : ℕ\nih_k : u k = 2 ^ (k + 1) - (k + 2) → k + 2 ≤ 2 ^ (k + 1)\nih : u (k + 1) = 2 ^ (k + 1 + 1) - (k + 1 + 2)\n⊢ k + 1 + 2 ≤ 2 ^ (k + 1) * 2"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 8
+            },
+            "endPos": {
+              "line": 27,
+              "column": 18
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a ^ ?n * ?a\nin the target expression\n  2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)\n\ncase succ\nu : ℕ → ℕ\nh₀ : u 0 = 0\nh₁ : ∀ (n : ℕ), u (n + 1) = 2 * u n + (n + 1)\nn : ℕ\nih : u n = 2 ^ (n + 1) - (n + 2)\nh_ge : n + 2 ≤ 2 ^ (n + 1)\n⊢ 2 * 2 ^ (n + 1) - 2 * (n + 2) + (n + 1) = 2 ^ (n + 1 + 1) - (n + 1 + 2)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.11502742767333984
+      }
+    }
+  ]
+}

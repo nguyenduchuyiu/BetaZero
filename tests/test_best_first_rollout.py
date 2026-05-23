@@ -1863,3 +1863,33 @@ def test_search_metadata_logs_core_runtime_counters():
     assert meta["final_status"]["states"]["SOLVED"] >= 2
     assert meta["final_status"]["actions"]["skeleton_SOLVED"] == 1
     assert meta["depth_distribution"]["states_seen_by_depth"]["0"] == 1
+
+
+def test_get_best_feedbacks_sorting_by_q_value():
+    root = ProofState("", "root")
+    graph = ANDORGraph(root)
+    rollout = make_rollout()
+
+    action_low = Action("tactic", "low tactic", verify_code="low_code")
+    action_high = Action("tactic", "high tactic", verify_code="high_code")
+
+    # Expand both actions under root in the graph with different r_env (which translates to Q value)
+    graph.expand(root, action_low, r_env=0.1)
+    graph.expand(root, action_high, r_env=0.9)
+
+    # Record tactic feedbacks. We record them out of order (high then low)
+    rollout._tactic_feedback_by_state[root] = [
+        (action_high, "feedback_high"),
+        (action_low, "feedback_low"),
+    ]
+
+    # Get best feedbacks. Since they are sorted in ascending order of Q-value:
+    # "feedback_low" (Q=0.1) should come before "feedback_high" (Q=0.9)
+    feedbacks = rollout.get_best_feedbacks(root, "tactic", graph)
+    assert feedbacks == ["feedback_low", "feedback_high"]
+
+    # If action is None, it should get a default Q-value of -999.0 and come first
+    rollout._tactic_feedback_by_state[root].append((None, "feedback_none"))
+    feedbacks = rollout.get_best_feedbacks(root, "tactic", graph)
+    assert feedbacks == ["feedback_none", "feedback_low", "feedback_high"]
+

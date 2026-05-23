@@ -1,0 +1,1795 @@
+{
+  "problem": "problems/miniF2F-test/algebra_amgm_prod1toneq1_sum1tongeqn.lean",
+  "model": "gemini-3-flash-preview",
+  "timestamp": "2026-05-23 15:10:18",
+  "summary": {
+    "total_samples": 32,
+    "passed_count": 0,
+    "completed_count": 0,
+    "solved": false
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we utilize the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n**Proof Sketch:**\n1.  The AM-GM inequality states that for a collection of non-negative real numbers $x_1, x_2, \\dots, x_n$, the following holds:\n    $$\\frac{1}{n} \\sum_{i=1}^n x_i \\geq \\left( \\prod_{i=1}^n x_i \\right)^{1/n}$$\n2.  In this problem, we are given $a_i \\geq 0$ for all $i$ and the product of the first $n$ terms is $1$:\n    $$\\prod_{i=0}^{n-1} a_i = 1$$\n3.  Applying AM-GM to the set $\\{a_0, a_1, \\dots, a_{n-1}\\}$:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\geq (1)^{1/n} = 1$$\n4.  Multiplying both sides by $n$ (where $n$ is assumed to be positive to avoid the trivial case), we obtain:\n    $$\\sum_{i=0}^{n-1} a_i \\geq n$$\n5.  If $n=0$, the sum is $0$ and the theorem holds trivially as $0 \\geq 0$.\n\n**Lean 4 Code:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : \n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the trivial case n = 0\n  cases n with\n  | zero => \n    simp\n  | succ k =>\n    let n := k + 1\n    -- AM-GM inequality: (1/n) * Σ a_i ≥ (Π a_i)^(1/n)\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a ?_ ?_\n    rotate_left\n    -- Weights must be non-negative\n    · intro i _\n      simp only [one_div, inv_nonneg]\n      exact Nat.cast_nonneg n\n    -- Weights must sum to 1\n    · simp only [one_div, sum_const, card_range, nsmul_eq_mul]\n      exact mul_inv_cancel₀ (by simp [n])\n    \n    -- Simplify the AM-GM expression\n    rw [h_prod] at h_amgm\n    simp only [Real.one_rpow, one_div, sum_const, card_range, nsmul_eq_mul] at h_amgm\n    \n    -- Rearrange (1/n) * Σ a_i ≥ 1 to Σ a_i ≥ n\n    have hn_pos : (n : ℝ) > 0 := by simp [n]\n    exact (le_div_iff₀' hn_pos).mp h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : \n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the trivial case n = 0\n  cases n with\n  | zero => \n    simp\n  | succ k =>\n    let n := k + 1\n    -- AM-GM inequality: (1/n) * Σ a_i ≥ (Π a_i)^(1/n)\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a ?_ ?_\n    rotate_left\n    -- Weights must be non-negative\n    · intro i _\n      simp only [one_div, inv_nonneg]\n      exact Nat.cast_nonneg n\n    -- Weights must sum to 1\n    · simp only [one_div, sum_const, card_range, nsmul_eq_mul]\n      exact mul_inv_cancel₀ (by simp [n])\n    \n    -- Simplify the AM-GM expression\n    rw [h_prod] at h_amgm\n    simp only [Real.one_rpow, one_div, sum_const, card_range, nsmul_eq_mul] at h_amgm\n    \n    -- Rearrange (1/n) * Σ a_i ≥ 1 to Σ a_i ≥ n\n    have hn_pos : (n : ℝ) > 0 := by simp [n]\n    exact (le_div_iff₀' hn_pos).mp h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 29
+            },
+            "endPos": {
+              "line": 27,
+              "column": 40
+            },
+            "data": "unsolved goals\na : ℕ → ℝ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nk : ℕ\nh_prod : (range (k + 1)).prod a = 1\nn : ℕ := k + 1\n⊢ ¬?m.82 = 0"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 8
+            },
+            "endPos": {
+              "line": 30,
+              "column": 14
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (range (k + 1)).prod a\nin the target expression\n  (∀ i ∈ range n, 0 ≤ a i) →\n    (∏ i ∈ range n, a i ^ (1 / ↑n)) ^ (∑ i ∈ range n, 1 / ↑n)⁻¹ ≤ (∑ i ∈ range n, 1 / ↑n * a i) / ∑ i ∈ range n, 1 / ↑n\n\ncase succ.refine_3\na : ℕ → ℝ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nk : ℕ\nh_prod : (range (k + 1)).prod a = 1\nn : ℕ := k + 1\nh_amgm :\n  (∀ i ∈ range n, 0 ≤ a i) →\n    (∏ i ∈ range n, a i ^ (1 / ↑n)) ^ (∑ i ∈ range n, 1 / ↑n)⁻¹ ≤ (∑ i ∈ range n, 1 / ↑n * a i) / ∑ i ∈ range n, 1 / ↑n\n⊢ (range (k + 1)).sum a ≥ ↑(k + 1)"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 27,
+              "column": 38
+            },
+            "endPos": {
+              "line": 27,
+              "column": 39
+            },
+            "data": "This simp argument is unused:\n  n\n\nHint: Omit it from the simp argument list.\n  simp ̵[̵n̵]̵\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.07120299339294434
+      }
+    },
+    {
+      "index": 2,
+      "status": "FAILED",
+      "raw_text": "To prove that for non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$, if $\\prod_{i=0}^{n-1} a_i = 1$, then $\\sum_{i=0}^{n-1} a_i \\geq n$, we apply the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n**Proof Sketch:**\n1. The AM-GM inequality states that for non-negative real numbers $x_1, \\dots, x_n$:\n   $$\\frac{1}{n} \\sum_{i=1}^n x_i \\geq \\left( \\prod_{i=1}^n x_i \\right)^{1/n}$$\n2. In this problem, we are given $a_i \\geq 0$ and $\\prod_{i=0}^{n-1} a_i = 1$.\n3. Applying AM-GM to the sequence $a_i$:\n   $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\geq \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n} = (1)^{1/n} = 1$$\n4. Multiplying both sides by $n$ (assuming $n > 0$) yields $\\sum_{i=0}^{n-1} a_i \\geq n$.\n5. If $n=0$, the sum is 0 and $n$ is 0, so $0 \\geq 0$ holds.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h₀: ∀ x:ℕ, 0 ≤ a x)\n  (h₁ : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case distinction on whether n is zero\n  rcases n.eq_zero_or_pos with rfl | hn\n  · -- Case n = 0\n    simp\n  · -- Case n > 0, apply AM-GM inequality\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => 1 / (n : ℝ)) a\n      (by simp; field_simp; norm_cast) (by simp; intro i _; exact h₀ i)\n    -- Simplify the geometric mean part using the hypothesis product = 1\n    rw [h₁] at h_amgm\n    simp only [Real.one_rpow, one_mul] at h_amgm\n    -- Rearrange to get the sum ≥ n\n    simp only [sum_mul, ← mul_sum] at h_amgm\n    field_simp at h_amgm\n    exact h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h₀: ∀ x:ℕ, 0 ≤ a x)\n  (h₁ : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case distinction on whether n is zero\n  rcases n.eq_zero_or_pos with rfl | hn\n  · -- Case n = 0\n    simp\n  · -- Case n > 0, apply AM-GM inequality\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => 1 / (n : ℝ)) a\n      (by simp; field_simp; norm_cast) (by simp; intro i _; exact h₀ i)\n    -- Simplify the geometric mean part using the hypothesis product = 1\n    rw [h₁] at h_amgm\n    simp only [Real.one_rpow, one_mul] at h_amgm\n    -- Rearrange to get the sum ≥ n\n    simp only [sum_mul, ← mul_sum] at h_amgm\n    field_simp at h_amgm\n    exact h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 16
+            },
+            "endPos": {
+              "line": 17,
+              "column": 26
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 55
+            },
+            "endPos": {
+              "line": 17,
+              "column": 56
+            },
+            "data": "Tactic `introN` failed: There are no additional binders or `let` bindings in the goal to introduce\n\na : ℕ → ℝ\nn : ℕ\nh₀ : ∀ (x : ℕ), 0 ≤ a x\nh₁ : (range n).prod a = 1\nhn : n > 0\n⊢ 0 < ↑n * (↑n)⁻¹"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 8
+            },
+            "endPos": {
+              "line": 19,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (range n).prod a\nin the target expression\n  (∀ i ∈ range n, 0 ≤ a i) →\n    (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n      (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n\ncase inr\na : ℕ → ℝ\nn : ℕ\nh₀ : ∀ (x : ℕ), 0 ≤ a x\nh₁ : (range n).prod a = 1\nhn : n > 0\nh_amgm :\n  (∀ i ∈ range n, 0 ≤ a i) →\n    (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n      (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n⊢ (range n).sum a ≥ ↑n"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.341022253036499
+      }
+    },
+    {
+      "index": 3,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we use the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n### Proof Sketch\n1.  **AM-GM Inequality**: For any set of non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$, the arithmetic mean is greater than or equal to the geometric mean:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n2.  **Substitution**: We are given that the product of the sequence $\\prod_{i=0}^{n-1} a_i = 1$.\n3.  **Simplification**: Substituting the product into the AM-GM inequality:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge (1)^{1/n} = 1$$\n4.  **Conclusion**: Multiplying both sides by $n$ (assuming $n > 0$), we obtain:\n    $$\\sum_{i=0}^{n-1} a_i \\ge n$$\n5.  **Edge Case**: If $n = 0$, the sum is 0 and the product is 1 (empty product). The inequality $0 \\ge 0$ holds.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) :\n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Case distinction on whether n is zero\n  rcases n.eq_zero_or_pos with rfl | hn\n  · -- Case n = 0\n    simp\n  · -- Case n > 0\n    -- Use the AM-GM inequality provided by Mathlib\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a ?_ ?_\n    · -- Manipulate the AM-GM result\n      simp [h_prod] at h_amgm\n      rw [inv_mul_eq_div, one_le_div (cast_pos.mpr hn)] at h_amgm\n      exact h_amgm\n    · -- Proof that weights 1/n are non-negative\n      intro i _\n      apply div_nonneg\n      exact zero_le_one\n      exact cast_nonneg n\n    · -- Proof that weights 1/n sum to 1\n      simp [hn.ne']\n      field_simp\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) :\n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Case distinction on whether n is zero\n  rcases n.eq_zero_or_pos with rfl | hn\n  · -- Case n = 0\n    simp\n  · -- Case n > 0\n    -- Use the AM-GM inequality provided by Mathlib\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a ?_ ?_\n    · -- Manipulate the AM-GM result\n      simp [h_prod] at h_amgm\n      rw [inv_mul_eq_div, one_le_div (cast_pos.mpr hn)] at h_amgm\n      exact h_amgm\n    · -- Proof that weights 1/n are non-negative\n      intro i _\n      apply div_nonneg\n      exact zero_le_one\n      exact cast_nonneg n\n    · -- Proof that weights 1/n sum to 1\n      simp [hn.ne']\n      field_simp",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 10
+            },
+            "endPos": {
+              "line": 21,
+              "column": 24
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  ?a⁻¹ * ?b\nin the target expression\n  (∀ i < n, 0 ≤ a i) → (∏ x ∈ range n, a x ^ (↑n)⁻¹) ^ (↑n * (↑n)⁻¹) ≤ (∑ x ∈ range n, (↑n)⁻¹ * a x) / (↑n * (↑n)⁻¹)\n\ncase inr.refine_3\na : ℕ → ℝ\nn : ℕ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\nh_amgm :\n  (∀ i < n, 0 ≤ a i) → (∏ x ∈ range n, a x ^ (↑n)⁻¹) ^ (↑n * (↑n)⁻¹) ≤ (∑ x ∈ range n, (↑n)⁻¹ * a x) / (↑n * (↑n)⁻¹)\n⊢ (range n).sum a ≥ ↑n"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 6
+            },
+            "endPos": {
+              "line": 30,
+              "column": 16
+            },
+            "data": "No goals to be solved"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 20,
+              "column": 12
+            },
+            "endPos": {
+              "line": 20,
+              "column": 18
+            },
+            "data": "This simp argument is unused:\n  h_prod\n\nHint: Omit it from the simp argument list.\n  simp [̵h̵_̵p̵r̵o̵d̵]̵ ̵at h_amgm\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.5089931488037109
+      }
+    },
+    {
+      "index": 4,
+      "status": "FAILED",
+      "raw_text": "To prove that for non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$, if their product is $1$, then their sum is at least $n$, we use the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n### Proof Sketch\n1. **Case $n=0$**: Both sides are $0$, so $0 \\geq 0$ holds.\n2. **Case $n > 0$**:\n   - The AM-GM inequality states that for non-negative numbers $x_i$, $\\frac{1}{n} \\sum_{i=0}^{n-1} x_i \\geq \\left( \\prod_{i=0}^{n-1} x_i \\right)^{1/n}$.\n   - Given $\\prod_{i=0}^{n-1} a_i = 1$, the geometric mean $\\sqrt[n]{1}$ is $1$.\n   - Thus, $\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\geq 1$.\n   - Multiplying both sides by $n$ (where $n > 0$), we obtain $\\sum_{i=0}^{n-1} a_i \\geq n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Case n > 0\n  · -- Apply AM-GM inequality\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ ↦ 1 / (n : ℝ)) a\n      (by simp; exact fun _ _ ↦ (by positivity))\n      (by simp [hn.ne.symm])\n      (by simp)\n      (fun i _ ↦ h_pos i)\n    -- Substitute the given product = 1\n    rw [h_prod] at h_amgm\n    -- Simplify the geometric mean part: 1^(1/n) = 1\n    simp [Real.one_rpow] at h_amgm\n    -- Rearrange the sum part\n    simp only [one_div, inv_mul_eq_div] at h_amgm\n    -- Multiply by n\n    exact (le_div_iff₀ (by positivity)).mp h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Case n > 0\n  · -- Apply AM-GM inequality\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ ↦ 1 / (n : ℝ)) a\n      (by simp; exact fun _ _ ↦ (by positivity))\n      (by simp [hn.ne.symm])\n      (by simp)\n      (fun i _ ↦ h_pos i)\n    -- Substitute the given product = 1\n    rw [h_prod] at h_amgm\n    -- Simplify the geometric mean part: 1^(1/n) = 1\n    simp [Real.one_rpow] at h_amgm\n    -- Rearrange the sum part\n    simp only [one_div, inv_mul_eq_div] at h_amgm\n    -- Multiply by n\n    exact (le_div_iff₀ (by positivity)).mp h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 19
+            },
+            "endPos": {
+              "line": 20,
+              "column": 25
+            },
+            "data": "Function expected at\n  geom_mean_le_arith_mean (range n) (fun x => 1 / ↑n) a ?m.49 ?m.50 ?m.51\nbut this term has type\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n\nNote: Expected a function because this term is being applied to the argument\n  (fun i _ ↦ h_pos i)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 16
+            },
+            "endPos": {
+              "line": 17,
+              "column": 47
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 7
+            },
+            "endPos": {
+              "line": 19,
+              "column": 14
+            },
+            "data": "unsolved goals\na : ℕ → ℝ\nn : ℕ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\n⊢ ∀ i < n, 0 ≤ a i"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2849869728088379
+      }
+    },
+    {
+      "index": 5,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we utilize the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n**Proof Sketch:**\n1.  For $n=0$, the sum is $0$ and the bound $n$ is $0$, so $0 \\ge 0$ holds trivially.\n2.  For $n > 0$, the AM-GM inequality states that for non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n3.  We are given that $\\prod_{i=0}^{n-1} a_i = 1$.\n4.  Substituting the product into the AM-GM inequality, we get:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge 1^{1/n} = 1$$\n5.  Multiplying both sides by $n$ (where $n > 0$) yields:\n    $$\\sum_{i=0}^{n-1} a_i \\ge n$$\n6.  The result follows for all $n \\in \\mathbb{N}$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Case n > 0\n  · have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n    simp only [hn, h_pos, h_prod, inv_one, one_pow, one_mul, one_div, Real.one_rpow] at h_amgm\n    -- Simplify the AM-GM weights: sum (1/n) over range n is 1\n    have h_weight : ∑ i in Finset.range n, (1 : ℝ) / n = 1 := by\n      simp [hn.ne.symm]\n    specialize h_amgm (fun i _ => by positivity) h_weight\n    -- Rearrange to target sum\n    rw [← Finset.mul_sum] at h_amgm\n    exact (le_div_iff₀ (by positivity)).mp h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Case n > 0\n  · have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n    simp only [hn, h_pos, h_prod, inv_one, one_pow, one_mul, one_div, Real.one_rpow] at h_amgm\n    -- Simplify the AM-GM weights: sum (1/n) over range n is 1\n    have h_weight : ∑ i in Finset.range n, (1 : ℝ) / n = 1 := by\n      simp [hn.ne.symm]\n    specialize h_amgm (fun i _ => by positivity) h_weight\n    -- Rearrange to target sum\n    rw [← Finset.mul_sum] at h_amgm\n    exact (le_div_iff₀ (by positivity)).mp h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 23
+            },
+            "endPos": {
+              "line": 18,
+              "column": 26
+            },
+            "data": "unexpected token 'in'; expected ','"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 20
+            },
+            "endPos": {
+              "line": 18,
+              "column": 23
+            },
+            "data": "failed to synthesize instance of type class\n  AddCommMonoid (Sort ?u.1024)\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 2
+            },
+            "endPos": {
+              "line": 18,
+              "column": 23
+            },
+            "data": "unsolved goals\ncase h_weight\na : ℕ → ℝ\nn : ℕ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\nh_amgm :\n  (∀ i ∈ range n, 0 ≤ (↑n)⁻¹) →\n    0 < ∑ x ∈ range n, (↑n)⁻¹ →\n      (∀ i ∈ range n, True) →\n        (∏ x ∈ range n, a x ^ (↑n)⁻¹) ^ (∑ x ∈ range n, (↑n)⁻¹)⁻¹ ≤\n          (∑ x ∈ range n, (↑n)⁻¹ * a x) / ∑ x ∈ range n, (↑n)⁻¹\n⊢ sorry\n\ncase inr\na : ℕ → ℝ\nn : ℕ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\nh_amgm :\n  (∀ i ∈ range n, 0 ≤ (↑n)⁻¹) →\n    0 < ∑ x ∈ range n, (↑n)⁻¹ →\n      (∀ i ∈ range n, True) →\n        (∏ x ∈ range n, a x ^ (↑n)⁻¹) ^ (∑ x ∈ range n, (↑n)⁻¹)⁻¹ ≤\n          (∑ x ∈ range n, (↑n)⁻¹ * a x) / ∑ x ∈ range n, (↑n)⁻¹\nh_weight : sorry\n⊢ (range n).sum a ≥ ↑n"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.07407379150390625
+      }
+    },
+    {
+      "index": 6,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we utilize the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n### Proof Sketch\n1.  **Special Case $n=0$**: The sum over an empty range is $0$, and the right side is $0$. The inequality $0 \\ge 0$ holds.\n2.  **AM-GM Inequality**: For any collection of $n$ non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$, the arithmetic mean is greater than or equal to the geometric mean:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n3.  **Substitution**: Given $\\prod_{i=0}^{n-1} a_i = 1$, the geometric mean is $1^{1/n} = 1$.\n4.  **Conclusion**:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge 1 \\implies \\sum_{i=0}^{n-1} a_i \\ge n$$\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h₀: ∀ x:ℕ, 0 ≤ a x)\n  (h₁ : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case n = 0\n  cases n with\n  | zero =>\n    simp\n  -- Case n > 0\n  | succ n' =>\n    let n := n' + 1\n    have hn : (0 : ℝ) < n := by\n      simp only [n, cast_add, cast_one, add_pos_iff, or_true]\n    -- Use the AM-GM inequality\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun i => a i) (fun i _ => h₀ i)\n    -- Substitute the product value (1) into AM-GM\n    rw [h₁] at h_amgm\n    simp only [n, Real.rpow_one, one_rpow] at h_amgm\n    -- Multiply both sides by n to get the final sum inequality\n    rw [div_le_iff hn] at h_amgm\n    simp only [mul_one] at h_amgm\n    exact h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h₀: ∀ x:ℕ, 0 ≤ a x)\n  (h₁ : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case n = 0\n  cases n with\n  | zero =>\n    simp\n  -- Case n > 0\n  | succ n' =>\n    let n := n' + 1\n    have hn : (0 : ℝ) < n := by\n      simp only [n, cast_add, cast_one, add_pos_iff, or_true]\n    -- Use the AM-GM inequality\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun i => a i) (fun i _ => h₀ i)\n    -- Substitute the product value (1) into AM-GM\n    rw [h₁] at h_amgm\n    simp only [n, Real.rpow_one, one_rpow] at h_amgm\n    -- Multiply both sides by n to get the final sum inequality\n    rw [div_le_iff hn] at h_amgm\n    simp only [mul_one] at h_amgm\n    exact h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 20
+            },
+            "endPos": {
+              "line": 19,
+              "column": 28
+            },
+            "data": "Ambiguous term\n  cast_add\nPossible interpretations:\n  Rat.cast_add : ∀ (p q : ℚ), ↑(p + q) = ↑p + ↑q\n  \n  Nat.cast_add : ∀ (m n : ℕ), ↑(m + n) = ↑m + ↑n"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 30
+            },
+            "endPos": {
+              "line": 19,
+              "column": 38
+            },
+            "data": "Ambiguous term\n  cast_one\nPossible interpretations:\n  Rat.cast_one : ↑1 = 1\n  \n  Nat.cast_one : ↑1 = 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 29
+            },
+            "endPos": {
+              "line": 19,
+              "column": 61
+            },
+            "data": "unsolved goals\na : ℕ → ℝ\nh₀ : ∀ (x : ℕ), 0 ≤ a x\nn' : ℕ\nh₁ : (range (n' + 1)).prod a = 1\nn : ℕ := n' + 1\n⊢ 0 < ↑(n' + 1)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 80
+            },
+            "endPos": {
+              "line": 21,
+              "column": 97
+            },
+            "data": "Application type mismatch: The argument\n  fun i x => h₀ i\nhas type\n  ∀ (i : ℕ) (x : ?m.70 i), 0 ≤ a i\nof sort `Prop` but is expected to have type\n  ℕ → ℝ\nof sort `Type` in the application\n  geom_mean_le_arith_mean (range n) (fun i => a i) fun i x => h₀ i"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 19,
+              "column": 40
+            },
+            "endPos": {
+              "line": 19,
+              "column": 51
+            },
+            "data": "This simp argument is unused:\n  add_pos_iff\n\nHint: Omit it from the simp argument list.\n  simp only [n, cast_add, cast_one, a̵d̵d̵_̵p̵o̵s̵_̵i̵f̵f̵,̵ ̵or_true]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 19,
+              "column": 53
+            },
+            "endPos": {
+              "line": 19,
+              "column": 60
+            },
+            "data": "This simp argument is unused:\n  or_true\n\nHint: Omit it from the simp argument list.\n  simp only [n, cast_add, cast_one, add_pos_iff,̵ ̵o̵r̵_̵t̵r̵u̵e̵]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.061472415924072266
+      }
+    },
+    {
+      "index": 7,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we use the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n### Proof Sketch\n1.  **Identity for $n=0$:** If $n=0$, the sum is $0$ and the bound is $0$, satisfying $0 \\ge 0$.\n2.  **AM-GM Inequality:** For non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$, the AM-GM inequality states:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n3.  **Substitution:** We are given that $\\prod_{i=0}^{n-1} a_i = 1$.\n4.  **Conclusion:** Substituting the product into the inequality:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge 1^{1/n} = 1$$\n    Multiplying both sides by $n$ (where $n > 0$) yields $\\sum_{i=0}^{n-1} a_i \\ge n$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : (∏ i in range n, a i) = 1) : (∑ i in range n, a i) ≥ n := by\n  -- Case n = 0\n  cases n with\n  | zero => \n    simp\n  | succ n =>\n    -- Use the AM-GM inequality from Mathlib\n    -- Real.geom_mean_le_arith_mean states: (∏ i in s, w i * x i) / (∑ i in s, w i) ≤ ...\n    -- We use the version for constant weights (1/n)\n    have n_pos : (0 : ℝ) < (succ n) := by simp [Nat.succ_pos]\n    have am_gm := Real.geom_mean_le_arith_mean (range (succ n)) (λ _ => (1 : ℝ) / (succ n)) a \n      (λ _ _ => by simp [n_pos.le]) (λ _ _ => h_pos _) (by simp [Finset.sum_const, card_range])\n    \n    rw [h_prod] at am_gm\n    -- Simplify the geometric mean part: (prod 1)^(1/n) = 1\n    simp only [one_div, inv_mul_cancel (ne_of_gt n_pos), rpow_one, one_rpow, \n               algebraMap.coe_succ, sum_const, card_range, nsmul_eq_mul] at am_gm\n    \n    -- Multiply by (succ n) to get the final inequality\n    rw [← mul_le_mul_left n_pos]\n    simp [am_gm]\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : (∏ i in range n, a i) = 1) : (∑ i in range n, a i) ≥ n := by\n  -- Case n = 0\n  cases n with\n  | zero => \n    simp\n  | succ n =>\n    -- Use the AM-GM inequality from Mathlib\n    -- Real.geom_mean_le_arith_mean states: (∏ i in s, w i * x i) / (∑ i in s, w i) ≤ ...\n    -- We use the version for constant weights (1/n)\n    have n_pos : (0 : ℝ) < (succ n) := by simp [Nat.succ_pos]\n    have am_gm := Real.geom_mean_le_arith_mean (range (succ n)) (λ _ => (1 : ℝ) / (succ n)) a \n      (λ _ _ => by simp [n_pos.le]) (λ _ _ => h_pos _) (by simp [Finset.sum_const, card_range])\n    \n    rw [h_prod] at am_gm\n    -- Simplify the geometric mean part: (prod 1)^(1/n) = 1\n    simp only [one_div, inv_mul_cancel (ne_of_gt n_pos), rpow_one, one_rpow, \n               algebraMap.coe_succ, sum_const, card_range, nsmul_eq_mul] at am_gm\n    \n    -- Multiply by (succ n) to get the final inequality\n    rw [← mul_le_mul_left n_pos]\n    simp [am_gm]",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 16
+            },
+            "endPos": {
+              "line": 10,
+              "column": 19
+            },
+            "data": "unexpected token 'in'; expected ','"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.022063255310058594
+      }
+    },
+    {
+      "index": 8,
+      "status": "FAILED",
+      "raw_text": "To prove that for non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$, if their product is 1, then their sum is at least $n$, we apply the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n### Proof Sketch\n1. **Case $n=0$**: Both sides are 0, so the inequality holds trivially.\n2. **Case $n > 0$**:\n   - The AM-GM inequality states that for any collection of $n$ non-negative real numbers $a_i$:\n     $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n   - Given the hypothesis $\\prod_{i=0}^{n-1} a_i = 1$, the right-hand side simplifies:\n     $$\\left( 1 \\right)^{1/n} = 1$$\n   - Thus, $\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge 1$.\n   - Multiplying both sides by $n$ (since $n > 0$), we obtain:\n     $$\\sum_{i=0}^{n-1} a_i \\ge n$$\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : \n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the trivial case where n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Apply the AM-GM inequality\n  let s := Finset.range n\n  have h_amgm := Real.geom_mean_le_arith_mean s (λ _ _ => h_pos _)\n  -- Substitute the product value (1) into the AM-GM inequality\n  rw [h_prod, Real.nthRoot_one] at h_amgm\n  -- Rearrange the inequality to solve for the sum\n  simp [hn] at h_amgm\n  apply h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : \n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the trivial case where n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Apply the AM-GM inequality\n  let s := Finset.range n\n  have h_amgm := Real.geom_mean_le_arith_mean s (λ _ _ => h_pos _)\n  -- Substitute the product value (1) into the AM-GM inequality\n  rw [h_prod, Real.nthRoot_one] at h_amgm\n  -- Rearrange the inequality to solve for the sum\n  simp [hn] at h_amgm\n  apply h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 48
+            },
+            "endPos": {
+              "line": 17,
+              "column": 66
+            },
+            "data": "Application type mismatch: The argument\n  fun x x_1 => h_pos (?m.48 x x_1)\nhas type\n  ∀ (x : ℕ) (x_1 : ?m.47 x), 0 ≤ a (?m.48 x x_1)\nof sort `Prop` but is expected to have type\n  ℕ → ℝ\nof sort `Type` in the application\n  geom_mean_le_arith_mean s fun x x_1 => h_pos (?m.48 x x_1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.07517647743225098
+      }
+    },
+    {
+      "index": 9,
+      "status": "FAILED",
+      "raw_text": "To prove that if the product of $n$ non-negative real numbers is 1, then their sum is at least $n$, we use the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n### Proof Sketch\n1. **AM-GM Inequality**: For any collection of $n$ non-negative real numbers $x_0, x_1, \\dots, x_{n-1}$, the inequality states:\n   $$\\frac{1}{n} \\sum_{i=0}^{n-1} x_i \\geq \\left( \\prod_{i=0}^{n-1} x_i \\right)^{1/n}$$\n2. **Application**: Given $\\prod_{i=0}^{n-1} a_i = 1$, we substitute this into the product part of the inequality:\n   $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\geq (1)^{1/n} = 1$$\n3. **Conclusion**: Multiplying both sides by $n$ (assuming $n > 0$) yields:\n   $$\\sum_{i=0}^{n-1} a_i \\geq n$$\n4. **Edge Case**: If $n=0$, the sum is 0 and the result $0 \\geq 0$ holds trivially.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h₀: ∀ x:ℕ, 0 ≤ a x)\n  (h₁ : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Case n > 0, apply AM-GM\n  · have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n    simp only [Finset.sum_const, Finset.card_range, nsmul_eq_mul, h₀, implies_true] at h_amgm\n    have h_weights : ∑ i ∈ range n, (1 : ℝ) / n = 1 := by\n      simp [hn.ne.symm]\n    specialize h_amgm h_weights\n    rw [h₁] at h_amgm\n    simp only [Real.one_rpow, inv_mul_eq_div] at h_amgm\n    apply (le_div_iff₀ (by positivity)).mp h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h₀: ∀ x:ℕ, 0 ≤ a x)\n  (h₁ : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Case n > 0, apply AM-GM\n  · have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n    simp only [Finset.sum_const, Finset.card_range, nsmul_eq_mul, h₀, implies_true] at h_amgm\n    have h_weights : ∑ i ∈ range n, (1 : ℝ) / n = 1 := by\n      simp [hn.ne.symm]\n    specialize h_amgm h_weights\n    rw [h₁] at h_amgm\n    simp only [Real.one_rpow, inv_mul_eq_div] at h_amgm\n    apply (le_div_iff₀ (by positivity)).mp h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 22
+            },
+            "endPos": {
+              "line": 19,
+              "column": 31
+            },
+            "data": "Application type mismatch: The argument\n  h_weights\nhas type\n  ∑ i ∈ range n, 1 / ↑n = 1\nbut is expected to have type\n  ∀ i ∈ range n, 0 ≤ 1 / ↑n\nin the application\n  h_amgm h_weights"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 8
+            },
+            "endPos": {
+              "line": 20,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (range n).prod a\nin the target expression\n  0 < ↑n * (1 / ↑n) →\n    True → (∏ i ∈ range n, a i ^ (1 / ↑n)) ^ (↑n * (1 / ↑n))⁻¹ ≤ (∑ i ∈ range n, 1 / ↑n * a i) / (↑n * (1 / ↑n))\n\ncase inr\na : ℕ → ℝ\nn : ℕ\nh₀ : ∀ (x : ℕ), 0 ≤ a x\nh₁ : (range n).prod a = 1\nhn : n > 0\nh_weights : ∑ i ∈ range n, 1 / ↑n = 1\nh_amgm :\n  0 < ↑n * (1 / ↑n) →\n    True → (∏ i ∈ range n, a i ^ (1 / ↑n)) ^ (↑n * (1 / ↑n))⁻¹ ≤ (∑ i ∈ range n, 1 / ↑n * a i) / (↑n * (1 / ↑n))\n⊢ (range n).sum a ≥ ↑n"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.08757853507995605
+      }
+    },
+    {
+      "index": 10,
+      "status": "FAILED",
+      "raw_text": "To prove that if the product of $n$ non-negative real numbers is 1, their sum is at least $n$, we apply the **Arithmetic Mean-Geometric Mean (AM-GM) Inequality**.\n\n### Proof Sketch\n1. **AM-GM Inequality**: For any $n$ non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$, the arithmetic mean is greater than or equal to the geometric mean:\n   $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\geq \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n2. **Substitution**: We are given that $\\prod_{i=0}^{n-1} a_i = 1$.\n3. **Simplification**: Plugging the product into the AM-GM inequality gives:\n   $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\geq (1)^{1/n} = 1$$\n4. **Conclusion**: Multiplying both sides by $n$ (assuming $n > 0$) yields $\\sum_{i=0}^{n-1} a_i \\geq n$.\n5. **Special Case**: If $n = 0$, the sum over the empty range is $0$ and $n=0$, so $0 \\geq 0$ holds.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : \n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Case 1: n = 0\n  cases n with\n  | zero => \n    simp\n  | succ k =>\n    -- Case 2: n > 0\n    let n := k + 1\n    have hn_pos : (0 : ℝ) < n := by simp [n]\n    -- Apply AM-GM inequality\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun i => a i) (λ i _ => h_pos i)\n    -- Substitute product = 1\n    rw [h_prod] at h_amgm\n    -- 1^(1/n) = 1\n    simp at h_amgm\n    -- Rearrange (1/n) * sum >= 1 to sum >= n\n    rw [div_le_iff hn_pos] at h_amgm\n    simp at h_amgm\n    exact h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : \n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Case 1: n = 0\n  cases n with\n  | zero => \n    simp\n  | succ k =>\n    -- Case 2: n > 0\n    let n := k + 1\n    have hn_pos : (0 : ℝ) < n := by simp [n]\n    -- Apply AM-GM inequality\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun i => a i) (λ i _ => h_pos i)\n    -- Substitute product = 1\n    rw [h_prod] at h_amgm\n    -- 1^(1/n) = 1\n    simp at h_amgm\n    -- Rearrange (1/n) * sum >= 1 to sum >= n\n    rw [div_le_iff hn_pos] at h_amgm\n    simp at h_amgm\n    exact h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 33
+            },
+            "endPos": {
+              "line": 19,
+              "column": 44
+            },
+            "data": "unsolved goals\na : ℕ → ℝ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nk : ℕ\nh_prod : (range (k + 1)).prod a = 1\nn : ℕ := k + 1\n⊢ 0 < ↑k + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 80
+            },
+            "endPos": {
+              "line": 21,
+              "column": 98
+            },
+            "data": "Application type mismatch: The argument\n  fun i x => h_pos i\nhas type\n  ∀ (i : ℕ) (x : ?m.70 i), 0 ≤ a i\nof sort `Prop` but is expected to have type\n  ℕ → ℝ\nof sort `Type` in the application\n  geom_mean_le_arith_mean (range n) (fun i => a i) fun i x => h_pos i"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.07903409004211426
+      }
+    },
+    {
+      "index": 11,
+      "status": "FAILED",
+      "raw_text": "To prove that for non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$, if $\\prod_{i=0}^{n-1} a_i = 1$, then $\\sum_{i=0}^{n-1} a_i \\ge n$, we use the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n**Proof Sketch:**\n1.  **Identity for $n=0$:** If $n=0$, the sum and product over the empty set are $0$ and $1$ respectively. The theorem holds as $0 \\ge 0$.\n2.  **Case $n > 0$:** The AM-GM inequality states that for non-negative $a_i$:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n3.  **Substitution:** Given $\\prod_{i=0}^{n-1} a_i = 1$, the inequality becomes:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge 1^{1/n} = 1$$\n4.  **Conclusion:** Multiplying by $n$ (where $n > 0$), we get $\\sum_{i=0}^{n-1} a_i \\ge n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case where n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Use the AM-GM inequality from Mathlib\n  have h_am_gm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n    (by simp; intros; positivity) (by simp [hn]) h_pos\n  -- Simplify the weights part: sum (1/n) = 1\n  simp only [one_div, sum_const, card_range, nsmul_eq_mul] at h_am_gm\n  have h_weight_sum : (n : ℝ) * (n : ℝ)⁻¹ = 1 := by\n    apply mul_inv_cancel\n    simp [hn.ne.symm]\n  rw [h_weight_sum] at h_am_gm\n  -- Simplify the weighted product and weighted sum parts\n  simp only [h_prod, one_div, Real.rpow_one, h_weight_sum] at h_am_gm\n  rw [Real.rpow_one] at h_am_gm\n  -- Rearrange the sum formula\n  simp only [one_div, mul_comm (n : ℝ)⁻¹] at h_am_gm\n  -- Final step: multiply by n\n  replace h_am_gm := (le_div_iff₀' (by positivity)).mp h_am_gm\n  exact h_am_gm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case where n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Use the AM-GM inequality from Mathlib\n  have h_am_gm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n    (by simp; intros; positivity) (by simp [hn]) h_pos\n  -- Simplify the weights part: sum (1/n) = 1\n  simp only [one_div, sum_const, card_range, nsmul_eq_mul] at h_am_gm\n  have h_weight_sum : (n : ℝ) * (n : ℝ)⁻¹ = 1 := by\n    apply mul_inv_cancel\n    simp [hn.ne.symm]\n  rw [h_weight_sum] at h_am_gm\n  -- Simplify the weighted product and weighted sum parts\n  simp only [h_prod, one_div, Real.rpow_one, h_weight_sum] at h_am_gm\n  rw [Real.rpow_one] at h_am_gm\n  -- Rearrange the sum formula\n  simp only [one_div, mul_comm (n : ℝ)⁻¹] at h_am_gm\n  -- Final step: multiply by n\n  replace h_am_gm := (le_div_iff₀' (by positivity)).mp h_am_gm\n  exact h_am_gm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 49
+            },
+            "endPos": {
+              "line": 16,
+              "column": 54
+            },
+            "data": "Application type mismatch: The argument\n  h_pos\nhas type\n  ∀ (x : ℕ), 0 ≤ a x\nbut is expected to have type\n  ∀ i ∈ range n, 0 ≤ a i\nin the application\n  geom_mean_le_arith_mean (range n) (fun x => 1 / ↑n) a ?m.48 ?m.49 h_pos"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 14
+            },
+            "endPos": {
+              "line": 16,
+              "column": 20
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 4
+            },
+            "endPos": {
+              "line": 20,
+              "column": 24
+            },
+            "data": "Tactic `apply` failed: could not unify the conclusion of `@mul_inv_cancel`\n  ?a * @Inv.inv ?G Group.toDivInvMonoid.toInv ?a = 1\nwith the goal\n  ↑n * @Inv.inv ℝ Real.instInv ↑n = 1\n\nNote: The full type of `@mul_inv_cancel` is\n  ∀ {G : Type ?u.15754} [inst : Group G] (a : G), a * a⁻¹ = 1\n\na : ℕ → ℝ\nn : ℕ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\nh_am_gm : (∏ x ∈ range n, a x ^ (↑n)⁻¹) ^ (↑n * (↑n)⁻¹)⁻¹ ≤ (∑ x ∈ range n, (↑n)⁻¹ * a x) / (↑n * (↑n)⁻¹)\n⊢ ↑n * (↑n)⁻¹ = 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 2
+            },
+            "endPos": {
+              "line": 24,
+              "column": 69
+            },
+            "data": "`simp` made no progress"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.36107349395751953
+      }
+    },
+    {
+      "index": 12,
+      "status": "FAILED",
+      "raw_text": "To prove that given $n$ non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$ such that their product is $1$, their sum is at least $n$, we use the **Arithmetic Mean-Geometric Mean (AM-GM) Inequality**.\n\n### Proof Sketch\n1.  **AM-GM Inequality**: For any collection of $n$ non-negative real numbers $x_1, \\dots, x_n$, the following inequality holds:\n    $$\\frac{x_1 + \\dots + x_n}{n} \\geq \\sqrt[n]{x_1 \\dots x_n}$$\n2.  **Application**: In this problem, we are given:\n    -   $a_i \\geq 0$ for all $i$.\n    -   $\\prod_{i=0}^{n-1} a_i = 1$.\n3.  **Substitution**: Applying AM-GM to the set $\\{a_0, \\dots, a_{n-1}\\}$:\n    $$\\frac{\\sum_{i=0}^{n-1} a_i}{n} \\geq \\sqrt[n]{\\prod_{i=0}^{n-1} a_i}$$\n4.  **Simplification**: Since the product is $1$, and the $n$-th root of $1$ is $1$:\n    $$\\frac{\\sum_{i=0}^{n-1} a_i}{n} \\geq 1$$\n5.  **Result**: Multiplying both sides by $n$ (where $n \\geq 0$) gives:\n    $$\\sum_{i=0}^{n-1} a_i \\geq n$$\n6.  **Edge Case**: If $n=0$, the sum is $0$ and the theorem holds vacuously ($0 \\geq 0$).\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_nonneg : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : \n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case n = 0\n  cases n with\n  | zero => \n    simp\n  | succ n' =>\n    -- Use the AM-GM inequality from Mathlib\n    -- Real.geom_mean_le_arith_mean states:\n    -- (∏ i in s, w i * x i) / (∑ i in s, w i) ≤ (∑ i in s, w i * x i) / (∑ i in s, w i)\n    -- Here we use the simplified version for constant weights 1/n.\n    let s := Finset.range (n' + 1)\n    have h_card : s.card = n' + 1 := Finset.card_range (n' + 1)\n    have h_pos : (0 : ℝ) < (n' + 1) := by simp [Real.nat_cast_pos]\n    \n    -- The specific lemma in Mathlib: sum / n ≥ (prod)^(1/n)\n    have amgm := Real.geom_mean_le_arith_mean s (fun _ => (1 : ℝ)) a \n      (λ _ _ => by simp) (λ i _ => h_nonneg i)\n    \n    -- Simplify weights sum\n    have h_w : ∑ i in s, (1 : ℝ) = n' + 1 := by simp [h_card]\n    rw [h_w, h_prod] at amgm\n    \n    -- Simplify the product term: (1 * 1 * ... * 1)^(1/(n'+1))\n    -- (prod (range n) (fun i => a i ^ (1 : ℝ))) ^ (1 / (n' + 1))\n    simp at amgm\n    \n    -- Rearrange (1 / (n' + 1)) * ∑ a i ≥ 1\n    rw [div_eq_inv_mul] at amgm\n    exact (inv_mul_le_iff h_pos).mp amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_nonneg : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : \n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case n = 0\n  cases n with\n  | zero => \n    simp\n  | succ n' =>\n    -- Use the AM-GM inequality from Mathlib\n    -- Real.geom_mean_le_arith_mean states:\n    -- (∏ i in s, w i * x i) / (∑ i in s, w i) ≤ (∑ i in s, w i * x i) / (∑ i in s, w i)\n    -- Here we use the simplified version for constant weights 1/n.\n    let s := Finset.range (n' + 1)\n    have h_card : s.card = n' + 1 := Finset.card_range (n' + 1)\n    have h_pos : (0 : ℝ) < (n' + 1) := by simp [Real.nat_cast_pos]\n    \n    -- The specific lemma in Mathlib: sum / n ≥ (prod)^(1/n)\n    have amgm := Real.geom_mean_le_arith_mean s (fun _ => (1 : ℝ)) a \n      (λ _ _ => by simp) (λ i _ => h_nonneg i)\n    \n    -- Simplify weights sum\n    have h_w : ∑ i in s, (1 : ℝ) = n' + 1 := by simp [h_card]\n    rw [h_w, h_prod] at amgm\n    \n    -- Simplify the product term: (1 * 1 * ... * 1)^(1/(n'+1))\n    -- (prod (range n) (fun i => a i ^ (1 : ℝ))) ^ (1 / (n' + 1))\n    simp at amgm\n    \n    -- Rearrange (1 / (n' + 1)) * ∑ a i ≥ 1\n    rw [div_eq_inv_mul] at amgm\n    exact (inv_mul_le_iff h_pos).mp amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 18
+            },
+            "endPos": {
+              "line": 30,
+              "column": 21
+            },
+            "data": "unexpected token 'in'; expected ','"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 48
+            },
+            "endPos": {
+              "line": 23,
+              "column": 65
+            },
+            "data": "Unknown constant `Real.nat_cast_pos`"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 42
+            },
+            "endPos": {
+              "line": 23,
+              "column": 66
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 25
+            },
+            "endPos": {
+              "line": 27,
+              "column": 46
+            },
+            "data": "Application type mismatch: The argument\n  fun i x => h_nonneg i\nhas type\n  ∀ (i : ℕ) (x : ?m.97 i), 0 ≤ a i\nbut is expected to have type\n  0 < ∑ i ∈ s, 1\nin the application\n  geom_mean_le_arith_mean s (fun x => 1) a (fun x x_1 => ?m.93) fun i x => h_nonneg i"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 15
+            },
+            "endPos": {
+              "line": 30,
+              "column": 18
+            },
+            "data": "failed to synthesize instance of type class\n  AddCommMonoid (Sort ?u.6781)\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 12
+            },
+            "endPos": {
+              "line": 30,
+              "column": 18
+            },
+            "data": "unsolved goals\ncase h_w\na : ℕ → ℝ\nh_nonneg : ∀ (x : ℕ), 0 ≤ a x\nn' : ℕ\nh_prod : (range (n' + 1)).prod a = 1\ns : Finset ℕ := range (n' + 1)\nh_card : #s = n' + 1\nh_pos : 0 < ↑n' + 1\namgm :\n  (∀ i ∈ s, 0 ≤ a i) →\n    (∏ i ∈ s, a i ^ (fun x => 1) i) ^ (∑ i ∈ s, (fun x => 1) i)⁻¹ ≤\n      (∑ i ∈ s, (fun x => 1) i * a i) / ∑ i ∈ s, (fun x => 1) i\n⊢ sorry\n\ncase succ\na : ℕ → ℝ\nh_nonneg : ∀ (x : ℕ), 0 ≤ a x\nn' : ℕ\nh_prod : (range (n' + 1)).prod a = 1\ns : Finset ℕ := range (n' + 1)\nh_card : #s = n' + 1\nh_pos : 0 < ↑n' + 1\namgm :\n  (∀ i ∈ s, 0 ≤ a i) →\n    (∏ i ∈ s, a i ^ (fun x => 1) i) ^ (∑ i ∈ s, (fun x => 1) i)⁻¹ ≤\n      (∑ i ∈ s, (fun x => 1) i * a i) / ∑ i ∈ s, (fun x => 1) i\nh_w : sorry\n⊢ (range (n' + 1)).sum a ≥ ↑(n' + 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1636979579925537
+      }
+    },
+    {
+      "index": 13,
+      "status": "FAILED",
+      "raw_text": "The theorem states that for $n$ non-negative real numbers whose product is 1, their sum is at least $n$. This is a direct application of the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n### Proof Sketch\n1. **Trivial Case**: If $n = 0$, the sum over an empty range is 0 and $0 \\ge 0$ holds.\n2. **General Case**: For $n > 0$, the AM-GM inequality states that for non-negative $a_i$:\n   $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n3. Substitute the given condition $\\prod_{i=0}^{n-1} a_i = 1$:\n   $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge (1)^{1/n} = 1$$\n4. Multiply both sides by $n$ (since $n > 0$) to obtain:\n   $$\\sum_{i=0}^{n-1} a_i \\ge n$$\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_nonneg : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : \n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Case distinction on n = 0\n  rcases n with rfl | n_prev\n  · -- Case n = 0\n    simp\n  · -- Case n > 0\n    let n := n_prev + 1\n    have hn : 0 < (n : ℝ) := cast_pos.mpr (succ_pos n_prev)\n    -- Apply the AM-GM inequality\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a \n      (by simp; field_simp) (by simp [h_nonneg])\n    -- Simplify the geometric mean part using h_prod = 1\n    rw [h_prod] at h_amgm\n    simp only [Real.one_rpow, inv_mul_eq_div] at h_amgm\n    -- Rearrange to get the desired sum inequality\n    exact (le_div_iff₀ hn).mp h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_nonneg : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : \n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Case distinction on n = 0\n  rcases n with rfl | n_prev\n  · -- Case n = 0\n    simp\n  · -- Case n > 0\n    let n := n_prev + 1\n    have hn : 0 < (n : ℝ) := cast_pos.mpr (succ_pos n_prev)\n    -- Apply the AM-GM inequality\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a \n      (by simp; field_simp) (by simp [h_nonneg])\n    -- Simplify the geometric mean part using h_prod = 1\n    rw [h_prod] at h_amgm\n    simp only [Real.one_rpow, inv_mul_eq_div] at h_amgm\n    -- Rearrange to get the desired sum inequality\n    exact (le_div_iff₀ hn).mp h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 16
+            },
+            "endPos": {
+              "line": 21,
+              "column": 26
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 8
+            },
+            "endPos": {
+              "line": 23,
+              "column": 14
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (range (n_prev + 1)).prod a\nin the target expression\n  (∀ i ∈ range n, 0 ≤ a i) →\n    (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n      (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n\ncase succ\na : ℕ → ℝ\nh_nonneg : ∀ (x : ℕ), 0 ≤ a x\nn_prev : ℕ\nh_prod : (range (n_prev + 1)).prod a = 1\nn : ℕ := n_prev + 1\nhn : 0 < ↑n\nh_amgm :\n  (∀ i ∈ range n, 0 ≤ a i) →\n    (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n      (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n⊢ (range (n_prev + 1)).sum a ≥ ↑(n_prev + 1)"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 21,
+              "column": 38
+            },
+            "endPos": {
+              "line": 21,
+              "column": 46
+            },
+            "data": "This simp argument is unused:\n  h_nonneg\n\nHint: Omit it from the simp argument list.\n  simp ̵[̵h̵_̵n̵o̵n̵n̵e̵g̵]̵\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.26776790618896484
+      }
+    },
+    {
+      "index": 14,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we use the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n### Proof Sketch\n1.  **AM-GM Inequality**: For non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$, the arithmetic mean is greater than or equal to the geometric mean:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n2.  **Substitution**: We are given that $\\prod_{i=0}^{n-1} a_i = 1$. Substituting this into the inequality:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge 1^{1/n} = 1$$\n3.  **Conclusion**: Multiplying both sides by $n$ (assuming $n > 0$) yields $\\sum_{i=0}^{n-1} a_i \\ge n$.\n4.  **Edge Case**: If $n = 0$, the sum over the empty range is 0 and $n=0$, so $0 \\ge 0$ holds.\n\n---\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (ha_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : ∏ i in range n, a i = 1) : ∑ i in range n, a i ≥ n := by\n  -- Handle the case n = 0\n  cases n with\n  | zero => \n    simp\n  | succ k =>\n    -- n is positive, so we can use AM-GM\n    let n := k + 1\n    have hn_pos : (0 : ℝ) < n := by\n      simp only [Nat.cast_succ, add_pos_iff, or_true]\n    -- Use the form of AM-GM: (1/n) * Σ a_i ≥ (Π a_i)^(1/n)\n    have h_amgm := Real.geom_mean_le_arith_mean (range n) (fun _ => 1 / (n : ℝ)) a \n      (by simp; intro i _; linarith) (by simp [Finset.sum_const, n]) (by intro i _; exact ha_pos i)\n    \n    -- Substitute the product value (1) into the AM-GM inequality\n    rw [h_prod] at h_amgm\n    -- 1 raised to any power is 1\n    simp only [Real.one_rpow, one_mul] at h_amgm\n    -- Multiply both sides by n to get the final sum result\n    rw [ge_iff_le, ← div_le_iff₀ hn_pos]\n    rw [← smul_eq_mul, ← Finset.sum_smul] at h_amgm\n    simp only [smul_eq_mul] at h_amgm\n    exact h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (ha_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : ∏ i in range n, a i = 1) : ∑ i in range n, a i ≥ n := by\n  -- Handle the case n = 0\n  cases n with\n  | zero => \n    simp\n  | succ k =>\n    -- n is positive, so we can use AM-GM\n    let n := k + 1\n    have hn_pos : (0 : ℝ) < n := by\n      simp only [Nat.cast_succ, add_pos_iff, or_true]\n    -- Use the form of AM-GM: (1/n) * Σ a_i ≥ (Π a_i)^(1/n)\n    have h_amgm := Real.geom_mean_le_arith_mean (range n) (fun _ => 1 / (n : ℝ)) a \n      (by simp; intro i _; linarith) (by simp [Finset.sum_const, n]) (by intro i _; exact ha_pos i)\n    \n    -- Substitute the product value (1) into the AM-GM inequality\n    rw [h_prod] at h_amgm\n    -- 1 raised to any power is 1\n    simp only [Real.one_rpow, one_mul] at h_amgm\n    -- Multiply both sides by n to get the final sum result\n    rw [ge_iff_le, ← div_le_iff₀ hn_pos]\n    rw [← smul_eq_mul, ← Finset.sum_smul] at h_amgm\n    simp only [smul_eq_mul] at h_amgm\n    exact h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 15
+            },
+            "endPos": {
+              "line": 10,
+              "column": 18
+            },
+            "data": "unexpected token 'in'; expected ','"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.05171561241149902
+      }
+    },
+    {
+      "index": 15,
+      "status": "FAILED",
+      "raw_text": "The theorem is a direct consequence of the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n### Proof Sketch\n1.  If $n = 0$, the sum is $0$ and $n$ is $0$, so $0 \\ge 0$ holds.\n2.  If $n > 0$, the AM-GM inequality states that for non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n3.  We are given $\\prod_{i=0}^{n-1} a_i = 1$. Substituting this into the inequality:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge (1)^{1/n} = 1$$\n4.  Multiplying both sides by $n$ (where $n > 0$) yields:\n    $$\\sum_{i=0}^{n-1} a_i \\ge n$$\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case n = 0\n  cases n with\n  | zero => \n    simp\n  | succ n =>\n    -- Use the AM-GM inequality from Mathlib\n    -- Real.geom_mean_le_arith_mean (s : Finset ι) (w : ι → ℝ) (f : ι → ℝ)\n    -- Here we use the version with uniform weights 1/n\n    have h_n_pos : (0 : ℝ) < (n + 1) := by simp\n    have h_am_gm := Real.geom_mean_le_arith_mean (Finset.range (n + 1)) (fun _ => (1 : ℝ) / (n + 1)) a \n      (λ _ _ => by linarith) (by simp [Finset.card_range]) (λ i _ => h_pos i)\n    \n    -- Simplify the geometric mean part\n    -- ∏ a_i ^ (1/n+1) = (∏ a_i) ^ (1/n+1)\n    rw [← Real.rpow_inv_natCast] at h_am_gm\n    rw [← Finset.prod_rpow] at h_am_gm\n    swap\n    · intros i _; exact h_pos i\n    \n    -- Substitute the product = 1\n    rw [h_prod] at h_am_gm\n    simp at h_am_gm\n    \n    -- Simplify the arithmetic mean part\n    -- ∑ (1/n+1 * a_i) = 1/n+1 * ∑ a_i\n    rw [← Finset.mul_sum] at h_am_gm\n    \n    -- Rearrange to get ∑ a_i ≥ n + 1\n    rw [mul_comm] at h_am_gm\n    exact (le_div_iff' h_n_pos).mp h_am_gm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case n = 0\n  cases n with\n  | zero => \n    simp\n  | succ n =>\n    -- Use the AM-GM inequality from Mathlib\n    -- Real.geom_mean_le_arith_mean (s : Finset ι) (w : ι → ℝ) (f : ι → ℝ)\n    -- Here we use the version with uniform weights 1/n\n    have h_n_pos : (0 : ℝ) < (n + 1) := by simp\n    have h_am_gm := Real.geom_mean_le_arith_mean (Finset.range (n + 1)) (fun _ => (1 : ℝ) / (n + 1)) a \n      (λ _ _ => by linarith) (by simp [Finset.card_range]) (λ i _ => h_pos i)\n    \n    -- Simplify the geometric mean part\n    -- ∏ a_i ^ (1/n+1) = (∏ a_i) ^ (1/n+1)\n    rw [← Real.rpow_inv_natCast] at h_am_gm\n    rw [← Finset.prod_rpow] at h_am_gm\n    swap\n    · intros i _; exact h_pos i\n    \n    -- Substitute the product = 1\n    rw [h_prod] at h_am_gm\n    simp at h_am_gm\n    \n    -- Simplify the arithmetic mean part\n    -- ∑ (1/n+1 * a_i) = 1/n+1 * ∑ a_i\n    rw [← Finset.mul_sum] at h_am_gm\n    \n    -- Rearrange to get ∑ a_i ≥ n + 1\n    rw [mul_comm] at h_am_gm\n    exact (le_div_iff' h_n_pos).mp h_am_gm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 43
+            },
+            "endPos": {
+              "line": 19,
+              "column": 47
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 19
+            },
+            "endPos": {
+              "line": 21,
+              "column": 27
+            },
+            "data": "linarith failed to find a contradiction\ncase h\na : ℕ → ℝ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nn : ℕ\nh_prod : (range (n + 1)).prod a = 1\nh_n_pos : 0 < ↑n + 1\nx✝¹ : ℕ\nx✝ : x✝¹ ∈ range (n + 1)\na✝ : (fun x => 1 / (↑n + 1)) x✝¹ < 0\n⊢ False\nfailed"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 30
+            },
+            "endPos": {
+              "line": 21,
+              "column": 57
+            },
+            "data": "unsolved goals\na : ℕ → ℝ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nn : ℕ\nh_prod : (range (n + 1)).prod a = 1\nh_n_pos : 0 < ↑n + 1\n⊢ 0 < (↑n + 1) * (↑n + 1)⁻¹"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 10
+            },
+            "endPos": {
+              "line": 25,
+              "column": 31
+            },
+            "data": "Unknown constant `Real.rpow_inv_natCast`"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.45305776596069336
+      }
+    },
+    {
+      "index": 16,
+      "status": "FAILED",
+      "raw_text": "To prove that for non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$, if their product is 1, then their sum is at least $n$, we apply the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n### Proof Sketch\n1. **Case $n = 0$**: The sum over an empty range is 0 and $n=0$, so $0 \\ge 0$ holds.\n2. **Case $n > 0$**:\n   - The AM-GM inequality states that for non-negative $a_i$:\n     $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n   - We are given $\\prod_{i=0}^{n-1} a_i = 1$.\n   - Substituting the product into the inequality:\n     $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge 1^{1/n} = 1$$\n   - Multiplying both sides by $n$ (where $n > 0$) yields:\n     $$\\sum_{i=0}^{n-1} a_i \\ge n$$\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : \n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Case distinction on n\n  rcases n.eq_zero_or_pos with rfl | hn\n  · -- Case n = 0\n    simp\n  · -- Case n > 0\n    -- Apply AM-GM inequality: (1/n) * Σ a_i ≥ (Π a_i)^(1/n)\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a \n      (λ _ _ => by simp [hn.ne.symm]; positivity) (by simp) h_pos\n    -- Substitute the product = 1 into the inequality\n    rw [h_prod] at h_amgm\n    -- Simplify 1^(1/n) = 1 and the weights\n    simp only [Real.one_rpow, Real.mul_sum] at h_amgm\n    -- Rearrange to get Σ a_i ≥ n\n    field_simp [hn.ne.symm] at h_amgm\n    exact h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : \n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Case distinction on n\n  rcases n.eq_zero_or_pos with rfl | hn\n  · -- Case n = 0\n    simp\n  · -- Case n > 0\n    -- Apply AM-GM inequality: (1/n) * Σ a_i ≥ (Π a_i)^(1/n)\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a \n      (λ _ _ => by simp [hn.ne.symm]; positivity) (by simp) h_pos\n    -- Substitute the product = 1 into the inequality\n    rw [h_prod] at h_amgm\n    -- Simplify 1^(1/n) = 1 and the weights\n    simp only [Real.one_rpow, Real.mul_sum] at h_amgm\n    -- Rearrange to get Σ a_i ≥ n\n    field_simp [hn.ne.symm] at h_amgm\n    exact h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 60
+            },
+            "endPos": {
+              "line": 19,
+              "column": 65
+            },
+            "data": "Application type mismatch: The argument\n  h_pos\nhas type\n  ∀ (x : ℕ), 0 ≤ a x\nbut is expected to have type\n  ∀ i ∈ range n, 0 ≤ a i\nin the application\n  geom_mean_le_arith_mean (range n) (fun x => 1 / ↑n) a (fun x x_1 => ?m.50) ?m.52 h_pos"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 38
+            },
+            "endPos": {
+              "line": 19,
+              "column": 48
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 51
+            },
+            "endPos": {
+              "line": 19,
+              "column": 58
+            },
+            "data": "unsolved goals\na : ℕ → ℝ\nn : ℕ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\n⊢ 0 < ↑n * (↑n)⁻¹"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 8
+            },
+            "endPos": {
+              "line": 21,
+              "column": 14
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (range n).prod a\nin the target expression\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n\ncase inr\na : ℕ → ℝ\nn : ℕ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\nh_amgm :\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n⊢ (range n).sum a ≥ ↑n"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 19,
+              "column": 25
+            },
+            "endPos": {
+              "line": 19,
+              "column": 35
+            },
+            "data": "This simp argument is unused:\n  hn.ne.symm\n\nHint: Omit it from the simp argument list.\n  simp ̵[̵h̵n̵.̵n̵e̵.̵s̵y̵m̵m̵]̵\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.3817138671875
+      }
+    },
+    {
+      "index": 17,
+      "status": "FAILED",
+      "raw_text": "To prove that if the product of $n$ non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$ is 1, then their sum is at least $n$, we use the **Arithmetic Mean-Geometric Mean (AM-GM) Inequality**.\n\n### Proof Sketch\n1. **Case $n = 0$**: The sum over an empty range is 0, and $0 \\ge 0$ holds.\n2. **Case $n > 0$**:\n   - The AM-GM inequality states that for non-negative $a_i$:\n     $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n   - Given $\\prod_{i=0}^{n-1} a_i = 1$, the right side simplifies to $1^{1/n} = 1$.\n   - Thus, $\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge 1$.\n   - Multiplying both sides by $n$ (where $n > 0$) yields $\\sum_{i=0}^{n-1} a_i \\ge n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h₀ : ∀ x : ℕ, 0 ≤ a x)\n  (h₁ : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case distinction on n\n  rcases n.eq_zero_or_pos with rfl | hn\n  · -- Case n = 0\n    simp\n  · -- Case n > 0\n    -- Apply AM-GM inequality\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n      (by simp; intro i _; exact h₀ i)\n      (by simp [hn])\n    -- Simplify the weights sum (already handled by geom_mean_le_arith_mean internal logic)\n    -- But let's use the standard version for simplicity:\n    have h_amgm_std := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n      (λ _ _ => by simp [hn.ne.symm]; positivity) (λ _ _ => h₀ _)\n    \n    simp [h₁] at h_amgm_std\n    rw [← Finset.mul_sum] at h_amgm_std\n    \n    -- Sum of weights is 1\n    have h_weights : ∑ i in range n, (1 : ℝ) / n = 1 := by\n      simp [Finset.sum_const, hn.ne.symm]\n      field_simp\n    \n    rw [h_weights] at h_amgm_std\n    simp at h_amgm_std\n    \n    -- Multiply by n to get the result\n    rw [ge_iff_le]\n    nth_rewrite 1 [← mul_one (n : ℝ)]\n    rw [mul_comm]\n    apply (le_div_iff₀ _).mp h_amgm_std\n    positivity\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h₀ : ∀ x : ℕ, 0 ≤ a x)\n  (h₁ : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case distinction on n\n  rcases n.eq_zero_or_pos with rfl | hn\n  · -- Case n = 0\n    simp\n  · -- Case n > 0\n    -- Apply AM-GM inequality\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n      (by simp; intro i _; exact h₀ i)\n      (by simp [hn])\n    -- Simplify the weights sum (already handled by geom_mean_le_arith_mean internal logic)\n    -- But let's use the standard version for simplicity:\n    have h_amgm_std := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n      (λ _ _ => by simp [hn.ne.symm]; positivity) (λ _ _ => h₀ _)\n    \n    simp [h₁] at h_amgm_std\n    rw [← Finset.mul_sum] at h_amgm_std\n    \n    -- Sum of weights is 1\n    have h_weights : ∑ i in range n, (1 : ℝ) / n = 1 := by\n      simp [Finset.sum_const, hn.ne.symm]\n      field_simp\n    \n    rw [h_weights] at h_amgm_std\n    simp at h_amgm_std\n    \n    -- Multiply by n to get the result\n    rw [ge_iff_le]\n    nth_rewrite 1 [← mul_one (n : ℝ)]\n    rw [mul_comm]\n    apply (le_div_iff₀ _).mp h_amgm_std\n    positivity",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 24
+            },
+            "endPos": {
+              "line": 29,
+              "column": 27
+            },
+            "data": "unexpected token 'in'; expected ','"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 22
+            },
+            "endPos": {
+              "line": 18,
+              "column": 23
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 50
+            },
+            "endPos": {
+              "line": 23,
+              "column": 65
+            },
+            "data": "Application type mismatch: The argument\n  fun x x_1 => h₀ (?m.69 x x_1)\nhas type\n  ∀ (x : ?m.65) (x_1 : ?m.68 x), 0 ≤ a (?m.69 x x_1)\nbut is expected to have type\n  0 < ∑ i ∈ range n, 1 / ↑n\nin the application\n  geom_mean_le_arith_mean (range n) (fun x => 1 / ↑n) a (fun x x_1 => ?m.63) fun x x_1 => h₀ (?m.69 x x_1)"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 38
+            },
+            "endPos": {
+              "line": 23,
+              "column": 48
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 29,
+              "column": 21
+            },
+            "endPos": {
+              "line": 29,
+              "column": 24
+            },
+            "data": "failed to synthesize instance of type class\n  AddCommMonoid (Sort ?u.54823)\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 15,
+              "column": 2
+            },
+            "endPos": {
+              "line": 29,
+              "column": 24
+            },
+            "data": "unsolved goals\ncase h_weights\na : ℕ → ℝ\nn : ℕ\nh₀ : ∀ (x : ℕ), 0 ≤ a x\nh₁ : (range n).prod a = 1\nhn : n > 0\nh_amgm :\n  (∀ i ∈ range n, 0 ≤ a i) →\n    (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n      (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\nh_amgm_std :\n  (∀ i < n, 0 ≤ a i) → (∏ x ∈ range n, a x ^ (↑n)⁻¹) ^ (↑n * (↑n)⁻¹) ≤ ((↑n)⁻¹ * ∑ i ∈ range n, a i) / (↑n * (↑n)⁻¹)\n⊢ sorry\n\ncase inr\na : ℕ → ℝ\nn : ℕ\nh₀ : ∀ (x : ℕ), 0 ≤ a x\nh₁ : (range n).prod a = 1\nhn : n > 0\nh_amgm :\n  (∀ i ∈ range n, 0 ≤ a i) →\n    (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n      (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\nh_amgm_std :\n  (∀ i < n, 0 ≤ a i) → (∏ x ∈ range n, a x ^ (↑n)⁻¹) ^ (↑n * (↑n)⁻¹) ≤ ((↑n)⁻¹ * ∑ i ∈ range n, a i) / (↑n * (↑n)⁻¹)\nh_weights : sorry\n⊢ (range n).sum a ≥ ↑n"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.5525646209716797
+      }
+    },
+    {
+      "index": 18,
+      "status": "FAILED",
+      "raw_text": "To prove that given $n$ non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$ such that their product is 1, their sum is at least $n$, we use the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n### Proof Sketch\n1.  **Identity/Trivial Case**: If $n = 0$, the sum is 0 and $n = 0$, so $0 \\ge 0$ holds.\n2.  **General Case ($n > 0$)**:\n    *   The AM-GM inequality states that for non-negative $a_i$:\n        $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n    *   Substitute the given condition $\\prod_{i=0}^{n-1} a_i = 1$:\n        $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge (1)^{1/n} = 1$$\n    *   Multiply both sides by $n$ (since $n > 0$):\n        $$\\sum_{i=0}^{n-1} a_i \\ge n$$\n3.  The result follows directly from `Real.geom_mean_le_arith_mean`.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h₀ : ∀ x : ℕ, 0 ≤ a x)\n  (h₁ : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Case n > 0, use AM-GM inequality\n  · have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => 1 / (n : ℝ)) a\n      (by simp; intro i _; linarith) (by simp [hn.ne.symm]) (by intro i _; exact h₀ i)\n    rw [h₁] at h_amgm\n    simp only [Real.one_rpow, rpow_one] at h_amgm\n    -- Simplify the sum-weight part\n    have hw : ∑ i in range n, (1 / (n : ℝ)) * a i = (1 / (n : ℝ)) * ∑ i in range n, a i := by\n      rw [Finset.mul_sum]\n    rw [hw] at h_amgm\n    -- Multiply by n to get the final inequality\n    field_simp [hn.ne.symm] at h_amgm\n    exact h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h₀ : ∀ x : ℕ, 0 ≤ a x)\n  (h₁ : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Case n > 0, use AM-GM inequality\n  · have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => 1 / (n : ℝ)) a\n      (by simp; intro i _; linarith) (by simp [hn.ne.symm]) (by intro i _; exact h₀ i)\n    rw [h₁] at h_amgm\n    simp only [Real.one_rpow, rpow_one] at h_amgm\n    -- Simplify the sum-weight part\n    have hw : ∑ i in range n, (1 / (n : ℝ)) * a i = (1 / (n : ℝ)) * ∑ i in range n, a i := by\n      rw [Finset.mul_sum]\n    rw [hw] at h_amgm\n    -- Multiply by n to get the final inequality\n    field_simp [hn.ne.symm] at h_amgm\n    exact h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 17
+            },
+            "endPos": {
+              "line": 20,
+              "column": 20
+            },
+            "data": "unexpected token 'in'; expected ','"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 22
+            },
+            "endPos": {
+              "line": 16,
+              "column": 23
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 8
+            },
+            "endPos": {
+              "line": 17,
+              "column": 10
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (range n).prod a\nin the target expression\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n\ncase inr\na : ℕ → ℝ\nn : ℕ\nh₀ : ∀ (x : ℕ), 0 ≤ a x\nh₁ : (range n).prod a = 1\nhn : n > 0\nh_amgm :\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n⊢ (range n).sum a ≥ ↑n"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.4100358486175537
+      }
+    },
+    {
+      "index": 19,
+      "status": "FAILED",
+      "raw_text": "To prove this theorem, we utilize the Arithmetic Mean-Geometric Mean (AM-GM) Inequality. \n\n**Proof Sketch:**\n1.  **Case $n=0$**: The sum over an empty range is 0 and $n=0$, so $0 \\geq 0$ holds.\n2.  **Case $n > 0$**:\n    *   The AM-GM inequality states that for non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$, the following holds:\n        $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\geq \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n    *   From the problem statement, we are given $\\prod_{i=0}^{n-1} a_i = 1$.\n    *   Substituting the product into the AM-GM inequality gives:\n        $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\geq (1)^{1/n} = 1$$\n    *   Multiplying both sides by $n$ (where $n > 0$) yields:\n        $$\\sum_{i=0}^{n-1} a_i \\geq n$$\n3.  The result follows for all $n$.\n\n**Lean 4 Code:**\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case n = 0 separately\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Apply AM-GM inequality\n  have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n    (by simp; intro i _; linarith [hn]) (by simp) (by intro i _; apply h_pos)\n  -- Simplify using the product condition\n  rw [h_prod] at h_amgm\n  simp only [Real.one_rpow, inv_mul_eq_div] at h_amgm\n  -- Rearrange to get the final sum inequality\n  exact (le_div_iff₀ (by positivity)).mp h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case n = 0 separately\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Apply AM-GM inequality\n  have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n    (by simp; intro i _; linarith [hn]) (by simp) (by intro i _; apply h_pos)\n  -- Simplify using the product condition\n  rw [h_prod] at h_amgm\n  simp only [Real.one_rpow, inv_mul_eq_div] at h_amgm\n  -- Rearrange to get the final sum inequality\n  exact (le_div_iff₀ (by positivity)).mp h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 20
+            },
+            "endPos": {
+              "line": 16,
+              "column": 21
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 41
+            },
+            "endPos": {
+              "line": 16,
+              "column": 48
+            },
+            "data": "unsolved goals\na : ℕ → ℝ\nn : ℕ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\n⊢ 0 < ↑n * (↑n)⁻¹"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 6
+            },
+            "endPos": {
+              "line": 18,
+              "column": 12
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (range n).prod a\nin the target expression\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n\ncase inr\na : ℕ → ℝ\nn : ℕ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\nh_amgm :\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n⊢ (range n).sum a ≥ ↑n"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3910219669342041
+      }
+    },
+    {
+      "index": 20,
+      "status": "FAILED",
+      "raw_text": "To prove that given $n$ non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$ such that their product is 1, their sum is at least $n$, we apply the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n**Proof Sketch:**\n1.  **AM-GM Inequality:** The inequality states that for any sequence of $n$ non-negative real numbers $a_i$, their arithmetic mean is greater than or equal to their geometric mean:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\geq \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n2.  **Substitution:** We are given that $\\prod_{i=0}^{n-1} a_i = 1$.\n3.  **Simplification:** Substituting the product into the inequality gives:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\geq (1)^{1/n} = 1$$\n4.  **Conclusion:** Multiplying both sides by $n$ (assuming $n > 0$) yields $\\sum_{i=0}^{n-1} a_i \\geq n$.\n5.  **Edge Case:** If $n = 0$, the sum over the empty set is 0 and $n = 0$, so $0 \\geq 0$ holds.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n    (h_pos : ∀ x : ℕ, 0 ≤ a x)\n    (h_prod : Finset.prod (Finset.range n) a = 1) :\n    Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case n = 0 separately\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  · -- Apply the AM-GM inequality\n    have h_amgm := Real.geom_mean_le_arith_mean (range n) (fun _ => 1 / (n : ℝ)) a\n      (by simp; exact fun _ _ => (inv_nonneg.mpr (Nat.cast_nonneg n)))\n      (by simp [hn.ne.symm]) (by simp [h_pos])\n    -- Simplify the product term using the hypothesis h_prod = 1\n    rw [h_prod] at h_amgm\n    simp only [Real.one_rpow, inv_mul_eq_div] at h_amgm\n    -- Multiply by n to get the desired result\n    exact (le_div_iff₀ (Nat.cast_pos.mpr hn)).mp h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n    (h_pos : ∀ x : ℕ, 0 ≤ a x)\n    (h_prod : Finset.prod (Finset.range n) a = 1) :\n    Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case n = 0 separately\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  · -- Apply the AM-GM inequality\n    have h_amgm := Real.geom_mean_le_arith_mean (range n) (fun _ => 1 / (n : ℝ)) a\n      (by simp; exact fun _ _ => (inv_nonneg.mpr (Nat.cast_nonneg n)))\n      (by simp [hn.ne.symm]) (by simp [h_pos])\n    -- Simplify the product term using the hypothesis h_prod = 1\n    rw [h_prod] at h_amgm\n    simp only [Real.one_rpow, inv_mul_eq_div] at h_amgm\n    -- Multiply by n to get the desired result\n    exact (le_div_iff₀ (Nat.cast_pos.mpr hn)).mp h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 16
+            },
+            "endPos": {
+              "line": 17,
+              "column": 69
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 8
+            },
+            "endPos": {
+              "line": 20,
+              "column": 14
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (range n).prod a\nin the target expression\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n\ncase inr\na : ℕ → ℝ\nn : ℕ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\nh_amgm :\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n⊢ (range n).sum a ≥ ↑n"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2986910343170166
+      }
+    },
+    {
+      "index": 21,
+      "status": "FAILED",
+      "raw_text": "To prove that for $n$ non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$, if their product is 1, then their sum is at least $n$, we can use the **Arithmetic Mean-Geometric Mean (AM-GM) Inequality**.\n\n### Proof Sketch\n1. **Case $n=0$**: The sum over an empty range is 0, and $0 \\ge 0$ holds.\n2. **AM-GM Inequality**: The general AM-GM inequality states that for non-negative $a_i$:\n   $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n3. **Substitution**: \n   - We are given $\\prod_{i=0}^{n-1} a_i = 1$.\n   - Thus, the inequality becomes $\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge 1^{1/n}$.\n   - Since $1^{1/n} = 1$, we have $\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge 1$.\n4. **Conclusion**: Multiplying both sides by $n$ (where $n > 0$) yields $\\sum_{i=0}^{n-1} a_i \\ge n$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n    (h_pos : ∀ x : ℕ, 0 ≤ a x)\n    (h_prod : (∏ i in range n, a i) = 1) :\n    ∑ i in range n, a i ≥ n := by\n  -- Case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Apply AM-GM inequality\n  have h_amgm := Real.geom_mean_le_arith_mean (range n) (fun _ => 1 / (n : ℝ)) a (by\n    intro i _\n    simp only [one_div, inv_nonneg, cast_nonneg])\n    (by simp [hn.ne.symm]) (range n) (fun i _ => a i) (by\n      intro i _\n      exact h_pos i)\n  -- The weights sum to 1\n  have h_weights : ∑ i in range n, (1 / (n : ℝ)) = 1 := by\n    simp [sum_const, hn.ne.symm]\n  -- Applying weighted version from Mathlib or the standard AM-GM\n  -- Alternatively, use the direct version:\n  let s := ∑ i in range n, a i\n  let p := ∏ i in range n, a i\n  have : (p : ℝ) ^ (1 / (n : ℝ)) ≤ (1 / (n : ℝ)) * s := by\n    apply Real.geom_mean_le_arith_mean_weighted\n    · intro i _\n      simp only [one_div, inv_nonneg, cast_nonneg]\n    · simp [hn.ne.symm]\n    · intro i _\n      exact h_pos i\n  rw [h_prod, Real.one_rpow] at this\n  · simp only [one_div] at this\n    rw [← le_div_iff' (by exact cast_pos.mpr hn)]\n    exact this\n  · exact one_div (n : ℝ)\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n    (h_pos : ∀ x : ℕ, 0 ≤ a x)\n    (h_prod : (∏ i in range n, a i) = 1) :\n    ∑ i in range n, a i ≥ n := by\n  -- Case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Apply AM-GM inequality\n  have h_amgm := Real.geom_mean_le_arith_mean (range n) (fun _ => 1 / (n : ℝ)) a (by\n    intro i _\n    simp only [one_div, inv_nonneg, cast_nonneg])\n    (by simp [hn.ne.symm]) (range n) (fun i _ => a i) (by\n      intro i _\n      exact h_pos i)\n  -- The weights sum to 1\n  have h_weights : ∑ i in range n, (1 / (n : ℝ)) = 1 := by\n    simp [sum_const, hn.ne.symm]\n  -- Applying weighted version from Mathlib or the standard AM-GM\n  -- Alternatively, use the direct version:\n  let s := ∑ i in range n, a i\n  let p := ∏ i in range n, a i\n  have : (p : ℝ) ^ (1 / (n : ℝ)) ≤ (1 / (n : ℝ)) * s := by\n    apply Real.geom_mean_le_arith_mean_weighted\n    · intro i _\n      simp only [one_div, inv_nonneg, cast_nonneg]\n    · simp [hn.ne.symm]\n    · intro i _\n      exact h_pos i\n  rw [h_prod, Real.one_rpow] at this\n  · simp only [one_div] at this\n    rw [← le_div_iff' (by exact cast_pos.mpr hn)]\n    exact this\n  · exact one_div (n : ℝ)",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 18
+            },
+            "endPos": {
+              "line": 10,
+              "column": 21
+            },
+            "data": "unexpected token 'in'; expected ','"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.08623552322387695
+      }
+    },
+    {
+      "index": 22,
+      "status": "FAILED",
+      "raw_text": "To prove that for non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$, if their product is $1$, then their sum is at least $n$, we apply the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n### Proof Sketch\n1. **Case $n = 0$**: Both the sum and product are defined over an empty range. The sum is $0$ and the product is $1$. The inequality $0 \\geq 0$ holds.\n2. **Case $n > 0$**: \n   - The AM-GM inequality states that for non-negative $x_i$, the arithmetic mean is greater than or equal to the geometric mean:\n     $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\geq \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n   - Given $\\prod_{i=0}^{n-1} a_i = 1$, the right-hand side becomes $1^{1/n} = 1$.\n   - Thus, $\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\geq 1$.\n   - Multiplying both sides by $n$ (where $n > 0$) yields $\\sum_{i=0}^{n-1} a_i \\geq n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the trivial case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Apply the AM-GM inequality\n  have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun i => 1 : ℕ → ℝ) a \n    (by simp) (by intro i _; exact h_pos i)\n  -- Simplify the weights part: (∑ 1) = n\n  simp only [Finset.sum_const, Finset.card_range, nsmul_eq_mul, cast_one, mul_one] at h_amgm\n  -- Substitute the product condition into the AM-GM inequality\n  rw [h_prod] at h_amgm\n  -- Since 1^(1/n) = 1, we have 1 ≤ (1/n) * ∑ a_i\n  simp only [Real.one_rpow, one_le_div (cast_pos.mpr hn)] at h_amgm\n  -- Rearrange to get ∑ a_i ≥ n\n  exact h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the trivial case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Apply the AM-GM inequality\n  have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun i => 1 : ℕ → ℝ) a \n    (by simp) (by intro i _; exact h_pos i)\n  -- Simplify the weights part: (∑ 1) = n\n  simp only [Finset.sum_const, Finset.card_range, nsmul_eq_mul, cast_one, mul_one] at h_amgm\n  -- Substitute the product condition into the AM-GM inequality\n  rw [h_prod] at h_amgm\n  -- Since 1^(1/n) = 1, we have 1 ≤ (1/n) * ∑ a_i\n  simp only [Real.one_rpow, one_le_div (cast_pos.mpr hn)] at h_amgm\n  -- Rearrange to get ∑ a_i ≥ n\n  exact h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 24
+            },
+            "endPos": {
+              "line": 16,
+              "column": 25
+            },
+            "data": "Tactic `introN` failed: There are no additional binders or `let` bindings in the goal to introduce\n\na : ℕ → ℝ\nn : ℕ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\n⊢ 0 < ∑ i ∈ range n, (fun i => 1) i"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 64
+            },
+            "endPos": {
+              "line": 18,
+              "column": 72
+            },
+            "data": "Ambiguous term\n  cast_one\nPossible interpretations:\n  Rat.cast_one : ↑1 = 1\n  \n  Nat.cast_one : ↑1 = 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 6
+            },
+            "endPos": {
+              "line": 20,
+              "column": 12
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (range n).prod a\nin the target expression\n  (∀ i ∈ range n, 0 ≤ a i) → (∏ x ∈ range n, a x ^ 1) ^ (↑n)⁻¹ ≤ (∑ x ∈ range n, 1 * a x) / ↑n\n\ncase inr\na : ℕ → ℝ\nn : ℕ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\nh_amgm : (∀ i ∈ range n, 0 ≤ a i) → (∏ x ∈ range n, a x ^ 1) ^ (↑n)⁻¹ ≤ (∑ x ∈ range n, 1 * a x) / ↑n\n⊢ (range n).sum a ≥ ↑n"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.10892963409423828
+      }
+    },
+    {
+      "index": 23,
+      "status": "FAILED",
+      "raw_text": "The theorem follows from the Arithmetic Mean-Geometric Mean (AM-GM) inequality. \n\n**Proof Sketch:**\n1. For $n=0$, both sides are zero, so the inequality holds trivially ($0 \\geq 0$).\n2. For $n > 0$, the AM-GM inequality states that for non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$:\n   $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\geq \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n3. Given that the product $\\prod_{i=0}^{n-1} a_i = 1$, the right side becomes $1^{1/n} = 1$.\n4. Multiplying both sides by $n$ (where $n > 0$) yields $\\sum_{i=0}^{n-1} a_i \\geq n$.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case where n = 0\n  cases n with\n  | zero => \n    simp\n  | succ k =>\n    -- Use the AM-GM inequality\n    have h_n_pos : (0 : ℝ) < (k + 1) := by simp\n    have h_am_gm := Real.geom_mean_le_arith_mean (Finset.range (k + 1)) (fun i => a i) (fun i _ => h_pos i)\n    -- Substitute the product value (1) into the inequality\n    rw [h_prod] at h_am_gm\n    simp only [Real.one_rpow, one_le_div h_n_pos] at h_am_gm\n    exact h_am_gm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case where n = 0\n  cases n with\n  | zero => \n    simp\n  | succ k =>\n    -- Use the AM-GM inequality\n    have h_n_pos : (0 : ℝ) < (k + 1) := by simp\n    have h_am_gm := Real.geom_mean_le_arith_mean (Finset.range (k + 1)) (fun i => a i) (fun i _ => h_pos i)\n    -- Substitute the product value (1) into the inequality\n    rw [h_prod] at h_am_gm\n    simp only [Real.one_rpow, one_le_div h_n_pos] at h_am_gm\n    exact h_am_gm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 43
+            },
+            "endPos": {
+              "line": 17,
+              "column": 47
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 87
+            },
+            "endPos": {
+              "line": 18,
+              "column": 107
+            },
+            "data": "Application type mismatch: The argument\n  fun i x => h_pos i\nhas type\n  ∀ (i : ℕ) (x : ?m.72 i), 0 ≤ a i\nof sort `Prop` but is expected to have type\n  ℕ → ℝ\nof sort `Type` in the application\n  geom_mean_le_arith_mean (range (k + 1)) (fun i => a i) fun i x => h_pos i"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.1624295711517334
+      }
+    },
+    {
+      "index": 24,
+      "status": "FAILED",
+      "raw_text": "To prove that the sum of $n$ non-negative real numbers whose product is 1 is at least $n$, we apply the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n### Proof Sketch\n1. **Case $n=0$**: Both the sum and product are defined over an empty set. The sum is 0 and $n=0$, so $0 \\ge 0$ holds.\n2. **Case $n > 0$**:\n   - The AM-GM inequality states that for any sequence of non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$, their arithmetic mean is greater than or equal to their geometric mean:\n     $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n   - Given that the product $\\prod_{i=0}^{n-1} a_i = 1$, the geometric mean is $1^{1/n} = 1$.\n   - Substituting this into the inequality gives:\n     $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge 1$$\n   - Multiplying both sides by $n$ (since $n > 0$) yields:\n     $$\\sum_{i=0}^{n-1} a_i \\ge n$$\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the trivial case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Apply AM-GM Inequality\n  have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n    (by simp; intro i _; linarith) (by simp [hn]) h_pos\n  -- Simplify the weights part: sum of (1/n) over range n is 1\n  simp only [one_div, sum_const, card_range, nsmul_eq_mul] at h_amgm\n  rw [inv_mul_cancel (ne_of_gt (cast_pos.mpr hn))] at h_amgm\n  simp only [one_mul] at h_amgm\n  -- Simplify the product part using h_prod\n  rw [h_prod] at h_amgm\n  simp only [one_div, Real.rpow_one, rpow_inv_n (zero_le_one) hn] at h_amgm\n  -- Rearrange to get the sum >= n\n  rw [sum_const, card_range, nsmul_eq_mul, ← mul_div_assoc, mul_one] at h_amgm\n  exact (le_div_iff (cast_pos.mpr hn)).mp h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the trivial case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Apply AM-GM Inequality\n  have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n    (by simp; intro i _; linarith) (by simp [hn]) h_pos\n  -- Simplify the weights part: sum of (1/n) over range n is 1\n  simp only [one_div, sum_const, card_range, nsmul_eq_mul] at h_amgm\n  rw [inv_mul_cancel (ne_of_gt (cast_pos.mpr hn))] at h_amgm\n  simp only [one_mul] at h_amgm\n  -- Simplify the product part using h_prod\n  rw [h_prod] at h_amgm\n  simp only [one_div, Real.rpow_one, rpow_inv_n (zero_le_one) hn] at h_amgm\n  -- Rearrange to get the sum >= n\n  rw [sum_const, card_range, nsmul_eq_mul, ← mul_div_assoc, mul_one] at h_amgm\n  exact (le_div_iff (cast_pos.mpr hn)).mp h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 50
+            },
+            "endPos": {
+              "line": 16,
+              "column": 55
+            },
+            "data": "Application type mismatch: The argument\n  h_pos\nhas type\n  ∀ (x : ℕ), 0 ≤ a x\nbut is expected to have type\n  ∀ i ∈ range n, 0 ≤ a i\nin the application\n  geom_mean_le_arith_mean (range n) (fun x => 1 / ↑n) a ?m.48 ?m.49 h_pos"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 20
+            },
+            "endPos": {
+              "line": 16,
+              "column": 21
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 22
+            },
+            "endPos": {
+              "line": 19,
+              "column": 30
+            },
+            "data": "Ambiguous term\n  ne_of_gt\nPossible interpretations:\n  ?m.71 : ?m.57\n  \n  ?m.69 : ?m.57"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 10,
+              "column": 87
+            },
+            "endPos": {
+              "line": 26,
+              "column": 48
+            },
+            "data": "unsolved goals\ncase inr\na : ℕ → ℝ\nn : ℕ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\nh_amgm : (∏ x ∈ range n, a x ^ (↑n)⁻¹) ^ (↑n * (↑n)⁻¹)⁻¹ ≤ (∑ x ∈ range n, (↑n)⁻¹ * a x) / (↑n * (↑n)⁻¹)\n⊢ (range n).sum a ≥ ↑n"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.43750953674316406
+      }
+    },
+    {
+      "index": 25,
+      "status": "FAILED",
+      "raw_text": "To prove that given $n$ non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$ such that their product is 1, their sum is at least $n$, we utilize the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n**Proof Sketch:**\n1. The AM-GM inequality states that for any collection of $n$ non-negative real numbers, their arithmetic mean is greater than or equal to their geometric mean:\n   $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n2. We are given the constraint that the product of these numbers is 1: $\\prod_{i=0}^{n-1} a_i = 1$.\n3. Substituting the product into the AM-GM inequality gives:\n   $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge (1)^{1/n} = 1$$\n4. Multiplying both sides by $n$ (assuming $n > 0$) yields the desired result:\n   $$\\sum_{i=0}^{n-1} a_i \\ge n$$\n5. For the edge case $n = 0$, both the sum and $n$ are 0, so $0 \\ge 0$ holds.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Apply AM-GM inequality\n  have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => 1 / (n : ℝ)) a\n    (by (intro i _; simp; exact h_pos i))\n    (by simp [hn.ne.symm])\n  -- Simplify the AM-GM expression\n  rw [h_prod] at h_amgm\n  simp [hn.ne.symm] at h_amgm\n  -- Rearrange to get the final inequality\n  rw [← mul_le_mul_left (show 0 < (n : ℝ) from cast_pos.mpr hn)]\n  field_simp [hn.ne.symm] at h_amgm\n  simp [hn.ne.symm]\n  exact h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Apply AM-GM inequality\n  have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => 1 / (n : ℝ)) a\n    (by (intro i _; simp; exact h_pos i))\n    (by simp [hn.ne.symm])\n  -- Simplify the AM-GM expression\n  rw [h_prod] at h_amgm\n  simp [hn.ne.symm] at h_amgm\n  -- Rearrange to get the final inequality\n  rw [← mul_le_mul_left (show 0 < (n : ℝ) from cast_pos.mpr hn)]\n  field_simp [hn.ne.symm] at h_amgm\n  simp [hn.ne.symm]\n  exact h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 26
+            },
+            "endPos": {
+              "line": 16,
+              "column": 39
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 6
+            },
+            "endPos": {
+              "line": 19,
+              "column": 12
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (range n).prod a\nin the target expression\n  (∀ i ∈ range n, 0 ≤ a i) →\n    (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n      (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n\ncase inr\na : ℕ → ℝ\nn : ℕ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\nh_amgm :\n  (∀ i ∈ range n, 0 ≤ a i) →\n    (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n      (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n⊢ (range n).sum a ≥ ↑n"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.2805671691894531
+      }
+    },
+    {
+      "index": 26,
+      "status": "FAILED",
+      "raw_text": "To prove that given $n$ non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$ such that their product is 1, their sum is at least $n$, we apply the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n**Proof Sketch:**\n1.  **Case $n=0$**: The sum over an empty range is 0 and $n=0$, so $0 \\ge 0$ holds.\n2.  **Case $n > 0$**:\n    *   The AM-GM inequality states that for non-negative $a_i$:\n        $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n    *   Substitute the given condition $\\prod_{i=0}^{n-1} a_i = 1$:\n        $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge (1)^{1/n} = 1$$\n    *   Multiply both sides by $n$ (which is positive) to obtain:\n        $$\\sum_{i=0}^{n-1} a_i \\ge n$$\n3.  The theorem follows directly from the standard `Real.geom_mean_le_arith_mean` in Mathlib.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the trivial case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Apply AM-GM inequality\n  have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n    (by simp; exact (inv_nonneg.mpr (Nat.cast_nonneg n)))\n    (by simp [hn.ne.symm])\n    (λ i _ => h_pos i)\n  -- Simplify the AM-GM expression using given conditions\n  rw [h_prod] at h_amgm\n  simp only [Real.one_rpow, inv_mul_eq_div] at h_amgm\n  -- Rearrange to get the final inequality\n  exact (le_div_iff' (cast_pos.mpr hn)).mp h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the trivial case n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Apply AM-GM inequality\n  have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n    (by simp; exact (inv_nonneg.mpr (Nat.cast_nonneg n)))\n    (by simp [hn.ne.symm])\n    (λ i _ => h_pos i)\n  -- Simplify the AM-GM expression using given conditions\n  rw [h_prod] at h_amgm\n  simp only [Real.one_rpow, inv_mul_eq_div] at h_amgm\n  -- Rearrange to get the final inequality\n  exact (le_div_iff' (cast_pos.mpr hn)).mp h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 14
+            },
+            "endPos": {
+              "line": 16,
+              "column": 56
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 6
+            },
+            "endPos": {
+              "line": 20,
+              "column": 12
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (range n).prod a\nin the target expression\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n\ncase inr\na : ℕ → ℝ\nn : ℕ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\nh_amgm :\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n⊢ (range n).sum a ≥ ↑n"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.28893280029296875
+      }
+    },
+    {
+      "index": 27,
+      "status": "FAILED",
+      "raw_text": "To prove that if the product of $n$ non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$ is $1$, then their sum is at least $n$, we utilize the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n**Proof Sketch:**\n1.  **AM-GM Inequality**: For any $n$ non-negative real numbers $a_i$, the inequality states:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\geq \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n2.  **Substitution**: Given $\\prod_{i=0}^{n-1} a_i = 1$, the right-hand side simplifies to $1^{1/n} = 1$.\n3.  **Result**: Thus, we have $\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\geq 1$. Multiplying both sides by $n$ (assuming $n > 0$) yields $\\sum_{i=0}^{n-1} a_i \\geq n$.\n4.  **Edge Case**: If $n=0$, both the sum and the product (empty product) are defined, and the inequality $0 \\geq 0$ holds.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h₀ : ∀ x : ℕ, 0 ≤ a x)\n  (h₁ : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case where n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Use the AM-GM inequality\n  have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => 1 / (n : ℝ)) a\n    (by simp; intro i _; linarith [show 0 ≤ (n : ℝ) from cast_nonneg n])\n    (by simp; field_simp)\n    (by intro i _; exact h₀ i)\n  -- Simplify the AM-GM expression\n  rw [h₁] at h_amgm\n  simp only [Real.one_rpow, one_mul] at h_amgm\n  -- Rearrange to get the desired sum inequality\n  field_simp at h_amgm\n  exact h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h₀ : ∀ x : ℕ, 0 ≤ a x)\n  (h₁ : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case where n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Use the AM-GM inequality\n  have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => 1 / (n : ℝ)) a\n    (by simp; intro i _; linarith [show 0 ≤ (n : ℝ) from cast_nonneg n])\n    (by simp; field_simp)\n    (by intro i _; exact h₀ i)\n  -- Simplify the AM-GM expression\n  rw [h₁] at h_amgm\n  simp only [Real.one_rpow, one_mul] at h_amgm\n  -- Rearrange to get the desired sum inequality\n  field_simp at h_amgm\n  exact h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 20
+            },
+            "endPos": {
+              "line": 16,
+              "column": 21
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 5
+            },
+            "endPos": {
+              "line": 17,
+              "column": 24
+            },
+            "data": "unsolved goals\na : ℕ → ℝ\nn : ℕ\nh₀ : ∀ (x : ℕ), 0 ≤ a x\nh₁ : (range n).prod a = 1\nhn : n > 0\n⊢ 0 < 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 6
+            },
+            "endPos": {
+              "line": 20,
+              "column": 8
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (range n).prod a\nin the target expression\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n\ncase inr\na : ℕ → ℝ\nn : ℕ\nh₀ : ∀ (x : ℕ), 0 ≤ a x\nh₁ : (range n).prod a = 1\nhn : n > 0\nh_amgm :\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n⊢ (range n).sum a ≥ ↑n"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3413562774658203
+      }
+    },
+    {
+      "index": 28,
+      "status": "FAILED",
+      "raw_text": "To prove that if the product of $n$ non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$ is 1, then their sum is at least $n$, we use the **Arithmetic Mean-Geometric Mean (AM-GM) Inequality**.\n\n### Proof Sketch\n1.  **Identity/Trivial Cases**: If $n = 0$, the sum and $n$ are both $0$, so the inequality holds.\n2.  **AM-GM Inequality**: For non-negative real numbers $a_0, \\dots, a_{n-1}$, the AM-GM inequality states:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n3.  **Substitution**: Given $\\prod_{i=0}^{n-1} a_i = 1$, the right side of the inequality becomes $1^{1/n} = 1$.\n4.  **Conclusion**: Thus, $\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge 1$. Multiplying both sides by $n$ (where $n > 0$) yields $\\sum_{i=0}^{n-1} a_i \\ge n$. If $n=0$, the result is trivial.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) :\n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case n = 0\n  cases n with\n  | zero =>\n    simp\n  | succ n' =>\n    let n := n' + 1\n    -- Apply the AM-GM inequality from Mathlib\n    -- Real.geom_mean_le_arith_mean states:\n    -- (∏ i in s, w i * x i) / (∑ i in s, w i) ≤ (∑ i in s, w i * x i) / (∑ i in s, w i)\n    -- We use the specific version for constant weights:\n    have h_n_pos : (0 : ℝ) < n := by\n      simp only [Nat.cast_succ, add_pos_iff, or_true]\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (λ _ => (1 : ℝ)) a\n      (λ _ _ => by linarith) (λ i _ => h_pos i)\n    -- Simplify the AM-GM expression\n    simp only [Finset.sum_const, Finset.card_range, n, n', card_range,\n               smul_eq_mul, mul_one, h_prod, Real.one_rpow] at h_amgm\n    -- Rearrange to get the sum ≥ n\n    rw [div_le_iff h_n_pos] at h_amgm\n    exact h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) :\n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case n = 0\n  cases n with\n  | zero =>\n    simp\n  | succ n' =>\n    let n := n' + 1\n    -- Apply the AM-GM inequality from Mathlib\n    -- Real.geom_mean_le_arith_mean states:\n    -- (∏ i in s, w i * x i) / (∑ i in s, w i) ≤ (∑ i in s, w i * x i) / (∑ i in s, w i)\n    -- We use the specific version for constant weights:\n    have h_n_pos : (0 : ℝ) < n := by\n      simp only [Nat.cast_succ, add_pos_iff, or_true]\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (λ _ => (1 : ℝ)) a\n      (λ _ _ => by linarith) (λ i _ => h_pos i)\n    -- Simplify the AM-GM expression\n    simp only [Finset.sum_const, Finset.card_range, n, n', card_range,\n               smul_eq_mul, mul_one, h_prod, Real.one_rpow] at h_amgm\n    -- Rearrange to get the sum ≥ n\n    rw [div_le_iff h_n_pos] at h_amgm\n    exact h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 23,
+              "column": 6
+            },
+            "endPos": {
+              "line": 23,
+              "column": 53
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 25,
+              "column": 29
+            },
+            "endPos": {
+              "line": 25,
+              "column": 47
+            },
+            "data": "Application type mismatch: The argument\n  fun i x => h_pos i\nhas type\n  ∀ (i : ℕ) (x : ?m.75 i), 0 ≤ a i\nbut is expected to have type\n  0 < ∑ i ∈ range n, 1\nin the application\n  geom_mean_le_arith_mean (range n) (fun x => 1) a (fun x x_1 => ?m.71) fun i x => h_pos i"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 27,
+              "column": 55
+            },
+            "endPos": {
+              "line": 27,
+              "column": 57
+            },
+            "data": "Invalid argument: Variable `n'` is not a proposition or let-declaration"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 30,
+              "column": 8
+            },
+            "endPos": {
+              "line": 30,
+              "column": 18
+            },
+            "data": "Unknown identifier `div_le_iff`"
+          }
+        ],
+        "warnings": [
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 28,
+              "column": 15
+            },
+            "endPos": {
+              "line": 28,
+              "column": 26
+            },
+            "data": "This simp argument is unused:\n  smul_eq_mul\n\nHint: Omit it from the simp argument list.\n  simp only [Finset.sum_const, Finset.card_range, n, n', card_range, s̵m̵u̵l̵_̵e̵q̵_̵m̵u̵l̵,̵ ̵mul_one, h_prod,\n  ̲  ̲ ̲ ̲ ̲ ̲Real.one_rpow] at h_amgm\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 28,
+              "column": 28
+            },
+            "endPos": {
+              "line": 28,
+              "column": 35
+            },
+            "data": "This simp argument is unused:\n  mul_one\n\nHint: Omit it from the simp argument list.\n  simp only [Finset.sum_const, Finset.card_range, n, n', card_range, smul_eq_mul, m̵u̵l̵_̵o̵n̵e̵,̵ ̵h_prod,\n  ̲  ̲ ̲ ̲ ̲ ̲Real.one_rpow] at h_amgm\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 28,
+              "column": 37
+            },
+            "endPos": {
+              "line": 28,
+              "column": 43
+            },
+            "data": "This simp argument is unused:\n  h_prod\n\nHint: Omit it from the simp argument list.\n  simp only [Finset.sum_const, Finset.card_range, n, n', card_range, smul_eq_mul, mul_one,\n  ̲  ̲ ̲ ̲ ̲ ̲h̵_̵p̵r̵o̵d̵,̵ ̵Real.one_rpow] at h_amgm\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          },
+          {
+            "severity": "warning",
+            "pos": {
+              "line": 28,
+              "column": 45
+            },
+            "endPos": {
+              "line": 28,
+              "column": 58
+            },
+            "data": "This simp argument is unused:\n  Real.one_rpow\n\nHint: Omit it from the simp argument list.\n  simp only [Finset.sum_const, Finset.card_range, n, n', card_range, smul_eq_mul, mul_one,\n  ̲  ̲ ̲ ̲ ̲ ̲h̵_̵p̵r̵o̵d̵,̵ ̵R̵e̵a̵l̵.̵o̵n̵e̵_̵r̵p̵o̵w̵]̵h̲_̲p̲r̲o̲d̲]̲ at h_amgm\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`"
+          }
+        ],
+        "system_errors": "",
+        "verify_time": 0.1270124912261963
+      }
+    },
+    {
+      "index": 29,
+      "status": "FAILED",
+      "raw_text": "To prove that the sum of $n$ non-negative real numbers whose product is 1 is at least $n$, we apply the Arithmetic Mean-Geometric Mean (AM-GM) inequality.\n\n### Proof Sketch\n1.  **AM-GM Inequality**: For any sequence of non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$, the arithmetic mean is greater than or equal to the geometric mean:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n2.  **Substitution**: We are given that $\\prod_{i=0}^{n-1} a_i = 1$.\n3.  **Simplification**:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge (1)^{1/n} = 1$$\n4.  **Conclusion**: Multiplying both sides by $n$ (assuming $n > 0$) yields $\\sum_{i=0}^{n-1} a_i \\ge n$.\n5.  **Edge Case**: If $n = 0$, the sum over an empty range is 0 and $n=0$, so $0 \\ge 0$ holds.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) :\n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case where n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Apply AM-GM inequality\n  have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => 1 / (n : ℝ)) a\n    (by simp; field_simp) (by simp) h_pos\n  -- Substitute the product value into the AM-GM inequality\n  rw [h_prod] at h_amgm\n  -- Simplify: 1^(1/n) is 1\n  simp [Real.one_rpow] at h_amgm\n  -- Rearrange to get the sum >= n\n  field_simp at h_amgm\n  exact h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) :\n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the case where n = 0\n  rcases n.eq_zero_or_pos with rfl | hn\n  · simp\n  -- Apply AM-GM inequality\n  have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => 1 / (n : ℝ)) a\n    (by simp; field_simp) (by simp) h_pos\n  -- Substitute the product value into the AM-GM inequality\n  rw [h_prod] at h_amgm\n  -- Simplify: 1^(1/n) is 1\n  simp [Real.one_rpow] at h_amgm\n  -- Rearrange to get the sum >= n\n  field_simp at h_amgm\n  exact h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 36
+            },
+            "endPos": {
+              "line": 17,
+              "column": 41
+            },
+            "data": "Application type mismatch: The argument\n  h_pos\nhas type\n  ∀ (x : ℕ), 0 ≤ a x\nbut is expected to have type\n  ∀ i ∈ range n, 0 ≤ a i\nin the application\n  geom_mean_le_arith_mean (range n) (fun x => 1 / ↑n) a ?m.49 ?m.50 h_pos"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 14
+            },
+            "endPos": {
+              "line": 17,
+              "column": 24
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 17,
+              "column": 27
+            },
+            "endPos": {
+              "line": 17,
+              "column": 34
+            },
+            "data": "unsolved goals\na : ℕ → ℝ\nn : ℕ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\n⊢ 0 < ↑n * (↑n)⁻¹"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 6
+            },
+            "endPos": {
+              "line": 19,
+              "column": 12
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (range n).prod a\nin the target expression\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n\ncase inr\na : ℕ → ℝ\nn : ℕ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\nh_amgm :\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n⊢ (range n).sum a ≥ ↑n"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.26402878761291504
+      }
+    },
+    {
+      "index": 30,
+      "status": "FAILED",
+      "raw_text": "To prove that $\\sum_{i=0}^{n-1} a_i \\ge n$ given $\\prod_{i=0}^{n-1} a_i = 1$ and $a_i \\ge 0$, we utilize the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n### Proof Sketch\n1. **Case $n=0$**: Both the sum and the product over an empty range are defined as the additive identity ($0$) and multiplicative identity ($1$) respectively. The theorem holds as $0 \\ge 0$.\n2. **General Case ($n > 0$)**: \n   - The AM-GM inequality states that for non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$:\n     $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n   - Given $\\prod_{i=0}^{n-1} a_i = 1$, the right-hand side simplifies: $1^{1/n} = 1$.\n   - Thus, we have $\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge 1$.\n   - Multiplying both sides by $n$ (where $n > 0$), we obtain $\\sum_{i=0}^{n-1} a_i \\ge n$.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the trivial case where n = 0\n  cases n with\n  | zero => \n    simp\n  | succ n' =>\n    let n := n' + 1\n    -- Apply AM-GM inequality: (1/n) * Σ a_i ≥ (Π a_i)^(1/n)\n    have h_n_pos : (0 : ℝ) < n := by\n      simp only [cast_add, cast_one, add_pos_iff, or_true]\n    have h_am_gm := Real.geom_mean_le_arith_mean (range n) (fun _ => 1 / (n : ℝ)) a \n      (λ _ _ => by simp [h_n_pos.le]) (by simp [Finset.sum_const, h_n_pos.ne.symm]) h_pos\n    \n    -- Simplify the product part using the hypothesis h_prod = 1\n    rw [h_prod] at h_am_gm\n    -- 1^(1/n) is 1\n    simp [Real.one_rpow] at h_am_gm\n    \n    -- Manipulate the sum part to isolate Σ a_i\n    rw [← Finset.mul_sum] at h_am_gm\n    -- Multiply both sides by n to get the final inequality\n    exact (le_div_iff₀ h_n_pos).mp h_am_gm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Handle the trivial case where n = 0\n  cases n with\n  | zero => \n    simp\n  | succ n' =>\n    let n := n' + 1\n    -- Apply AM-GM inequality: (1/n) * Σ a_i ≥ (Π a_i)^(1/n)\n    have h_n_pos : (0 : ℝ) < n := by\n      simp only [cast_add, cast_one, add_pos_iff, or_true]\n    have h_am_gm := Real.geom_mean_le_arith_mean (range n) (fun _ => 1 / (n : ℝ)) a \n      (λ _ _ => by simp [h_n_pos.le]) (by simp [Finset.sum_const, h_n_pos.ne.symm]) h_pos\n    \n    -- Simplify the product part using the hypothesis h_prod = 1\n    rw [h_prod] at h_am_gm\n    -- 1^(1/n) is 1\n    simp [Real.one_rpow] at h_am_gm\n    \n    -- Manipulate the sum part to isolate Σ a_i\n    rw [← Finset.mul_sum] at h_am_gm\n    -- Multiply both sides by n to get the final inequality\n    exact (le_div_iff₀ h_n_pos).mp h_am_gm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 17
+            },
+            "endPos": {
+              "line": 19,
+              "column": 25
+            },
+            "data": "Ambiguous term\n  cast_add\nPossible interpretations:\n  Rat.cast_add : ∀ (p q : ℚ), ↑(p + q) = ↑p + ↑q\n  \n  Nat.cast_add : ∀ (m n : ℕ), ↑(m + n) = ↑m + ↑n"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 27
+            },
+            "endPos": {
+              "line": 19,
+              "column": 35
+            },
+            "data": "Ambiguous term\n  cast_one\nPossible interpretations:\n  Rat.cast_one : ↑1 = 1\n  \n  Nat.cast_one : ↑1 = 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 6
+            },
+            "endPos": {
+              "line": 19,
+              "column": 58
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 21,
+              "column": 84
+            },
+            "endPos": {
+              "line": 21,
+              "column": 89
+            },
+            "data": "Application type mismatch: The argument\n  h_pos\nhas type\n  ∀ (x : ℕ), 0 ≤ a x\nbut is expected to have type\n  ∀ i ∈ range n, 0 ≤ a i\nin the application\n  geom_mean_le_arith_mean (range n) (fun x => 1 / ↑n) a (fun x x_1 => ?m.76) ?m.78 h_pos"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 24,
+              "column": 8
+            },
+            "endPos": {
+              "line": 24,
+              "column": 14
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (range (n' + 1)).prod a\nin the target expression\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n\ncase succ\na : ℕ → ℝ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nn' : ℕ\nh_prod : (range (n' + 1)).prod a = 1\nn : ℕ := n' + 1\nh_n_pos : 0 < ↑n\nh_am_gm :\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n⊢ (range (n' + 1)).sum a ≥ ↑(n' + 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.19715142250061035
+      }
+    },
+    {
+      "index": 31,
+      "status": "FAILED",
+      "raw_text": "To prove that for non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$, if $\\prod_{i=0}^{n-1} a_i = 1$, then $\\sum_{i=0}^{n-1} a_i \\ge n$, we use the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n**Proof Sketch:**\n1.  **Identity for $n=0$**: The sum is $0$ and the product is $1$. The theorem statement is vacuously true or holds based on the definition of empty sums/products in Mathlib (though $0 \\ge 0$ holds).\n2.  **AM-GM Inequality**: The general AM-GM inequality states that for non-negative $a_i$:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n3.  **Substitution**: Given $\\prod_{i=0}^{n-1} a_i = 1$, the right-hand side becomes $1^{1/n} = 1$.\n4.  **Conclusion**: Multiplying both sides by $n$ (where $n > 0$) yields $\\sum_{i=0}^{n-1} a_i \\ge n$. If $n=0$, $0 \\ge 0$ is trivial.\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : \n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Case n = 0\n  cases n with\n  | zero => \n    simp\n  | succ k =>\n    -- Use the AM-GM inequality from Mathlib\n    -- Real.geom_mean_le_arith_mean\n    have n_pos : (0 : ℝ) < (succ k) := by simp\n    have n_pos_nat : 0 < succ k := Nat.succ_pos k\n    let s := Finset.range (succ k)\n    have h_amgm := Real.geom_mean_le_arith_mean s (λ _ => 1 / (succ k : ℝ)) a \n      (by \n        intro i hi\n        simp\n        exact one_div_nonneg.mpr (congr_arg _ (by simp) |> (λ _ => Nat.cast_nonneg (succ k)))\n      )\n      (by simp [Finset.sum_const, card_range])\n      (λ i hi => h_pos i)\n    \n    -- Simplify the product part of AM-GM\n    -- Note: Mathlib's version uses weights. For equal weights 1/n, \n    -- the weighted product is (prod a_i)^(1/n).\n    have h_prod_weighted : ∏ i in s, a i ^ (1 / (succ k : ℝ)) = 1 := by\n      rw [← Real.prod_rpow]\n      · rw [h_prod]\n        exact Real.one_rpow (1 / ↑(succ k))\n      · intro i hi\n        exact h_pos i\n    \n    rw [h_prod_weighted] at h_amgm\n    \n    -- Simplify the sum part\n    -- sum ( (1/n) * a_i ) = (1/n) * sum a_i\n    rw [← Finset.mul_sum] at h_amgm\n    \n    -- Multiply by n to get the result\n    have : 1 ≤ (1 / (succ k : ℝ)) * ∑ i in s, a i := h_amgm\n    exact (le_div_iff' n_pos).mp (by rwa [one_mul])\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_pos : ∀ x : ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : \n  Finset.sum (Finset.range n) a ≥ n := by\n  -- Case n = 0\n  cases n with\n  | zero => \n    simp\n  | succ k =>\n    -- Use the AM-GM inequality from Mathlib\n    -- Real.geom_mean_le_arith_mean\n    have n_pos : (0 : ℝ) < (succ k) := by simp\n    have n_pos_nat : 0 < succ k := Nat.succ_pos k\n    let s := Finset.range (succ k)\n    have h_amgm := Real.geom_mean_le_arith_mean s (λ _ => 1 / (succ k : ℝ)) a \n      (by \n        intro i hi\n        simp\n        exact one_div_nonneg.mpr (congr_arg _ (by simp) |> (λ _ => Nat.cast_nonneg (succ k)))\n      )\n      (by simp [Finset.sum_const, card_range])\n      (λ i hi => h_pos i)\n    \n    -- Simplify the product part of AM-GM\n    -- Note: Mathlib's version uses weights. For equal weights 1/n, \n    -- the weighted product is (prod a_i)^(1/n).\n    have h_prod_weighted : ∏ i in s, a i ^ (1 / (succ k : ℝ)) = 1 := by\n      rw [← Real.prod_rpow]\n      · rw [h_prod]\n        exact Real.one_rpow (1 / ↑(succ k))\n      · intro i hi\n        exact h_pos i\n    \n    rw [h_prod_weighted] at h_amgm\n    \n    -- Simplify the sum part\n    -- sum ( (1/n) * a_i ) = (1/n) * sum a_i\n    rw [← Finset.mul_sum] at h_amgm\n    \n    -- Multiply by n to get the result\n    have : 1 ≤ (1 / (succ k : ℝ)) * ∑ i in s, a i := h_amgm\n    exact (le_div_iff' n_pos).mp (by rwa [one_mul])",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 30
+            },
+            "endPos": {
+              "line": 34,
+              "column": 33
+            },
+            "data": "unexpected token 'in'; expected ','"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 19,
+              "column": 39
+            },
+            "endPos": {
+              "line": 19,
+              "column": 46
+            },
+            "data": "unsolved goals\na : ℕ → ℝ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nk : ℕ\nh_prod : (range (k + 1)).prod a = 1\n⊢ 0 < ↑k + 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 26,
+              "column": 50
+            },
+            "endPos": {
+              "line": 26,
+              "column": 54
+            },
+            "data": "`simp` made no progress"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 28,
+              "column": 7
+            },
+            "endPos": {
+              "line": 28,
+              "column": 45
+            },
+            "data": "unsolved goals\na : ℕ → ℝ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nk : ℕ\nh_prod : (range (k + 1)).prod a = 1\nn_pos : 0 < ↑k.succ\nn_pos_nat : 0 < k.succ\ns : Finset ℕ := range k.succ\n⊢ 0 < ↑(#s) * (↑k + 1)⁻¹"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 34,
+              "column": 27
+            },
+            "endPos": {
+              "line": 34,
+              "column": 30
+            },
+            "data": "failed to synthesize instance of type class\n  CommMonoid (Sort ?u.131612)\n\nHint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command."
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 16,
+              "column": 11
+            },
+            "endPos": {
+              "line": 34,
+              "column": 30
+            },
+            "data": "unsolved goals\ncase h_prod_weighted\na : ℕ → ℝ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nk : ℕ\nh_prod : (range (k + 1)).prod a = 1\nn_pos : 0 < ↑k.succ\nn_pos_nat : 0 < k.succ\ns : Finset ℕ := range k.succ\nh_amgm :\n  (∏ i ∈ s, a i ^ (fun x => 1 / ↑k.succ) i) ^ (∑ i ∈ s, (fun x => 1 / ↑k.succ) i)⁻¹ ≤\n    (∑ i ∈ s, (fun x => 1 / ↑k.succ) i * a i) / ∑ i ∈ s, (fun x => 1 / ↑k.succ) i\n⊢ sorry\n\ncase succ\na : ℕ → ℝ\nh_pos : ∀ (x : ℕ), 0 ≤ a x\nk : ℕ\nh_prod : (range (k + 1)).prod a = 1\nn_pos : 0 < ↑k.succ\nn_pos_nat : 0 < k.succ\ns : Finset ℕ := range k.succ\nh_amgm :\n  (∏ i ∈ s, a i ^ (fun x => 1 / ↑k.succ) i) ^ (∑ i ∈ s, (fun x => 1 / ↑k.succ) i)⁻¹ ≤\n    (∑ i ∈ s, (fun x => 1 / ↑k.succ) i * a i) / ∑ i ∈ s, (fun x => 1 / ↑k.succ) i\nh_prod_weighted : sorry\n⊢ (range (k + 1)).sum a ≥ ↑(k + 1)"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.3477356433868408
+      }
+    },
+    {
+      "index": 32,
+      "status": "FAILED",
+      "raw_text": "To prove that the sum of $n$ non-negative real numbers whose product is 1 is at least $n$, we utilize the Arithmetic Mean-Geometric Mean (AM-GM) Inequality.\n\n### Proof Sketch\n1.  **AM-GM Inequality**: For any sequence of non-negative real numbers $a_0, a_1, \\dots, a_{n-1}$, the AM-GM inequality states:\n    $$\\frac{1}{n} \\sum_{i=0}^{n-1} a_i \\ge \\left( \\prod_{i=0}^{n-1} a_i \\right)^{1/n}$$\n2.  **Substitution**: Given the product $\\prod_{i=0}^{n-1} a_i = 1$, the right-hand side of the inequality becomes $1^{1/n} = 1$.\n3.  **Conclusion**: Multiplying both sides by $n$ yields:\n    $$\\sum_{i=0}^{n-1} a_i \\ge n$$\n4.  **Edge Case**: If $n = 0$, the sum over an empty set is 0 and $n=0$, so $0 \\ge 0$ holds.\n\n### Lean 4 Code\n\n```lean\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_nonneg: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case on whether n is zero\n  rcases n.eq_zero_or_pos with rfl | hn\n  · -- Case n = 0\n    simp\n  · -- Case n > 0\n    -- Use the AM-GM inequality: (1/n) * ∑ a_i ≥ (∏ a_i)^(1/n)\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n      (by simp; intro i _; linarith) (by simp; field_simp) (by intro i _; exact h_nonneg i)\n    -- Substitute the product value 1 into the inequality\n    rw [h_prod] at h_amgm\n    -- Since 1^(1/n) is not directly simplified by basic rewrite, we handle the power\n    have : (∏ i in range n, a i) ^ ((1 : ℝ) / n) = 1 ^ ((1 : ℝ) / n) := by rw [h_prod]\n    rw [Real.one_rpow] at h_amgm\n    -- Simplify (1/n) * ∑ a_i ≥ 1 to ∑ a_i ≥ n\n    simp at h_amgm\n    rw [Finset.mul_sum] at h_amgm\n    have h_pos : (n : ℝ) > 0 := by positivity\n    exact (le_div_iff₀ h_pos).mp h_amgm\n```",
+      "extracted_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem algebra_amgm_prod1toneq1_sum1tongeqn (a : ℕ → ℝ) (n : ℕ)\n  (h_nonneg: ∀ x:ℕ, 0 ≤ a x)\n  (h_prod : Finset.prod (Finset.range n) a = 1) : Finset.sum (Finset.range n) a ≥ n := by\n  -- Case on whether n is zero\n  rcases n.eq_zero_or_pos with rfl | hn\n  · -- Case n = 0\n    simp\n  · -- Case n > 0\n    -- Use the AM-GM inequality: (1/n) * ∑ a_i ≥ (∏ a_i)^(1/n)\n    have h_amgm := Real.geom_mean_le_arith_mean (Finset.range n) (fun _ => (1 : ℝ) / n) a\n      (by simp; intro i _; linarith) (by simp; field_simp) (by intro i _; exact h_nonneg i)\n    -- Substitute the product value 1 into the inequality\n    rw [h_prod] at h_amgm\n    -- Since 1^(1/n) is not directly simplified by basic rewrite, we handle the power\n    have : (∏ i in range n, a i) ^ ((1 : ℝ) / n) = 1 ^ ((1 : ℝ) / n) := by rw [h_prod]\n    rw [Real.one_rpow] at h_amgm\n    -- Simplify (1/n) * ∑ a_i ≥ 1 to ∑ a_i ≥ n\n    simp at h_amgm\n    rw [Finset.mul_sum] at h_amgm\n    have h_pos : (n : ℝ) > 0 := by positivity\n    exact (le_div_iff₀ h_pos).mp h_amgm",
+      "verification": {
+        "pass": false,
+        "complete": false,
+        "errors": [
+          {
+            "severity": "error",
+            "pos": {
+              "line": 22,
+              "column": 15
+            },
+            "endPos": {
+              "line": 22,
+              "column": 18
+            },
+            "data": "unexpected token 'in'; expected ','"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 22
+            },
+            "endPos": {
+              "line": 18,
+              "column": 23
+            },
+            "data": "No goals to be solved"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 18,
+              "column": 38
+            },
+            "endPos": {
+              "line": 18,
+              "column": 57
+            },
+            "data": "unsolved goals\na : ℕ → ℝ\nn : ℕ\nh_nonneg : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\n⊢ 0 < 1"
+          },
+          {
+            "severity": "error",
+            "pos": {
+              "line": 20,
+              "column": 8
+            },
+            "endPos": {
+              "line": 20,
+              "column": 14
+            },
+            "data": "Tactic `rewrite` failed: Did not find an occurrence of the pattern\n  (range n).prod a\nin the target expression\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n\ncase inr\na : ℕ → ℝ\nn : ℕ\nh_nonneg : ∀ (x : ℕ), 0 ≤ a x\nh_prod : (range n).prod a = 1\nhn : n > 0\nh_amgm :\n  (∏ i ∈ range n, a i ^ (fun x => 1 / ↑n) i) ^ (∑ i ∈ range n, (fun x => 1 / ↑n) i)⁻¹ ≤\n    (∑ i ∈ range n, (fun x => 1 / ↑n) i * a i) / ∑ i ∈ range n, (fun x => 1 / ↑n) i\n⊢ (range n).sum a ≥ ↑n"
+          }
+        ],
+        "warnings": [],
+        "system_errors": "",
+        "verify_time": 0.22868657112121582
+      }
+    }
+  ]
+}
