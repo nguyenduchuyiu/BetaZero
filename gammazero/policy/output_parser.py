@@ -49,16 +49,15 @@ def _line_bounds(text: str, pos: int) -> tuple[int, int]:
 def _sorry_is_named_have_leaf(clean_code: str, match: re.Match[str]) -> bool:
     line_start, line_end = _line_bounds(clean_code, match.start())
     line = clean_code[line_start:line_end]
-    sorry_offset = match.start() - line_start
-    before = line[:sorry_offset]
     after = line[match.end() - line_start :]
 
     if after.strip():
         return False
 
+    before = clean_code[:match.start()].rstrip()
     return bool(
         re.search(
-            r"^\s*have\s+[A-Za-z_][A-Za-z0-9_']*\b.+:=\s*(?:by\s+)?$",
+            r"\b(have|let)\s+[A-Za-z_][A-Za-z0-9_']*\b[\s\S]*?:=\s*(?:by\s*)?$",
             before,
         )
     )

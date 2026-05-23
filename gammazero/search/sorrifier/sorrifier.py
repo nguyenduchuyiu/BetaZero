@@ -254,6 +254,73 @@ class Sorrifier:
             # Last resort: full sorrify, not single-line deletion.
             self.current_content = self._force_full_sorrify()
 
+    def _find_innermost_non_have_tactic(self, blocks: list[dict], error_line: int) -> dict | None:
+        candidates = []
+
+        for b in blocks:
+            kind = b["kind"].lower()
+            if not (b["start_line"] <= error_line <= b["end_line"]):
+                continue
+
+            if "tactic" not in kind and "seq" not in kind:
+                continue
+
+            # Không chọn whole have ngay từ đầu.
+            if "tactichave" in kind:
+                continue
+
+            candidates.append(b)
+
+        if not candidates:
+            return None
+
+        return min(
+            candidates,
+            key=lambda b: (
+                b["end_line"] - b["start_line"],
+                b["end_line"],
+            ),
+        )
+
+    def _replace_range_with_all_goals_sorry(
+        self,
+        lines: list[str],
+        start_line: int,
+        end_line: int,
+    ) -> list[str]:
+        start_idx = start_line - 1
+        end_idx = end_line
+
+        indent = self._indent(lines[start_idx])
+        new_lines = lines[:start_idx]
+        new_lines.append(" " * indent + "all_goals sorry")
+        new_lines.extend(lines[end_idx:])
+
+        return new_lines
+
+    def _scope_has_sorry(self, lines: list[str], start_idx: int, end_idx_excl: int) -> bool:
+        return any(
+            line.strip() in {"sorry", "all_goals sorry"}
+            for line in lines[start_idx:end_idx_excl]
+        )
+
+    def _hollow_have_body_with_sorry(
+        self,
+        lines: list[str],
+        start_idx: int,
+        end_idx: int,
+    ) -> list[str]:
+        start_line_str = lines[start_idx]
+        new_lines = lines[:start_idx]
+        if ":=" in start_line_str:
+            clean_header = start_line_str.split(":=")[0] + ":= by sorry"
+            new_lines.append(clean_header)
+        else:
+            indent = self._indent(start_line_str)
+            new_lines.append(" " * indent + "sorry")
+        new_lines.extend(lines[end_idx:])
+        return new_lines
+
     def _apply_normal_fix(self, error_line: int, is_fatal: bool, err_msg: str) -> bool:
         lines = self.current_content.splitlines()
         error_line = self._normalize_line_number(error_line, total_lines=len(lines))
@@ -361,6 +428,21 @@ class Sorrifier:
                 
         # 3. Xử lý Chưa chứng minh xong (Unsolved Goals)
         else:
+            leaf = self._find_innermost_non_have_tactic(blocks, error_line)
+            if leaf is not None:
+                L_start, L_end = leaf["start_line"], leaf["end_line"]
+                leaf_text = "\n".join(lines[L_start - 1:L_end])
+                if "sorry" not in leaf_text:
+                    self._last_action_msg = (
+                        f"Replaced innermost unsolved tactic [{leaf['kind']}] "
+                        f"L{L_start}..L{L_end} with all_goals sorry"
+                    )
+                    self.log(f"[Fix] {self._last_action_msg}")
+
+                    new_lines = self._replace_range_with_all_goals_sorry(lines, L_start, L_end)
+                    self.current_content = self._clean_redundant_sorries(new_lines)
+                    return True
+
             scopes = ["declaration", "tactichave", "tacticcases", "tacticmatch", "tacticlet"]
             valid_nodes = [b for b in enclosing if any(s in b["kind"].lower() for s in scopes)]
 
@@ -372,6 +454,16 @@ class Sorrifier:
                 target = min(valid_nodes, key=lambda x: x["end_line"] - x["start_line"])
 
             L_start, L_end = target["start_line"], target["end_line"]
+
+            if "tactichave" in target["kind"].lower():
+                if self._scope_has_sorry(lines, L_start - 1, L_end):
+                    self.log(
+                        f"[Fix] Unsolved have already contains sorry; hollowing have body "
+                        f"L{L_start}..L{L_end}"
+                    )
+                    new_lines = self._hollow_have_body_with_sorry(lines, L_start - 1, L_end)
+                    self.current_content = self._clean_redundant_sorries(new_lines)
+                    return True
 
             # Prefer patching the final tactic that caused many remaining goals.
             last_idx = L_end - 1

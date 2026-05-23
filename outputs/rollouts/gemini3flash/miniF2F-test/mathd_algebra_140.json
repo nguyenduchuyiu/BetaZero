@@ -1,0 +1,204 @@
+{
+  "theorem_goal": "a * b - 3 * c = -9",
+  "root_id": "state_0",
+  "total_nodes": 5,
+  "search_metadata": {
+    "budget": {
+      "max_nodes": 256,
+      "used_total": 4,
+      "used_tactic": 4,
+      "used_skeleton_raw": 0,
+      "lean_verify_calls": 4,
+      "patch_verify_calls": 2
+    },
+    "skeleton_pipeline": {
+      "requested": 0,
+      "raw_verify_success": 0,
+      "raw_verify_failed": 0,
+      "patch_attempted": 0,
+      "patch_scored": 0,
+      "patch_failed": 0,
+      "feedback_generated": 0,
+      "inserted_raw": 0,
+      "selected_by_beam": 0,
+      "rejected_by_beam": 0,
+      "valid_zero_children": 0,
+      "skeleton_duplicate_actions": 0,
+      "children_new": 0,
+      "children_duplicate": 0
+    },
+    "final_status": {
+      "states": {
+        "OPEN": 0,
+        "SOLVED": 1,
+        "FAILED": 0,
+        "RESERVED": 0
+      },
+      "actions": {
+        "tactic_SOLVED": 2,
+        "tactic_FAILED": 2,
+        "skeleton_OPEN": 0,
+        "skeleton_SOLVED": 0,
+        "skeleton_FAILED": 0,
+        "skeleton_RESERVED": 0
+      }
+    },
+    "depth_distribution": {
+      "states_seen_by_depth": {
+        "0": 1
+      },
+      "states_solved_by_depth": {
+        "0": 1
+      },
+      "queue_at_stop_by_depth": {},
+      "max_depth_reached": 0
+    },
+    "beam": {
+      "states_pruned_global": 0,
+      "states_pruned_per_depth": 0,
+      "skeletons_selected": 0,
+      "skeletons_rejected_by_beam": 0
+    },
+    "skeleton_commitment": {
+      "committed": 0,
+      "reserved": 0,
+      "fallback_activated": 0,
+      "committed_solved": 0,
+      "committed_failed": 0,
+      "committed_stale": 0,
+      "blocked_new_skeleton_due_to_active_commit": 0
+    }
+  },
+  "nodes": [
+    {
+      "id": "state_0",
+      "type": "OR",
+      "status": "SOLVED",
+      "depth": 0,
+      "target_label": "root_goal",
+      "content": {
+        "context": "a b c : ℝ\nh₀ : 0 < a ∧ 0 < b ∧ 0 < c\nh₁ : ∀ (x : ℝ), 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)",
+        "goal": "a * b - 3 * c = -9",
+        "proof_body": "\n  -- Extract coefficients by evaluating at specific points\n  have h_c : -35 = -5 * c := by\n    specialize h₁ 0\n    simpa using h₁\n  have c_val : c = 7 := by linarith\n  \n  -- Expand the RHS to compare coefficients of x^2\n  have h_coeffs : ∀ x, 24 * x^2 - 19 * x - 35 = (2 * a * b) * x^2 + (a * c - 10 * b) * x - 5 * c := by\n    intro x\n    rw [h₁ x]\n    ring\n\n  -- Evaluate at a large x or use polynomial properties to get 2ab = 24\n  -- Alternatively, differentiate or evaluate at two more points.\n  -- Let's evaluate at x=1 and x=-1 to get a system.\n  have h_x1 : 24 - 19 - 35 = (a - 5) * (2 * b + c) := by specialize h₁ 1; simpa using h₁\n  have h_x_neg1 : 24 + 19 - 35 = (-a - 5) * (-2 * b + c) := by specialize h₁ (-1); simpa using h₁\n  \n  -- From coefficients of x^2, we know 2*a*b = 24\n  -- We can extract this using the fact that if P(x) = Q(x) for all x, then their leading coefficients are equal.\n  -- In Lean, a simple way is to use specific values:\n  have h_ab : a * b = 12 := by\n    have h2 := h₁ 1\n    have h3 := h₁ (-1)\n    rw [c_val] at h2 h3\n    linarith\n\n  rw [h_ab, c_val]\n  norm_num",
+        "scaffold_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_140 (a b c : ℝ) (h₀ : 0 < a ∧ 0 < b ∧ 0 < c)\n  (h₁ : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)) : a * b - 3 * c = -9 := by\n  sorry\n",
+        "target_index": 0,
+        "target_kind": "root",
+        "target_label": "root_goal",
+        "parent_action_id": ""
+      },
+      "metrics": {
+        "V_value": 2.0
+      }
+    },
+    {
+      "id": "action_0",
+      "internal_id": "A_fc05f7",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "<think>\n- Goal: Prove `a * b - 3 * c = -9`.\n- Hypotheses:\n    - `h₀`: `0 < a`, `0 < b`, `0 < c`.\n    - `h₁`: `24 * x^2 - 19 * x - 35 = (a * x - 5) * (2 * b * x + c)` for all `x`.\n- Strategy:\n    1. Expand the RHS of `h₁`: `(a * x - 5) * (2 * b * x + c) = 2 * a * b * x^2 + (a * c - 10 * b) * x - 5 * c`.\n    2. Equate coefficients of `x^2`, `x^1`, and `x^0` since the equality holds for all `x`.\n    3. Coeff $x^2$: $24 = 2ab \\implies ab = 12$.\n    4. Coeff $x^0$: $-35 = -5c \\implies c = 7$.\n    5. Check coeff $x^1$: $-19 = ac - 10b$.\n    6. Substitute $c = 7$ into the x-coeff and $ab = 12$ into the target.\n    7. Goal is $ab - 3c$. Since $ab = 12$ and $c = 7$, $12 - 3(7) = 12 - 21 = -9$.\n    8. The constraints $a, b, c > 0$ ensure the solution exists (e.g., if $ab=12$ and $7a - 10b = -19$, we solve for $a, b$). However, for the specific goal $ab - 3c$, we only need the coefficient values derived directly.\n\nTactics:\n- Use `poly_reflection` or `congr_fun` with specific values of $x$ (0, 1, -1) to extract equations for $a, b, c$.\n- Or use `LinearIndependent` properties of monomials, but `ring` + `congr_fun` on specific points is usually faster in Lean for specific polynomials.\n- Let's use $x=0$ to find $c$. Then use coefficients or other points to find $ab$.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_140 (a b c : ℝ) (h₀ : 0 < a ∧ 0 < b ∧ 0 < c)\n  (h₁ : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)) : a * b - 3 * c = -9 := by\n  -- Extract coefficients by evaluating at specific points\n  have h_c : -35 = -5 * c := by\n    specialize h₁ 0\n    simpa using h₁\n  have c_val : c = 7 := by linarith\n  \n  -- Expand the RHS to compare coefficients of x^2\n  have h_coeffs : ∀ x, 24 * x^2 - 19 * x - 35 = (2 * a * b) * x^2 + (a * c - 10 * b) * x - 5 * c := by\n    intro x\n    rw [h₁ x]\n    ring\n\n  -- Evaluate at a large x or use polynomial properties to get 2ab = 24\n  -- Alternatively, differentiate or evaluate at two more points.\n  -- Let's evaluate at x=1 and x=-1 to get a system.\n  have h_x1 : 24 - 19 - 35 = (a - 5) * (2 * b + c) := by specialize h₁ 1; simpa using h₁\n  have h_x_neg1 : 24 + 19 - 35 = (-a - 5) * (-2 * b + c) := by specialize h₁ (-1); simpa using h₁\n  \n  -- From coefficients of x^2, we know 2*a*b = 24\n  -- We can extract this using the fact that if P(x) = Q(x) for all x, then their leading coefficients are equal.\n  -- In Lean, a simple way is to use specific values:\n  have h_ab : a * b = 12 := by\n    have h2 := h₁ 1\n    have h3 := h₁ (-1)\n    rw [c_val] at h2 h3\n    linarith\n\n  rw [h_ab, c_val]\n  norm_num\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_140 (a b c : ℝ) (h₀ : 0 < a ∧ 0 < b ∧ 0 < c)\n  (h₁ : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)) : a * b - 3 * c = -9 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  -- Extract coefficients by evaluating at specific points\n  have h_c : -35 = -5 * c := by\n    specialize h₁ 0\n    simpa using h₁\n  have c_val : c = 7 := by linarith\n  \n  -- Expand the RHS to compare coefficients of x^2\n  have h_coeffs : ∀ x, 24 * x^2 - 19 * x - 35 = (2 * a * b) * x^2 + (a * c - 10 * b) * x - 5 * c := by\n    intro x\n    rw [h₁ x]\n    ring\n\n  -- Evaluate at a large x or use polynomial properties to get 2ab = 24\n  -- Alternatively, differentiate or evaluate at two more points.\n  -- Let's evaluate at x=1 and x=-1 to get a system.\n  have h_x1 : 24 - 19 - 35 = (a - 5) * (2 * b + c) := by specialize h₁ 1; simpa using h₁\n  have h_x_neg1 : 24 + 19 - 35 = (-a - 5) * (-2 * b + c) := by specialize h₁ (-1); simpa using h₁\n  \n  -- From coefficients of x^2, we know 2*a*b = 24\n  -- We can extract this using the fact that if P(x) = Q(x) for all x, then their leading coefficients are equal.\n  -- In Lean, a simple way is to use specific values:\n  have h_ab : a * b = 12 := by\n    have h2 := h₁ 1\n    have h3 := h₁ (-1)\n    rw [c_val] at h2 h3\n    linarith\n\n  rw [h_ab, c_val]\n  norm_num",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_140 (a b c : ℝ) (h₀ : 0 < a ∧ 0 < b ∧ 0 < c)\n  (h₁ : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)) : a * b - 3 * c = -9 := by\n  \n    -- Extract coefficients by evaluating at specific points\n    have h_c : -35 = -5 * c := by\n      specialize h₁ 0\n      simpa using h₁\n    have c_val : c = 7 := by linarith\n  \n    -- Expand the RHS to compare coefficients of x^2\n    have h_coeffs : ∀ x, 24 * x^2 - 19 * x - 35 = (2 * a * b) * x^2 + (a * c - 10 * b) * x - 5 * c := by\n      intro x\n      rw [h₁ x]\n      ring\n  \n    -- Evaluate at a large x or use polynomial properties to get 2ab = 24\n    -- Alternatively, differentiate or evaluate at two more points.\n    -- Let's evaluate at x=1 and x=-1 to get a system.\n    have h_x1 : 24 - 19 - 35 = (a - 5) * (2 * b + c) := by specialize h₁ 1; simpa using h₁\n    have h_x_neg1 : 24 + 19 - 35 = (-a - 5) * (-2 * b + c) := by specialize h₁ (-1); simpa using h₁\n  \n    -- From coefficients of x^2, we know 2*a*b = 24\n    -- We can extract this using the fact that if P(x) = Q(x) for all x, then their leading coefficients are equal.\n    -- In Lean, a simple way is to use specific values:\n    have h_ab : a * b = 12 := by\n      have h2 := h₁ 1\n      have h3 := h₁ (-1)\n      rw [c_val] at h2 h3\n      linarith\n  \n    rw [h_ab, c_val]\n    norm_num\n  \n",
+      "stitched_code": "",
+      "patched_code": "",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 1.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_1",
+      "internal_id": "A_ca6474",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "<think>\n- Hypotheses needed: `h₁` relates the coefficients of a quadratic polynomial.\n- Expand the RHS of `h₁`: `(a * x - 5) * (2 * b * x + c) = 2 * a * b * x^2 + (a * c - 10 * b) * x - 5 * c`.\n- Compare coefficients with LHS `24 * x^2 - 19 * x - 35`:\n    1. $2ab = 24 \\implies ab = 12$.\n    2. $ac - 10b = -19$.\n    3. $-5c = -35 \\implies c = 7$.\n- Substitute $c = 7$ into the second equation: $7a - 10b = -19$.\n- We have a system: $ab = 12$ and $7a - 10b = -19$.\n- Solve for $a$: $b = 12/a \\implies 7a - 10(12/a) = -19 \\implies 7a^2 + 19a - 120 = 0$.\n- Use quadratic formula for $a$: $a = \\frac{-19 \\pm \\sqrt{19^2 - 4(7)(-120)}}{14} = \\frac{-19 \\pm \\sqrt{361 + 3360}}{14} = \\frac{-19 \\pm \\sqrt{3721}}{14} = \\frac{-19 \\pm 61}{14}$.\n- Since $a > 0$, $a = \\frac{42}{14} = 3$.\n- Then $b = 12/3 = 4$.\n- Target: $a*b - 3*c = 3*4 - 3*7 = 12 - 21 = -9$.\n- To prove this in Lean: use `poly_reflection` or evaluate `h₁` at specific points (e.g., $x=0$, $x=1$, $x=-1$) to extract equations for $a, b, c$.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_140 (a b c : ℝ) (h₀ : 0 < a ∧ 0 < b ∧ 0 < c)\n  (h₁ : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)) : a * b - 3 * c = -9 := by\n  -- Evaluate h₁ at x = 0 to find c\n  have h_c : -35 = -5 * c := by\n    specialize h₁ 0\n    simpa using h₁\n  have c_val : c = 7 := by linarith\n  \n  -- Evaluate h₁ at x = 1 and x = -1 to get equations for a and b\n  have h_val1 : 24 - 19 - 35 = (a - 5) * (2 * b + c) := by\n    specialize h₁ 1\n    simpa using h₁\n  have h_val_neg1 : 24 + 19 - 35 = (-a - 5) * (-2 * b + c) := by\n    specialize h₁ (-1)\n    simpa using h₁\n  \n  -- Use c = 7 in the equations\n  rw [c_val] at h_val1 h_val_neg1\n  -- -30 = (a-5)(2b+7) = 2ab + 7a - 10b - 35\n  -- 8 = (-a-5)(-2b+7) = 2ab - 7a + 10b - 35\n  \n  have h_eq1 : 2 * a * b + 7 * a - 10 * b = 5 := by linarith\n  have h_eq2 : 2 * a * b - 7 * a + 10 * b = 43 := by linarith\n  \n  -- Adding the two equations gives 4ab = 48, so ab = 12\n  have h_ab : 4 * (a * b) = 48 := by linarith\n  have ab_val : a * b = 12 := by linarith\n  \n  -- Final calculation\n  rw [ab_val, c_val]\n  norm_num\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_140 (a b c : ℝ) (h₀ : 0 < a ∧ 0 < b ∧ 0 < c)\n  (h₁ : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)) : a * b - 3 * c = -9 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  -- Evaluate h₁ at x = 0 to find c\n  have h_c : -35 = -5 * c := by\n    specialize h₁ 0\n    simpa using h₁\n  have c_val : c = 7 := by linarith\n  \n  -- Evaluate h₁ at x = 1 and x = -1 to get equations for a and b\n  have h_val1 : 24 - 19 - 35 = (a - 5) * (2 * b + c) := by\n    specialize h₁ 1\n    simpa using h₁\n  have h_val_neg1 : 24 + 19 - 35 = (-a - 5) * (-2 * b + c) := by\n    specialize h₁ (-1)\n    simpa using h₁\n  \n  -- Use c = 7 in the equations\n  rw [c_val] at h_val1 h_val_neg1\n  -- -30 = (a-5)(2b+7) = 2ab + 7a - 10b - 35\n  -- 8 = (-a-5)(-2b+7) = 2ab - 7a + 10b - 35\n  \n  have h_eq1 : 2 * a * b + 7 * a - 10 * b = 5 := by linarith\n  have h_eq2 : 2 * a * b - 7 * a + 10 * b = 43 := by linarith\n  \n  -- Adding the two equations gives 4ab = 48, so ab = 12\n  have h_ab : 4 * (a * b) = 48 := by linarith\n  have ab_val : a * b = 12 := by linarith\n  \n  -- Final calculation\n  rw [ab_val, c_val]\n  norm_num",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_140 (a b c : ℝ) (h₀ : 0 < a ∧ 0 < b ∧ 0 < c)\n  (h₁ : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)) : a * b - 3 * c = -9 := by\n  \n    -- Evaluate h₁ at x = 0 to find c\n    have h_c : -35 = -5 * c := by\n      specialize h₁ 0\n      simpa using h₁\n    have c_val : c = 7 := by linarith\n  \n    -- Evaluate h₁ at x = 1 and x = -1 to get equations for a and b\n    have h_val1 : 24 - 19 - 35 = (a - 5) * (2 * b + c) := by\n      specialize h₁ 1\n      simpa using h₁\n    have h_val_neg1 : 24 + 19 - 35 = (-a - 5) * (-2 * b + c) := by\n      specialize h₁ (-1)\n      simpa using h₁\n  \n    -- Use c = 7 in the equations\n    rw [c_val] at h_val1 h_val_neg1\n    -- -30 = (a-5)(2b+7) = 2ab + 7a - 10b - 35\n    -- 8 = (-a-5)(-2b+7) = 2ab - 7a + 10b - 35\n  \n    have h_eq1 : 2 * a * b + 7 * a - 10 * b = 5 := by linarith\n    have h_eq2 : 2 * a * b - 7 * a + 10 * b = 43 := by linarith\n  \n    -- Adding the two equations gives 4ab = 48, so ab = 12\n    have h_ab : 4 * (a * b) = 48 := by linarith\n    have ab_val : a * b = 12 := by linarith\n  \n    -- Final calculation\n    rw [ab_val, c_val]\n    norm_num\n  \n",
+      "stitched_code": "",
+      "patched_code": "",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 1.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_2",
+      "internal_id": "A_14f225",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n- Goal: Prove $a \\cdot b - 3 \\cdot c = -9$.\n- Hypotheses:\n  1. $a, b, c > 0$.\n  2. $24x^2 - 19x - 35 = (ax - 5)(2bx + c)$ for all $x$.\n- Necessary Hypotheses: $h_1$ (polynomial identity). $h_0$ (positivity) to determine unique $a, b, c$.\n- Strategy:\n  1. Expand $(ax - 5)(2bx + c) = 2abx^2 + (ac - 10b)x - 5c$.\n  2. Equate coefficients of $x^2, x, 1$:\n     - $2ab = 24 \\implies ab = 12$.\n     - $ac - 10b = -19$.\n     - $-5c = -35 \\implies c = 7$.\n  3. Substitute $c = 7$ into $ac - 10b = -19$: $7a - 10b = -19$.\n  4. Use $ab = 12 \\implies b = 12/a$.\n  5. Substitute: $7a - 10(12/a) = -19 \\implies 7a^2 + 19a - 120 = 0$.\n  6. Solve quadratic: $(7a + 40)(a - 3) = 0$.\n  7. Since $a > 0$, $a = 3$.\n  8. Then $b = 12/3 = 4$.\n  9. Calculate $ab - 3c = 3(4) - 3(7) = 12 - 21 = -9$.\n- Lean tactics: Use `polyith_homogenize` or simply evaluate $h_1$ at specific points (e.g., $x=0$, $x=1$, $x=-1$) to extract equations for $a, b, c$.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_140 (a b c : ℝ) (h₀ : 0 < a ∧ 0 < b ∧ 0 < c)\n  (h₁ : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)) : a * b - 3 * c = -9 := by\n  -- Evaluate h₁ at specific points to get a system of equations\n  have h_c : -35 = -5 * c := by\n    specialize h₁ 0\n    simpa using h₁\n  have c_val : c = 7 := by linarith\n  \n  have h_ab : 2 * a * b = 24 := by\n    have h_ext : (fun x : ℝ => 24 * x^2 - 19 * x - 35) = (fun x => (a * x - 5) * (2 * b * x + c)) := funext h₁\n    have h_coeff := congr_arg (polynomial_coeff (R := ℝ) 2) (congr_arg (Polynomial.ofRealHom) h_ext)\n    -- Alternatively, use evaluation at large values or limit, but evaluating at 1 and -1 is easier.\n    specialize h₁ 1\n    specialize h₁ (-1)\n    rw [c_val] at h₁\n    nlinarith\n  \n  have ab_val : a * b = 12 := by linarith\n  \n  have h_acb : a * c - 10 * b = -19 := by\n    specialize h₁ 1\n    rw [c_val] at h₁\n    nlinarith\n    \n  -- Substitute ab = 12 and c = 7 into our goal\n  rw [ab_val, c_val]\n  norm_num\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_140 (a b c : ℝ) (h₀ : 0 < a ∧ 0 < b ∧ 0 < c)\n  (h₁ : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)) : a * b - 3 * c = -9 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  -- Evaluate h₁ at specific points to get a system of equations\n  have h_c : -35 = -5 * c := by\n    specialize h₁ 0\n    simpa using h₁\n  have c_val : c = 7 := by linarith\n  \n  have h_ab : 2 * a * b = 24 := by\n    have h_ext : (fun x : ℝ => 24 * x^2 - 19 * x - 35) = (fun x => (a * x - 5) * (2 * b * x + c)) := funext h₁\n    have h_coeff := congr_arg (polynomial_coeff (R := ℝ) 2) (congr_arg (Polynomial.ofRealHom) h_ext)\n    -- Alternatively, use evaluation at large values or limit, but evaluating at 1 and -1 is easier.\n    specialize h₁ 1\n    specialize h₁ (-1)\n    rw [c_val] at h₁\n    nlinarith\n  \n  have ab_val : a * b = 12 := by linarith\n  \n  have h_acb : a * c - 10 * b = -19 := by\n    specialize h₁ 1\n    rw [c_val] at h₁\n    nlinarith\n    \n  -- Substitute ab = 12 and c = 7 into our goal\n  rw [ab_val, c_val]\n  norm_num",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_140 (a b c : ℝ) (h₀ : 0 < a ∧ 0 < b ∧ 0 < c)\n  (h₁ : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)) : a * b - 3 * c = -9 := by\n  \n    -- Evaluate h₁ at specific points to get a system of equations\n    have h_c : -35 = -5 * c := by\n      specialize h₁ 0\n      simpa using h₁\n    have c_val : c = 7 := by linarith\n  \n    have h_ab : 2 * a * b = 24 := by\n      have h_ext : (fun x : ℝ => 24 * x^2 - 19 * x - 35) = (fun x => (a * x - 5) * (2 * b * x + c)) := funext h₁\n      have h_coeff := congr_arg (polynomial_coeff (R := ℝ) 2) (congr_arg (Polynomial.ofRealHom) h_ext)\n      -- Alternatively, use evaluation at large values or limit, but evaluating at 1 and -1 is easier.\n      specialize h₁ 1\n      specialize h₁ (-1)\n      rw [c_val] at h₁\n      nlinarith\n  \n    have ab_val : a * b = 12 := by linarith\n  \n    have h_acb : a * c - 10 * b = -19 := by\n      specialize h₁ 1\n      rw [c_val] at h₁\n      nlinarith\n  \n    -- Substitute ab = 12 and c = 7 into our goal\n    rw [ab_val, c_val]\n    norm_num\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_140 (a b c : ℝ) (h₀ : 0 < a ∧ 0 < b ∧ 0 < c)\n  (h₁ : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)) : a * b - 3 * c = -9 := by\n  \n    -- Evaluate h₁ at specific points to get a system of equations\n    have h_c : -35 = -5 * c := by\n      specialize h₁ 0\n      simpa using h₁\n    have c_val : c = 7 := by linarith\n  \n    have h_ab : 2 * a * b = 24 := by\n      have h_ext : (fun x : ℝ => 24 * x^2 - 19 * x - 35) = (fun x => (a * x - 5) * (2 * b * x + c)) := funext h₁\n      have h_coeff := congr_arg (polynomial_coeff (R := ℝ) 2) (congr_arg (Polynomial.ofRealHom) h_ext)\n      -- Alternatively, use evaluation at large values or limit, but evaluating at 1 and -1 is easier.\n      specialize h₁ 1\n      specialize h₁ (-1)\n      rw [c_val] at h₁\n      nlinarith\n  \n    have ab_val : a * b = 12 := by linarith\n  \n    have h_acb : a * c - 10 * b = -19 := by\n      specialize h₁ 1\n      rw [c_val] at h₁\n      nlinarith\n  \n    -- Substitute ab = 12 and c = 7 into our goal\n    rw [ab_val, c_val]\n    norm_num\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_140 (a b c : ℝ) (h₀ : 0 < a ∧ 0 < b ∧ 0 < c)\n  (h₁ : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)) : a * b - 3 * c = -9 := by\n  \n    -- Evaluate h₁ at specific points to get a system of equations\n    have h_c : -35 = -5 * c := by\n      specialize h₁ 0\n      simpa using h₁\n    have c_val : c = 7 := by linarith\n  \n    have h_ab : 2 * a * b = 24 := by\n      sorry\n    have ab_val : a * b = 12 := by linarith\n  \n    have h_acb : a * c - 10 * b = -19 := by\n      specialize h₁ 1\n      rw [c_val] at h₁\n      nlinarith\n  \n    -- Substitute ab = 12 and c = 7 into our goal\n    rw [ab_val, c_val]\n    norm_num\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.6666666666666666,
+        "r_dep": 0.9090909090909091,
+        "Q_value": 1.5757575757575757
+      }
+    },
+    {
+      "id": "action_3",
+      "internal_id": "A_2fbe10",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n- Goal: Prove $a \\cdot b - 3 \\cdot c = -9$.\n- Given:\n  1. $a, b, c > 0$.\n  2. $24x^2 - 19x - 35 = (ax - 5)(2bx + c)$ for all $x$.\n- Expand the RHS: $(ax - 5)(2bx + c) = 2abx^2 + (ac - 10b)x - 5c$.\n- Compare coefficients of $x^2, x^1, x^0$:\n  - $2ab = 24 \\implies ab = 12$.\n  - $ac - 10b = -19$.\n  - $-5c = -35 \\implies c = 7$.\n- Use $c = 7$ in $ac - 10b = -19$: $7a - 10b = -19$.\n- We have a system:\n  1. $ab = 12 \\implies b = 12/a$.\n  2. $7a - 10(12/a) = -19$.\n  3. $7a - 120/a = -19 \\implies 7a^2 + 19a - 120 = 0$.\n- Solve quadratic $7a^2 + 19a - 120 = 0$:\n  - Discriminant $D = 19^2 - 4(7)(-120) = 361 + 3360 = 3721 = 61^2$.\n  - $a = (-19 \\pm 61) / 14$.\n  - Since $a > 0$, $a = 42/14 = 3$.\n- If $a = 3$, $b = 12/3 = 4$.\n- Check $h_0$: $a=3, b=4, c=7$ are all $>0$.\n- Goal: $ab - 3c = 12 - 3(7) = 12 - 21 = -9$.\n- Tactics: Use `polyith` or compare coefficients using `funext` and `congrFun`.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_140 (a b c : ℝ) (h₀ : 0 < a ∧ 0 < b ∧ 0 < c)\n  (h₁ : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)) : a * b - 3 * c = -9 := by\n  -- Extract coefficients by evaluating at specific points\n  have h_c : -35 = -5 * c := by\n    have h := h₁ 0\n    simpa using h\n  have hc : c = 7 := by linarith\n  \n  have h_coeff : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (2 * a * b) * x ^ 2 + (a * c - 10 * b) * x - 5 * c := by\n    intro x\n    rw [h₁ x]\n    ring\n\n  -- Use specific values of x to get equations for a and b\n  have h_eq1 : 2 * a * b = 24 := by\n    have h_tmp := congrFun (funext h_coeff)\n    -- Using polynomial identity property: comparing coefficients\n    -- A simpler way in Lean: evaluate at x=1 and x=-1 or use deriv\n    have h_eval1 := h_coeff 1\n    have h_eval_neg1 := h_coeff (-1)\n    rw [hc] at h_eval1 h_eval_neg1\n    linarith\n\n  have hab : a * b = 12 := by linarith\n  \n  have h_eq2 : a * c - 10 * b = -19 := by\n    have h_eval1 := h_coeff 1\n    rw [hc] at h_eval1\n    linarith [h_eq1]\n\n  rw [hab, hc]\n  norm_num\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_140 (a b c : ℝ) (h₀ : 0 < a ∧ 0 < b ∧ 0 < c)\n  (h₁ : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)) : a * b - 3 * c = -9 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  -- Extract coefficients by evaluating at specific points\n  have h_c : -35 = -5 * c := by\n    have h := h₁ 0\n    simpa using h\n  have hc : c = 7 := by linarith\n  \n  have h_coeff : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (2 * a * b) * x ^ 2 + (a * c - 10 * b) * x - 5 * c := by\n    intro x\n    rw [h₁ x]\n    ring\n\n  -- Use specific values of x to get equations for a and b\n  have h_eq1 : 2 * a * b = 24 := by\n    have h_tmp := congrFun (funext h_coeff)\n    -- Using polynomial identity property: comparing coefficients\n    -- A simpler way in Lean: evaluate at x=1 and x=-1 or use deriv\n    have h_eval1 := h_coeff 1\n    have h_eval_neg1 := h_coeff (-1)\n    rw [hc] at h_eval1 h_eval_neg1\n    linarith\n\n  have hab : a * b = 12 := by linarith\n  \n  have h_eq2 : a * c - 10 * b = -19 := by\n    have h_eval1 := h_coeff 1\n    rw [hc] at h_eval1\n    linarith [h_eq1]\n\n  rw [hab, hc]\n  norm_num",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_140 (a b c : ℝ) (h₀ : 0 < a ∧ 0 < b ∧ 0 < c)\n  (h₁ : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)) : a * b - 3 * c = -9 := by\n  \n    -- Extract coefficients by evaluating at specific points\n    have h_c : -35 = -5 * c := by\n      have h := h₁ 0\n      simpa using h\n    have hc : c = 7 := by linarith\n  \n    have h_coeff : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (2 * a * b) * x ^ 2 + (a * c - 10 * b) * x - 5 * c := by\n      intro x\n      rw [h₁ x]\n      ring\n  \n    -- Use specific values of x to get equations for a and b\n    have h_eq1 : 2 * a * b = 24 := by\n      have h_tmp := congrFun (funext h_coeff)\n      -- Using polynomial identity property: comparing coefficients\n      -- A simpler way in Lean: evaluate at x=1 and x=-1 or use deriv\n      have h_eval1 := h_coeff 1\n      have h_eval_neg1 := h_coeff (-1)\n      rw [hc] at h_eval1 h_eval_neg1\n      linarith\n  \n    have hab : a * b = 12 := by linarith\n  \n    have h_eq2 : a * c - 10 * b = -19 := by\n      have h_eval1 := h_coeff 1\n      rw [hc] at h_eval1\n      linarith [h_eq1]\n  \n    rw [hab, hc]\n    norm_num\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_140 (a b c : ℝ) (h₀ : 0 < a ∧ 0 < b ∧ 0 < c)\n  (h₁ : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)) : a * b - 3 * c = -9 := by\n  \n    -- Extract coefficients by evaluating at specific points\n    have h_c : -35 = -5 * c := by\n      have h := h₁ 0\n      simpa using h\n    have hc : c = 7 := by linarith\n  \n    have h_coeff : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (2 * a * b) * x ^ 2 + (a * c - 10 * b) * x - 5 * c := by\n      intro x\n      rw [h₁ x]\n      ring\n  \n    -- Use specific values of x to get equations for a and b\n    have h_eq1 : 2 * a * b = 24 := by\n      have h_tmp := congrFun (funext h_coeff)\n      -- Using polynomial identity property: comparing coefficients\n      -- A simpler way in Lean: evaluate at x=1 and x=-1 or use deriv\n      have h_eval1 := h_coeff 1\n      have h_eval_neg1 := h_coeff (-1)\n      rw [hc] at h_eval1 h_eval_neg1\n      linarith\n  \n    have hab : a * b = 12 := by linarith\n  \n    have h_eq2 : a * c - 10 * b = -19 := by\n      have h_eval1 := h_coeff 1\n      rw [hc] at h_eval1\n      linarith [h_eq1]\n  \n    rw [hab, hc]\n    norm_num\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_140 (a b c : ℝ) (h₀ : 0 < a ∧ 0 < b ∧ 0 < c)\n  (h₁ : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (a * x - 5) * (2 * (b * x) + c)) : a * b - 3 * c = -9 := by\n  \n    -- Extract coefficients by evaluating at specific points\n    have h_c : -35 = -5 * c := by\n      have h := h₁ 0\n      simpa using h\n    have hc : c = 7 := by linarith\n  \n    have h_coeff : ∀ x, 24 * x ^ 2 - 19 * x - 35 = (2 * a * b) * x ^ 2 + (a * c - 10 * b) * x - 5 * c := by\n      intro x\n      rw [h₁ x]\n      ring\n  \n    -- Use specific values of x to get equations for a and b\n    have h_eq1 : 2 * a * b = 24 := by\n      have h_tmp := congrFun (funext h_coeff)\n      -- Using polynomial identity property: comparing coefficients\n      -- A simpler way in Lean: evaluate at x=1 and x=-1 or use deriv\n      have h_eval1 := h_coeff 1\n      have h_eval_neg1 := h_coeff (-1)\n      rw [hc] at h_eval1 h_eval_neg1\n      linarith\n  \n    have hab : a * b = 12 := by linarith\n  \n    have h_eq2 : a * c - 10 * b = -19 := by\n      have h_eval1 := h_coeff 1\n      rw [hc] at h_eval1\n      sorry\n  \n    rw [hab, hc]\n    norm_num\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.9523809523809523,
+        "r_dep": 0.75,
+        "Q_value": 1.7023809523809523
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "state_0",
+      "target": "action_0",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_1",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_2",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_3",
+      "relation": "expanded_to"
+    }
+  ]
+}

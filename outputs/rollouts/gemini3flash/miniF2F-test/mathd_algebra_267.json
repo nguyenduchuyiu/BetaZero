@@ -1,0 +1,258 @@
+{
+  "theorem_goal": "x = 0",
+  "root_id": "state_0",
+  "total_nodes": 7,
+  "search_metadata": {
+    "budget": {
+      "max_nodes": 256,
+      "used_total": 6,
+      "used_tactic": 6,
+      "used_skeleton_raw": 0,
+      "lean_verify_calls": 6,
+      "patch_verify_calls": 5
+    },
+    "skeleton_pipeline": {
+      "requested": 0,
+      "raw_verify_success": 0,
+      "raw_verify_failed": 0,
+      "patch_attempted": 0,
+      "patch_scored": 0,
+      "patch_failed": 0,
+      "feedback_generated": 0,
+      "inserted_raw": 0,
+      "selected_by_beam": 0,
+      "rejected_by_beam": 0,
+      "valid_zero_children": 0,
+      "skeleton_duplicate_actions": 0,
+      "children_new": 0,
+      "children_duplicate": 0
+    },
+    "final_status": {
+      "states": {
+        "OPEN": 0,
+        "SOLVED": 1,
+        "FAILED": 0,
+        "RESERVED": 0
+      },
+      "actions": {
+        "tactic_SOLVED": 1,
+        "tactic_FAILED": 5,
+        "skeleton_OPEN": 0,
+        "skeleton_SOLVED": 0,
+        "skeleton_FAILED": 0,
+        "skeleton_RESERVED": 0
+      }
+    },
+    "depth_distribution": {
+      "states_seen_by_depth": {
+        "0": 1
+      },
+      "states_solved_by_depth": {
+        "0": 1
+      },
+      "queue_at_stop_by_depth": {},
+      "max_depth_reached": 0
+    },
+    "beam": {
+      "states_pruned_global": 0,
+      "states_pruned_per_depth": 0,
+      "skeletons_selected": 0,
+      "skeletons_rejected_by_beam": 0
+    },
+    "skeleton_commitment": {
+      "committed": 0,
+      "reserved": 0,
+      "fallback_activated": 0,
+      "committed_solved": 0,
+      "committed_failed": 0,
+      "committed_stale": 0,
+      "blocked_new_skeleton_due_to_active_commit": 0
+    }
+  },
+  "nodes": [
+    {
+      "id": "state_0",
+      "type": "OR",
+      "status": "SOLVED",
+      "depth": 0,
+      "target_label": "root_goal",
+      "content": {
+        "context": "x : ℝ\nh₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)",
+        "goal": "x = 0",
+        "proof_body": "\n  have h1 : x - 1 ≠ 0 := by\n    intro h\n    have hx : x = 1 := by linarith\n    rw [hx] at h₀\n    norm_num at h₀\n  have h2 : x + 2 ≠ 0 := by\n    intro h\n    have hx : x = -2 := by linarith\n    rw [hx] at h₀\n    norm_num at h₀\n  field_simp [h1, h2] at h₀\n  linear_combination h₀ / 6",
+        "scaffold_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  sorry\n",
+        "target_index": 0,
+        "target_kind": "root",
+        "target_label": "root_goal",
+        "parent_action_id": ""
+      },
+      "metrics": {
+        "V_value": 2.0
+      }
+    },
+    {
+      "id": "action_0",
+      "internal_id": "A_4c5269",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n- Goal: Prove `x = 0` given `(x + 1) / (x - 1) = (x - 2) / (x + 2)`.\n- Necessary Hypotheses: `h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)`.\n- Strategy:\n    1. Cross-multiply to eliminate denominators. Note that for the denominators to be valid, `x ≠ 1` and `x ≠ -2`.\n    2. However, in Lean, division by zero is handled, but we can usually simplify using `field_simp` if we prove denominators are non-zero.\n    3. Alternatively, multiply both sides by `(x - 1) * (x + 2)`.\n    4. Expand: `(x + 1) * (x + 2) = (x - 2) * (x - 1)`.\n    5. `x^2 + 3x + 2 = x^2 - 3x + 2`.\n    6. Simplify: `3x = -3x` => `6x = 0` => `x = 0`.\n    7. Need to ensure denominators are not zero to perform the initial cross-multiplication step safely. If `x=1` or `x=-2`, the equation `h₀` implies a contradiction.\n\nStep-by-step:\n- Apply `field_simp` to `h₀`. This will require `x - 1 ≠ 0` and `x + 2 ≠ 0`.\n- If `x - 1 = 0`, then `h₀` implies `2/0 = -1/3`, which in Lean's `ℝ` means `0 = -1/3`, a contradiction.\n- If `x + 2 = 0`, then `h₀` implies `-1/-3 = -4/0`, which in Lean's `ℝ` means `1/3 = 0`, a contradiction.\n- Easier: use `(Eq.mp (eq_of_mul_eq_mul_right ... h₀))` logic or just `have` statements.\n- Actually, `field_simp [h₀]` in Mathlib often moves denominators to the other side even if they might be zero, but we need to be careful.\n- Let's use `replace h₀ := (mul_eq_mul_right ...).1 ...` or simply `ring_nf` after clearing denominators.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  have h_nx1 : x ≠ 1 := by\n    intro h\n    rw [h] at h₀\n    simp at h₀\n  have h_nx2 : x ≠ -2 := by\n    intro h\n    rw [h] at h₀\n    simp at h₀\n  field_simp [h_nx1, h_nx2] at h₀\n  ring_nf at h₀\n  linarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h_nx1 : x ≠ 1 := by\n    intro h\n    rw [h] at h₀\n    simp at h₀\n  have h_nx2 : x ≠ -2 := by\n    intro h\n    rw [h] at h₀\n    simp at h₀\n  field_simp [h_nx1, h_nx2] at h₀\n  ring_nf at h₀\n  linarith",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h_nx1 : x ≠ 1 := by\n      intro h\n      rw [h] at h₀\n      simp at h₀\n    have h_nx2 : x ≠ -2 := by\n      intro h\n      rw [h] at h₀\n      simp at h₀\n    field_simp [h_nx1, h_nx2] at h₀\n    ring_nf at h₀\n    linarith\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h_nx1 : x ≠ 1 := by\n      intro h\n      rw [h] at h₀\n      simp at h₀\n    have h_nx2 : x ≠ -2 := by\n      intro h\n      rw [h] at h₀\n      simp at h₀\n    field_simp [h_nx1, h_nx2] at h₀\n    ring_nf at h₀\n    linarith\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    all_goals sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_1",
+      "internal_id": "A_c2b6db",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n- Goal: Prove `x = 0` given `(x + 1) / (x - 1) = (x - 2) / (x + 2)`.\n- Step 1: Identify necessary hypotheses. Only `h₀` is needed.\n- Step 2: Clear denominators. Multiply both sides by `(x - 1) * (x + 2)`.\n- Step 3: Handle the cases where denominators might be zero. Note that if `x = 1` or `x = -2`, the original equation is undefined (division by zero), but the theorem statement implies the equation holds, so we can use `field_simp`.\n- Step 4: Expand both sides: `(x + 1)(x + 2) = (x - 2)(x - 1)`.\n- Step 5: Simplify: `x^2 + 3x + 2 = x^2 - 3x + 2`.\n- Step 6: Solve for `x`: `3x = -3x` implies `6x = 0`, so `x = 0`.\n- Tactic: `field_simp` followed by `ring` or `linear_combination`.\n</think>\n```lean4\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  have h₁ : x - 1 ≠ 0 := by\n    intro h\n    have : x = 1 := by linarith\n    rw [this] at h₀\n    norm_num at h₀\n  have h₂ : x + 2 ≠ 0 := by\n    intro h\n    have : x = -2 := by linarith\n    rw [this] at h₀\n    norm_num at h₀\n  field_simp [h₁, h₂] at h₀\n  ring_nf at h₀\n  linarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h₁ : x - 1 ≠ 0 := by\n    intro h\n    have : x = 1 := by linarith\n    rw [this] at h₀\n    norm_num at h₀\n  have h₂ : x + 2 ≠ 0 := by\n    intro h\n    have : x = -2 := by linarith\n    rw [this] at h₀\n    norm_num at h₀\n  field_simp [h₁, h₂] at h₀\n  ring_nf at h₀\n  linarith",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h₁ : x - 1 ≠ 0 := by\n      intro h\n      have : x = 1 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    have h₂ : x + 2 ≠ 0 := by\n      intro h\n      have : x = -2 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    field_simp [h₁, h₂] at h₀\n    ring_nf at h₀\n    linarith\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h₁ : x - 1 ≠ 0 := by\n      intro h\n      have : x = 1 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    have h₂ : x + 2 ≠ 0 := by\n      intro h\n      have : x = -2 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    field_simp [h₁, h₂] at h₀\n    ring_nf at h₀\n    linarith\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h₁ : x - 1 ≠ 0 := by\n      intro h\n      have : x = 1 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    have h₂ : x + 2 ≠ 0 := by\n      intro h\n      have : x = -2 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    field_simp [h₁, h₂] at h₀\n    ring_nf at h₀\n    sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.9230769230769231,
+        "r_dep": 0.0,
+        "Q_value": 0.9230769230769231
+      }
+    },
+    {
+      "id": "action_2",
+      "internal_id": "A_4afd56",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n- Goal: Prove $x = 0$ given $\\frac{x+1}{x-1} = \\frac{x-2}{x+2}$.\n- Necessary Hypotheses: `h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)`.\n- Strategy:\n    1. Cross-multiply to eliminate denominators. This requires checking $x-1 \\neq 0$ and $x+2 \\neq 0$.\n    2. However, the equality of fractions implies $(x+1)(x+2) = (x-2)(x-1)$ provided the denominators aren't zero.\n    3. Actually, a simpler way is to use `field_simp` to clear denominators and then `ring` to simplify.\n    4. If $x-1=0$ or $x+2=0$, the denominators are zero, and in Lean's `Real` division $a/0 = 0$.\n    5. Let's look at the equation: $(x+1)(x+2) = x^2 + 3x + 2$ and $(x-2)(x-1) = x^2 - 3x + 2$.\n    6. Equating them: $x^2 + 3x + 2 = x^2 - 3x + 2 \\implies 3x = -3x \\implies 6x = 0 \\implies x = 0$.\n    7. Need to handle the zero denominator case: if $x=1$ or $x=-2$. If $x=1$, LHS is undefined (0) and RHS is $1/3$, not equal. If $x=-2$, LHS is $1/3$ and RHS is undefined (0), not equal.\n    8. `field_simp [h₀]` followed by `linarith` or `ring` should work efficiently.\n</think>\n```lean4\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  have h_not_one : x ≠ 1 := by\n    intro h\n    rw [h] at h₀\n    norm_num at h₀\n  have h_not_neg_two : x ≠ -2 := by\n    intro h\n    rw [h] at h₀\n    norm_num at h₀\n  field_simp [h_not_one, h_not_neg_two] at h₀\n  linarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h_not_one : x ≠ 1 := by\n    intro h\n    rw [h] at h₀\n    norm_num at h₀\n  have h_not_neg_two : x ≠ -2 := by\n    intro h\n    rw [h] at h₀\n    norm_num at h₀\n  field_simp [h_not_one, h_not_neg_two] at h₀\n  linarith",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h_not_one : x ≠ 1 := by\n      intro h\n      rw [h] at h₀\n      norm_num at h₀\n    have h_not_neg_two : x ≠ -2 := by\n      intro h\n      rw [h] at h₀\n      norm_num at h₀\n    field_simp [h_not_one, h_not_neg_two] at h₀\n    linarith\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h_not_one : x ≠ 1 := by\n      intro h\n      rw [h] at h₀\n      norm_num at h₀\n    have h_not_neg_two : x ≠ -2 := by\n      intro h\n      rw [h] at h₀\n      norm_num at h₀\n    field_simp [h_not_one, h_not_neg_two] at h₀\n    linarith\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h_not_one : x ≠ 1 := by\n      intro h\n      rw [h] at h₀\n      norm_num at h₀\n    have h_not_neg_two : x ≠ -2 := by\n      intro h\n      rw [h] at h₀\n      norm_num at h₀\n    field_simp [h_not_one, h_not_neg_two] at h₀\n    sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.9,
+        "r_dep": 0.0,
+        "Q_value": 0.9
+      }
+    },
+    {
+      "id": "action_3",
+      "internal_id": "A_ffb25f",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n- Goal: Prove `x = 0` given `(x + 1) / (x - 1) = (x - 2) / (x + 2)`.\n- Necessary Hypotheses: `h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)`.\n- Step 1: To clear denominators, we must ensure $x - 1 \\neq 0$ and $x + 2 \\neq 0$.\n- Step 2: If $x - 1 = 0$, then $x = 1$. Plugging into the equation: LHS is undefined.\n- Step 3: If $x + 2 = 0$, then $x = -2$. Plugging into the equation: RHS is undefined.\n- Step 4: Cross-multiply: $(x + 1)(x + 2) = (x - 2)(x - 1)$.\n- Step 5: Expand both sides: $x^2 + 3x + 2 = x^2 - 3x + 2$.\n- Step 6: Simplify: $3x = -3x \\implies 6x = 0 \\implies x = 0$.\n- Step 7: Check constraints: If $x = 0$, $x-1 = -1 \\neq 0$ and $x+2 = 2 \\neq 0$, so the original equation is valid.\n- Lean implementation: Use `field_simp` to clear denominators, then `linear_combination` or `ring`.\n</think>\n\n```lean4\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  have h₁ : x - 1 ≠ 0 := by\n    intro h\n    have : x = 1 := by linarith\n    rw [this] at h₀\n    norm_num at h₀\n  have h₂ : x + 2 ≠ 0 := by\n    intro h\n    have : x = -2 := by linarith\n    rw [this] at h₀\n    norm_num at h₀\n  field_simp [h₁, h₂] at h₀\n  ring_nf at h₀\n  linarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h₁ : x - 1 ≠ 0 := by\n    intro h\n    have : x = 1 := by linarith\n    rw [this] at h₀\n    norm_num at h₀\n  have h₂ : x + 2 ≠ 0 := by\n    intro h\n    have : x = -2 := by linarith\n    rw [this] at h₀\n    norm_num at h₀\n  field_simp [h₁, h₂] at h₀\n  ring_nf at h₀\n  linarith",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h₁ : x - 1 ≠ 0 := by\n      intro h\n      have : x = 1 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    have h₂ : x + 2 ≠ 0 := by\n      intro h\n      have : x = -2 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    field_simp [h₁, h₂] at h₀\n    ring_nf at h₀\n    linarith\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h₁ : x - 1 ≠ 0 := by\n      intro h\n      have : x = 1 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    have h₂ : x + 2 ≠ 0 := by\n      intro h\n      have : x = -2 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    field_simp [h₁, h₂] at h₀\n    ring_nf at h₀\n    linarith\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h₁ : x - 1 ≠ 0 := by\n      intro h\n      have : x = 1 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    have h₂ : x + 2 ≠ 0 := by\n      intro h\n      have : x = -2 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    field_simp [h₁, h₂] at h₀\n    ring_nf at h₀\n    sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.9230769230769231,
+        "r_dep": 0.0,
+        "Q_value": 0.9230769230769231
+      }
+    },
+    {
+      "id": "action_4",
+      "internal_id": "A_813b70",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "<think>\nThe objective is to solve for $x$ in the equation $\\frac{x+1}{x-1} = \\frac{x-2}{x+2}$.\n1.  **Hypotheses Identification**: The main hypothesis is `h₀`. I need to ensure $x-1 \\neq 0$ and $x+2 \\neq 0$ to use `field_simp`.\n2.  **Logic**:\n    *   If $x=1$, the LHS is undefined (division by zero).\n    *   If $x=-2$, the RHS is undefined.\n    *   By multiplying both sides by $(x-1)(x+2)$, we get $(x+1)(x+2) = (x-2)(x-1)$.\n    *   Expanding both sides: $x^2 + 3x + 2 = x^2 - 3x + 2$.\n    *   Simplifying: $3x = -3x$, which implies $6x = 0$, so $x = 0$.\n3.  **Tactic sequence**:\n    *   Use `have` to show denominators are non-zero.\n    *   Use `field_simp` to clear denominators.\n    *   Use `linear_combination` or `linarith` on the expanded form.\n    *   The previous failed attempts with `linarith` likely failed because of the way `ring_nf` or `field_simp` produced terms like `Nat.rawCast 2` or didn't fully cancel the $x^2$ term in a way `linarith` likes. I will use `polyrith` logic or manual `linear_combination`.\n\nLet's refine the non-zero proofs.\nIf $x-1=0$, then $x=1$. Plugging into $h_0$ gives $2/0 = -1/3$, a contradiction in Lean's `Real` division (where $x/0 = 0$), so $0 = -1/3$.\nActually, in Lean, `(x+1)/0 = 0`. So if $x=1$, $h_0$ becomes $0 = -1/3$, which is false.\nSimilarly for $x=-2$.\n</think>\n\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  have h1 : x - 1 ≠ 0 := by\n    intro h\n    have hx : x = 1 := by linarith\n    rw [hx] at h₀\n    norm_num at h₀\n  have h2 : x + 2 ≠ 0 := by\n    intro h\n    have hx : x = -2 := by linarith\n    rw [hx] at h₀\n    norm_num at h₀\n  field_simp [h1, h2] at h₀\n  linear_combination h₀ / 6\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  sorry\n```\n\nPREVIOUS TACTIC ATTEMPTS FAILED.\nUse the Lean feedback below to produce a NEW tactic proof for the same goal. Do not repeat the failed tactic. Preserve the exact theorem signature.\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h₁ : x - 1 ≠ 0 := by\n      intro h\n      have : x = 1 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    have h₂ : x + 2 ≠ 0 := by\n      intro h\n      have : x = -2 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    field_simp [h₁, h₂] at h₀\n    ring_nf at h₀\n    linarith\n```\n\nLEAN ERROR FEEDBACK:\nL22:C4: linarith failed to find a contradiction\ncase h1.h\nx : ℝ\nh₁ : x - 1 ≠ 0\nh₂ : x + 2 ≠ 0\nh₀ : 2 + x * 3 + x ^ 2 = Nat.rawCast 2 - x * 3 + x ^ 2\na✝ : x < 0\n⊢ False\nfailed\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h_not_one : x ≠ 1 := by\n      intro h\n      rw [h] at h₀\n      norm_num at h₀\n    have h_not_neg_two : x ≠ -2 := by\n      intro h\n      rw [h] at h₀\n      norm_num at h₀\n    field_simp [h_not_one, h_not_neg_two] at h₀\n    linarith\n```\n\nLEAN ERROR FEEDBACK:\nL19:C4: linarith failed to find a contradiction\ncase h1.h\nx : ℝ\nh₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)\nh_not_one : x ≠ 1\nh_not_neg_two : x ≠ -2\na✝ : x < 0\n⊢ False\nfailed\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h₁ : x - 1 ≠ 0 := by\n      intro h\n      have : x = 1 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    have h₂ : x + 2 ≠ 0 := by\n      intro h\n      have : x = -2 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    field_simp [h₁, h₂] at h₀\n    ring_nf at h₀\n    linarith\n```\n\nLEAN ERROR FEEDBACK:\nL22:C4: linarith failed to find a contradiction\ncase h1.h\nx : ℝ\nh₁ : x - 1 ≠ 0\nh₂ : x + 2 ≠ 0\nh₀ : 2 + x * 3 + x ^ 2 = Nat.rawCast 2 - x * 3 + x ^ 2\na✝ : x < 0\n⊢ False\nfailed\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h1 : x - 1 ≠ 0 := by\n    intro h\n    have hx : x = 1 := by linarith\n    rw [hx] at h₀\n    norm_num at h₀\n  have h2 : x + 2 ≠ 0 := by\n    intro h\n    have hx : x = -2 := by linarith\n    rw [hx] at h₀\n    norm_num at h₀\n  field_simp [h1, h2] at h₀\n  linear_combination h₀ / 6",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h1 : x - 1 ≠ 0 := by\n      intro h\n      have hx : x = 1 := by linarith\n      rw [hx] at h₀\n      norm_num at h₀\n    have h2 : x + 2 ≠ 0 := by\n      intro h\n      have hx : x = -2 := by linarith\n      rw [hx] at h₀\n      norm_num at h₀\n    field_simp [h1, h2] at h₀\n    linear_combination h₀ / 6\n  \n",
+      "stitched_code": "",
+      "patched_code": "",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 1.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_5",
+      "internal_id": "A_6ba8ea",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\nThe objective is to solve for $x$ in the equation $\\frac{x+1}{x-1} = \\frac{x-2}{x+2}$.\n1.  **Noise Filter**: Only `h₀` is needed.\n2.  **Tactic Reasoning**:\n    *   The previous attempts failed because `linarith` couldn't handle the resulting polynomial equation automatically after `field_simp` due to potential normalization issues or the presence of non-linear terms like $x^2$.\n    *   I will use `field_simp` but ensure the denominators $x-1$ and $x+2$ are handled correctly.\n    *   After clearing denominators, the equation becomes $(x+1)(x+2) = (x-2)(x-1)$.\n    *   Expanding both sides: $x^2 + 3x + 2 = x^2 - 3x + 2$.\n    *   Subtracting $x^2$ and $2$ from both sides: $3x = -3x \\implies 6x = 0 \\implies x = 0$.\n    *   I will use `have` blocks to prove the denominators are non-zero by contradiction.\n    *   I will use `linear_combination` or `polyith` if `linarith` fails, but simply expanding and normalizing should work.\n</think>\n\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  have h1 : x - 1 ≠ 0 := by\n    intro h\n    have : x = 1 := by linarith\n    rw [this] at h₀\n    norm_num at h₀\n  have h2 : x + 2 ≠ 0 := by\n    intro h\n    have : x = -2 := by linarith\n    rw [this] at h₀\n    norm_num at h₀\n  field_simp [h1, h2] at h₀\n  ring_nf at h₀\n  linarith\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  sorry\n```\n\nPREVIOUS TACTIC ATTEMPTS FAILED.\nUse the Lean feedback below to produce a NEW tactic proof for the same goal. Do not repeat the failed tactic. Preserve the exact theorem signature.\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h₁ : x - 1 ≠ 0 := by\n      intro h\n      have : x = 1 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    have h₂ : x + 2 ≠ 0 := by\n      intro h\n      have : x = -2 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    field_simp [h₁, h₂] at h₀\n    ring_nf at h₀\n    linarith\n```\n\nLEAN ERROR FEEDBACK:\nL22:C4: linarith failed to find a contradiction\ncase h1.h\nx : ℝ\nh₁ : x - 1 ≠ 0\nh₂ : x + 2 ≠ 0\nh₀ : 2 + x * 3 + x ^ 2 = Nat.rawCast 2 - x * 3 + x ^ 2\na✝ : x < 0\n⊢ False\nfailed\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h_not_one : x ≠ 1 := by\n      intro h\n      rw [h] at h₀\n      norm_num at h₀\n    have h_not_neg_two : x ≠ -2 := by\n      intro h\n      rw [h] at h₀\n      norm_num at h₀\n    field_simp [h_not_one, h_not_neg_two] at h₀\n    linarith\n```\n\nLEAN ERROR FEEDBACK:\nL19:C4: linarith failed to find a contradiction\ncase h1.h\nx : ℝ\nh₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)\nh_not_one : x ≠ 1\nh_not_neg_two : x ≠ -2\na✝ : x < 0\n⊢ False\nfailed\n\nFAILED CHECKED CODE:\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h₁ : x - 1 ≠ 0 := by\n      intro h\n      have : x = 1 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    have h₂ : x + 2 ≠ 0 := by\n      intro h\n      have : x = -2 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    field_simp [h₁, h₂] at h₀\n    ring_nf at h₀\n    linarith\n```\n\nLEAN ERROR FEEDBACK:\nL22:C4: linarith failed to find a contradiction\ncase h1.h\nx : ℝ\nh₁ : x - 1 ≠ 0\nh₂ : x + 2 ≠ 0\nh₀ : 2 + x * 3 + x ^ 2 = Nat.rawCast 2 - x * 3 + x ^ 2\na✝ : x < 0\n⊢ False\nfailed\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h1 : x - 1 ≠ 0 := by\n    intro h\n    have : x = 1 := by linarith\n    rw [this] at h₀\n    norm_num at h₀\n  have h2 : x + 2 ≠ 0 := by\n    intro h\n    have : x = -2 := by linarith\n    rw [this] at h₀\n    norm_num at h₀\n  field_simp [h1, h2] at h₀\n  ring_nf at h₀\n  linarith",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h1 : x - 1 ≠ 0 := by\n      intro h\n      have : x = 1 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    have h2 : x + 2 ≠ 0 := by\n      intro h\n      have : x = -2 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    field_simp [h1, h2] at h₀\n    ring_nf at h₀\n    linarith\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h1 : x - 1 ≠ 0 := by\n      intro h\n      have : x = 1 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    have h2 : x + 2 ≠ 0 := by\n      intro h\n      have : x = -2 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    field_simp [h1, h2] at h₀\n    ring_nf at h₀\n    linarith\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem mathd_algebra_267 (x : ℝ) (h₀ : (x + 1) / (x - 1) = (x - 2) / (x + 2)) : x = 0 := by\n  \n    have h1 : x - 1 ≠ 0 := by\n      intro h\n      have : x = 1 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    have h2 : x + 2 ≠ 0 := by\n      intro h\n      have : x = -2 := by linarith\n      rw [this] at h₀\n      norm_num at h₀\n    field_simp [h1, h2] at h₀\n    ring_nf at h₀\n    sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.9230769230769231,
+        "r_dep": 0.0,
+        "Q_value": 0.9230769230769231
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "state_0",
+      "target": "action_0",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_1",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_2",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_3",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_4",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_5",
+      "relation": "expanded_to"
+    }
+  ]
+}

@@ -203,3 +203,13 @@ have h_right : True := by sorry
 exact And.intro h_left h_right"""
 
     assert validate_skeleton_replacement(good) == ""
+
+
+def test_validate_skeleton_replacement_accepts_multiline_sorries():
+    good_multiline = """have h_left : True := by
+  sorry
+have h_right : True :=
+  sorry
+exact And.intro h_left h_right"""
+
+    assert validate_skeleton_replacement(good_multiline) == ""

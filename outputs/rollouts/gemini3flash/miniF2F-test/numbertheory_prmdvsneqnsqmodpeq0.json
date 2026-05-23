@@ -1,0 +1,204 @@
+{
+  "theorem_goal": "↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD ↑p]",
+  "root_id": "state_0",
+  "total_nodes": 5,
+  "search_metadata": {
+    "budget": {
+      "max_nodes": 256,
+      "used_total": 4,
+      "used_tactic": 4,
+      "used_skeleton_raw": 0,
+      "lean_verify_calls": 4,
+      "patch_verify_calls": 3
+    },
+    "skeleton_pipeline": {
+      "requested": 0,
+      "raw_verify_success": 0,
+      "raw_verify_failed": 0,
+      "patch_attempted": 0,
+      "patch_scored": 0,
+      "patch_failed": 0,
+      "feedback_generated": 0,
+      "inserted_raw": 0,
+      "selected_by_beam": 0,
+      "rejected_by_beam": 0,
+      "valid_zero_children": 0,
+      "skeleton_duplicate_actions": 0,
+      "children_new": 0,
+      "children_duplicate": 0
+    },
+    "final_status": {
+      "states": {
+        "OPEN": 0,
+        "SOLVED": 1,
+        "FAILED": 0,
+        "RESERVED": 0
+      },
+      "actions": {
+        "tactic_SOLVED": 1,
+        "tactic_FAILED": 3,
+        "skeleton_OPEN": 0,
+        "skeleton_SOLVED": 0,
+        "skeleton_FAILED": 0,
+        "skeleton_RESERVED": 0
+      }
+    },
+    "depth_distribution": {
+      "states_seen_by_depth": {
+        "0": 1
+      },
+      "states_solved_by_depth": {
+        "0": 1
+      },
+      "queue_at_stop_by_depth": {},
+      "max_depth_reached": 0
+    },
+    "beam": {
+      "states_pruned_global": 0,
+      "states_pruned_per_depth": 0,
+      "skeletons_selected": 0,
+      "skeletons_rejected_by_beam": 0
+    },
+    "skeleton_commitment": {
+      "committed": 0,
+      "reserved": 0,
+      "fallback_activated": 0,
+      "committed_solved": 0,
+      "committed_failed": 0,
+      "committed_stale": 0,
+      "blocked_new_skeleton_due_to_active_commit": 0
+    }
+  },
+  "nodes": [
+    {
+      "id": "state_0",
+      "type": "OR",
+      "status": "SOLVED",
+      "depth": 0,
+      "target_label": "root_goal",
+      "content": {
+        "context": "n : ℤ\np : ℕ\nh₀ : Nat.Prime p",
+        "goal": "↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD ↑p]",
+        "proof_body": "\n  rw [Int.modEq_zero_iff_dvd]\n  constructor\n  · intro h\n    exact dvd_pow h (by norm_num)\n  · intro h\n    exact (Nat.prime_iff_prime_int.mp h₀).dvd_of_dvd_pow h",
+        "scaffold_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  sorry\n",
+        "target_index": 0,
+        "target_kind": "root",
+        "target_label": "root_goal",
+        "parent_action_id": ""
+      },
+      "metrics": {
+        "V_value": 2.0
+      }
+    },
+    {
+      "id": "action_0",
+      "internal_id": "A_bc26bb",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "<think>\nThe goal is to prove `↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p]` for an integer `n` and a prime `p`.\n1.  **Definitions**:\n    - `n ^ 2 ≡ 0 [ZMOD p]` means `↑p ∣ (n^2 - 0)`, which simplifies to `↑p ∣ n^2`.\n2.  **Direction (→)**:\n    - If `↑p ∣ n`, then `n = k * ↑p` for some `k`.\n    - Then `n^2 = k^2 * (↑p)^2 = (k^2 * ↑p) * ↑p`.\n    - Thus `↑p ∣ n^2`.\n3.  **Direction (←)**:\n    - If `↑p ∣ n^2`, then since `p` is prime, by Euclid's Lemma for integers (`Int.Prime.dvd_mul` or `Prime.dvd_mul`), if a prime divides a product, it divides one of the factors.\n    - Here `n^2 = n * n`. So `↑p ∣ n * n` implies `↑p ∣ n`.\n4.  **Lean Tactics**:\n    - `rw [Int.modEq_zero_iff_dvd]` to convert modular congruence to divisibility.\n    - `pow_two` to write `n^2` as `n * n`.\n    - Use `p.prime_iff_prime_int.mp h₀` to get that `(p : ℤ)` is prime in `ℤ`.\n    - Use `Prime.dvd_mul_self` or `Prime.dvd_pow_iff_dvd`.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  rw [Int.modEq_zero_iff_dvd]\n  constructor\n  · intro h\n    exact dvd_pow h (by norm_num)\n  · intro h\n    exact (Nat.prime_iff_prime_int.mp h₀).dvd_of_dvd_pow h\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  rw [Int.modEq_zero_iff_dvd]\n  constructor\n  · intro h\n    exact dvd_pow h (by norm_num)\n  · intro h\n    exact (Nat.prime_iff_prime_int.mp h₀).dvd_of_dvd_pow h",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  \n    rw [Int.modEq_zero_iff_dvd]\n    constructor\n    · intro h\n      exact dvd_pow h (by norm_num)\n    · intro h\n      exact (Nat.prime_iff_prime_int.mp h₀).dvd_of_dvd_pow h\n  \n",
+      "stitched_code": "",
+      "patched_code": "",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 1.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_1",
+      "internal_id": "A_4acb9c",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\nThe goal is to prove `↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p]` for integer `n` and prime `p`.\n\n1.  **Noise Filtering**:\n    *   `n : ℤ`\n    *   `p : ℕ`\n    *   `h₀ : Nat.Prime p`\n    *   Goal: `↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p]`\n\n2.  **Tactic Reasoning**:\n    *   The definition of `n ^ 2 ≡ 0 [ZMOD p]` in Lean is `Int.ModEq p (n ^ 2) 0`, which means `↑p ∣ (n ^ 2 - 0)`, or simply `↑p ∣ n ^ 2`.\n    *   The forward direction (`→`): If `p ∣ n`, then `p ∣ n * n`, so `p ∣ n^2`. This is straightforward using properties of divisibility.\n    *   The backward direction (`←`): If `p ∣ n^2`, and `p` is prime, then `p ∣ n`. This follows from Euclid's Lemma for integers.\n    *   In Lean, `Int.ModEq` is defined as `a ≡ b [ZMOD n] ↔ ↑n ∣ (a - b)`.\n    *   The property `p | a * b → p | a ∨ p | b` for prime `p` is available as `Prime.dvd_mul`. Note that `Nat.Prime p` implies `Prime (p : ℤ)`.\n\n3.  **Proof Construction**:\n    *   `Int.ModEq p (n^2) 0` is equivalent to `(p : ℤ) ∣ n^2`.\n    *   `n^2` is `n * n`.\n    *   By `Prime.dvd_mul_self`, if `p` is a prime and `p ∣ n * n`, then `p ∣ n`.\n    *   The forward direction is simply `dvd_pow`.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  rw [Int.ModEq, sub_zero]\n  constructor\n  · intro h\n    exact dvd_pow h (by norm_num)\n  · intro h\n    have h_prime : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    exact Prime.dvd_of_dvd_pow h_prime h\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  rw [Int.ModEq, sub_zero]\n  constructor\n  · intro h\n    exact dvd_pow h (by norm_num)\n  · intro h\n    have h_prime : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n    exact Prime.dvd_of_dvd_pow h_prime h",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  \n    rw [Int.ModEq, sub_zero]\n    constructor\n    · intro h\n      exact dvd_pow h (by norm_num)\n    · intro h\n      have h_prime : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n      exact Prime.dvd_of_dvd_pow h_prime h\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  \n    rw [Int.ModEq, sub_zero]\n    constructor\n    · intro h\n      exact dvd_pow h (by norm_num)\n    · intro h\n      have h_prime : Prime (p : ℤ) := (Nat.prime_iff_prime_int.mp h₀)\n      exact Prime.dvd_of_dvd_pow h_prime h\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_2",
+      "internal_id": "A_760eb8",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\nThe objective is to prove `↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p]` for integer `n` and prime `p`.\nNecessary hypotheses: `n : ℤ`, `p : ℕ`, `h₀ : Nat.Prime p`.\n\nReasoning:\n1. The notation `n ^ 2 ≡ 0 [ZMOD p]` is equivalent to `↑p ∣ (n^2 - 0)`, which simplifies to `↑p ∣ n^2`.\n2. The theorem becomes `↑p ∣ n ↔ ↑p ∣ n^2`.\n3. Forward direction (`→`): If `p ∣ n`, then `p` divides any power of `n`, specifically `n^2`.\n4. Backward direction (`←`): If `p ∣ n^2`, and `p` is prime, then by Euclid's lemma (specifically `Prime.dvd_of_dvd_pow` or `Prime.dvd_mul`), `p` must divide `n`.\n5. In Lean's `Int` library, `Int.prime_iff_natAbs_prime` and `Int.Prime.dvd_pow_iff` can be used, or simply use `Int.mod_eq_zero_iff_dvd` and `Int.Prime.dvd_mul`.\n\nTactics:\n- Use `rw [Int.ModEq.zero_iff]` to convert the congruence to a divisibility statement.\n- Use `pow_two` to rewrite `n^2` as `n * n`.\n- Use `h₀.prime.dvd_mul` for the backward direction.\n- Use `Dvd.dvd.mul_right` for the forward direction.\n- Alternatively, `h₀.prime.dvd_pow_iff` handles the equivalence directly for powers.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  rw [Int.ModEq.zero_iff]\n  exact (Nat.prime_iff_prime_int.mp h₀).dvd_pow_iff (by norm_num)\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  rw [Int.ModEq.zero_iff]\n  exact (Nat.prime_iff_prime_int.mp h₀).dvd_pow_iff (by norm_num)",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  \n    rw [Int.ModEq.zero_iff]\n    exact (Nat.prime_iff_prime_int.mp h₀).dvd_pow_iff (by norm_num)\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  \n    rw [Int.ModEq.zero_iff]\n    exact (Nat.prime_iff_prime_int.mp h₀).dvd_pow_iff (by norm_num)\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  \n    sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    },
+    {
+      "id": "action_3",
+      "internal_id": "A_de78a6",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\nThe objective is to prove `↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p]`.\n\n1.  **Filter the Noise**:\n    - Necessary hypotheses: `n : ℤ`, `p : ℕ`, `h₀ : Nat.Prime p`.\n    - Goal: `↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p]`.\n\n2.  **Tactic Reasoning**:\n    - The goal is an equivalence (`↔`).\n    - Definitions: `n ^ 2 ≡ 0 [ZMOD p]` is equivalent to `↑p ∣ (n^2 - 0)`, which is `↑p ∣ n^2`.\n    - Forward direction (`→`): If `↑p ∣ n`, then `n = k * ↑p`. Thus `n^2 = (k * ↑p)^2 = (k^2 * ↑p) * ↑p`, so `↑p ∣ n^2`.\n    - Backward direction (`←`): If `↑p ∣ n^2`, since `p` is prime, and `n^2 = n * n`, by the property of prime elements in the ring of integers (specifically `Prime.dvd_mul`), `↑p` must divide `n`.\n    - In Lean's library `Mathlib`, `Int.ModEq.zero_iff` and `Prime.dvd_mul` / `Prime.dvd_pow` can be used. Specifically, `Int.prime_iff_nat_prime` relates `Nat.Prime p` to `Prime (↑p : ℤ)`.\n\n3.  **Proof Steps**:\n    - Rewrite `n ^ 2 ≡ 0 [ZMOD p]` to `↑p ∣ n ^ 2` using `Int.modEq_zero_iff_dvd`.\n    - The forward direction is trivial by `dvd_pow_self`.\n    - The backward direction uses `Prime.dvd_pow_iff`. Since `p` is a prime natural number, `(p : ℤ)` is a prime element in `ℤ`.\n</think>\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  rw [Int.modEq_zero_iff_dvd]\n  constructor\n  · intro h\n    exact dvd_pow h (by norm_num)\n  · intro h\n    have hp : Prime (p : ℤ) := (Int.prime_iff_nat_prime p).mpr h₀\n    exact hp.dvd_of_dvd_pow h\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  rw [Int.modEq_zero_iff_dvd]\n  constructor\n  · intro h\n    exact dvd_pow h (by norm_num)\n  · intro h\n    have hp : Prime (p : ℤ) := (Int.prime_iff_nat_prime p).mpr h₀\n    exact hp.dvd_of_dvd_pow h",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  \n    rw [Int.modEq_zero_iff_dvd]\n    constructor\n    · intro h\n      exact dvd_pow h (by norm_num)\n    · intro h\n      have hp : Prime (p : ℤ) := (Int.prime_iff_nat_prime p).mpr h₀\n      exact hp.dvd_of_dvd_pow h\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  \n    rw [Int.modEq_zero_iff_dvd]\n    constructor\n    · intro h\n      exact dvd_pow h (by norm_num)\n    · intro h\n      have hp : Prime (p : ℤ) := (Int.prime_iff_nat_prime p).mpr h₀\n      exact hp.dvd_of_dvd_pow h\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_prmdvsneqnsqmodpeq0 (n : ℤ) (p : ℕ) (h₀ : Nat.Prime p) :\n  ↑p ∣ n ↔ n ^ 2 ≡ 0 [ZMOD p] := by\n  \n    rw [Int.modEq_zero_iff_dvd]\n    constructor\n    · intro h\n      exact dvd_pow h (by norm_num)\n    · intro h\n      sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.7142857142857143,
+        "r_dep": 0.0,
+        "Q_value": 0.7142857142857143
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "state_0",
+      "target": "action_0",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_1",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_2",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_3",
+      "relation": "expanded_to"
+    }
+  ]
+}

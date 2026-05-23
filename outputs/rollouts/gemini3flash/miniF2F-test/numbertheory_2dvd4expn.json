@@ -1,0 +1,204 @@
+{
+  "theorem_goal": "2 ∣ 4 ^ n",
+  "root_id": "state_0",
+  "total_nodes": 5,
+  "search_metadata": {
+    "budget": {
+      "max_nodes": 256,
+      "used_total": 4,
+      "used_tactic": 4,
+      "used_skeleton_raw": 0,
+      "lean_verify_calls": 4,
+      "patch_verify_calls": 1
+    },
+    "skeleton_pipeline": {
+      "requested": 0,
+      "raw_verify_success": 0,
+      "raw_verify_failed": 0,
+      "patch_attempted": 0,
+      "patch_scored": 0,
+      "patch_failed": 0,
+      "feedback_generated": 0,
+      "inserted_raw": 0,
+      "selected_by_beam": 0,
+      "rejected_by_beam": 0,
+      "valid_zero_children": 0,
+      "skeleton_duplicate_actions": 0,
+      "children_new": 0,
+      "children_duplicate": 0
+    },
+    "final_status": {
+      "states": {
+        "OPEN": 0,
+        "SOLVED": 1,
+        "FAILED": 0,
+        "RESERVED": 0
+      },
+      "actions": {
+        "tactic_SOLVED": 3,
+        "tactic_FAILED": 1,
+        "skeleton_OPEN": 0,
+        "skeleton_SOLVED": 0,
+        "skeleton_FAILED": 0,
+        "skeleton_RESERVED": 0
+      }
+    },
+    "depth_distribution": {
+      "states_seen_by_depth": {
+        "0": 1
+      },
+      "states_solved_by_depth": {
+        "0": 1
+      },
+      "queue_at_stop_by_depth": {},
+      "max_depth_reached": 0
+    },
+    "beam": {
+      "states_pruned_global": 0,
+      "states_pruned_per_depth": 0,
+      "skeletons_selected": 0,
+      "skeletons_rejected_by_beam": 0
+    },
+    "skeleton_commitment": {
+      "committed": 0,
+      "reserved": 0,
+      "fallback_activated": 0,
+      "committed_solved": 0,
+      "committed_failed": 0,
+      "committed_stale": 0,
+      "blocked_new_skeleton_due_to_active_commit": 0
+    }
+  },
+  "nodes": [
+    {
+      "id": "state_0",
+      "type": "OR",
+      "status": "SOLVED",
+      "depth": 0,
+      "target_label": "root_goal",
+      "content": {
+        "context": "n : ℕ\nh₀ : 0 < n",
+        "goal": "2 ∣ 4 ^ n",
+        "proof_body": "\n  apply dvd_pow _ (Nat.pos_iff_ne_zero.mp h₀)\n  norm_num",
+        "scaffold_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_2dvd4expn (n : ℕ) (h₀ : 0 < n) : 2 ∣ 4 ^ n := by\n  sorry\n",
+        "target_index": 0,
+        "target_kind": "root",
+        "target_label": "root_goal",
+        "parent_action_id": ""
+      },
+      "metrics": {
+        "V_value": 2.0
+      }
+    },
+    {
+      "id": "action_0",
+      "internal_id": "A_a70e1c",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "<think>\n*   Goal: Prove $2 \\mid 4^n$ for $n > 0$.\n*   Relevant hypotheses: $n : \\mathbb{N}$, $h_0 : 0 < n$.\n*   Logic: $4 = 2 \\cdot 2$, so $4^n = (2 \\cdot 2)^n = 2^n \\cdot 2^n$.\n*   Since $n > 0$, $2^n$ is of the form $2 \\cdot 2^{n-1}$.\n*   Alternatively, $4^n = 4 \\cdot 4^{n-1} = (2 \\cdot 2) \\cdot 4^{n-1} = 2 \\cdot (2 \\cdot 4^{n-1})$.\n*   Since $n \\ge 1$, we can write $n = m + 1$ or just use the property that $4^n$ is a multiple of 4.\n*   The easiest path: $4^n = 4 \\cdot 4^{n-1}$ for $n \\ge 1$. Since $2 \\mid 4$ and $4 \\mid 4^n$, $2 \\mid 4^n$.\n*   In Lean: `pow_succ` or `Nat.pow_pos`. Actually, `Nat.pow_succ'` or `succ_pred` since $n > 0$.\n*   Direct approach: `4^n = 2^n * 2^n`. Since $n \\ge 1$, $2^n$ is even.\n*   Even simpler: $4^n = (2 * 2)^n = 2^{2n}$. Since $2n \\ge 1$, $2 \\mid 2^{2n}$.\n*   Actually, $4 = 2 * 2$, so $2 \\mid 4$. By divisibility of powers, if $a \\mid b$ and $n > 0$, then $a \\mid b^n$.\n\nTactics:\n1. Use `Nat.pow_dvd_pow_of_dvd` or simply show $2 \\mid 4$.\n2. Use the fact that $n \\ge 1$.\n3. `apply dvd_pow` works if the base is divisible.\n</think>\n```lean4\ntheorem numbertheory_2dvd4expn (n : ℕ) (h₀ : 0 < n) : 2 ∣ 4 ^ n := by\n  apply dvd_pow _ (Nat.pos_iff_ne_zero.mp h₀)\n  norm_num\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_2dvd4expn (n : ℕ) (h₀ : 0 < n) : 2 ∣ 4 ^ n := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  apply dvd_pow _ (Nat.pos_iff_ne_zero.mp h₀)\n  norm_num",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_2dvd4expn (n : ℕ) (h₀ : 0 < n) : 2 ∣ 4 ^ n := by\n  \n    apply dvd_pow _ (Nat.pos_iff_ne_zero.mp h₀)\n    norm_num\n  \n",
+      "stitched_code": "",
+      "patched_code": "",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 1.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_1",
+      "internal_id": "A_ce0335",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "<think>\n- Goal: Prove `2 ∣ 4 ^ n` for `n > 0`.\n- Necessary hypotheses: `n : ℕ`, `h₀ : 0 < n`.\n- Tactic reasoning:\n  1. Note that $4^n = (2 \\cdot 2)^n = 2^n \\cdot 2^n$.\n  2. Since $n > 0$, we can pull out at least one factor of 2.\n  3. Formally, $4^n = 2 \\cdot (2 \\cdot 4^{n-1})$ or $4^n = 2^{2n} = 2 \\cdot 2^{2n-1}$.\n  4. Using `Nat.pow_succ` or `exists_eq_mul_right`, we need to show $4^n$ is a multiple of 2.\n  5. Since $n \\ge 1$, $4^n = 4 \\cdot 4^{n-1} = 2 \\cdot (2 \\cdot 4^{n-1})$.\n  6. Use `Nat.exists_eq_add_of_le` or `Nat.succ_pred` to handle the $n \\ge 1$ case.\n  7. Alternatively, `dvd_pow` is very efficient: $2 \\mid 4$ and $n > 0$ implies $2 \\mid 4^n$.\n</think>\n```lean4\ntheorem numbertheory_2dvd4expn (n : ℕ) (h₀ : 0 < n) : 2 ∣ 4 ^ n := by\n  apply dvd_pow (show 2 ∣ 4 by norm_num) (Nat.pos_iff_ne_zero.mp h₀)\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_2dvd4expn (n : ℕ) (h₀ : 0 < n) : 2 ∣ 4 ^ n := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  apply dvd_pow (show 2 ∣ 4 by norm_num) (Nat.pos_iff_ne_zero.mp h₀)",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_2dvd4expn (n : ℕ) (h₀ : 0 < n) : 2 ∣ 4 ^ n := by\n  \n    apply dvd_pow (show 2 ∣ 4 by norm_num) (Nat.pos_iff_ne_zero.mp h₀)\n  \n",
+      "stitched_code": "",
+      "patched_code": "",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 1.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_2",
+      "internal_id": "A_f9ae96",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "SOLVED",
+      "content": "<think>\n- Goal: Prove `2 ∣ 4 ^ n` for `n > 0`.\n- Necessary hypotheses: `h₀ : 0 < n`.\n- Reasoning:\n  1. Since `n > 0`, we can write `n` as `m + 1` for some `m : ℕ` (specifically `n = n.pred + 1`).\n  2. `4 ^ n = 4 ^ (m + 1) = 4 * 4^m`.\n  3. `4 = 2 * 2`, so `4 ^ n = 2 * (2 * 4^m)`.\n  4. This shows `2 ∣ 4 ^ n`.\n- Tactic: Use `Nat.pow_succ` or rewrite `n` as `succ (n-1)`. Alternatively, use `dvd_pow` which states `a ∣ a^n` if `n > 0`. Since `2 ∣ 4` and `n > 0`, it follows.\n</think>\n```lean4\ntheorem numbertheory_2dvd4expn (n : ℕ) (h₀ : 0 < n) : 2 ∣ 4 ^ n := by\n  have h : 2 ∣ 4 := by norm_num\n  exact dvd_pow h (Nat.pos_iff_ne_zero.mp h₀)\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_2dvd4expn (n : ℕ) (h₀ : 0 < n) : 2 ∣ 4 ^ n := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  have h : 2 ∣ 4 := by norm_num\n  exact dvd_pow h (Nat.pos_iff_ne_zero.mp h₀)",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_2dvd4expn (n : ℕ) (h₀ : 0 < n) : 2 ∣ 4 ^ n := by\n  \n    have h : 2 ∣ 4 := by norm_num\n    exact dvd_pow h (Nat.pos_iff_ne_zero.mp h₀)\n  \n",
+      "stitched_code": "",
+      "patched_code": "",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 1.0,
+        "r_dep": 1.0,
+        "Q_value": 2.0
+      }
+    },
+    {
+      "id": "action_3",
+      "internal_id": "A_cf0da8",
+      "type": "AND",
+      "action_type": "tactic",
+      "status": "FAILED",
+      "content": "<think>\n- Hypotheses: `n : ℕ`, `h₀ : 0 < n`.\n- Goal: `2 ∣ 4 ^ n`.\n- Reasoning: Since $0 < n$, we can write $n = m + 1$ for some $m \\in \\mathbb{N}$. Then $4^n = 4 \\cdot 4^m = 2 \\cdot (2 \\cdot 4^m)$.\n- Tactic: Use `Nat.exists_eq_succ_of_ne_zero` or simply recognize that $4^n$ is divisible by 4, and 2 divides 4.\n- Since $n \\ge 1$, $4^n$ has at least one factor of 4.\n- `4^n = 4 * 4^(n-1)`. Since $2 \\mid 4$, then $2 \\mid 4 * 4^{n-1}$.\n- In Lean, `Nat.pow_succ` or induction works, but simpler is to use the fact that $2 \\mid 4$ and $n \\ge 1$.\n</think>\n```lean4\ntheorem numbertheory_2dvd4expn (n : ℕ) (h₀ : 0 < n) : 2 ∣ 4 ^ n := by\n  match n with\n  | n + 1 =>\n    simp [pow_succ]\n    apply dvd_mul_of_dvd_left\n    norm_num\n```",
+      "prompt": "<|im_start|>system\nYou are an elite Lean 4 Tactic Agent. Your objective is to close a goal.\nYou will be provided the [PROBLEM].\n\nCRITICAL INSTRUCTIONS:\n1. FILTER THE NOISE: The local context may contain irrelevant hypotheses. Inside the <think> tag, explicitly identify ONLY the hypotheses strictly necessary to prove the Goal. \n2. TACTIC REASONING: Sketch a short, direct sequence of tactics to close the goal.\n3. PLACEHOLDER BAN: Your Lean proof body must not contain `sorry` or `admit`.\n<|im_end|>\n<|im_start|>user\nThis is the current state of the proof.\nYou may only use the information in the problem statement below.\n[PROBLEM]\n```lean4\nimport Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_2dvd4expn (n : ℕ) (h₀ : 0 < n) : 2 ∣ 4 ^ n := by\n  sorry\n```\n\n=========================================\nFINAL OUTPUT INSTRUCTIONS & FORMAT:\nThe logs above are raw system outputs. You MUST NOT mimic their format.\nYou must strictly follow this format:\n\n1. You MUST start with a <think>...</think> block explaining your approach.\n2. After thinking, output EXACTLY ONE valid ```lean4 ... ``` block containing the exact theorem signature from [PROBLEM].\n3. Do not add any conversational text after the code block.\n\nEXAMPLE FORMAT:\n<think>\n[Your concise reasoning here]\n</think>\n```lean4\n[Your final Lean code here]\n```\n<|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "extracted_lean_code": "\n  match n with\n  | n + 1 =>\n    simp [pow_succ]\n    apply dvd_mul_of_dvd_left\n    norm_num",
+      "verify_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_2dvd4expn (n : ℕ) (h₀ : 0 < n) : 2 ∣ 4 ^ n := by\n  \n    match n with\n    | n + 1 =>\n      simp [pow_succ]\n      apply dvd_mul_of_dvd_left\n      norm_num\n  \n",
+      "stitched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_2dvd4expn (n : ℕ) (h₀ : 0 < n) : 2 ∣ 4 ^ n := by\n  \n    match n with\n    | n + 1 =>\n      simp [pow_succ]\n      apply dvd_mul_of_dvd_left\n      norm_num\n  \n",
+      "patched_code": "import Mathlib\nimport Aesop\n\nset_option maxHeartbeats 0\n\nopen BigOperators Real Nat Rat Finset Topology\n\ntheorem numbertheory_2dvd4expn (n : ℕ) (h₀ : 0 < n) : 2 ∣ 4 ^ n := by\n  \n    all_goals sorry\n",
+      "lean_feedback": "",
+      "target_label": "root_goal",
+      "target_child_index": null,
+      "target_child_label": null,
+      "metrics": {
+        "r_env": 0.0,
+        "r_dep": 0.0,
+        "Q_value": 0.0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "state_0",
+      "target": "action_0",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_1",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_2",
+      "relation": "expanded_to"
+    },
+    {
+      "source": "state_0",
+      "target": "action_3",
+      "relation": "expanded_to"
+    }
+  ]
+}
