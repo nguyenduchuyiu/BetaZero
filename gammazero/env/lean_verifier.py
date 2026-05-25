@@ -12,26 +12,26 @@ from concurrent.futures import ThreadPoolExecutor
 from gammazero.utils.lean_cmd import sanitize_header
 
 DEFAULT_LAKE_PATH = shutil.which("lake") or "lake"
-# Đường dẫn tuyệt đối tới thư mục repl ở gốc project
+# Absolute path to the `repl` directory at the project root.
 ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_LEAN_WORKSPACE = str(ROOT / "repl")
 
 class PersistentLeanWorker:
-    """A persistent Lean REPL process that caches Mathlib in its base environment."""
-    
-    def __init__(self, workspace=DEFAULT_LEAN_WORKSPACE, timeout=20, max_requests=500): 
+    """Long-lived Lean REPL process; caches Mathlib in its base environment."""
+
+    def __init__(self, workspace=DEFAULT_LEAN_WORKSPACE, timeout=20, max_requests=500):
         self.workspace = workspace
         self.timeout = timeout
-        self.max_requests = max_requests 
-        self.request_count = 0           
+        self.max_requests = max_requests
+        self.request_count = 0
         self.proc = None
         self.base_env = None
         self.lock = threading.Lock()
-        self._is_timed_out = False # Cờ báo hiệu bom nổ
+        self._is_timed_out = False  # set when the watchdog fires
         self._start_repl()
 
     def _kill_proc(self):
-        # Lấy proc ra và gán None ngay lập tức để tránh Race Condition với Thread bom
+        # Detach the proc handle first to avoid a race with the watchdog timer.
         proc_to_kill = self.proc
         self.proc = None
         if proc_to_kill:
@@ -40,17 +40,17 @@ class PersistentLeanWorker:
                     os.killpg(os.getpgid(proc_to_kill.pid), signal.SIGKILL)
                     proc_to_kill.wait(timeout=2)
             except Exception as e:
-                pass # Nuốt lỗi vì process có thể đã chết
+                pass  # process may already be dead
 
     def _timeout_handler(self):
-        """Hàm kích nổ: Gây án mạng khi hết giờ."""
+        """Watchdog callback: mark timed-out and kill the worker."""
         self._is_timed_out = True
         self._kill_proc()
 
     def _read_json_response(self):
         buffer = ""
         while True:
-            # Nếu _kill_proc() được gọi từ Timer, proc sẽ bị None hoặc pipe bị đứt
+            # If the watchdog killed the process, the pipe is gone.
             if not self.proc or not self.proc.stdout:
                 raise RuntimeError("Process killed by timeout or died.")
                 
@@ -58,8 +58,8 @@ class PersistentLeanWorker:
             
             if not line:
                 if buffer:
-                    print(f"\n[CRITICAL FATAL] Lean REPL đột tử khi đang in JSON! Code dở dang:\n{buffer}")
-                raise RuntimeError("REPL closed unexpectedly (EOF). Lean Process died.")
+                    print(f"\n[CRITICAL] Lean REPL exited mid-response. Partial JSON:\n{buffer}")
+                raise RuntimeError("REPL closed unexpectedly (EOF). Lean process died.")
             
             if not buffer and not line.strip().startswith("{"):
                 continue
@@ -120,7 +120,7 @@ class PersistentLeanWorker:
 
             message_str = json.dumps(payload, ensure_ascii=False)
             
-            # GÀI BOM HẸN GIỜ!
+            # Arm the watchdog.
             self._is_timed_out = False
             timer = threading.Timer(self.timeout, self._timeout_handler)
             timer.start()
@@ -153,7 +153,7 @@ class PersistentLeanWorker:
                     "verified_code": code,
                 }
             except Exception as e:
-                # Kiểm tra xem có phải do bom nổ không
+                # Differentiate timeout from other failures.
                 if self._is_timed_out:
                     sys_err = f"Lean verification TIMED OUT after {self.timeout} seconds!"
                 else:
@@ -161,9 +161,9 @@ class PersistentLeanWorker:
                     
                 result = {"pass": False, "complete": False, "system_errors": sys_err, "errors": []}
                 print(f"[Worker] Failed/Timeout: {sys_err}. Respawning...")
-                self._start_repl() # Thay máu công nhân mới
+                self._start_repl()  # spin up a fresh worker
             finally:
-                timer.cancel() # Gỡ bom nếu Lean chạy xong sớm!
+                timer.cancel()  # always disarm the watchdog
 
         result["verify_time"] = time.time() - start_time
         return result
@@ -173,23 +173,23 @@ class PersistentLeanWorker:
 
 
 class Lean4ServerScheduler:
-    """Thread pool managing persistent Stateful Lean Workers."""
+    """Thread pool that manages a set of persistent stateful Lean workers."""
 
     def __init__(self, max_concurrent_requests=1, timeout=60, name="verifier", **kwargs):
         self.timeout = timeout
         self.worker_queue = Queue()
         self.workers = []
         
-        print(f"[{name}] Booting {max_concurrent_requests} persistent Lean worker(s)... (This takes ~5 seconds)")
+        print(f"[{name}] Booting {max_concurrent_requests} persistent Lean worker(s)... (~5 seconds)")
         for _ in range(max_concurrent_requests):
             worker = PersistentLeanWorker(timeout=self.timeout)
             self.workers.append(worker)
             self.worker_queue.put(worker)
             
-        # Dùng ThreadPool thay vì ProcessPool vì các Worker object có chứa Popen subprocess
+        # Use a thread pool because each worker owns a Popen subprocess and can't be pickled.
         self.executor = ThreadPoolExecutor(max_workers=max_concurrent_requests)
         self.futures: dict = {}
-        print(f"[{name}] Scheduler Ready.")
+        print(f"[{name}] Scheduler ready.")
 
     def _verify_task(self, code: str):
         worker = self.worker_queue.get()

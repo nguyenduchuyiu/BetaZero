@@ -76,9 +76,9 @@ class LeanEnv:
         allowed_vars: set[str] | None = None,
         target_name: str | None = None,
     ) -> dict:
-        """
-        Classify subgoals using Lean 4 Expr Tree deep analysis.
-        Returns classifications for: core_solved, core_failed, malignant, benign.
+        """Classify subgoals via Lean 4 expression-tree analysis.
+
+        Returns lists for each class: core_solved, core_failed, malignant, benign.
         """
         from gammazero.env.expr_parser import get_lean_expr_tree
         from gammazero.search.sorrifier.dependency_analyzer import SHARED_EXPR_ANALYZER
@@ -91,8 +91,8 @@ class LeanEnv:
         if not ast_expr_list:
             return empty_classification
             
-        # Tìm block có theorem_name là "my_theorem" (mặc định của build_theorem)
-        # Nếu không thấy, lấy block cuối cùng làm fallback.
+        # Locate the block named "my_theorem" (the default from build_theorem).
+        # Fall back to the last block if the name is not found.
         root_expr = {}
         for block in reversed(ast_expr_list):
             if block.get("theorem") == "my_theorem":

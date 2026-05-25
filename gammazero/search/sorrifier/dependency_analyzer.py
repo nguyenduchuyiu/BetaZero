@@ -68,14 +68,14 @@ class ExprDependencyAnalyzer:
                 node = stack.pop()
                 if not isinstance(node, dict): continue
                 
-                # CASE 1: Node là letE (Dạng have tường minh)
+                # CASE 1: explicit `have` (letE node).
                 if node.get("expr") == "letE":
                     self._classify(node, node.get("val"), results, allowed_vars)
                 
-                # CASE 2: Node là App(Lam, Val) - Dạng have bị convert
+                # CASE 2: App(Lam, Val), the `have` form Lean 4 lowers it into.
                 elif node.get("expr") == "app" and isinstance(node.get("fn"), dict) and node["fn"].get("expr") == "lam":
                     lam_node = node["fn"]
-                    val_node = node.get("arg") # Giá trị truyền vào chính là proof của subgoal
+                    val_node = node.get("arg")  # the proof of the subgoal
                     self._classify(lam_node, val_node, results, allowed_vars)
 
                 for k, v in node.items():
@@ -123,11 +123,11 @@ class ExprDependencyAnalyzer:
     def _classify(self, binder_node: dict, val_node: Any, results: dict, allowed_vars: set[str] | None = None):
         var_name = binder_node.get("var_name", "")
         if var_name and not var_name.startswith("_"):
-            # Nếu có danh sách biến hợp lệ, bỏ qua các biến cục bộ không nằm trong danh sách
+            # When `allowed_vars` is provided, skip locals outside that set.
             if allowed_vars is not None and var_name not in allowed_vars:
                 return
                 
-            # Biến là bvar 0 bên trong body của chính nó
+            # The bound variable appears as bvar 0 inside its own body.
             is_used = self._is_bvar_used(binder_node.get("body"), 0)
             is_failed = self._contains_sorry(val_node)
             
@@ -154,14 +154,14 @@ class ExprDependencyAnalyzer:
                     if not self._is_bvar_used(body, target_idx=0):
                         unused_vars.append(var_name)
                 
-                current_node = body # Tiếp tục đi sâu vào chuỗi tham số
+                current_node = body  # walk further into the parameter chain
             
             elif expr_type == "mdata":
                 current_node = current_node.get("inner", {})
                 
             else:
-                # Đã thoát khỏi chuỗi tham số đầu vào (ví dụ gặp body chính, letE, app, ...)
-                # Dừng lại, không quét tiếp vào sâu bên trong nữa để tránh bắt nhầm biến nội bộ.
+                # We have left the input parameter chain (body, letE, app, ...).
+                # Stop here; descending further would catch internal binders.
                 break
 
         return unused_vars

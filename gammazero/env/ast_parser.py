@@ -46,7 +46,7 @@ class ASTDaemon:
             preexec_fn=os.setsid  
         )
         
-        # Warmup: cache Mathlib environment so the first real call is fast
+        # Warmup: cache the Mathlib environment so the first real call is fast.
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".lean", dir=self.repl_dir, delete=False, encoding="utf-8"
         ) as tf:
@@ -83,7 +83,7 @@ class ASTDaemon:
             
             if self.proc is None or self.proc.poll() is not None or self.request_count >= self.max_requests:
                 if self.request_count >= self.max_requests:
-                    print(f"\n[AST Server] Reached {self.max_requests} requests. Respawning to flush RAM leak =))...")
+                    print(f"\n[AST Server] Reached {self.max_requests} requests. Respawning to flush memory...")
                 self._start_process()
 
             try:
@@ -101,14 +101,18 @@ _SHARED_DAEMON = ASTDaemon()
 
 
 def get_lean_ast(code: str) -> list:
-    """Return AST block dicts for a Lean code string. Thread-safe with auto-import injection and offset correction."""
-    
+    """Return AST block dicts for a Lean code string.
+
+    Thread-safe; auto-injects `import Mathlib` if missing and corrects byte
+    offsets for the injected prefix.
+    """
+
     prefix = "import Mathlib\n"
     has_import = "import " in code
-    
+
     if not has_import:
         full_code = prefix + code
-        offset_bytes = len(prefix.encode('utf-8')) # Chính xác là 15 bytes
+        offset_bytes = len(prefix.encode('utf-8'))  # 15 bytes
     else:
         full_code = code
         offset_bytes = 0
@@ -118,21 +122,21 @@ def get_lean_ast(code: str) -> list:
     ) as f:
         f.write(full_code)
         path = f.name
-        
+
     try:
         blocks = _SHARED_DAEMON.get_ast(path)
-        
+
         if offset_bytes > 0:
             valid_blocks = []
             for b in blocks:
                 b["start_byte"] -= offset_bytes
                 b["end_byte"] -= offset_bytes
-                
-                # Chỉ lấy những node thuộc về code thật (>= 0), vứt bỏ cái node của dòng import giả mạo
+
+                # Drop nodes from the synthetic import line; keep real ones (>= 0).
                 if b["start_byte"] >= 0:
                     valid_blocks.append(b)
             return valid_blocks
-            
+
         return blocks
     finally:
         os.remove(path)

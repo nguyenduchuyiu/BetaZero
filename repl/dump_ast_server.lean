@@ -28,8 +28,8 @@ def processFile (fileName : String) (lastHeader : String) (lastEnv : Environment
   let mut currentEnv := lastEnv
   let mut newHeader := lastHeader
 
-  -- [ĐÃ FIX]: Chỉ nạp lại Environment khi có Import MỚI và KHÁC RỖNG
-  -- Nếu file đéo có import (headerStr == ""), nó sẽ bốc luôn cái currentEnv (Mathlib) ra dùng!
+  -- Only reload Environment when there are NEW and NON-EMPTY imports
+  -- If the file has no imports (headerStr == ""), it will directly reuse currentEnv (Mathlib)!
   if headerStr != lastHeader && headerStr != "" then
     IO.eprintln s!"[Server] New imports detected. Loading Environment..."
     let (env, _) ← try
@@ -39,7 +39,7 @@ def processFile (fileName : String) (lastHeader : String) (lastEnv : Environment
     currentEnv := env
     newHeader := headerStr
   else
-    -- Kế thừa toàn bộ Mathlib từ file Warmup
+    -- Inherit the entire Mathlib from the Warmup file
     pure ()
 
   let pmctx : ParserModuleContext := { env := currentEnv, options := {} }
@@ -75,11 +75,11 @@ partial def serverLoop (stdin : IO.FS.Stream) (lastHeader : String) (lastEnv : E
 def main : IO Unit := do
   initSearchPath (← Lean.findSysroot)
 
-  -- [ĐÃ FIX]: Khởi đầu với tay trắng (mkEmptyEnvironment), đéo nạp Mathlib thừa thãi ở main nữa!
+  -- Start with a clean slate (mkEmptyEnvironment), no redundant loading of Mathlib in main!
   let emptyEnv ← mkEmptyEnvironment
 
   let stdin ← IO.getStdin
   IO.eprintln "[Server] Lean AST Server is ready!"
 
-  -- Gieo môi trường rỗng vào. Lúc Warmup gửi file "import Mathlib" tới, server sẽ tự độ lại Environment.
+  -- Seed with the empty environment. When the Warmup sends an "import Mathlib" file, the server will automatically update the Environment.
   serverLoop stdin "" emptyEnv

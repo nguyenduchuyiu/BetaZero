@@ -41,9 +41,10 @@ def parse_proof_state(goal_str: str, *, header: str = "") -> ProofState:
         if not line:
             continue
         
-        # In Lean goal output, hypotheses usually start at the beginning of the line (or 1-2 spaces).
-        # Continuation lines for the same hypothesis are typically further indented.
-        # Heuristic: if a line starts with substantial whitespace and doesn't look like a new hyp, join it.
+        # In Lean's goal output, hypotheses usually start at column 0 (or 1-2
+        # spaces). Continuation lines for the same hypothesis are typically
+        # indented further. Heuristic: if a line is heavily indented and does
+        # not look like a new hypothesis, append it to the previous one.
         if (line.startswith("  ") or not (":" in line)) and ctx_lines:
             ctx_lines[-1] = f"{ctx_lines[-1]} {line.strip()}"
         else:

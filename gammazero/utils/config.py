@@ -50,7 +50,7 @@ class Config:
     beta_kl: float = 0.01
     grpo_epochs: int = 1
     mini_batch_size: int = 8
-    # Micro-batches per optimizer.step (1 = disabled). Effective batch ≈ mini_batch_size * this.
+    # Micro-batches per optimizer.step (1 = disabled). Effective batch ≈ mini_batch_size * this value.
     grpo_accumulation_steps: int = 1
 
     # Training loop
@@ -58,7 +58,8 @@ class Config:
     theorems_per_iter: int = 16
     checkpoint_every: int = 50
     checkpoint_dir: str = "outputs/checkpoints"
-    # 0 = train on this iter only (no cross-iter buffer). >0 = accumulate rollout samples until >= this count before GRPO.
+    # 0 = train only on the current iteration (no cross-iter buffer);
+    # >0 = accumulate rollout samples until at least this many before running GRPO.
     min_samples_for_grpo: int = 0
 
     # Dataset
@@ -68,7 +69,7 @@ class Config:
     lora_r: int = 16
     lora_alpha: int = 32
     lora_dropout: float = 0.05
-    lora_target_modules: Optional[list] = None  # None → use model default
+    lora_target_modules: Optional[list] = None  # None = use the model default
     
     base_lora_tactic: str = "qwen_lora_tactic"
     base_lora_skeleton: str = "qwen_lora_skeleton"
@@ -83,11 +84,11 @@ class Config:
     vllm_port: int = 8000
     vllm_gpu_memory_utilization: float = 0.5
     max_model_len: int = 2048
-    vllm_ready_timeout: int = 300  # first HF download + load often exceeds 180s
+    vllm_ready_timeout: int = 300  # first-time HF download + load can exceed 180s
 
     # Logging
     log_dir: str = "outputs/runs"
-    rollout_graph_log_dir: Optional[str] = None  # e.g. outputs/rollouts → JSON per theorem/iter
+    rollout_graph_log_dir: Optional[str] = None  # e.g. outputs/rollouts; one JSON per theorem/iter
 
     def __post_init__(self) -> None:
         if self.heuristic is None:

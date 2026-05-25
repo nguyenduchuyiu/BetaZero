@@ -17,7 +17,7 @@ class DependencyRewardAssigner:
         self.reward = reward
 
     def _extract_sorry_vars(self, code: str) -> set[str]:
-        """Parses Lean code indentation to accurately attribute 'sorry' to its declaring variable."""
+        """Use indentation to attribute each `sorry` to its enclosing local declaration."""
         lines = code.splitlines()
         sorry_vars = set()
         stack = []
@@ -44,7 +44,7 @@ class DependencyRewardAssigner:
 
     @staticmethod
     def _has_real_sorry(code: str) -> bool:
-        """Return true if `sorry` appears outside Lean comments."""
+        """Return True if `sorry` appears outside Lean comments."""
         clean = re.sub(r"/\-(?:.|\n)*?\-/|--.*", "", code or "")
         return bool(re.search(r"\bsorry\b", clean))
 
@@ -61,10 +61,10 @@ class DependencyRewardAssigner:
         candidates: set[str],
         garbage_vars: list[str],
     ) -> tuple[list[str], str | None]:
-        """
-        Greedily remove candidate skeleton variables when Lean confirms the
-        stitched proof still compiles. This catches tactic-generated proof terms
-        that mention an otherwise redundant local hypothesis.
+        """Greedily prune candidate skeleton vars that Lean still accepts after removal.
+
+        Catches tactic-generated proof terms that mention an otherwise redundant
+        local hypothesis.
         """
         ordered_garbage = list(dict.fromkeys(garbage_vars))
         unresolved_sorry_vars = self._extract_sorry_vars(stitched_code)
@@ -92,8 +92,8 @@ class DependencyRewardAssigner:
         """Fill skeleton sorries with child proofs, then score dependency quality.
 
         Nested skeletons must be rescored after deeper skeletons become
-        stitchable. A single parent-to-child pass can leave a parent with stale
-        `sorry` placeholders even when all leaves are solved.
+        stitchable, because a single parent-to-child pass can leave a parent
+        with stale `sorry` placeholders even when all leaves are solved.
         """
         max_rounds = max(1, len(graph.all_actions()))
         for _ in range(max_rounds):
@@ -299,8 +299,8 @@ class DependencyRewardAssigner:
         base_malignant: list[str],
         garbage_vars: list[str],
     ) -> tuple[float, bool]:
-        # Dependency analysis proposes garbage pruning; Lean remains the source
-        # of truth before a skeleton can be marked solved.
+        # Dependency analysis suggests pruning; Lean is the source of truth
+        # before a skeleton can be marked solved.
         cleaned_full_code = self._full_code_for_state(parent_state, cleaned_code)
         cleaned_vr = self.lean.verify(cleaned_full_code)
         if not cleaned_vr.get("complete"):
@@ -365,10 +365,10 @@ class DependencyRewardAssigner:
         action_code: str,
         target_name: str | None = None,
     ) -> float:
-        """
-        Score a patched tactic that may contain local `have ... := sorry`
-        scaffolding. Naked/exact sorry remains fatal, but a sorry-backed local
-        fact can receive credit when the final proof depends on it.
+        """Score a patched tactic that may contain local `have ... := sorry` scaffolding.
+
+        Naked or `exact` sorry remains fatal, but a sorry-backed local fact can
+        receive credit when the final proof depends on it.
         """
         action_local_vars = self._extract_action_local_vars(action_code)
         if self._has_unsafe_tactic_sorry(action_code):
@@ -437,7 +437,7 @@ class DependencyRewardAssigner:
         return local_vars
 
     def _has_unsafe_tactic_sorry(self, code: str) -> bool:
-        """Return true when `sorry` is not inside a local have/let proof."""
+        """Return True when `sorry` appears outside a local have/let proof."""
         clean = re.sub(r"/\-(?:.|\n)*?\-/|--.*", "", code or "")
         stack = []
         for line in clean.splitlines():

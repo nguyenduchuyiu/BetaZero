@@ -7,7 +7,7 @@ from gammazero.search.graph import ANDORGraph
 from gammazero.utils.scaffold import target_subgoal_label
 
 class GraphLogger:
-    """Crawler đồ thị AND/OR để export ra JSON dùng cho visualization."""
+    """Crawls the AND/OR graph and exports a JSON snapshot for visualization."""
 
     def __init__(self):
         self.obj_to_id: Dict[Any, str] = {}
@@ -27,7 +27,7 @@ class GraphLogger:
         return self.obj_to_id[action]
 
     def export_to_dict(self, graph: ANDORGraph, root: ProofState, q_values: Dict[Action, float]) -> Dict[str, Any]:
-        """Duyệt đồ thị và build cấu trúc Flat (nodes, edges)."""
+        """Walk the graph and build a flat (nodes, edges) representation."""
         nodes = []
         edges = []
         
@@ -71,7 +71,7 @@ class GraphLogger:
             
             s_id = self._get_state_id(state)
             target_label = state_target_label(state)
-            # Trích xuất proof body nếu trạng thái đã SOLVED
+            # Reconstruct the proof body if this state has been solved.
             proof_body = (
                 graph.extract_proof_code(state)
                 if graph.status(state) == "SOLVED"
@@ -116,8 +116,8 @@ class GraphLogger:
             visited_actions.add(action)
 
             a_id = self._get_action_id(action)
-            # Truy cập internal _r_dep (nếu ông chưa viết hàm get_r_dep trong ANDORGraph)
-            r_d = graph._r_dep.get(action, 0.0) 
+            # Read internal _r_dep directly (no public accessor on ANDORGraph yet).
+            r_d = graph._r_dep.get(action, 0.0)
             prompt = action.prompt or ""
             extracted_lean_code = action.extracted_code
             parent_state = graph.get_parent(action)
@@ -135,7 +135,7 @@ class GraphLogger:
 
             nodes.append({
                 "id": a_id,
-                "internal_id": action.id,  # THÊM ID GỐC ĐỂ TRACE
+                "internal_id": action.id,  # original id for tracing
                 "type": "AND",
                 "action_type": action.action_type,
                 "status": graph.status(action),
@@ -161,7 +161,7 @@ class GraphLogger:
                 edges.append({"source": a_id, "target": c_id, "relation": "subgoal"})
                 traverse_state(child_state)
 
-        # Bắt đầu duyệt từ root
+        # Walk from the root.
         traverse_state(root)
 
         return {
@@ -174,7 +174,7 @@ class GraphLogger:
         }
 
     def save_json(self, graph: ANDORGraph, root: ProofState, q_values: Dict[Action, float], filepath: str):
-        """Export và lưu thành file JSON."""
+        """Export the graph and write it as JSON."""
         parent = os.path.dirname(filepath)
         if parent:
             os.makedirs(parent, exist_ok=True)

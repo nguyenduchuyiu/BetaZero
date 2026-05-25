@@ -30,17 +30,17 @@ class GeminiAPIServer:
         self.client = genai.Client(api_key=self.api_key)
 
     def start(self, adapter_path: str | None = None):
-        """No background process to start for API, just placeholder."""
+        """No-op: kept for interface parity with subprocess-based policies."""
         print(f"\n[Gemini API] Initialized parallel API mode (batch_size={self.batch_size}, model={self.model}).")
 
     def kill(self):
-        """No process to kill."""
+        """No-op: nothing to terminate for an API client."""
         pass
 
     def _get_gemini_response(self, prompt: str) -> dict | None:
         try:
-            # Create a thread-local client to avoid connection pool sharing deadlocks across threads,
-            # and set a robust 120-second request timeout (120,000 ms)
+            # Build a thread-local client to avoid sharing connection pools across
+            # threads, with a 120s request timeout.
             client = genai.Client(
                 api_key=self.api_key,
                 http_options=types.HttpOptions(timeout=120_000)
@@ -74,7 +74,7 @@ class GeminiAPIServer:
                 text = "".join(p.text for p in response.candidates[0].content.parts if p.text)
             return {"text": text, "finish_reason": finish_reason}
         except Exception as e:
-            print(f"Lỗi gọi Gemini API: {e}", flush=True)
+            print(f"Gemini API error: {e}", flush=True)
             return None
 
     def sample(

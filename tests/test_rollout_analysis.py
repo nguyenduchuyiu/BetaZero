@@ -14,9 +14,10 @@ from scripts.analyze_rollouts import (
     write_summary,
     write_dot_graph,
 )
+from analysis import figures, loaders, metrics
 
 
-ROLLOUT = Path("outputs/rollouts/gemini3flash/miniF2F-valid-50/aime_1983_p2.json")
+ROLLOUT = Path("outputs/rollouts/gemini3flash/miniF2F-test/amc12b_2002_p11.json")
 
 
 def test_parse_real_rollout_and_detect_failed_full_reward():
@@ -24,7 +25,7 @@ def test_parse_real_rollout_and_detect_failed_full_reward():
     analysis = analyze_rollout_data(data, theorem=ROLLOUT.name, source_path=str(ROLLOUT))
 
     theorem = analysis["theorem_rows"][0]
-    assert theorem["total_nodes"] == 236
+    assert theorem["total_nodes"] == 551
     assert theorem["or_nodes"] > 0
     assert theorem["and_nodes"] > 0
     assert theorem["tactic_actions"] > 0
@@ -105,3 +106,86 @@ def test_summary_explains_failure_modes_instead_of_examples_and_recommendations(
     assert "## Recommendations" not in text
     assert "`failed_full_r_env`" in text
     assert "environment/repair reward" in text
+
+
+def test_analysis_loader_counts_only_root_status_as_solved(tmp_path):
+    rollout = {
+        "root_id": "state_0",
+        "search_metadata": {
+            "budget": {"max_nodes": 8, "used_total": 8, "lean_verify_calls": 8, "patch_verify_calls": 1},
+            "final_status": {"states": {"SOLVED": 1, "FAILED": 1}, "actions": {}},
+            "depth_distribution": {"states_solved_by_depth": {"1": 1}, "max_depth_reached": 1},
+        },
+        "nodes": [
+            {"id": "state_0", "type": "OR", "status": "FAILED", "depth": 0, "content": {"proof_body": "sorry"}},
+            {"id": "action_0", "type": "AND", "action_type": "skeleton", "status": "FAILED", "metrics": {"r_env": 1.0, "r_dep": 0.0, "Q_value": 1.0}},
+            {"id": "state_1", "type": "OR", "status": "SOLVED", "depth": 1, "content": {"proof_body": "rfl"}},
+        ],
+        "edges": [
+            {"source": "state_0", "target": "action_0", "relation": "expanded_to"},
+            {"source": "action_0", "target": "state_1", "relation": "subgoal"},
+        ],
+    }
+    path = tmp_path / "child_solved_root_failed.json"
+    path.write_text(json.dumps(rollout), encoding="utf-8")
+
+    rec = loaders.load_rollout_file(str(path))
+
+    assert rec["root_status"] == "FAILED"
+    assert rec["solved"] is False
+    assert metrics.solve_rate([rec])["solved"] == 0
+
+
+def test_analysis_hierarchy_separates_root_only_and_skeleton(tmp_path):
+    root_only = {
+        "root_id": "state_0",
+        "search_metadata": {
+            "budget": {},
+            "final_status": {"states": {"SOLVED": 1}, "actions": {}},
+            "depth_distribution": {"states_solved_by_depth": {"0": 1}, "max_depth_reached": 0},
+        },
+        "nodes": [{"id": "state_0", "type": "OR", "status": "SOLVED", "depth": 0, "content": {"proof_body": "rfl"}}],
+        "edges": [],
+    }
+    via_skeleton = {
+        "root_id": "state_0",
+        "search_metadata": {
+            "budget": {},
+            "final_status": {"states": {"SOLVED": 2}, "actions": {}},
+            "depth_distribution": {"states_solved_by_depth": {"1": 1}, "max_depth_reached": 1},
+        },
+        "nodes": [
+            {"id": "state_0", "type": "OR", "status": "SOLVED", "depth": 0, "content": {"proof_body": "exact h"}},
+            {"id": "state_1", "type": "OR", "status": "SOLVED", "depth": 1, "content": {"proof_body": "rfl"}},
+        ],
+        "edges": [],
+    }
+    p1 = tmp_path / "root_only.json"
+    p2 = tmp_path / "via_skeleton.json"
+    p1.write_text(json.dumps(root_only), encoding="utf-8")
+    p2.write_text(json.dumps(via_skeleton), encoding="utf-8")
+
+    hb = metrics.hierarchical_breakdown([
+        loaders.load_rollout_file(str(p1)),
+        loaders.load_rollout_file(str(p2)),
+    ])
+
+    assert hb["solved"] == 2
+    assert hb["solved_root_only"] == 1
+    assert hb["solved_via_skeleton"] == 1
+
+
+def test_analysis_tables_tolerate_empty_reward_inputs(tmp_path):
+    sep = metrics.reward_separability([])
+    root_q = metrics.root_q_vs_outcome([])
+
+    figures.write_reward_table(str(tmp_path), sep, root_q)
+    figures.write_trajectory_table(
+        str(tmp_path),
+        metrics.trajectory_stats([]),
+        metrics.graph_structure([]),
+        metrics.reward_disagreement([]),
+    )
+
+    assert (tmp_path / "table_reward.md").exists()
+    assert (tmp_path / "table_trajectory.md").exists()

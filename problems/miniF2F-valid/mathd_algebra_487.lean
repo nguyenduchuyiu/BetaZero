@@ -12,5 +12,6 @@ theorem mathd_algebra_487
   (hI : I = (F ∩ G))
   (A B : EuclideanSpace ℝ (Fin 2))
   (h₀ : ∀ x, x ∈ I ↔ x = A ∨ x = B) :
-  dist A B = Real.sqrt 10 := by sorry
+  dist A B = Real.sqrt 10 := by
   sorry
+

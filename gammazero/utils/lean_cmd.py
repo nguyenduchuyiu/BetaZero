@@ -18,7 +18,7 @@ def sanitize_header(code: str) -> str:
             in_header = False
 
         if in_header:
-            # Catch ALL imports, not just Mathlib
+            # Drop ALL imports, not just Mathlib.
             if re.match(r"^\s*import\s+", line):
                 out.append("")
                 continue
@@ -43,7 +43,7 @@ def build_theorem(state: ProofState, code: str, *, name: str = "my_theorem") -> 
 
     import textwrap
     lines = (code or "").splitlines()
-    # Remove leading/trailing empty lines
+    # Strip leading and trailing blank lines.
     while lines and not lines[0].strip():
         lines.pop(0)
     while lines and not lines[-1].strip():

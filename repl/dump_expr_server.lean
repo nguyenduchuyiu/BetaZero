@@ -58,7 +58,7 @@ def processFileExpr (fileName : String) (cachedHeader : String) (cachedBaseEnv :
   let mut baseEnv := cachedBaseEnv
   let mut currentHeader := cachedHeader
 
-  -- Nếu header khác, tạo baseEnv MỚI SẠCH
+  -- If the header differs, create a NEW CLEAN baseEnv
   if headerStr != cachedHeader && headerStr != "" then
     IO.eprintln s!"[Server] Loading imports for {fileName}..."
     let (env, _) ← try
@@ -69,11 +69,11 @@ def processFileExpr (fileName : String) (cachedHeader : String) (cachedBaseEnv :
     baseEnv := env
     currentHeader := headerStr
 
-  -- Khởi tạo cmdState từ baseEnv SẠCH
+  -- Initialize cmdState from the CLEAN baseEnv
   let cmdState := Command.mkState baseEnv messages {}
   let pmctx : ParserModuleContext := { env := baseEnv, options := {} }
 
-  -- Chạy elabLoop (nó sẽ đắp thêm data của file hiện tại vào)
+  -- Run elabLoop (it will append the data of the current file)
   let finalCmdState ← elabLoop inputCtx pmctx parserState cmdState
   let envWithFileDecls := finalCmdState.env
 
@@ -81,7 +81,7 @@ def processFileExpr (fileName : String) (cachedHeader : String) (cachedBaseEnv :
     let msgStr ← msg.toString
     IO.eprintln s!"[Compiler Msg] {msgStr}"
 
-  -- Lấy các constant MỚI thêm vào trong module này (nhờ map₂)
+  -- Get the NEW constants added in this module (using map₂)
   let localDecls := envWithFileDecls.constants.map₂
 
   localDecls.forM fun name cinfo => do
@@ -94,7 +94,7 @@ def processFileExpr (fileName : String) (cachedHeader : String) (cachedBaseEnv :
   IO.println "===EOF==="
   (← IO.getStdout).flush
 
-  -- QUAN TRỌNG NHẤT: Trả về baseEnv (chỉ chứa Mathlib), KHÔNG trả về envWithFileDecls
+  -- MOST IMPORTANT: Return baseEnv (only contains Mathlib), NOT envWithFileDecls
   return (currentHeader, baseEnv)
 
 partial def serverLoop (stdin : IO.FS.Stream) (cachedHeader : String) (cachedBaseEnv : Environment) : IO Unit := do

@@ -11,7 +11,10 @@ from gammazero.utils import Config
 
 
 class TrainablePolicy:
-    """PEFT model for log_probs + gradient update. Explicitly load/unload to free VRAM."""
+    """PEFT model used for log-prob computation and gradient updates.
+
+    Adapters are explicitly loaded/unloaded to free VRAM between phases.
+    """
 
     def __init__(self, cfg: Config, adapter_path: str | None = None):
         self.device = cfg.device
@@ -38,12 +41,12 @@ class TrainablePolicy:
         base_tactic = os.path.abspath(cfg.base_lora_tactic)
         base_skeleton = os.path.abspath(cfg.base_lora_skeleton)
 
-        # Load reference adapters
+        # Load reference adapters.
         self.model = PeftModel.from_pretrained(base, base_tactic, adapter_name="ref_tactic")
         if os.path.exists(base_skeleton):
             self.model.load_adapter(base_skeleton, adapter_name="ref_skeleton")
 
-        # Load or initialize Active RL adapters
+        # Load or initialize the active RL adapters.
         if adapter_path and os.path.exists(adapter_path):
             tactic_path = os.path.join(adapter_path, "tactic")
             skeleton_path = os.path.join(adapter_path, "skeleton")
@@ -52,7 +55,7 @@ class TrainablePolicy:
             if os.path.exists(skeleton_path):
                 self.model.load_adapter(skeleton_path, adapter_name="active_skeleton", is_trainable=True)
         else:
-            # At iteration 1, duplicate the SFT base but make them trainable for RL
+            # First iteration: clone the SFT base into trainable RL adapters.
             self.model.load_adapter(base_tactic, adapter_name="active_tactic", is_trainable=True)
             if os.path.exists(base_skeleton):
                 self.model.load_adapter(base_skeleton, adapter_name="active_skeleton", is_trainable=True)
@@ -88,35 +91,35 @@ class TrainablePolicy:
 
     def log_probs(self, states: list[ProofState], actions: list[str],
                   prompts: list[str], action_types: list[str], disable_adapter: bool = False) -> torch.Tensor:
-        """
-        Tính log_probs bằng cách nối thẳng Prompt + Action.
-        Bỏ Shared Prefill, tận dụng FlashAttention-2 để PyTorch tự cấp phát và backprop chuẩn xác.
+        """Compute log-probs by concatenating prompt + action directly.
+
+        Skips a shared prefill and relies on FlashAttention-2, which keeps
+        PyTorch's allocation/backprop semantics correct.
         """
         if not prompts:
             return torch.empty(0, dtype=torch.float32, device=self.device)
 
-        # Gom nhóm index theo prompt và action_type để switch adapter
+        # Group inputs by (prompt, action_type) so we can switch adapters once per group.
         group_to_idxs = defaultdict(list)
         for i, (p, t) in enumerate(zip(prompts, action_types)):
             group_to_idxs[(p, t)].append(i)
 
         scores = torch.zeros(len(prompts), dtype=torch.float32, device=self.device)
-        
-        # Bắt buộc lưu lại padding_side cũ và set right padding để tính toán index chính xác
+
+        # Force right-padding so target indices line up; restore on exit.
         orig_padding = self.tokenizer.padding_side
         self.tokenizer.padding_side = "right"
 
         try:
             for (p_text, a_type), idxs in group_to_idxs.items():
                 group_actions = [actions[i] for i in idxs]
-                
-                # Chuyển đổi Multi-Adapter
+
+                # Switch to the appropriate adapter.
                 target_adapter = f"ref_{a_type}" if disable_adapter else f"active_{a_type}"
                 self.model.set_adapter(target_adapter)
-                
-                # Gọi hàm tính Logprob đơn giản
+
                 group_scores = self._score_direct(p_text, group_actions)
-                
+
                 for i, score in zip(idxs, group_scores):
                     scores[i] = score
         finally:
@@ -125,14 +128,18 @@ class TrainablePolicy:
         return scores
 
     def _score_direct(self, prompt: str, actions: list[str]) -> list[torch.Tensor]:
-        """Tính Log Prob của các đoạn Action bằng cách tự nối ID (An toàn 100% không bị BPE merge)."""
+        """Compute log-probs over action tokens by concatenating ids manually.
+
+        Manual concatenation avoids BPE merges across the prompt/action boundary
+        that would otherwise corrupt the alignment.
+        """
         prompt_ids = self.tokenizer(prompt, add_special_tokens=False).input_ids
         prompt_len = len(prompt_ids)
 
-        # Tokenize các râu (actions) riêng biệt
+        # Tokenize actions independently.
         encoded_actions = self.tokenizer(actions, add_special_tokens=False)
 
-        # Nối ID thủ công và đệm (Right Padding)
+        # Concatenate ids and right-pad.
         batch_ids = []
         max_len = 0
         for act_ids in encoded_actions.input_ids:
@@ -152,37 +159,36 @@ class TrainablePolicy:
             attention_mask[i, :L] = 1
 
         target_mask = torch.zeros_like(attention_mask)
-        
-        # Mask chỉ trùm lên đúng token đầu tiên của Action trở thành Target
-        start_idx = prompt_len - 1  # Logit t dự đoán t+1
+
+        # Mask only action tokens (logit at t predicts token t+1).
+        start_idx = prompt_len - 1
         for i in range(B):
             end_idx = attention_mask[i].sum() - 1
             if end_idx > start_idx:
                 target_mask[i, start_idx:end_idx] = 1
 
         action_logprobs = []
-        # Chunking để tránh OOM
+        # Chunk to avoid OOM.
         chunk_size = self.logprob_chunk_size
         for i in range(0, B, chunk_size):
             chunk_input_ids = input_ids[i:i+chunk_size]
             chunk_attention_mask = attention_mask[i:i+chunk_size]
             chunk_target_mask = target_mask[i:i+chunk_size]
-            
-            # Forward một cách an toàn
+
             out = self.model(input_ids=chunk_input_ids, attention_mask=chunk_attention_mask, use_cache=False)
             logits = out.logits[:, :-1, :]  # (B_chunk, T-1, V)
             teacher_targets = chunk_input_ids[:, 1:]
-            
-            # Dùng Fused C++ Kernel siêu tốc của Pytorch
+
+            # Use PyTorch's fused cross-entropy kernel.
             loss = torch.nn.functional.cross_entropy(
-                logits.float().reshape(-1, logits.size(-1)), 
-                teacher_targets.reshape(-1), 
+                logits.float().reshape(-1, logits.size(-1)),
+                teacher_targets.reshape(-1),
                 reduction="none"
             ).view(chunk_input_ids.size(0), max_len - 1)
-            
-            # Chỉ giữ lại phần log_prob của action
+
+            # Keep only the action-token contribution.
             chunk_logprobs = -(loss * chunk_target_mask[:, :max_len-1]).sum(dim=1)
             action_logprobs.extend([s for s in chunk_logprobs])
-            
+
         return action_logprobs
 

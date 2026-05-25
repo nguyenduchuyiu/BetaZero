@@ -1,13 +1,13 @@
 """
-AST-Based Automated Proof Patcher for Lean 4 (Bulldozer Edition)
---------------------------------------------
-This module automates the process of fixing broken Lean 4 proofs by ruthlessly
-replacing faulty tactics with the `sorry` axiom and deleting orphaned code.
+AST-based automated proof patcher for Lean 4
+---------------------------------------------
+Automates fixing broken Lean 4 proofs by aggressively replacing failing tactics
+with the `sorry` axiom and pruning orphaned code.
 
 Architecture:
-1. AST-Guided Truncation: Uses Lean's AST to precisely locate tactic boundaries.
-2. Boss-Hunting Fallback: Searches upward for parent blocks and clears all children.
-3. Deadlock Breaker: Structurally prunes dependent local proof slices.
+1. AST-guided truncation: uses Lean's AST to locate exact tactic boundaries.
+2. Parent-block hunter: searches upward for the enclosing block and clears its children.
+3. Deadlock breaker: structurally prunes dependent local proof slices.
 """
 
 from __future__ import annotations
@@ -17,7 +17,6 @@ import datetime
 from typing import Tuple, List, Dict, Optional, TextIO
 from tqdm import tqdm
 
-# Đã cập nhật import theo môi trường hiện tại của bạn
 from gammazero.env import Lean4ServerScheduler
 
 BLOCK_STARTERS = (
@@ -44,7 +43,7 @@ class Sorrifier:
         self._log_fp: Optional[TextIO] = None
 
     # ==========================================
-    # LOGGING UTILS (Tích hợp từ bản mới để chạy batch)
+    # LOGGING UTILS
     # ==========================================
     def _log_open(self):
         if self.log_path and self._log_fp is None:
@@ -116,10 +115,10 @@ class Sorrifier:
 
                     original_state = self.current_content
 
-                    # Kích hoạt Boss-Hunting nếu code không suy suyển (Oscillation)
+                    # Trigger parent-block hunter on oscillation (no progress between cycles).
                     if self.current_content in seen_states:
                         pbar.set_description(f"Loop detected @ L{err_line}")
-                        self.log(f"\n[LOOP DETECTED] Code oscillation detected on L{err_line}. Triggering Boss-Hunter fallback...")
+                        self.log(f"\n[LOOP DETECTED] Code oscillation detected on L{err_line}. Triggering parent-block hunter fallback...")
                         self.log(f"--- Oscillating Code State ---\n{self.current_content}\n-----------------------------")
                         try:
                             self._resolve_infinite_loop(err_line)
@@ -156,82 +155,73 @@ class Sorrifier:
             self._log_close()
 
     # ==========================================
-    # CORE FIXING LOGIC (Trùng khớp 100% bản cũ)
+    # CORE FIXING LOGIC
     # ==========================================
     def _resolve_infinite_loop(self, err_line: int):
-        """
-        Fallback resolution for correction oscillations (The Boss-Hunter).
-        """
+        """Fallback resolution for correction oscillations (parent-block hunter)."""
         lines = self.current_content.splitlines()
         err_line = self._normalize_line_number(err_line, total_lines=len(lines))
         original_content = self.current_content 
         
-        # 1. Search backward for nearest parent block by string match
-        boss_idx = -1
+        # 1. Search backward for nearest parent block by string match.
+        parent_idx = -1
         for i in range(err_line - 1, -1, -1):
             line_str = lines[i].strip()
-            # Keywords that start a block
             if any(line_str.startswith(kw) for kw in ["have ", "lemma ", "theorem ", "def ", "example", "·", "cases ", "match ", "induction "]):
-                boss_idx = i
+                parent_idx = i
                 break
         
-        if boss_idx != -1:
-            boss_line = lines[boss_idx]
-            self.log(f"[Boss-Hunter] Found parent block starter at L{boss_idx+1}: '{boss_line.strip()}'")
-            boss_indent = len(boss_line) - len(boss_line.lstrip())
+        if parent_idx != -1:
+            parent_line = lines[parent_idx]
+            self.log(f"[ParentHunter] Found block starter at L{parent_idx+1}: '{parent_line.strip()}'")
+            parent_indent = len(parent_line) - len(parent_line.lstrip())
             
-            # 2. Replace parent block body with sorry, retain declaration
-            # Handle multi-line headers: search forward for ':=' if not on this line
+            # 2. Replace parent block body with sorry, retain declaration.
+            # Handle multi-line headers: search forward for ':=' if not on this line.
             found_assign = False
-            if ":=" in boss_line:
-                lines[boss_idx] = boss_line.split(":=")[0] + ":= by sorry"
+            if ":=" in parent_line:
+                lines[parent_idx] = parent_line.split(":=")[0] + ":= by sorry"
                 found_assign = True
-            elif boss_line.strip().startswith("·"):
-                lines[boss_idx] = " " * boss_indent + "· sorry"
+            elif parent_line.strip().startswith("·"):
+                lines[parent_idx] = " " * parent_indent + "· sorry"
                 found_assign = True
-            elif "=>" in boss_line:
-                lines[boss_idx] = boss_line.split("=>")[0] + "=> sorry"
+            elif "=>" in parent_line:
+                lines[parent_idx] = parent_line.split("=>")[0] + "=> sorry"
                 found_assign = True
             else:
-                # Search forward for ':='
-                for j in range(boss_idx + 1, min(boss_idx + 20, len(lines))):
+                for j in range(parent_idx + 1, min(parent_idx + 20, len(lines))):
                     if ":=" in lines[j]:
                         lines[j] = lines[j].split(":=")[0] + ":= by sorry"
                         found_assign = True
-                        # Delete lines between boss_idx and j? No, keep the header.
-                        # But we should stop the child deletion from after j.
-                        boss_idx = j 
+                        parent_idx = j 
                         break
             
             if not found_assign:
-                # Fallback: just sorry the line where the error is
                 if err_line - 1 < len(lines):
-                    lines[err_line - 1] = " " * boss_indent + "sorry"
+                    lines[err_line - 1] = " " * parent_indent + "sorry"
             
-            # 3. Remove all child lines (greater indent) following parent
-            i = boss_idx + 1
+            # 3. Remove all child lines (greater indent) following parent.
+            i = parent_idx + 1
             while i < len(lines):
                 if not lines[i].strip():
                     i += 1
                     continue
                 curr_indent = len(lines[i]) - len(lines[i].lstrip())
-                if curr_indent > boss_indent:
+                if curr_indent > parent_indent:
                     lines[i] = ""
                     i += 1
                 else:
                     break
         else:
             if err_line - 1 < len(lines):
-                # Try to just sorry it instead of deleting
                 indent = len(lines[err_line-1]) - len(lines[err_line-1].lstrip())
                 lines[err_line - 1] = " " * indent + "sorry"
             
         self.current_content = self._clean_redundant_sorries(lines)
         
-        # 4. Deadlock Breaker: NEVER force-delete a single line.
-        # If no mutation happened, perform structural pruning instead.
+        # 4. Deadlock breaker: if no mutation happened, structurally prune instead.
         if self.current_content == original_content:
-            self.log(f"[Boss-Hunter] Fallback didn't mutate code. Structural pruning at L{err_line}.")
+            self.log(f"[ParentHunter] Fallback didn't mutate code. Structural pruning at L{err_line}.")
 
             line = lines[err_line - 1] if 0 <= err_line - 1 < len(lines) else ""
 
@@ -265,7 +255,7 @@ class Sorrifier:
             if "tactic" not in kind and "seq" not in kind:
                 continue
 
-            # Không chọn whole have ngay từ đầu.
+            # Do not select a whole `have` up front.
             if "tactichave" in kind:
                 continue
 
@@ -325,7 +315,7 @@ class Sorrifier:
         lines = self.current_content.splitlines()
         error_line = self._normalize_line_number(error_line, total_lines=len(lines))
 
-        # 1. Xử lý Trivial Tactics (Spam rác)
+        # 1. Drop trivial tactics that the model spammed.
         line_content = lines[error_line - 1].strip()
         if line_content in TRIVIAL_TACTICS:
             lines[error_line - 1] = ""
@@ -355,7 +345,7 @@ class Sorrifier:
             self.current_content = "\n".join(lines) + "\n"
             return True
 
-        # 2. Xử lý Lỗi Cú pháp / Logic sai (Fatal Error)
+        # 2. Handle syntax / logic errors (fatal).
         if is_fatal:
             valid_nodes = [b for b in enclosing if "tactic" in b["kind"].lower() or "seq" in b["kind"].lower()]
             if not valid_nodes: return emergency_fallback()
@@ -426,7 +416,7 @@ class Sorrifier:
             self.log(f"[Fix] {self._last_action_msg}")
             self.current_content = self._clean_redundant_sorries(new_lines)
                 
-        # 3. Xử lý Chưa chứng minh xong (Unsolved Goals)
+        # 3. Handle unsolved goals.
         else:
             leaf = self._find_innermost_non_have_tactic(blocks, error_line)
             if leaf is not None:
@@ -612,11 +602,11 @@ class Sorrifier:
         tactics in the same local sequence would otherwise become orphaned.
         """
         base_indent = self._indent(lines[decl_idx])
-        killed: set[str] = set()
+        removed_names: set[str] = set()
 
         first_name = self._extract_defined_name(lines[decl_idx])
         if first_name:
-            killed.add(first_name)
+            removed_names.add(first_name)
 
         delete_ranges: list[tuple[int, int]] = []
 
@@ -645,7 +635,7 @@ class Sorrifier:
 
             defined = self._extract_defined_name(lines[i])
             if defined:
-                killed.add(defined)
+                removed_names.add(defined)
 
             delete_ranges.append((i, block_end))
             i = block_end
@@ -736,7 +726,7 @@ class Sorrifier:
         )
 
     def _get_lean_errors(self) -> Tuple[List[Tuple[int, str]], List[Tuple[int, str]]]:
-        """Sử dụng API bất đồng bộ để không block luồng chạy song song."""
+        """Use the async REPL API so concurrent verifies are not blocked."""
         req_ids = self.repl_verifier.submit_all_request(
             [dict(code=self.current_content)]
         )

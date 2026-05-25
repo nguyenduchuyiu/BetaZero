@@ -78,24 +78,23 @@ def validate_skeleton_replacement(code: str) -> str:
 def _final_lean_block(raw: str) -> str:
     t = raw.strip()
 
-    # Reject if ChatML tokens are present.
+    # Reject ChatML control tokens.
     if "<|im_" in t:
         return ""
 
-    # Require the final Lean code block to be the end of the response. The
-    # thinking section may contain draft Lean fences; only the final block is
-    # treated as the answer.
+    # The final ```lean4``` block must close at the very end of the response.
+    # Earlier draft fences inside a thinking section are not the answer.
     fences = list(_LEAN_FENCE.finditer(t))
     if not fences or fences[-1].end() != len(t):
         return ""
 
     code_block = fences[-1].group(1)
 
-    # Remove comments before checking for placeholders like '...'
+    # Strip comments before checking for `...` placeholders.
     code_no_comments = strip_lean_comments(code_block)
-    
-    # Only reject if '...' is used as a standalone placeholder (lazy model behavior)
-    # Allows '...' in math comments or within valid Lean syntax if any.
+
+    # Reject only standalone `...` lines (a lazy-model placeholder),
+    # not `...` that may legitimately appear inside other syntax/comments.
     if re.search(r"^\s*\.\.\.\s*$", code_no_comments, re.MULTILINE):
         return ""
 
@@ -160,17 +159,17 @@ def explain_empty_lean_code(
 
 
 def get_lean_code(raw: str, *, allow_body: bool = False) -> str:
-    """
-    Only passes through fully valid Lean actions.
-    Giữ nguyên 100% khoảng trắng và lề gốc của proof body.
+    """Return the proof body when the response is a fully valid Lean action.
+
+    Preserves the original whitespace and indentation of the proof body.
     """
     code_block = _final_lean_block(raw)
     if not code_block:
         return ""
     code_no_comments = strip_lean_comments(code_block)
 
-    # Require header and proof divider unless this caller accepts a raw tactic
-    # body.
+    # Require a header and a proof divider unless the caller accepts a raw
+    # tactic body.
     if not _LEAN_HEADER.search(code_block) or not _PROOF_DIVIDER.search(code_block):
         if not allow_body:
             return ""
@@ -180,11 +179,11 @@ def get_lean_code(raw: str, *, allow_body: bool = False) -> str:
         return textwrap.dedent(code_block).strip("\n")
 
     divider_match = _PROOF_DIVIDER.search(code_block)
-    
-    # Lấy từ vị trí ngay sau chữ 'by' trở đi, giữ nguyên mọi dấu \n và space
+
+    # Take everything after `by`, preserving newlines and indentation.
     proof_body = code_block[divider_match.end():]
 
-    # Inductive bias: Chỉ cho phép code có nội dung thực sự (không chỉ toàn comment/sorry).
+    # Reject bodies that are empty or contain only comments/`sorry`.
     body_clean = re.sub(r"/-(?:.|\n)*?-/|--.*", "", proof_body).strip()
     if not body_clean or body_clean == "sorry" or "<|im_" in proof_body:
         return ""
@@ -200,9 +199,9 @@ def _strip_leading_by(proof: str) -> str:
         return proof
 
     body = proof[match.end():]
-    # The old regex used `\s+`, which consumed the indentation of the first
-    # tactic line after `by\n`. That turned aligned tactic blocks into
-    # accidental nested blocks when stitched back into the scaffold.
+    # The previous regex used `\s+`, which consumed the indentation of the first
+    # tactic line after `by\n` and turned aligned tactic blocks into accidental
+    # nested blocks when stitched back into the scaffold.
     return textwrap.dedent(body).strip("\n")
 
 

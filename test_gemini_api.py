@@ -17,7 +17,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--prompt",
-        default="Say hello in Vietnamese and solve 2 + 2 in one short sentence.",
+        default="Say hello and solve 2 + 2 in one short sentence.",
         help="Prompt to send.",
     )
     parser.add_argument("--max-output-tokens", type=int, default=512)

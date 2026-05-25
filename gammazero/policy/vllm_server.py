@@ -11,7 +11,7 @@ from gammazero.utils import Config
 
 
 class VLLMServer:
-    """vLLM server as a subprocess. kill() → OS reclaims 100% VRAM."""
+    """vLLM run as a subprocess. Calling kill() lets the OS reclaim all VRAM."""
 
     def __init__(self, cfg: Config):
         self.cfg              = cfg
@@ -25,21 +25,20 @@ class VLLMServer:
         self.ready_timeout    = cfg.vllm_ready_timeout
         self.proc: subprocess.Popen | None = None
         self.log_file = None
-        self._adapter_flag: bool | None = None  # Cache for whether adapter is loaded
+        self._adapter_flag: bool | None = None  # cached "is adapter loaded?" check
 
     def _get_free_port(self, start_port: int) -> int:
-        """Scan from start_port, find the first empty port and return it."""
+        """Scan up to 1000 ports starting at `start_port` and return the first free one."""
         port = start_port
-        while port < start_port + 1000: # Scan up to 1000 ports
+        while port < start_port + 1000:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 try:
-                    # Try to bind to the port. If OS allows -> Port is empty!
                     s.bind(('127.0.0.1', port))
                     return port
                 except OSError:
-                    # Error (Already in use) -> OS rejects -> Try next port
+                    # Port already in use; try the next one.
                     port += 1
-        raise RuntimeError(f"Scan 1000 ports from {start_port} but no empty port found!")
+        raise RuntimeError(f"No free port found in {start_port}..{start_port + 999}")
 
     def start(self, adapter_path: str | None = None):
         """Spawn vLLM subprocess; block until /health is up."""
@@ -93,15 +92,15 @@ class VLLMServer:
             stderr=subprocess.STDOUT, 
             preexec_fn=os.setsid     
         )
-        self._adapter_flag = None  # Reset adapter cached state at startup
+        self._adapter_flag = None  # invalidate cached adapter state on start
         self._wait_ready(self.ready_timeout)
 
     def kill(self):
-        """Kill subprocess AND ALL ITS CHILDREN; VRAM is fully reclaimed by the OS."""
+        """Kill the subprocess and its entire process group; the OS reclaims VRAM."""
         if self.proc:
             try:
                 if self.proc.poll() is None:
-                    print(f"[vLLM] Killing Process Group {self.proc.pid}...")
+                    print(f"[vLLM] Killing process group {self.proc.pid}...")
                     try:
                         os.killpg(os.getpgid(self.proc.pid), signal.SIGKILL)
                     except ProcessLookupError:
@@ -113,7 +112,7 @@ class VLLMServer:
         if self.log_file and not self.log_file.closed:
             self.log_file.close()
         
-        self._adapter_flag = None  # Clear adapter cached state at shutdown
+        self._adapter_flag = None  # invalidate cached adapter state on shutdown
         
         time.sleep(2)
 
@@ -125,7 +124,7 @@ class VLLMServer:
         *,
         prompts: list[str] | None = None,
     ) -> list[list[dict]]:
-        """Sample `n` completions per state row. Returns len(states) lists, each of length `n`."""
+        """Sample `n` completions per state. Returns one list per state with `n` items each."""
         if not states or n <= 0:
             return [[] for _ in states]
         if prompts is None:

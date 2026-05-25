@@ -87,7 +87,7 @@ class EXPRTreeDaemon:
             ):
                 if self.request_count >= self.max_requests:
                     print(
-                        f"[EXPR] Reached {self.max_requests} requests. Respawning to flush RAM..."
+                        f"[EXPR] Reached {self.max_requests} requests. Respawning to flush memory..."
                     )
                 else:
                     print("[EXPR] Daemon crashed or missing. Restarting...")

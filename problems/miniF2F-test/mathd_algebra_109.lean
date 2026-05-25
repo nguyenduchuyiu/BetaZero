@@ -13,5 +13,6 @@ theorem mathd_algebra_109
   (hA₀ : A = ![a, b])
   (hA₁ : A ∈ L)
   (ha : a = 4) :
-  b = 0 := by sorry
+  b = 0 := by
   sorry
+

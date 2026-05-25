@@ -12,14 +12,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class DeepSeekAPIServer:
-    """API server policy for parallel generation using official DeepSeek API."""
+    """Policy backed by the official DeepSeek API; samples completions in parallel."""
 
     def __init__(self, cfg: Config):
         self.cfg = cfg
         self.api_key = os.getenv("DEEPSEEK_API_KEY", "")
         self.base_url = "https://api.deepseek.com/beta"
         self.model = "deepseek-v4-flash"
-        self.batch_size = 16  # Parallel requests
+        self.batch_size = 16  # max concurrent requests
         self.max_tokens = cfg.max_new_tokens
         self.temperature = cfg.temperature
         self.max_retries = 3
@@ -32,11 +32,11 @@ class DeepSeekAPIServer:
         })
 
     def start(self, adapter_path: str | None = None):
-        """No background process to start for API, just placeholder."""
+        """No-op: kept for interface parity with subprocess-based policies."""
         print(f"\n[API] Initialized parallel API mode (batch_size={self.batch_size}).")
 
     def kill(self):
-        """No process to kill."""
+        """No-op: nothing to terminate for an API client."""
         pass
 
     def _get_official_api_response(self, prompt: str) -> dict | None:
@@ -66,7 +66,7 @@ class DeepSeekAPIServer:
                 "finish_reason": choice.get("finish_reason", ""),
             }
         except Exception as e:
-            print(f"Lỗi gọi Official API: {e}")
+            print(f"DeepSeek API error: {e}")
             return None
 
     def sample(

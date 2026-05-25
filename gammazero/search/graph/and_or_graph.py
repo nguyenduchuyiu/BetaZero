@@ -193,7 +193,7 @@ class ANDORGraph:
         with self._lock:
             old = self._skeleton_override.get(action)
             self._skeleton_override[action] = is_solved
-            self._solved_cache.clear() # Nhớ xóa cache để graph tính lại từ đầu
+            self._solved_cache.clear()  # invalidate so the graph recomputes
             return old != is_solved
 
     def set_stitched_code(self, action: Action, stitched_code: str) -> bool:
@@ -327,14 +327,14 @@ class ANDORGraph:
         if self._skeleton_override.get(action) is not True:
             return None
 
-        # Skeleton: recurse down to children
+        # Skeleton: recurse into children.
         child_proofs = [self._extract_proof_code(child, visiting) for child in action.children]
         if any(proof is None for proof in child_proofs):
             return None
         
         stitched = ProofStitcher.stitch(action.extracted_code, child_proofs)
         
-        # Dùng máy xén tỉa dựa trên list rác lưu trong graph
+        # Prune local declarations marked as garbage.
         garbage_vars = self.get_garbage_vars(action)
         if garbage_vars:
             stitched = ProofStitcher.prune_garbage(stitched, garbage_vars)
@@ -342,9 +342,9 @@ class ANDORGraph:
         return stitched
 
     def _extract_proof_code(self, state: ProofState, visiting: set[ProofState]) -> str | None:
-        """Internal recursive extraction with cycle detection."""
+        """Recursive proof extraction with cycle detection."""
         if state in visiting:
-            return None  # Cycle detected — treat as unsolved
+            return None  # cycle detected; treat as unsolved
         visiting.add(state)
         try:
             solved_actions = self.get_successful_actions(state)
@@ -357,21 +357,22 @@ class ANDORGraph:
                 if proof is None:
                     continue
                 
-                # Check if clean: strip comments before searching for 'sorry'
+                # Strip comments before checking for `sorry`.
                 clean_check = re.sub(r"/\-(?:.|\n)*?\-/|--.*", "", proof)
                 if not re.search(r'\bsorry\b', clean_check):
-                    return proof  # Clean proof found
+                    return proof  # clean proof
                 if fallback is None:
-                    fallback = proof  # Keep first sorry-containing as fallback
+                    fallback = proof  # remember first sorry-containing proof as fallback
 
             return fallback
         finally:
             visiting.discard(state)
 
     def extract_proof_code(self, state: ProofState) -> str | None:
-        """Recursively extract and stitch the successful proof code for a state.
-        
-        Tries all SOLVED actions and prefers the first one producing a sorry-free proof.
-        Falls back to the first sorry-containing proof if no clean proof exists.
+        """Recursively extract and stitch the proof for a solved state.
+
+        Tries every SOLVED action and prefers the first one that produces a
+        sorry-free proof. Falls back to the first sorry-containing proof when
+        no clean proof exists.
         """
         return self._extract_proof_code(state, set())

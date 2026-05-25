@@ -47,29 +47,29 @@ def format_lean_feedback(vr: dict, *, max_errors: int = 3, max_chars_per_error: 
     return "\n".join(lines)
 
 def inject_patched_code_to_raw(raw_output: str, patched_full_code: str) -> str:
-    """
-    Tìm block ```lean4 ... ``` cuối cùng trong raw_output (giữ nguyên <think>) 
-    và tráo ruột của nó bằng patched_full_code.
+    """Replace the body of the last ```lean4 ... ``` block with `patched_full_code`.
+
+    Preserves earlier content (e.g. the `<think>` section) unchanged.
     """
     fallback_note = (
         "\nWait, my intended proof will be failed. I will fall back to using 'sorry' for the failed tactic.\n"
     )
-    # Regex y hệt hàm get_lean_code của ông
+    # Same regex as get_lean_code.
     pattern = re.compile(r"(```lean4\s+)(.*?)(\s+```)", re.DOTALL | re.IGNORECASE)
     matches = list(pattern.finditer(raw_output))
-    
-    # Rủi ro: Model sinh thiếu tag ```lean4 (halucination nặng)
+
+    # Defensive: model may have hallucinated and dropped the ```lean4 fence.
     if not matches:
         return raw_output.rstrip() + f"\n{fallback_note}\n```lean4\n{patched_full_code.strip()}\n```"
-        
+
     last_match = matches[-1]
     fence_start = last_match.start(1)
-    
-    # Vị trí (start, end) của Group 2 - chính là phần ruột code Lean bị sai
+
+    # Group 2 spans the broken Lean code body.
     start_idx = last_match.start(2)
     end_idx = last_match.end(2)
-    
-    # Phẫu thuật thay ruột: Giữ phần đầu + Code mới + Giữ phần đuôi
+
+    # Splice the new body between the original prefix and suffix.
     new_raw = (
         raw_output[:fence_start] + fallback_note + raw_output[fence_start:start_idx] +
         "\n" + patched_full_code.strip() + "\n" + 

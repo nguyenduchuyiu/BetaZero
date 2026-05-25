@@ -83,7 +83,7 @@ class BatchExecutor:
         self.failure = failure_handler
         self.reward = reward
         self.reward_assigner = DependencyRewardAssigner(lean, reward)
-        # Get max workers from the executor to synchronize, avoid context switching.
+        # Inherit the verifier's worker count so we don't oversubscribe threads.
         ex = getattr(lean.scheduler, "executor", None)
         self._max_workers = max_workers if max_workers is not None else (
             getattr(ex, "_max_workers", 4) if ex is not None else 4
@@ -91,7 +91,7 @@ class BatchExecutor:
 
     @staticmethod
     def safe_execute(lean: LeanEnv, state: ProofState, action_code: str) -> LeanExecutionResult:
-        """Run Lean; never raises — transport/executor errors become `system_errors` on the result."""
+        """Run Lean and never raise; transport/executor errors become `system_errors`."""
         try:
             sc, vr, sg = lean.execute(state, action_code)
             return LeanExecutionResult.ok(sc, vr, sg)
@@ -340,7 +340,7 @@ class BatchExecutor:
         candidate_code: str,
         prompt: str,
     ) -> FailedActionPatch:
-        """Patch a failed subgoal tactic in parent context, then score target lines only."""
+        """Patch a failed subgoal tactic in parent context, then score the target lines only."""
         try:
             sorrifier = self.failure._new_sorrifier()
             patched = sorrifier.fix_code(candidate_code)
@@ -432,7 +432,7 @@ class BatchExecutor:
         candidate_code: str,
         prompt: str,
     ) -> FailedActionPatch:
-        """Patch a failed mini-skeleton in parent context, then score target lines only."""
+        """Patch a failed mini-skeleton in parent context, then score the target lines only."""
         try:
             sorrifier = self.failure._new_sorrifier()
             patched = sorrifier.fix_code(candidate_code)
@@ -889,7 +889,7 @@ class BatchExecutor:
                                 state_code,
                             )
                             continue
-                        # Calculate r_env even for passing skeletons to catch semantic/AST issues
+                        # Score r_env even for passing skeletons to flag semantic / AST issues.
                         r_env_score = self.reward.r_env(full_code, full_code, state_vr)
                         graph.expand(
                             state,
